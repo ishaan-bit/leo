@@ -543,7 +543,7 @@ export default function PigRitualBlock({ pigId, initialName }: PigRitualBlockPro
             {/* Sequential text reveal - line by line */}
             <div className="flex flex-col gap-3 items-center text-center">
               <motion.p
-                className="text-pink-900 text-lg font-serif italic"
+                className="text-pink-800 text-base font-serif italic"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
@@ -551,7 +551,7 @@ export default function PigRitualBlock({ pigId, initialName }: PigRitualBlockPro
                 So it's settled.
               </motion.p>
               <motion.p
-                className="text-pink-900 text-xl font-serif font-semibold"
+                className="text-pink-800 text-base font-serif italic"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.9 }}
@@ -559,7 +559,7 @@ export default function PigRitualBlock({ pigId, initialName }: PigRitualBlockPro
                 I am {pigName}.
               </motion.p>
               <motion.p
-                className="text-pink-700/80 text-base font-serif italic"
+                className="text-pink-800 text-base font-serif italic"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 1.5 }}
