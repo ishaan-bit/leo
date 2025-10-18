@@ -1,32 +1,42 @@
 /**
  * pig.storage.ts
- * Persistent storage for pig names using Vercel KV (Redis)
- * Falls back to in-memory for local development without KV configured
+ * Persistent storage for pig names using Upstash Redis (via Vercel Marketplace)
+ * Falls back to in-memory for local development without Redis configured
  * 
  * This ensures pig names persist across:
  * - Serverless function invocations
  * - Different browsers/devices
  * - User sessions (names tied to pigId, not user)
+ * 
+ * Note: Vercel KV was deprecated in June 2025, replaced with Upstash Redis integration
  */
 
-import { kv } from '@vercel/kv';
+import { Redis } from '@upstash/redis';
 
-// In-memory fallback for local dev (when KV is not configured)
+// In-memory fallback for local dev (when Redis is not configured)
 const pigData: Record<string, { name: string; namedAt: string }> = {};
 
-// Check if Vercel KV is configured
-const hasVercelKV = !!process.env.KV_REST_API_URL;
+// Check if Upstash Redis is configured (Vercel Marketplace auto-adds these vars)
+const hasRedis = !!process.env.UPSTASH_REDIS_REST_URL && !!process.env.UPSTASH_REDIS_REST_TOKEN;
+
+// Initialize Upstash Redis client
+const redis = hasRedis
+  ? new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL!,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+    })
+  : null;
 
 /**
  * Get a pig's name by pigId
  */
 export async function getPigName(pigId: string): Promise<string | null> {
-  if (hasVercelKV) {
+  if (redis) {
     try {
-      const data = await kv.get<{ name: string; namedAt: string }>(`pig:${pigId}`);
+      const data = await redis.get<{ name: string; namedAt: string }>(`pig:${pigId}`);
       return data?.name || null;
     } catch (error) {
-      console.error('KV get error:', error);
+      console.error('Redis get error:', error);
       return null;
     }
   }
@@ -44,12 +54,12 @@ export async function savePigName(pigId: string, name: string): Promise<void> {
     namedAt: new Date().toISOString(),
   };
   
-  if (hasVercelKV) {
+  if (redis) {
     try {
-      await kv.set(`pig:${pigId}`, data);
-      console.log('Saved pig to KV:', pigId, name);
+      await redis.set(`pig:${pigId}`, data);
+      console.log('Saved pig to Redis:', pigId, name);
     } catch (error) {
-      console.error('KV set error:', error);
+      console.error('Redis set error:', error);
       throw error;
     }
   } else {
@@ -71,11 +81,11 @@ export async function isPigNamed(pigId: string): Promise<boolean> {
  * Delete a pig's name (for testing/admin purposes)
  */
 export async function deletePigName(pigId: string): Promise<void> {
-  if (hasVercelKV) {
+  if (redis) {
     try {
-      await kv.del(`pig:${pigId}`);
+      await redis.del(`pig:${pigId}`);
     } catch (error) {
-      console.error('KV delete error:', error);
+      console.error('Redis delete error:', error);
       throw error;
     }
   } else {
