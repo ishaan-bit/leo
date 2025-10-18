@@ -68,7 +68,7 @@ export default function SoundToggle({ autoHintDelayMs = 2000, autoHideDelayMs = 
 
   return (
     <motion.div
-      className="fixed top-4 right-4 z-50 flex flex-col items-end gap-1"
+      className="fixed top-4 right-4 z-[100] flex flex-col items-end gap-1 pointer-events-none"
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.5 }}
@@ -81,7 +81,7 @@ export default function SoundToggle({ autoHintDelayMs = 2000, autoHideDelayMs = 
         type="button"
         onClick={toggle}
         disabled={!initialized}
-        className={`relative rounded-full text-sm shadow-md border 
+        className={`relative rounded-full text-sm shadow-md border pointer-events-auto
           border-white/40 backdrop-blur-md hover:bg-white/60 hover:scale-110
           focus:outline-none focus:ring-2 focus:ring-pink-300/60 
           transition-all duration-300 ${initialized ? '' : 'opacity-60 cursor-not-allowed'}`}
@@ -126,7 +126,7 @@ export default function SoundToggle({ autoHintDelayMs = 2000, autoHideDelayMs = 
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 10 }}
             transition={{ duration: 0.4 }}
-            className="text-[10px] text-pink-900/70 bg-white/60 backdrop-blur-sm 
+            className="text-[10px] text-pink-900/70 bg-white/60 backdrop-blur-sm pointer-events-none
               px-2 py-1 rounded-full shadow-sm border border-white/30"
             role="tooltip"
           >
