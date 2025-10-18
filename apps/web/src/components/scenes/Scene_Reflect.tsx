@@ -6,10 +6,13 @@ import { useSession, signIn } from 'next-auth/react';
 import PinkPig from '../molecules/PinkPig';
 import NotebookInput from '../atoms/NotebookInput';
 import VoiceOrb from '../atoms/VoiceOrb';
+import AuthStateIndicator from '../atoms/AuthStateIndicator';
 import type { ProcessedText } from '@/lib/multilingual/textProcessor';
 import type { TypingMetrics, VoiceMetrics, AffectVector } from '@/lib/behavioral/metrics';
 import { composeAffectFromTyping, composeAffectFromVoice } from '@/lib/behavioral/metrics';
 import { getAdaptiveAmbientSystem } from '@/lib/audio/AdaptiveAmbientSystem';
+import { getTimeOfDay, getTimeTheme, getTimeBasedGreeting } from '@/lib/time-theme';
+import { generateHeartPuff, breathingAnimation, exhaleAnimation } from '@/lib/pig-animations';
 import dialogueData from '@/lib/copy/reflect.dialogue.json';
 
 interface Scene_ReflectProps {
@@ -40,10 +43,14 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   // Visual state
   const [particleCount, setParticleCount] = useState(60);
   const [backgroundTone, setBackgroundTone] = useState('from-pink-50 to-rose-100');
-  const [pigMood, setPigMood] = useState<'calm' | 'curious' | 'happy'>('calm');
+  const [pigMood, setPigMood] = useState<'calm' | 'curious' | 'happy' | 'listening'>('calm');
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [heartPuffs, setHeartPuffs] = useState<Array<{ x: number; y: number; rotation: number; delay: number }>>([]);
+  const [showHeartAnimation, setShowHeartAnimation] = useState(false);
   
   const audioSystemRef = useRef(getAdaptiveAmbientSystem());
   const sceneStartTime = useRef(Date.now());
+  const pigRef = useRef<HTMLDivElement>(null);
 
   // Detect session variant
   useEffect(() => {
@@ -71,22 +78,40 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     };
   }, []);
 
-  // Set initial dialogue based on variant
+  // Set up time-based theme
   useEffect(() => {
-    const variantDialogue = dialogueData.variants[sessionVariant];
-    const intro = variantDialogue.intro[Math.floor(Math.random() * variantDialogue.intro.length)];
-    setDialogue(intro.replace('{pigName}', pigName));
+    const updateTimeTheme = () => {
+      const timeOfDay = getTimeOfDay();
+      const theme = getTimeTheme(timeOfDay);
+      
+      setBackgroundTone(theme.background);
+      setParticleCount(theme.particles.count);
+    };
     
-    // Update visuals based on variant
-    const visuals = variantDialogue.visuals;
-    if (visuals.tone === 'gold') {
-      setBackgroundTone('from-amber-50 via-rose-50 to-pink-100');
-    } else if (visuals.tone === 'lilac') {
-      setBackgroundTone('from-purple-50 via-pink-50 to-rose-100');
-    } else if (visuals.tone === 'indigo') {
-      setBackgroundTone('from-indigo-50 via-purple-50 to-pink-100');
-    }
-  }, [sessionVariant, pigName]);
+    // Update immediately
+    updateTimeTheme();
+    
+    // Update every 30 seconds to catch time changes
+    const interval = setInterval(updateTimeTheme, 30000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  // Track mouse position for pig eye following
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+    
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  // Set initial dialogue based on time of day
+  useEffect(() => {
+    const timeGreeting = getTimeBasedGreeting(pigName);
+    setDialogue(timeGreeting);
+  }, [pigName]);
 
   // Show guest nudge after 15 seconds for non-authenticated users
   useEffect(() => {
@@ -144,6 +169,11 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     
     const affect = composeAffectFromTyping(metrics);
     
+    // Trigger heart puff animation
+    setHeartPuffs(generateHeartPuff(6));
+    setShowHeartAnimation(true);
+    setPigMood('happy');
+    
     // Play completion chime
     audioSystemRef.current.playChime();
     
@@ -152,6 +182,9 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
       Math.floor(Math.random() * dialogueData.completion.success.length)
     ];
     setDialogue(completionDialogue.replace('{pigName}', pigName));
+    
+    // Clear heart animation after delay
+    setTimeout(() => setShowHeartAnimation(false), 2000);
     
     // Save reflection
     await saveReflection({
@@ -184,6 +217,11 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     
     const affect = composeAffectFromVoice(metrics);
     
+    // Trigger heart puff animation
+    setHeartPuffs(generateHeartPuff(6));
+    setShowHeartAnimation(true);
+    setPigMood('happy');
+    
     // Play completion chime
     audioSystemRef.current.playChime();
     
@@ -192,6 +230,9 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
       Math.floor(Math.random() * dialogueData.completion.success.length)
     ];
     setDialogue(completionDialogue.replace('{pigName}', pigName));
+    
+    // Clear heart animation after delay
+    setTimeout(() => setShowHeartAnimation(false), 2000);
     
     // Save reflection
     await saveReflection({
@@ -246,41 +287,108 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   };
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br ${backgroundTone} relative overflow-hidden`}>
-      {/* Atmospheric particles */}
+    <div className={`min-h-screen bg-gradient-to-br ${backgroundTone} relative overflow-hidden transition-colors duration-1000`}>
+      {/* Auth state indicator */}
+      <AuthStateIndicator 
+        userName={session?.user?.name}
+        isGuest={status === 'unauthenticated'}
+      />
+      
+      {/* Atmospheric particles with time-based colors */}
       <div className="absolute inset-0 pointer-events-none">
-        {Array.from({ length: particleCount }).map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 bg-pink-300/30 rounded-full"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              y: [0, -20, 0],
-              opacity: [0.2, 0.5, 0.2],
-            }}
-            transition={{
-              duration: 3 + Math.random() * 2,
-              repeat: Infinity,
-              delay: Math.random() * 2,
-              ease: 'easeInOut',
-            }}
-          />
-        ))}
+        {Array.from({ length: particleCount }).map((_, i) => {
+          const timeTheme = getTimeTheme(getTimeOfDay());
+          const colorClass = timeTheme.particles.colors[i % timeTheme.particles.colors.length];
+          
+          return (
+            <motion.div
+              key={i}
+              className={`absolute w-1 h-1 ${colorClass} rounded-full`}
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+              }}
+              animate={{
+                y: [0, -20, 0],
+                opacity: [0.2, 0.5, 0.2],
+              }}
+              transition={{
+                duration: 3 + Math.random() * 2,
+                repeat: Infinity,
+                delay: Math.random() * 2,
+                ease: 'easeInOut',
+              }}
+            />
+          );
+        })}
       </div>
+      
+      {/* Heart puff animation on submit */}
+      {showHeartAnimation && (
+        <div className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center">
+          {heartPuffs.map((puff, i) => (
+            <motion.div
+              key={i}
+              className="absolute text-4xl"
+              initial={{ x: 0, y: 0, opacity: 1, scale: 0 }}
+              animate={{
+                x: puff.x,
+                y: puff.y,
+                opacity: 0,
+                scale: [0, 1.2, 0.8],
+                rotate: puff.rotation,
+              }}
+              transition={{
+                duration: 1.5,
+                delay: puff.delay,
+                ease: 'easeOut',
+              }}
+            >
+              💖
+            </motion.div>
+          ))}
+        </div>
+      )}
 
       {/* Main content */}
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 py-12">
-        {/* Pig avatar */}
+        {/* Pig avatar with breathing and exhale animations */}
         <motion.div
+          ref={pigRef}
           initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          animate={
+            showHeartAnimation 
+              ? 'exhale' 
+              : 'breathing'
+          }
+          variants={{
+            ...breathingAnimation,
+            ...exhaleAnimation,
+          }}
           transition={{ duration: 1 }}
           className="mb-8"
         >
-          <PinkPig size={180} className={pigMood === 'curious' ? 'animate-bounce' : ''} />
+          <PinkPig 
+            size={180} 
+            className={pigMood === 'curious' ? 'animate-bounce' : ''}
+          />
+          
+          {/* Ambient glow around pig */}
+          <motion.div
+            className="absolute inset-0 -z-10 rounded-full blur-3xl"
+            style={{
+              background: getTimeTheme(getTimeOfDay()).ambientLight,
+            }}
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.3, 0.6, 0.3],
+            }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          />
         </motion.div>
 
         {/* Dialogue */}

@@ -34,6 +34,8 @@ export default function NotebookInput({
   const lastKeystrokeTime = useRef<number>(Date.now());
   const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>([]);
   const rippleIdCounter = useRef(0);
+  const [typingIntensity, setTypingIntensity] = useState(0); // 0-1 based on typing speed
+  const [isFocused, setIsFocused] = useState(false);
 
   // Track typing metrics
   useEffect(() => {
@@ -56,6 +58,11 @@ export default function NotebookInput({
     const newText = e.target.value;
     const now = Date.now();
     const timeSinceLastKey = now - lastKeystrokeTime.current;
+    
+    // Calculate typing intensity (faster typing = higher glow)
+    // Convert ms to intensity: <100ms = 1.0, >1000ms = 0
+    const intensity = Math.max(0, Math.min(1, 1 - (timeSinceLastKey / 1000)));
+    setTypingIntensity(intensity);
     
     // Check if backspace was pressed
     const isBackspace = newText.length < text.length;
@@ -127,8 +134,54 @@ export default function NotebookInput({
 
   return (
     <div className="relative w-full max-w-2xl">
-      {/* Notebook container */}
-      <div className="relative bg-white/80 backdrop-blur-sm rounded-lg border border-pink-200 shadow-lg overflow-hidden">
+      {/* Notebook container with journal aesthetic */}
+      <motion.div 
+        className="relative bg-[#fefbf5] backdrop-blur-sm rounded-lg border-2 border-pink-200/60 shadow-2xl overflow-hidden"
+        style={{
+          backgroundImage: `
+            linear-gradient(90deg, transparent 0, transparent calc(100% - 1px), rgba(251, 207, 232, 0.1) calc(100% - 1px)),
+            linear-gradient(rgba(251, 207, 232, 0.03) 1px, transparent 1px)
+          `,
+          backgroundSize: '100% 100%, 100% 28px',
+          boxShadow: `
+            0 4px 20px rgba(251, 113, 133, ${0.1 + typingIntensity * 0.2}),
+            inset 0 1px 0 rgba(255, 255, 255, 0.8),
+            inset 0 -1px 0 rgba(251, 113, 133, 0.1)
+          `,
+        }}
+        animate={{
+          boxShadow: [
+            `0 4px 20px rgba(251, 113, 133, ${0.1 + typingIntensity * 0.2}), inset 0 1px 0 rgba(255, 255, 255, 0.8), inset 0 -1px 0 rgba(251, 113, 133, 0.1)`,
+            `0 6px 24px rgba(251, 113, 133, ${0.15 + typingIntensity * 0.25}), inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 0 rgba(251, 113, 133, 0.15)`,
+            `0 4px 20px rgba(251, 113, 133, ${0.1 + typingIntensity * 0.2}), inset 0 1px 0 rgba(255, 255, 255, 0.8), inset 0 -1px 0 rgba(251, 113, 133, 0.1)`,
+          ],
+        }}
+        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+      >
+        {/* Paper texture overlay */}
+        <div 
+          className="absolute inset-0 pointer-events-none opacity-20"
+          style={{
+            backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence baseFrequency=\'0.9\' numOctaves=\'3\'/%3E%3C/filter%3E%3Crect width=\'100\' height=\'100\' filter=\'url(%23noise)\' opacity=\'0.05\'/%3E%3C/svg%3E")',
+          }}
+        />
+        
+        {/* Stitched edge effect - left margin */}
+        <div className="absolute left-0 top-0 bottom-0 w-16 border-r border-dashed border-pink-300/40" />
+        
+        {/* Typing glow effect */}
+        {isFocused && (
+          <motion.div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: `radial-gradient(circle at 50% 50%, rgba(251, 113, 133, ${typingIntensity * 0.08}), transparent 70%)`,
+            }}
+            animate={{
+              opacity: [0.5, 1, 0.5],
+            }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+          />
+        )}
         {/* Ink ripple effects */}
         {ripples.map(ripple => (
           <motion.div
@@ -150,22 +203,26 @@ export default function NotebookInput({
           />
         ))}
         
-        {/* Textarea */}
+        {/* Textarea with pen cursor */}
         <textarea
           ref={textareaRef}
           value={text}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           placeholder={placeholder}
           disabled={disabled}
-          className="w-full min-h-[200px] p-6 bg-transparent border-none outline-none resize-none font-serif text-lg text-pink-900 placeholder:text-pink-400 placeholder:italic"
+          className="w-full min-h-[200px] p-6 pl-20 bg-transparent border-none outline-none resize-none font-serif text-lg text-pink-900 placeholder:text-pink-400/70 placeholder:italic"
           style={{
             lineHeight: '1.75',
+            cursor: 'text',
+            textShadow: '0 1px 0 rgba(251, 207, 232, 0.3)',
           }}
         />
         
         {/* Character count & language indicator */}
-        <div className="absolute bottom-3 left-6 text-xs text-pink-500 italic">
+        <div className="absolute bottom-3 left-20 text-xs text-pink-500/70 italic">
           {text.length > 0 && (
             <>
               {text.length} characters
@@ -184,20 +241,28 @@ export default function NotebookInput({
             onClick={handleSubmit}
             disabled={!isValid || disabled}
             className={`
-              px-6 py-2 rounded-full font-medium text-sm
+              px-6 py-2 rounded-full font-serif text-sm
               transition-all duration-300
               ${isValid && !disabled
-                ? 'bg-pink-600 text-white hover:bg-pink-700 hover:shadow-lg'
-                : 'bg-pink-200 text-pink-400 cursor-not-allowed'
+                ? 'bg-gradient-to-r from-pink-600 to-rose-600 text-white hover:from-pink-700 hover:to-rose-700 shadow-lg hover:shadow-xl'
+                : 'bg-pink-200/50 text-pink-400/70 cursor-not-allowed'
               }
             `}
-            whileHover={isValid && !disabled ? { scale: 1.05 } : {}}
+            whileHover={isValid && !disabled ? { scale: 1.05, y: -2 } : {}}
             whileTap={isValid && !disabled ? { scale: 0.95 } : {}}
+            animate={isValid && !disabled ? {
+              boxShadow: [
+                '0 4px 20px rgba(251, 113, 133, 0.3)',
+                '0 6px 24px rgba(251, 113, 133, 0.4)',
+                '0 4px 20px rgba(251, 113, 133, 0.3)',
+              ],
+            } : {}}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
           >
             Let it go
           </motion.button>
         </div>
-      </div>
+      </motion.div>
       
       {/* Validation message */}
       {validationMessage && (
