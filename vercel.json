@@ -1,6 +1,4 @@
 {
-  "buildCommand": "cd apps/web && npm run build",
-  "outputDirectory": "apps/web/.next",
   "framework": "nextjs",
   "regions": ["sin1"]
 }
