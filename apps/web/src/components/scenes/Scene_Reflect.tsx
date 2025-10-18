@@ -310,7 +310,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
         }}
       />
       
-      {/* Top bar: Sound toggle (right) + Auth state (center) */}
+      {/* Top bar: Auth state centered */}
       <div className="fixed top-0 left-0 right-0 z-30 flex items-center justify-center px-6 py-4"
         style={{
           paddingTop: 'max(1rem, env(safe-area-inset-top))',
@@ -329,12 +329,10 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
             isGuest={status === 'unauthenticated'}
           />
         </motion.div>
-        
-        {/* Sound toggle - absolute positioned to right */}
-        <div className="absolute right-6" style={{ paddingRight: 'max(1.5rem, env(safe-area-inset-right))' }}>
-          <SoundToggle />
-        </div>
       </div>
+      
+      {/* Sound toggle - rendered separately, positions itself with fixed */}
+      <SoundToggle />
       
       {/* Atmospheric particles with time-based colors */}
       <div className="absolute inset-0 pointer-events-none">
