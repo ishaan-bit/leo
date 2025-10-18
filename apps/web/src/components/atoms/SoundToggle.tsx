@@ -16,25 +16,15 @@ export default function SoundToggle({ autoHintDelayMs = 2000, autoHideDelayMs = 
   const [hasInteracted, setHasInteracted] = useState(false);
 
   useEffect(() => {
-    // Pre-instantiate Howler object so it's ready after the first tap.
+    // Pre-instantiate and start playing (muted) immediately
     try {
       const sound = initAmbientSound();
       setInitialized(true);
       
-      // Check if sound is already playing and sync state
-      if (sound && sound.playing()) {
+      // Check current volume to sync UI state
+      if (sound && sound.volume() > 0) {
         setEnabled(true);
       }
-      
-      // Periodically sync state with actual playback (in case something else controls it)
-      const syncInterval = setInterval(() => {
-        if (sound) {
-          const isPlaying = sound.playing();
-          setEnabled(isPlaying);
-        }
-      }, 1000);
-      
-      return () => clearInterval(syncInterval);
     } catch {
       // no-op
     }
@@ -58,10 +48,10 @@ export default function SoundToggle({ autoHintDelayMs = 2000, autoHideDelayMs = 
     setShowHint(false); // Hide hint on interaction
     
     if (!enabled) {
-      playAmbientSound();
+      playAmbientSound(); // Unmute (fade volume up)
       setEnabled(true);
     } else {
-      stopAmbientSound();
+      stopAmbientSound(); // Mute (fade volume down to 0)
       setEnabled(false);
     }
   }
