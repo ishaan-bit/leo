@@ -20,16 +20,16 @@ export async function POST(req: NextRequest) {
   }
 
   // Check if already named (optional - remove if you want to allow renaming)
-  if (isPigNamed(pigId)) {
+  if (await isPigNamed(pigId)) {
     return NextResponse.json(
       { error: "This pig has already been named" }, 
       { status: 400 }
     );
   }
 
-  // Save to server-side storage (persists across browsers/devices)
+  // Save to Vercel KV (persists across serverless invocations, browsers, and devices)
   try {
-    savePigName(pigId, name.trim());
+    await savePigName(pigId, name.trim());
     
     return NextResponse.json({ 
       ok: true, 
