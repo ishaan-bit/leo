@@ -319,7 +319,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
       />
       
       {/* Top bar: Auth state centered */}
-      <div className="fixed top-0 left-0 right-0 z-30 flex items-center justify-center px-6 py-4"
+      <div className="fixed top-0 left-0 right-0 z-30 flex items-center justify-center px-6 py-4 pointer-events-none"
         style={{
           paddingTop: 'max(1rem, env(safe-area-inset-top))',
           paddingLeft: 'max(1.5rem, env(safe-area-inset-left))',
@@ -331,6 +331,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4, ease: [0.34, 1.56, 0.64, 1] }}
+          className="pointer-events-auto"
         >
           <AuthStateIndicator 
             userName={session?.user?.name}
