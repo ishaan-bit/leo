@@ -6,10 +6,12 @@
 import { Howl } from 'howler';
 import type { AffectVector, AdaptiveResponse } from '@/lib/behavioral/metrics';
 import { mapAffectToResponse } from '@/lib/behavioral/metrics';
+import { initAmbientSound } from '@/lib/sound'; // Use global ambient sound
 
 class AdaptiveAmbientSystem {
   private initialized = false;
-  private ambientLayer: Howl | null = null;
+  // DO NOT create our own ambient layer - use the global one from sound.ts
+  // private ambientLayer: Howl | null = null;
   private pigBreathingLayer: Howl | null = null;
   private inkRippleSound: Howl | null = null;
   private windPadLayer: Howl | null = null;
@@ -40,13 +42,9 @@ class AdaptiveAmbientSystem {
         return howl;
       };
 
-      // Ambient base layer (persistent from global audio)
-      this.ambientLayer = createHowl({
-        src: ['/audio/ambient.mp3'],
-        loop: true,
-        volume: 0.3,
-        preload: true,
-      });
+      // Ambient base layer is managed globally by sound.ts
+      // We don't create our own instance to avoid duplicate tracks
+      const globalAmbient = initAmbientSound();
 
       // Pig breathing loop (4-second cycle recommended)
       this.pigBreathingLayer = createHowl({
@@ -87,9 +85,9 @@ class AdaptiveAmbientSystem {
         },
       });
 
-      // Start ambient and breathing (safe play - won't crash if files missing)
+      // Start breathing and wind (ambient is already playing globally)
       try {
-        this.ambientLayer?.play();
+        // Global ambient is already playing from sound.ts
         // Play the 4-second breathing sprite on loop
         if (this.pigBreathingLayer) {
           this.pigBreathingLayer.play('breath');
@@ -137,9 +135,12 @@ class AdaptiveAmbientSystem {
     const response = mapAffectToResponse(affect);
     this.currentResponse = response;
 
-    // Update ambient tempo (arousal drives speed)
-    if (this.ambientLayer) {
-      this.ambientLayer.rate(response.ambientTempo);
+    // Get reference to global ambient sound
+    const globalAmbient = initAmbientSound();
+
+    // Update global ambient tempo (arousal drives speed)
+    if (globalAmbient) {
+      globalAmbient.rate(response.ambientTempo);
     }
 
     // Update wind pad volume and tempo (follows arousal)
@@ -151,10 +152,10 @@ class AdaptiveAmbientSystem {
 
     // Update ambient warmth (valence drives tone)
     // In a full implementation, this would crossfade between warm/cool stems
-    // For now, we adjust volume based on warmth
-    if (this.ambientLayer) {
+    // For now, we adjust volume based on warmth via the global sound instance
+    if (globalAmbient) {
       const warmthVolume = 0.2 + (response.ambientWarmth * 0.2);
-      this.smoothFade(this.ambientLayer, warmthVolume, 2000);
+      this.smoothFade(globalAmbient, warmthVolume, 2000);
     }
   }
 
@@ -176,7 +177,7 @@ class AdaptiveAmbientSystem {
    * Suspend all audio (pause scene)
    */
   suspend(): void {
-    this.ambientLayer?.pause();
+    // Global ambient is managed by sound.ts, don't pause it here
     this.pigBreathingLayer?.pause();
     this.windPadLayer?.pause();
   }
@@ -185,7 +186,7 @@ class AdaptiveAmbientSystem {
    * Resume all audio
    */
   resume(): void {
-    this.ambientLayer?.play();
+    // Global ambient is managed by sound.ts, don't resume it here
     this.pigBreathingLayer?.play();
     this.windPadLayer?.play();
   }
@@ -194,7 +195,7 @@ class AdaptiveAmbientSystem {
    * Stop all audio and cleanup
    */
   stop(): void {
-    this.ambientLayer?.stop();
+    // Global ambient is managed by sound.ts, don't stop it here
     this.pigBreathingLayer?.stop();
     this.windPadLayer?.stop();
     this.inkRippleSound?.unload();
