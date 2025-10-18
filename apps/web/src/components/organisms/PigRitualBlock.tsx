@@ -22,6 +22,7 @@ export default function PigRitualBlock({ pigId, initialName }: PigRitualBlockPro
   const [showConfetti, setShowConfetti] = useState(false);
   const [isEntering, setIsEntering] = useState(true);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [showSuccessTransition, setShowSuccessTransition] = useState(false);
 
   // Trigger entrance sequence
   useEffect(() => {
@@ -151,14 +152,21 @@ export default function PigRitualBlock({ pigId, initialName }: PigRitualBlockPro
   async function handleGoogleSignIn() {
     setIsAuthenticating(true);
     try {
+      // Show success transition before redirecting
+      setShowSuccessTransition(true);
+      
+      // Wait for user to see the message
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
       // Redirect to Google OAuth with callback to reflection page
       await signIn('google', { 
         callbackUrl: `/reflect/${pigId}` 
       });
     } catch (err) {
       console.error('Error signing in with Google:', err);
-      setError('Could not sign in with Google');
+      setError('Could not sign in');
       setIsAuthenticating(false);
+      setShowSuccessTransition(false);
     }
   }
 
@@ -392,41 +400,158 @@ export default function PigRitualBlock({ pigId, initialName }: PigRitualBlockPro
             </motion.button>
           </motion.form>
         ) : (
+          // Post-naming scene with sequential text fade-ins and floating button animation
           <motion.div
-            className="flex flex-col gap-4 items-center w-full"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
+            className="flex flex-col gap-6 items-center w-full max-w-md px-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8 }}
           >
-            <motion.button
-              onClick={handleContinueAsGuest}
-              disabled={isAuthenticating}
-              className="rounded-full bg-white/80 backdrop-blur-sm text-pink-900 px-8 font-semibold shadow-lg hover:shadow-xl hover:bg-white transition-all border-2 border-pink-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ minHeight: '48px', paddingTop: '12px', paddingBottom: '12px' }}
-              whileHover={{ scale: isAuthenticating ? 1 : 1.05 }}
-              whileTap={{ scale: isAuthenticating ? 1 : 0.95 }}
+            {/* Sequential text reveal - line by line */}
+            <div className="flex flex-col gap-3 items-center text-center">
+              <motion.p
+                className="text-pink-900 text-lg font-serif italic"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+              >
+                So it's settled.
+              </motion.p>
+              <motion.p
+                className="text-pink-900 text-xl font-serif font-semibold"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.9 }}
+              >
+                I am {pigName}.
+              </motion.p>
+              <motion.p
+                className="text-pink-700/80 text-base font-serif italic"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 1.5 }}
+              >
+                I'll remember that… wherever you find me again.
+              </motion.p>
+            </div>
+
+            {/* Buttons float up like bubbles after 1.5s pause */}
+            <motion.div
+              className="flex flex-col gap-3 w-full items-center mt-4"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ 
+                duration: 0.8, 
+                delay: 2.7, // 1.5s after last text + 0.6s for text animation + 0.6s buffer
+                type: 'spring',
+                stiffness: 80,
+                damping: 12
+              }}
             >
-              {isAuthenticating ? 'Loading...' : 'Continue as Guest'}
-            </motion.button>
-            <motion.button
-              onClick={handleGoogleSignIn}
-              disabled={isAuthenticating}
-              className="rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white px-8 font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ minHeight: '48px', paddingTop: '12px', paddingBottom: '12px' }}
-              whileHover={{ scale: isAuthenticating ? 1 : 1.05 }}
-              whileTap={{ scale: isAuthenticating ? 1 : 0.95 }}
+              {/* Continue as Guest - pale shimmer like moonlight */}
+              <motion.button
+                onClick={handleContinueAsGuest}
+                disabled={isAuthenticating}
+                className="relative rounded-full bg-white/70 backdrop-blur-md text-pink-900 px-10 py-3 font-medium shadow-lg border border-white/60 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
+                style={{ 
+                  minHeight: '52px',
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '15px'
+                }}
+                whileHover={{ 
+                  scale: isAuthenticating ? 1 : 1.03,
+                  boxShadow: '0 8px 24px rgba(251, 207, 232, 0.4)'
+                }}
+                whileTap={{ scale: isAuthenticating ? 1 : 0.97 }}
+              >
+                {/* Moonlight shimmer effect */}
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
+                  animate={{
+                    x: ['-100%', '200%']
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: 'linear',
+                    repeatDelay: 2
+                  }}
+                  style={{ width: '50%' }}
+                />
+                <span className="relative z-10">
+                  {isAuthenticating ? 'Loading...' : 'Continue as Guest'}
+                </span>
+              </motion.button>
+
+              {/* Sign in with Google - heartbeat glow with poetic copy */}
+              <motion.button
+                onClick={handleGoogleSignIn}
+                disabled={isAuthenticating}
+                className="relative rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white px-10 py-3 font-medium shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ 
+                  minHeight: '52px',
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '15px'
+                }}
+                animate={{
+                  boxShadow: isAuthenticating ? '0 4px 16px rgba(251, 113, 133, 0.3)' : [
+                    '0 0 20px rgba(251, 113, 133, 0.4), 0 4px 16px rgba(251, 113, 133, 0.3)',
+                    '0 0 32px rgba(251, 113, 133, 0.6), 0 4px 20px rgba(251, 113, 133, 0.4)',
+                    '0 0 20px rgba(251, 113, 133, 0.4), 0 4px 16px rgba(251, 113, 133, 0.3)'
+                  ]
+                }}
+                transition={{
+                  boxShadow: { 
+                    duration: 2, 
+                    repeat: Infinity, 
+                    ease: 'easeInOut' 
+                  }
+                }}
+                whileHover={{ 
+                  scale: isAuthenticating ? 1 : 1.03,
+                  boxShadow: '0 0 40px rgba(251, 113, 133, 0.7), 0 6px 24px rgba(251, 113, 133, 0.5)'
+                }}
+                whileTap={{ scale: isAuthenticating ? 1 : 0.97 }}
+              >
+                {isAuthenticating ? 'Signing in...' : 'Let me remember you'}
+              </motion.button>
+            </motion.div>
+
+            {/* Refined bottom hint - smaller, grayish lavender */}
+            <motion.p
+              className="text-pink-600/60 text-xs mt-6 text-center leading-relaxed"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 3.2 }}
+              style={{ fontFamily: "'Inter', sans-serif" }}
             >
-              {isAuthenticating ? 'Signing in...' : 'Sign in with Google'}
-            </motion.button>
-            <p className="text-pink-700/70 text-sm mt-4 text-center">
-              Re-scan my QR anytime to find me again.
-            </p>
+              If you lose me, scan my mark again — I'll come flying back.
+            </motion.p>
           </motion.div>
         )}
       </div>
 
       {/* Sound toggle now positions itself - removed from here as it's in SoundToggle component */}
       <SoundToggle />
+
+      {/* Success transition overlay - "Now I'll remember you, too" */}
+      {showSuccessTransition && (
+        <motion.div
+          className="absolute inset-0 flex items-center justify-center bg-pink-50/95 backdrop-blur-sm z-50"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6 }}
+        >
+          <motion.p
+            className="text-pink-900 text-2xl font-serif italic text-center px-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            Now I'll remember you, too.
+          </motion.p>
+        </motion.div>
+      )}
     </section>
   );
 }
