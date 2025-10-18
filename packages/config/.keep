@@ -1,0 +1,10 @@
+# Shared Configuration Package
+
+Placeholder for shared config files (ESLint, TypeScript, etc.)
+
+## Future Usage
+```json
+{
+  "extends": "@leo/config/eslint"
+}
+```

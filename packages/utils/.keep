@@ -1,0 +1,8 @@
+# Shared Utilities Package
+
+Placeholder for shared utility functions.
+
+## Future Usage
+```typescript
+import { formatDate, validateEmail } from '@leo/utils';
+```

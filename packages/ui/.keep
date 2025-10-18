@@ -1,0 +1,8 @@
+# Shared UI Components Package
+
+Placeholder for shared React components that can be used across multiple apps.
+
+## Future Usage
+```typescript
+import { Button, Card } from '@leo/ui';
+```

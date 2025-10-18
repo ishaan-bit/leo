@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reset Leo - Clear All Data</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            max-width: 600px;
+            margin: 100px auto;
+            background: #ffe4e6;
+            padding: 40px;
+            text-align: center;
+        }
+        .box {
+            background: white;
+            border: 3px solid #f43f5e;
+            border-radius: 16px;
+            padding: 40px;
+        }
+        button {
+            background: #f43f5e;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        button:hover {
+            background: #e11d48;
+        }
+        .success { 
+            color: #059669; 
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        h1 { color: #f43f5e; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>🔄 Reset Leo Data</h1>
+        <p>This will clear all pig names from cookies and localStorage</p>
+        
+        <button onclick="clearAllData()">🗑️ Clear All Data</button>
+        <button onclick="goToPig()">🐷 Go to Pig Page</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function clearAllData() {
+            // Clear all localStorage
+            localStorage.clear();
+            
+            // Clear all cookies
+            document.cookie.split(";").forEach(cookie => {
+                const name = cookie.split("=")[0].trim();
+                document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+            });
+            
+            document.getElementById('result').innerHTML = 
+                '<p class="success">✅ All data cleared!<br>Pig names have been reset.</p>';
+            
+            setTimeout(() => {
+                window.location.href = '/p/testpig';
+            }, 1500);
+        }
+        
+        function goToPig() {
+            window.location.href = '/p/testpig';
+        }
+    </script>
+</body>
+</html>

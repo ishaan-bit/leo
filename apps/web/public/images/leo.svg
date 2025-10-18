@@ -1,0 +1,98 @@
+<!--?xml version="1.0" encoding="UTF-8"?-->
+<!-- Leo — wings behind body, above center (y=40), moved outward; synced blink, breath, flap, flutter -->
+<svg viewBox="0 0 128 96" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <title>Leo the winged pig</title>
+
+  <defs>
+    <!-- gentle top highlight -->
+    <linearGradient id="glow" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".55"></stop>
+      <stop offset=".35" stop-color="#fff" stop-opacity=".18"></stop>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"></stop>
+    </linearGradient>
+
+    <!-- soft shadow (used under wings) -->
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="1.2" stdDeviation="1.4" flood-opacity=".18"></feDropShadow>
+    </filter>
+
+    <style>
+      .leo-wrap{transform-box:fill-box;transform-origin:50% 50%}
+      .eye{transform-box:fill-box;transform-origin:center}
+      .ear-rot,.wing-rot{transform-box:fill-box;transform-origin:center}
+
+      /* breathing / bobbing */
+      @keyframes breath{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.6px)}}
+      .breath-on{animation:breath 3.2s ease-in-out infinite}
+
+      /* gentle wing flap */
+      @keyframes flap{0%,100%{transform:rotate(0)}50%{transform:rotate(7deg)}}
+      .flap-on .wing-rot{animation:flap 2.6s ease-in-out infinite}
+
+      /* ear flutter */
+      @keyframes flutter{0%,100%{transform:rotate(0)}50%{transform:rotate(-5deg)}}
+      .flutter-on .ear-rot{animation:flutter 4.2s ease-in-out infinite}
+
+      /* synced blink (both eyes together) */
+      @keyframes blink{
+        0%,6%,100%{transform:scaleY(1)}
+        3%{transform:scaleY(0.12)}
+      }
+      .blink-on .eye{animation:blink 7.5s linear infinite}
+
+      @media (prefers-reduced-motion:reduce){
+        .breath-on,.flap-on .wing-rot,.flutter-on .ear-rot,.blink-on .eye{animation:none!important}
+      }
+    </style>
+  </defs>
+
+  <!-- Toggle classes: breath-on blink-on flap-on flutter-on -->
+  <g class="leo-wrap breath-on blink-on flap-on flutter-on" pointer-events="none">
+
+    <!-- WINGS FIRST (behind body) — placed at y=40 (above body center y=56), moved outward -->
+    <!-- Left wing -->
+    <g class="wing wing-l" transform="translate(22 40)" filter="url(#shadow)">
+      <g class="wing-rot" transform-origin="16 10">
+        <path d="M16 12c-8 0-16-4-16-12 7 2.8 12-2 16.8-2C22.5-2 27 2.5 27 7s-6 5-11 5z" fill="#FFF4F7" stroke="#E7CED7" stroke-width="1"></path>
+        <path d="M6 7c2 1.5 4.2 2.6 6.2 2.9" fill="none" stroke="#E7CED7" stroke-width="1" stroke-linecap="round"></path>
+      </g>
+    </g>
+
+    <!-- Right wing (true mirror) -->
+    <g class="wing wing-r" transform="translate(106 40) scale(-1 1)" filter="url(#shadow)">
+      <g class="wing-rot" transform-origin="16 10">
+        <path d="M16 12c-8 0-16-4-16-12 7 2.8 12-2 16.8-2C22.5-2 27 2.5 27 7s-6 5-11 5z" fill="#FFF4F7" stroke="#E7CED7" stroke-width="1"></path>
+        <path d="M6 7c2 1.5 4.2 2.6 6.2 2.9" fill="none" stroke="#E7CED7" stroke-width="1" stroke-linecap="round"></path>
+      </g>
+    </g>
+
+    <!-- BODY (on top of wings) -->
+    <ellipse cx="64" cy="56" rx="32" ry="27" fill="#F6B3C1"></ellipse>
+    <ellipse cx="64" cy="46" rx="27" ry="14" fill="url(#glow)"></ellipse>
+
+    <!-- EARS (soft, upright) -->
+    <g class="ear ear-l"><g class="ear-rot">
+      <path d="M38 27c4.8-8.2 13-8.4 16.6-3.4-5.2 3.7-10 5.2-16.6 3.4z" fill="#F6B3C1"></path>
+    </g></g>
+    <g class="ear ear-r"><g class="ear-rot">
+      <path d="M90 27c-4.8-8.2-13-8.4-16.6-3.4 5.2 3.7 10 5.2 16.6 3.4z" fill="#F6B3C1"></path>
+    </g></g>
+
+    <!-- COIN SLOT -->
+    <rect x="57" y="32" width="14" height="2.4" rx="1.2" fill="#CC8795" opacity=".55"></rect>
+
+    <!-- EYES (synced blink) -->
+    <circle class="eye eye-l" cx="50.5" cy="44" r="2.6" fill="#35242B"></circle>
+    <circle class="eye eye-r" cx="77.5" cy="44" r="2.6" fill="#35242B"></circle>
+
+    <!-- BLUSH -->
+    <ellipse cx="44" cy="50.5" rx="6" ry="3.6" fill="#F29EB0" opacity=".45"></ellipse>
+    <ellipse cx="84" cy="50.5" rx="6" ry="3.6" fill="#F29EB0" opacity=".45"></ellipse>
+
+    <!-- SNOUT + SMILE -->
+    <ellipse cx="64" cy="60" rx="11.6" ry="8.2" fill="#F1A3B1"></ellipse>
+    <circle cx="58.7" cy="60" r="1.6" fill="#4B2E3D"></circle>
+    <circle cx="69.3" cy="60" r="1.6" fill="#4B2E3D"></circle>
+    <path d="M52 66c4.6 3.6 19.4 3.6 24 0" fill="none" stroke="#4B2E3D" stroke-width="1.6" stroke-linecap="round"></path>
+  </g>
+</svg>
