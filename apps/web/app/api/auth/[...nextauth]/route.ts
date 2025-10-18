@@ -20,19 +20,21 @@ const handler = NextAuth({
       return session;
     },
     async redirect({ url, baseUrl }) {
-      // Always redirect to awakening after sign-in
-      // If url is relative, use it, otherwise default to /awakening
+      // ALWAYS redirect to awakening scene after authentication
+      // Any /reflect routes get redirected
+      if (url.includes('/reflect')) {
+        return `${baseUrl}/awakening`;
+      }
+      // If it's a relative path starting with /, check it
       if (url.startsWith('/')) {
-        // Relative URL - check if it's a specific callback
-        return url === '/reflect' || url.includes('/reflect/') ? '/awakening' : url;
+        return url;
       }
-      // Absolute URL - check if it's on our domain
+      // If it's an absolute URL on our domain
       if (url.startsWith(baseUrl)) {
-        const path = url.replace(baseUrl, '');
-        return path === '/reflect' || path.includes('/reflect/') ? '/awakening' : path;
+        return url;
       }
-      // Default fallback
-      return '/awakening';
+      // Default: go to awakening
+      return `${baseUrl}/awakening`;
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
