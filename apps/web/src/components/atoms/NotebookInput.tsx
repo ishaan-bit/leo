@@ -134,40 +134,51 @@ export default function NotebookInput({
 
   return (
     <div className="relative w-full max-w-2xl">
-      {/* Notebook container with journal aesthetic - improved contrast */}
+      {/* Notebook container with enhanced journal aesthetic */}
       <motion.div 
-        className="relative bg-[#fdf8f0] backdrop-blur-sm rounded-lg border-2 border-pink-300/70 shadow-2xl overflow-hidden"
+        className="relative bg-[#fdf5ed] backdrop-blur-sm rounded-2xl border-2 border-pink-300/80 overflow-hidden"
         style={{
           backgroundImage: `
-            linear-gradient(90deg, transparent 0, transparent calc(100% - 1px), rgba(251, 207, 232, 0.15) calc(100% - 1px)),
-            linear-gradient(rgba(251, 207, 232, 0.05) 1px, transparent 1px)
+            linear-gradient(90deg, transparent 0, transparent calc(100% - 1px), rgba(251, 207, 232, 0.2) calc(100% - 1px)),
+            linear-gradient(rgba(251, 207, 232, 0.08) 1.5px, transparent 1.5px)
           `,
-          backgroundSize: '100% 100%, 100% 28px',
+          backgroundSize: '100% 100%, 100% 32px',
           boxShadow: `
-            0 4px 20px rgba(251, 113, 133, ${0.15 + typingIntensity * 0.2}),
-            inset 0 1px 0 rgba(255, 255, 255, 0.8),
-            inset 0 -1px 0 rgba(251, 113, 133, 0.15)
+            0 8px 32px rgba(156, 31, 95, ${0.12 + typingIntensity * 0.15}),
+            0 2px 8px rgba(156, 31, 95, 0.08),
+            inset 0 1px 0 rgba(255, 255, 255, 0.9),
+            inset 0 -1px 0 rgba(251, 113, 133, 0.2)
           `,
         }}
         animate={{
           boxShadow: [
-            `0 4px 20px rgba(251, 113, 133, ${0.15 + typingIntensity * 0.2}), inset 0 1px 0 rgba(255, 255, 255, 0.8), inset 0 -1px 0 rgba(251, 113, 133, 0.15)`,
-            `0 6px 24px rgba(251, 113, 133, ${0.2 + typingIntensity * 0.25}), inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 0 rgba(251, 113, 133, 0.2)`,
-            `0 4px 20px rgba(251, 113, 133, ${0.15 + typingIntensity * 0.2}), inset 0 1px 0 rgba(255, 255, 255, 0.8), inset 0 -1px 0 rgba(251, 113, 133, 0.15)`,
+            `0 8px 32px rgba(156, 31, 95, ${0.12 + typingIntensity * 0.15}), 0 2px 8px rgba(156, 31, 95, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 0 rgba(251, 113, 133, 0.2)`,
+            `0 10px 40px rgba(156, 31, 95, ${0.16 + typingIntensity * 0.2}), 0 3px 12px rgba(156, 31, 95, 0.12), inset 0 1px 0 rgba(255, 255, 255, 1), inset 0 -1px 0 rgba(251, 113, 133, 0.25)`,
+            `0 8px 32px rgba(156, 31, 95, ${0.12 + typingIntensity * 0.15}), 0 2px 8px rgba(156, 31, 95, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 0 rgba(251, 113, 133, 0.2)`,
           ],
         }}
-        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
       >
-        {/* Paper texture overlay */}
+        {/* Enhanced paper texture overlay */}
         <div 
-          className="absolute inset-0 pointer-events-none opacity-20"
+          className="absolute inset-0 pointer-events-none opacity-30 mix-blend-multiply"
           style={{
-            backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence baseFrequency=\'0.9\' numOctaves=\'3\'/%3E%3C/filter%3E%3Crect width=\'100\' height=\'100\' filter=\'url(%23noise)\' opacity=\'0.05\'/%3E%3C/svg%3E")',
+            backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'120\' height=\'120\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence baseFrequency=\'1.2\' numOctaves=\'4\' seed=\'2\'/%3E%3C/filter%3E%3Crect width=\'120\' height=\'120\' filter=\'url(%23noise)\' opacity=\'0.08\'/%3E%3C/svg%3E")',
+            backgroundSize: '120px 120px',
           }}
         />
         
-        {/* Stitched edge effect - left margin */}
-        <div className="absolute left-0 top-0 bottom-0 w-16 border-r border-dashed border-pink-400/50" />
+        {/* Stitched edge effect - left margin with binding aesthetic */}
+        <div className="absolute left-0 top-0 bottom-0 w-20 border-r-2 border-dashed border-pink-400/60 bg-gradient-to-r from-pink-50/30 to-transparent" >
+          {/* Binding holes */}
+          {[...Array(6)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute left-3 w-2 h-2 rounded-full bg-pink-200/40 border border-pink-300/50"
+              style={{ top: `${15 + i * 15}%` }}
+            />
+          ))}
+        </div>
         
         {/* Typing glow effect */}
         {isFocused && (

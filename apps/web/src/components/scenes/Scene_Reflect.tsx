@@ -7,6 +7,7 @@ import PinkPig from '../molecules/PinkPig';
 import NotebookInput from '../atoms/NotebookInput';
 import VoiceOrb from '../atoms/VoiceOrb';
 import AuthStateIndicator from '../atoms/AuthStateIndicator';
+import SoundToggle from '../atoms/SoundToggle';
 import type { ProcessedText } from '@/lib/multilingual/textProcessor';
 import type { TypingMetrics, VoiceMetrics, AffectVector } from '@/lib/behavioral/metrics';
 import { composeAffectFromTyping, composeAffectFromVoice } from '@/lib/behavioral/metrics';
@@ -51,7 +52,6 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   const audioSystemRef = useRef(getAdaptiveAmbientSystem());
   const sceneStartTime = useRef(Date.now());
   const pigRef = useRef<HTMLDivElement>(null);
-  const [soundMuted, setSoundMuted] = useState(false);
 
   // Detect session variant
   useEffect(() => {
@@ -305,29 +305,24 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
         }}
       />
       
-      {/* Sound toggle - top left */}
-      <motion.button
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.6, delay: 0.3 }}
-        onClick={() => {
-          setSoundMuted(!soundMuted);
-          localStorage.setItem('leo.sound.muted', String(!soundMuted));
-          // TODO: Implement actual mute/unmute when sound system supports it
-        }}
-        className="fixed top-6 left-6 z-30 w-12 h-12 rounded-full bg-white/60 backdrop-blur-sm hover:bg-white/80 transition-all duration-300 flex items-center justify-center shadow-lg"
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
-        title={soundMuted ? "Unmute sound" : "Mute sound"}
-      >
-        <span className="text-xl">{soundMuted ? '🔇' : '🔊'}</span>
-      </motion.button>
+      {/* Global sound toggle - top right (consistent across all scenes) */}
+      <SoundToggle />
       
-      {/* Auth state indicator - top right */}
-      <AuthStateIndicator 
-        userName={session?.user?.name}
-        isGuest={status === 'unauthenticated'}
-      />
+      {/* Auth state indicator - centered at top */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.4, ease: [0.34, 1.56, 0.64, 1] }}
+        className="fixed top-8 left-1/2 -translate-x-1/2 z-30"
+        style={{
+          paddingTop: 'max(2rem, env(safe-area-inset-top))',
+        }}
+      >
+        <AuthStateIndicator 
+          userName={session?.user?.name}
+          isGuest={status === 'unauthenticated'}
+        />
+      </motion.div>
       
       {/* Atmospheric particles with time-based colors */}
       <div className="absolute inset-0 pointer-events-none">
@@ -414,8 +409,9 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
           className="relative mb-6"
         >
           <PinkPig 
-            size={160} 
-            className={pigMood === 'curious' ? 'animate-pulse' : ''}
+            size={200} 
+            state={scenePhase === 'listening' ? 'thinking' : 'idle'}
+            onInputFocus={scenePhase === 'listening'}
           />
           
           {/* Ambient glow around pig - intensifies when listening */}
@@ -425,8 +421,22 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
               background: getTimeTheme(getTimeOfDay()).ambientLight,
             }}
             animate={{
-              scale: scenePhase === 'listening' ? [1, 1.3, 1] : [1, 1.2, 1],
-              opacity: scenePhase === 'listening' ? [0.4, 0.7, 0.4] : [0.3, 0.6, 0.3],
+              scale: scenePhase === 'listening' ? [1, 1.35, 1] : [1, 1.25, 1],
+              opacity: scenePhase === 'listening' ? [0.45, 0.75, 0.45] : [0.35, 0.65, 0.35],
+            }}
+            transition={{
+              duration: 3.5,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          />
+          
+          {/* Subtle shadow ripple */}
+          <motion.div
+            className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-3/4 h-12 bg-gradient-to-t from-pink-300/30 via-pink-200/20 to-transparent rounded-full blur-2xl"
+            animate={{
+              scale: [0.9, 1.1, 0.9],
+              opacity: [0.3, 0.5, 0.3],
             }}
             transition={{
               duration: 4,
@@ -436,26 +446,33 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
           />
         </motion.div>
 
-        {/* Dialogue - darker text with word-by-word fade-in */}
+        {/* Dialogue - poetic typography with word-by-word fade-in */}
         <motion.div
           key={dialogue}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          className="mb-8 text-center max-w-lg"
+          className="mb-10 text-center max-w-lg px-4"
         >
-          <p className="text-xl md:text-2xl font-serif italic text-[#9C1F5F] leading-relaxed">
+          <p 
+            className="text-2xl md:text-3xl font-serif italic text-[#9C1F5F] leading-snug tracking-wide"
+            style={{ 
+              fontFamily: "'DM Serif Text', serif",
+              lineHeight: '1.4',
+              letterSpacing: '0.01em'
+            }}
+          >
             {dialogue.split(' ').map((word, index) => (
               <motion.span
                 key={`${word}-${index}`}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{
-                  duration: 0.3,
+                  duration: 0.35,
                   delay: index * 0.08,
                   ease: 'easeOut',
                 }}
-                className="inline-block mr-[0.3em]"
+                className="inline-block mr-[0.35em]"
               >
                 {word}
               </motion.span>

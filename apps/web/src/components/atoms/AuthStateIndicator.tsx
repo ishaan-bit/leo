@@ -24,21 +24,25 @@ export default function AuthStateIndicator({ userName, isGuest }: AuthStateIndic
 
   return (
     <>
-      {/* Auth status indicator */}
+      {/* Auth status indicator - centered at top with poetic styling */}
       <motion.div
-        initial={{ opacity: 0, y: -10 }}
+        initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.5 }}
-        className="fixed top-6 right-6 z-30 flex items-center gap-3"
+        transition={{ duration: 0.8, delay: 0.6, ease: [0.34, 1.56, 0.64, 1] }}
+        className="flex items-center gap-2.5 bg-white/40 backdrop-blur-md rounded-full px-5 py-2.5 shadow-lg border border-white/50"
       >
-        {/* Status text */}
+        {/* Status text with shimmer */}
         <motion.div
-          className="text-sm text-pink-700/70 font-serif italic"
+          className="text-sm font-serif italic text-pink-900/80"
+          style={{ 
+            fontFamily: "'DM Serif Text', serif",
+            letterSpacing: '0.01em'
+          }}
           animate={{
-            opacity: [0.7, 1, 0.7],
+            opacity: [0.75, 0.95, 0.75],
           }}
           transition={{
-            duration: 3,
+            duration: 4,
             repeat: Infinity,
             ease: 'easeInOut',
           }}
@@ -50,14 +54,14 @@ export default function AuthStateIndicator({ userName, isGuest }: AuthStateIndic
           )}
         </motion.div>
 
-        {/* Sign out button - feather icon */}
+        {/* Sign out button - feather icon with gentle float */}
         {!isGuest && (
           <motion.button
             onClick={handleSignOut}
             disabled={isSigningOut}
-            className="relative w-8 h-8 flex items-center justify-center rounded-full bg-pink-100/60 hover:bg-pink-200/80 transition-all duration-300 disabled:opacity-50"
-            whileHover={{ scale: 1.1, rotate: 5 }}
-            whileTap={{ scale: 0.95 }}
+            className="relative w-7 h-7 flex items-center justify-center rounded-full bg-pink-100/50 hover:bg-pink-200/70 transition-all duration-300 disabled:opacity-50 group"
+            whileHover={{ scale: 1.15, rotate: 8 }}
+            whileTap={{ scale: 0.9 }}
             title="Sign out"
           >
             {/* Feather icon */}
@@ -65,15 +69,23 @@ export default function AuthStateIndicator({ userName, isGuest }: AuthStateIndic
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2"
+              strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="w-4 h-4 text-pink-600"
+              className="w-3.5 h-3.5 text-pink-700 group-hover:text-pink-800 transition-colors"
             >
               <path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z" />
               <line x1="16" y1="8" x2="2" y2="22" />
               <line x1="17.5" y1="15" x2="9" y2="15" />
             </svg>
+            
+            {/* Hover glow */}
+            <motion.div
+              className="absolute inset-0 rounded-full bg-pink-300/30 -z-10"
+              initial={{ scale: 0, opacity: 0 }}
+              whileHover={{ scale: 1.5, opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            />
           </motion.button>
         )}
       </motion.div>
