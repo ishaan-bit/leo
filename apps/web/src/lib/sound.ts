@@ -23,12 +23,28 @@ export function initAmbientSound() {
 export function playAmbientSound() {
   const sound = initAmbientSound();
   sound.fade(sound.volume(), 0.4, 800); // Fade in to audible volume
+  
+  // Ensure volume is exactly 0.4 after fade completes
+  setTimeout(() => {
+    if (ambientSound) {
+      ambientSound.volume(0.4);
+    }
+  }, 850); // Slightly after fade duration (800ms)
+  
   localStorage.setItem(VOLUME_STORAGE_KEY, 'false'); // Remember unmuted state
 }
 
 export function stopAmbientSound() {
   if (ambientSound) {
     ambientSound.fade(ambientSound.volume(), 0, 300); // Fade to silent (muted)
+    
+    // Ensure volume is exactly 0 after fade completes
+    setTimeout(() => {
+      if (ambientSound) {
+        ambientSound.volume(0);
+      }
+    }, 350); // Slightly after fade duration (300ms)
+    
     localStorage.setItem(VOLUME_STORAGE_KEY, 'true'); // Remember muted state
   }
 }
