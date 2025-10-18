@@ -23,8 +23,31 @@ export default function PigRitualBlock({ pigId, initialName }: PigRitualBlockPro
   const [isEntering, setIsEntering] = useState(true);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [showSuccessTransition, setShowSuccessTransition] = useState(false);
+  
+  // Cinematic entrance states
+  const [showLine1, setShowLine1] = useState(false);
+  const [showLine2, setShowLine2] = useState(false);
+  const [showLine3, setShowLine3] = useState(false);
+  const [showLine4, setShowLine4] = useState(false);
+  const [showInputField, setShowInputField] = useState(false);
+  const [pigHeadTilt, setPigHeadTilt] = useState(false);
 
-  // Trigger entrance sequence
+  // Cinematic entrance sequence
+  useEffect(() => {
+    if (!initialName && !hasNamed) {
+      const timers = [
+        setTimeout(() => setShowLine1(true), 800),
+        setTimeout(() => setShowLine2(true), 2200),
+        setTimeout(() => setPigHeadTilt(true), 3200),
+        setTimeout(() => setShowLine3(true), 3800),
+        setTimeout(() => setShowLine4(true), 4600),
+        setTimeout(() => setShowInputField(true), 5400),
+      ];
+      return () => timers.forEach(clearTimeout);
+    }
+  }, [initialName, hasNamed]);
+
+  // Trigger entrance sequence (original timer)
   useEffect(() => {
     const timer = setTimeout(() => setIsEntering(false), 2000);
     return () => clearTimeout(timer);
@@ -278,14 +301,18 @@ export default function PigRitualBlock({ pigId, initialName }: PigRitualBlockPro
 
       {/* Main content wrapper - tighter spacing for mobile */}
       <div className="relative z-10 w-full max-w-lg flex-1 flex flex-col items-center justify-center space-y-3 py-8">
-        {/* Pig Character with top breathing room - entrance animation */}
+        {/* Pig Character - cinematic entrance: floats up from below with wing flutter */}
         <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ 
+            y: pigHeadTilt ? -5 : 0, 
+            opacity: 1,
+            rotate: pigHeadTilt ? 3 : 0
+          }}
           transition={{ 
-            duration: 0.8, 
-            delay: 0.3,
-            ease: [0.34, 1.56, 0.64, 1] // easeOutBack
+            y: { duration: 1.2, ease: [0.34, 1.56, 0.64, 1] },
+            opacity: { duration: 0.8 },
+            rotate: { duration: 0.6, delay: 3.2 }
           }}
           className="mb-0"
         >
@@ -296,111 +323,217 @@ export default function PigRitualBlock({ pigId, initialName }: PigRitualBlockPro
           />
         </motion.div>
 
-        {/* Speech Bubble - entrance animation with spring */}
-        <motion.div
-          initial={{ scale: 0.95, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{
-            delay: 0.6,
-            duration: 0.5,
-            type: 'spring',
-            stiffness: 200,
-            damping: 20
-          }}
-        >
-          <SpeechBubble 
-            text={
-              showConfetti 
-                ? `Thank you.\nI'll remember this name.`
-                : !hasNamed 
-                  ? "They say pigs can't fly.\nYet here I am - waiting for someone to believe I could.\nI don't have a name yet.\nWould you lend me one?"
-                  : `So it's settled.\nI am ${pigName}.\nI'll remember that… wherever you find me again.`
-            }
-            isThinking={isSubmitting && !showConfetti}
-          />
-        </motion.div>
+        {/* Sequential dialogue reveal - line by line with pauses */}
+        {!hasNamed && (
+          <motion.div
+            className="flex flex-col gap-3 items-center text-center px-6 max-w-md"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6, duration: 0.6 }}
+          >
+            {/* Line 1: "They say pigs can't fly." */}
+            {showLine1 && (
+              <motion.p
+                className="text-pink-800 text-lg font-serif italic"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7 }}
+              >
+                They say pigs can't fly.
+              </motion.p>
+            )}
 
-        {/* Form or Post-naming Content - stays above safe area */}
-        {!hasNamed ? (
+            {/* Line 2: "Yet here I am; waiting for someone to believe I could." */}
+            {showLine2 && (
+              <motion.p
+                className="text-pink-700 text-base font-serif"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7 }}
+              >
+                Yet here I am — waiting for someone to believe I could.
+              </motion.p>
+            )}
+
+            {/* Line 3: "I don't have a name yet." */}
+            {showLine3 && (
+              <motion.p
+                className="text-pink-900 text-lg font-serif font-medium mt-2"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7 }}
+              >
+                I don't have a name yet.
+              </motion.p>
+            )}
+
+            {/* Line 4: "Would you lend me one?" */}
+            {showLine4 && (
+              <motion.p
+                className="text-pink-800 text-base font-serif italic"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7 }}
+              >
+                Would you lend me one?
+              </motion.p>
+            )}
+          </motion.div>
+        )}
+
+        {/* Diegetic input field - magical orb that transforms into text input */}
+        {!hasNamed && showInputField ? (
           <motion.form
             onSubmit={handleNameSubmit}
-            className="flex flex-col items-center gap-3 w-full pb-8 mt-2"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center gap-4 w-full pb-8 mt-6"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
             transition={{ 
-              delay: 1.5, 
-              duration: 0.6,
-              ease: 'easeOut'
+              duration: 0.8,
+              type: 'spring',
+              stiffness: 120,
+              damping: 15
             }}
           >
-            <motion.input
-              type="text"
-              name="name"
-              placeholder="Give me a name I'll remember…"
-              className="w-full max-w-sm rounded-2xl border border-white/40 text-center text-pink-900 shadow-lg placeholder-pink-400/60 focus:outline-none transition-all"
-              style={{ 
-                fontSize: '16px', 
-                minHeight: '56px',
-                background: 'rgba(255, 255, 255, 0.35)',
-                backdropFilter: 'blur(8px)',
-                WebkitBackdropFilter: 'blur(8px)',
-                boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5), 0 4px 16px rgba(251,113,133,0.1)'
-              }}
-              required
-              minLength={2}
+            {/* Magical whisper field - orb with shimmer */}
+            <div className="relative w-full max-w-sm">
+              {/* Ambient shimmer ring around input */}
+              <motion.div
+                className="absolute inset-0 rounded-full"
+                style={{
+                  background: 'radial-gradient(circle, rgba(251,207,232,0.4) 0%, transparent 70%)',
+                  filter: 'blur(20px)',
+                }}
+                animate={{
+                  scale: [1, 1.15, 1],
+                  opacity: [0.4, 0.7, 0.4],
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
+              />
+              
+              {/* Input field as orb */}
+              <motion.input
+                type="text"
+                name="name"
+                placeholder="Give me a name I'll remember…"
+                className="relative w-full rounded-full border-2 border-pink-200/60 text-center text-pink-900 shadow-xl placeholder-pink-400/70 focus:outline-none focus:border-pink-300 transition-all"
+                style={{ 
+                  fontSize: '16px', 
+                  minHeight: '64px',
+                  background: 'radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,245,255,0.8) 100%)',
+                  backdropFilter: 'blur(12px)',
+                  WebkitBackdropFilter: 'blur(12px)',
+                  boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.8), 0 8px 32px rgba(251,113,133,0.15)',
+                  fontFamily: "'DM Serif Text', serif",
+                }}
+                required
+                minLength={2}
+                maxLength={30}
+                disabled={isSubmitting}
+                onFocus={() => setIsInputFocused(true)}
+                onBlur={() => setIsInputFocused(false)}
+                whileFocus={{
+                  scale: 1.02,
+                  boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.9), 0 12px 40px rgba(251,113,133,0.25)',
+                }}
+              />
+
+              {/* Typing shimmer effect - reacts to input */}
+              {isInputFocused && (
+                <motion.div
+                  className="absolute inset-0 rounded-full pointer-events-none"
+                  style={{
+                    background: 'linear-gradient(90deg, transparent, rgba(251,207,232,0.6), transparent)',
+                  }}
+                  animate={{
+                    x: ['-100%', '200%'],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: 'linear',
+                  }}
+                />
+              )}
+            </div>
+
+            {/* "Name Me" button with pulsing glow and particle trail on hover */}
+            <motion.button
+              type="submit"
               disabled={isSubmitting}
-              onFocus={() => setIsInputFocused(true)}
-              onBlur={() => setIsInputFocused(false)}
-              whileFocus={{ 
-                scale: 1.02,
-                boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5), 0 0 0 3px rgba(251,113,133,0.2), 0 4px 20px rgba(251,113,133,0.2)'
+              className="relative rounded-full bg-gradient-to-r from-pink-400 to-rose-400 text-white px-12 py-4 font-semibold text-lg shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
+              style={{
+                fontFamily: "'Inter', sans-serif",
               }}
-            />
+              animate={{
+                scale: isSubmitting ? 1 : [1, 1.05, 1],
+                boxShadow: isSubmitting 
+                  ? '0 8px 32px rgba(251,113,133,0.3)'
+                  : [
+                      '0 8px 32px rgba(251,113,133,0.4)',
+                      '0 12px 40px rgba(251,113,133,0.6)',
+                      '0 8px 32px rgba(251,113,133,0.4)',
+                    ]
+              }}
+              transition={{
+                scale: { duration: 2, repeat: Infinity, ease: 'easeInOut' },
+                boxShadow: { duration: 2, repeat: Infinity, ease: 'easeInOut' },
+              }}
+              whileHover={{ 
+                scale: isSubmitting ? 1 : 1.08,
+                boxShadow: '0 16px 48px rgba(251,113,133,0.7)',
+              }}
+              whileTap={{ scale: isSubmitting ? 1 : 0.95 }}
+            >
+              {/* Button press light dim effect */}
+              <motion.div
+                className="absolute inset-0 bg-black"
+                initial={{ opacity: 0 }}
+                whileTap={{ opacity: 0.1 }}
+                transition={{ duration: 0.1 }}
+              />
+              
+              {/* Particle sparkle on hover */}
+              <motion.div
+                className="absolute top-0 right-0 w-2 h-2 bg-white rounded-full"
+                style={{ filter: 'blur(1px)' }}
+                animate={{
+                  x: [0, -20, -40],
+                  y: [0, -10, -20],
+                  opacity: [0, 1, 0],
+                  scale: [0, 1.5, 0],
+                }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                  ease: 'easeOut',
+                }}
+              />
+              
+              <span className="relative z-10">
+                {isSubmitting ? 'Remembering...' : 'Name Me'}
+              </span>
+            </motion.button>
+
+            {/* Error message */}
             {error && (
               <motion.p
-                className="text-sm text-rose-600 italic"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
+                className="text-rose-600 text-sm italic"
               >
                 {error}
               </motion.p>
             )}
-            <motion.button
-              type="submit"
-              disabled={isSubmitting}
-              className="relative rounded-full bg-gradient-to-r from-rose-500 to-pink-400 text-white px-10 font-semibold shadow-xl focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ 
-                fontSize: '18px', 
-                minHeight: '56px', 
-                paddingTop: '16px', 
-                paddingBottom: '16px',
-                fontFamily: "'DM Serif Text', Georgia, serif",
-                boxShadow: '0 0 20px rgba(251, 113, 133, 0.4), 0 8px 24px rgba(251, 113, 133, 0.3)'
-              }}
-              animate={{
-                boxShadow: isSubmitting ? '0 0 20px rgba(251, 113, 133, 0.4)' : [
-                  '0 0 20px rgba(251, 113, 133, 0.4), 0 8px 24px rgba(251, 113, 133, 0.3)',
-                  '0 0 30px rgba(251, 113, 133, 0.6), 0 8px 24px rgba(251, 113, 133, 0.4)',
-                  '0 0 20px rgba(251, 113, 133, 0.4), 0 8px 24px rgba(251, 113, 133, 0.3)'
-                ]
-              }}
-              transition={{
-                boxShadow: { duration: 3, repeat: Infinity, ease: 'easeInOut' }
-              }}
-              whileHover={{ 
-                scale: isSubmitting ? 1 : 1.05,
-                boxShadow: '0 0 40px rgba(251, 113, 133, 0.7), 0 8px 32px rgba(251, 113, 133, 0.5)'
-              }}
-              whileTap={{ scale: isSubmitting ? 1 : 0.97 }}
-            >
-              <span className="flex items-center gap-2 justify-center">
-                {!isSubmitting && <span>✨</span>}
-                {isSubmitting ? 'Naming...' : 'Name Me'}
-              </span>
-            </motion.button>
           </motion.form>
-        ) : (
-          // Post-naming scene with sequential text fade-ins and floating button animation
+        ) : null}
+
+        {/* Post-naming scene - only show if hasNamed */}
+        {hasNamed && (
           <motion.div
             className="flex flex-col gap-6 items-center w-full max-w-md px-4"
             initial={{ opacity: 0 }}
