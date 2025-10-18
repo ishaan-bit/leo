@@ -48,19 +48,25 @@ class AdaptiveAmbientSystem {
         preload: true,
       });
 
-      // Pig breathing loop
+      // Pig breathing loop (4-second cycle recommended)
       this.pigBreathingLayer = createHowl({
-        src: ['/audio/pigBreathing.wav'],
+        src: ['/audio/pigBreathing.mp3'],
         loop: true,
         volume: 0.2,
         preload: true,
+        sprite: {
+          breath: [0, 4000, true], // 4-second loop if file is longer
+        },
       });
 
-      // Ink ripple effect (one-shot)
+      // Ink ripple effect (one-shot, ~0.5-0.8s recommended)
       this.inkRippleSound = createHowl({
-        src: ['/audio/inkRipple.wav'],
+        src: ['/audio/inkRipple.mp3'],
         volume: 0.15,
         preload: true,
+        sprite: {
+          ripple: [0, 800], // Use first 800ms if file is longer
+        },
       });
 
       // Wind pad (tempo-responsive)
@@ -71,17 +77,23 @@ class AdaptiveAmbientSystem {
         preload: true,
       });
 
-      // Chime tail (completion)
+      // Chime tail (completion, 1-3s recommended)
       this.chimeTail = createHowl({
         src: ['/audio/chime.mp3'],
         volume: 0.4,
         preload: true,
+        sprite: {
+          tail: [0, 3000], // Use first 3 seconds if file is longer
+        },
       });
 
       // Start ambient and breathing (safe play - won't crash if files missing)
       try {
         this.ambientLayer?.play();
-        this.pigBreathingLayer?.play();
+        // Play the 4-second breathing sprite on loop
+        if (this.pigBreathingLayer) {
+          this.pigBreathingLayer.play('breath');
+        }
         this.windPadLayer?.play();
       } catch (e) {
         console.warn('Audio autoplay blocked or files missing - continuing silently');
@@ -100,7 +112,8 @@ class AdaptiveAmbientSystem {
    */
   playInkRipple(): void {
     if (this.inkRippleSound && this.initialized) {
-      this.inkRippleSound.play();
+      // Play the 800ms ripple sprite
+      this.inkRippleSound.play('ripple');
     }
   }
 
@@ -109,7 +122,8 @@ class AdaptiveAmbientSystem {
    */
   playChime(): void {
     if (this.chimeTail && this.initialized) {
-      this.chimeTail.play();
+      // Play the 3-second chime sprite
+      this.chimeTail.play('tail');
     }
   }
 
