@@ -334,7 +334,7 @@ export default function PigRitualBlock({ pigId, initialName }: PigRitualBlockPro
             {/* Line 1: "They say pigs can't fly." */}
             {showLine1 && (
               <motion.p
-                className="text-pink-800 text-lg font-serif italic"
+                className="text-pink-800 text-base font-serif italic"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7 }}
@@ -346,7 +346,7 @@ export default function PigRitualBlock({ pigId, initialName }: PigRitualBlockPro
             {/* Line 2: "Yet here I am; waiting for someone to believe I could." */}
             {showLine2 && (
               <motion.p
-                className="text-pink-700 text-base font-serif"
+                className="text-pink-800 text-base font-serif italic"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7 }}
@@ -358,7 +358,7 @@ export default function PigRitualBlock({ pigId, initialName }: PigRitualBlockPro
             {/* Line 3: "I don't have a name yet." */}
             {showLine3 && (
               <motion.p
-                className="text-pink-900 text-lg font-serif font-medium mt-2"
+                className="text-pink-800 text-base font-serif italic mt-2"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7 }}
