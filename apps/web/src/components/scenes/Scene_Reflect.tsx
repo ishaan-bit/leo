@@ -305,24 +305,31 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
         }}
       />
       
-      {/* Global sound toggle - top right (consistent across all scenes) */}
-      <SoundToggle />
-      
-      {/* Auth state indicator - centered at top */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.4, ease: [0.34, 1.56, 0.64, 1] }}
-        className="fixed top-8 left-1/2 -translate-x-1/2 z-30"
+      {/* Top bar: Sound toggle (right) + Auth state (center) */}
+      <div className="fixed top-0 left-0 right-0 z-30 flex items-center justify-center px-6 py-4"
         style={{
-          paddingTop: 'max(2rem, env(safe-area-inset-top))',
+          paddingTop: 'max(1rem, env(safe-area-inset-top))',
+          paddingLeft: 'max(1.5rem, env(safe-area-inset-left))',
+          paddingRight: 'max(1.5rem, env(safe-area-inset-right))',
         }}
       >
-        <AuthStateIndicator 
-          userName={session?.user?.name}
-          isGuest={status === 'unauthenticated'}
-        />
-      </motion.div>
+        {/* Auth state indicator - centered */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4, ease: [0.34, 1.56, 0.64, 1] }}
+        >
+          <AuthStateIndicator 
+            userName={session?.user?.name}
+            isGuest={status === 'unauthenticated'}
+          />
+        </motion.div>
+        
+        {/* Sound toggle - absolute positioned to right */}
+        <div className="absolute right-6" style={{ paddingRight: 'max(1.5rem, env(safe-area-inset-right))' }}>
+          <SoundToggle />
+        </div>
+      </div>
       
       {/* Atmospheric particles with time-based colors */}
       <div className="absolute inset-0 pointer-events-none">

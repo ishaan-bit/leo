@@ -168,8 +168,8 @@ export default function NotebookInput({
           }}
         />
         
-        {/* Stitched edge effect - left margin with binding aesthetic */}
-        <div className="absolute left-0 top-0 bottom-0 w-20 border-r-2 border-dashed border-pink-400/60 bg-gradient-to-r from-pink-50/30 to-transparent" >
+        {/* Left margin with binding aesthetic - no dashed border */}
+        <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-pink-50/30 to-transparent" >
           {/* Binding holes */}
           {[...Array(6)].map((_, i) => (
             <div
@@ -232,11 +232,11 @@ export default function NotebookInput({
           }}
         />
         
-        {/* Character count & language indicator */}
+        {/* Word count & language indicator */}
         <div className="absolute bottom-3 left-20 text-xs text-pink-500/70 italic">
           {text.length > 0 && (
             <>
-              {text.length} characters
+              {text.trim().split(/\s+/).filter(word => word.length > 0).length} words
               {processText(text).detectedLanguage !== 'en' && (
                 <span className="ml-3 text-pink-600">
                   ({processText(text).detectedLanguage})
