@@ -388,7 +388,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
       )}
 
       {/* Main content - centered vertically with reduced top padding */}
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 py-4 md:py-8">
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 py-4 md:py-8 pt-24">
         {/* Pig avatar with breathing and typing reaction - positioned above text */}
         <motion.div
           ref={pigRef}
@@ -413,7 +413,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
               },
             },
           }}
-          className="relative mb-6"
+          className="relative mb-6 z-20"
         >
           <PinkPig 
             size={200} 
