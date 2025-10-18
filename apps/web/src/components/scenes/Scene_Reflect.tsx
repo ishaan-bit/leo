@@ -48,6 +48,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [heartPuffs, setHeartPuffs] = useState<Array<{ x: number; y: number; rotation: number; delay: number }>>([]);
   const [showHeartAnimation, setShowHeartAnimation] = useState(false);
+  const [wordCount, setWordCount] = useState(0); // Track word count for blush intensity
   
   const audioSystemRef = useRef(getAdaptiveAmbientSystem());
   const sceneStartTime = useRef(Date.now());
@@ -129,6 +130,10 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
 
   // Handle text input change (real-time affect updates)
   const handleTextChange = (text: string, metrics: TypingMetrics) => {
+    // Update word count for blush intensity
+    const words = text.trim().split(/\s+/).filter(w => w.length > 0);
+    setWordCount(words.length);
+    
     // Show contextual sign-in nudge on first keystroke (guest users only)
     if (status === 'unauthenticated' && text.length === 1 && !showGuestNudge) {
       setShowGuestNudge(true);
@@ -395,6 +400,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
             size={240} 
             state={scenePhase === 'listening' ? 'thinking' : (showHeartAnimation ? 'happy' : 'idle')}
             onInputFocus={scenePhase === 'listening'}
+            wordCount={wordCount}
           />
         </div>
 

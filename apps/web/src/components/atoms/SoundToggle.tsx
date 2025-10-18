@@ -68,14 +68,10 @@ export default function SoundToggle({ autoHintDelayMs = 2000, autoHideDelayMs = 
 
   return (
     <motion.div
-      className="fixed top-4 right-4 z-50 flex flex-col items-end gap-1"
+      className="flex flex-col items-end gap-1"
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.5 }}
-      style={{
-        paddingTop: 'max(1rem, env(safe-area-inset-top))',
-        paddingRight: 'max(1rem, env(safe-area-inset-right))',
-      }}
     >
       <button
         type="button"

@@ -13,17 +13,22 @@ interface PinkPigProps {
   size?: number;
   className?: string;
   onInputFocus?: boolean;
+  wordCount?: number; // For dynamic blush intensity
 }
 
 export default function PinkPig({ 
   state = 'idle',
   size = 240,
   className = '',
-  onInputFocus = false
+  onInputFocus = false,
+  wordCount = 0
 }: PinkPigProps) {
   // Add rapid flutter when happy
   const [shouldFlutter, setShouldFlutter] = useState(false);
   const [showSparkles, setShowSparkles] = useState(false);
+  
+  // Calculate blush intensity based on word count (0 words = 0.25 opacity, 100+ words = 0.7 opacity)
+  const blushIntensity = Math.min(0.7, 0.25 + (wordCount / 100) * 0.45);
   
   useEffect(() => {
     if (state === 'happy') {
@@ -121,16 +126,17 @@ export default function PinkPig({
         </div>
       )}
 
-      {/* Typing reaction - soft cheek glow */}
+      {/* Typing reaction - soft cheek glow that increases with word count */}
       {onInputFocus && state !== 'happy' && (
         <motion.div
           className="absolute inset-0 pointer-events-none"
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          animate={{ opacity: blushIntensity }}
           exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
         >
-          <div className="absolute left-[20%] top-[52%] w-8 h-8 bg-pink-400/40 rounded-full blur-xl" />
-          <div className="absolute right-[20%] top-[52%] w-8 h-8 bg-pink-400/40 rounded-full blur-xl" />
+          <div className="absolute left-[20%] top-[52%] w-8 h-8 bg-pink-400 rounded-full blur-xl" />
+          <div className="absolute right-[20%] top-[52%] w-8 h-8 bg-pink-400 rounded-full blur-xl" />
         </motion.div>
       )}
 
@@ -169,17 +175,13 @@ export default function PinkPig({
                   @keyframes blink{0%,6%,100%{transform:scaleY(1)}3%{transform:scaleY(0.12)}}
                   .blink-on .eye{animation:blink 7.5s linear infinite}
                   
-                  /* Eye glance downward when input is focused */
-                  @keyframes glance-down{to{transform:translateY(2px)}}
-                  .glance-down .eye{animation:glance-down 0.3s ease-out forwards}
-                  
                   @media (prefers-reduced-motion:reduce){
-                    .breath-on,.flap-on .wing-rot,.flutter-on .ear-rot,.blink-on .eye,.glance-down .eye{animation:none!important}
+                    .breath-on,.flap-on .wing-rot,.flutter-on .ear-rot,.blink-on .eye{animation:none!important}
                   }
                 </style>
               </defs>
               
-              <g class="leo-wrap breath-on blink-on flap-on flutter-on ${onInputFocus ? 'glance-down' : ''}" pointer-events="none">
+              <g class="leo-wrap breath-on blink-on flap-on flutter-on" pointer-events="none">
                 <g class="wing wing-l" transform="translate(22 40)" filter="url(#shadow)">
                   <g class="wing-rot" transform-origin="16 10">
                     <path d="M16 12c-8 0-16-4-16-12 7 2.8 12-2 16.8-2C22.5-2 27 2.5 27 7s-6 5-11 5z" fill="#FFF4F7" stroke="#E7CED7" stroke-width="1"></path>
