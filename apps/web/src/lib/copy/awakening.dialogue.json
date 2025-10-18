@@ -1,0 +1,34 @@
+{
+  "firstTime": [
+    "The air's listening. Take your time.",
+    "No one's watching. Just you and the quiet.",
+    "Everything here responds. Try touching something.",
+    "This space holds what you give it.",
+    "There's no wrong way. Just your way."
+  ],
+  "returning": [
+    "You changed the tempo again. I like it.",
+    "I remember your touch. It's different today.",
+    "The water kept your rhythm. Listen.",
+    "You left traces last time. They're still here.",
+    "Something shifted in you. I can feel it."
+  ],
+  "guest": [
+    "I can hold this tune only for a while. Leave a trace if you want me to keep it.",
+    "Your gestures fade when you leave. Sign in to remember.",
+    "This feeling won't last forever. Want me to save it?",
+    "I know your touch now, but I'll forget. Unless you stay.",
+    "The water's warm. But it won't remember you alone."
+  ],
+  "completion": [
+    "The air settles. You're done here.",
+    "I've learned your rhythm. Ready to spin it?",
+    "The water remembers. Shall we continue?",
+    "Everything you touched left a mark. Let's see what it means.",
+    "The resonance is clear now. Time to move."
+  ],
+  "signInNudge": {
+    "copy": "Leave a trace to save today's feeling.",
+    "button": "Sign in"
+  }
+}
