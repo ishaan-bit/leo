@@ -274,12 +274,37 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   // Save reflection to backend
   const saveReflection = async (data: any) => {
     try {
+      // Get device info
+      const getDeviceInfo = () => {
+        const ua = navigator.userAgent;
+        let platform = 'unknown';
+        if (/android/i.test(ua)) platform = 'Android';
+        else if (/iPad|iPhone|iPod/.test(ua)) platform = 'iOS';
+        else if (/Win/.test(ua)) platform = 'Windows';
+        else if (/Mac/.test(ua)) platform = 'macOS';
+        else if (/Linux/.test(ua)) platform = 'Linux';
+        
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+        const isTablet = /iPad|Android/i.test(ua) && !/Mobile/i.test(ua);
+        let type = 'desktop';
+        if (isTablet) type = 'tablet';
+        else if (isMobile) type = 'mobile';
+        
+        return {
+          type,
+          platform,
+          locale: navigator.language || 'en',
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        };
+      };
+      
       const response = await fetch('/api/reflect', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...data,
-          userId: (session?.user as any)?.id || null,
+          pigName, // Include pig name from props
+          deviceInfo: getDeviceInfo(),
           timestamp: new Date().toISOString(),
         }),
       });
