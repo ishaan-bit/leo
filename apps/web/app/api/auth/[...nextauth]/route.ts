@@ -20,6 +20,10 @@ const handler = NextAuth({
       return session;
     },
     async redirect({ url, baseUrl }) {
+      // Handle legacy awakening route
+      if (url.includes('/awakening')) {
+        return baseUrl;
+      }
       // If it's a relative path starting with /, use it
       if (url.startsWith('/')) {
         return url;
