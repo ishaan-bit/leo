@@ -19,9 +19,9 @@ export async function POST(request: NextRequest) {
     } = body;
     
     // Validate required fields
-    if (!pigId || !originalText || !normalizedText) {
+    if (!pigId || !originalText) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Missing required fields: pigId, originalText' },
         { status: 400 }
       );
     }
