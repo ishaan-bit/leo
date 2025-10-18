@@ -16,14 +16,15 @@ import { Redis } from '@upstash/redis';
 // In-memory fallback for local dev (when Redis is not configured)
 const pigData: Record<string, { name: string; namedAt: string }> = {};
 
-// Check if Upstash Redis is configured (Vercel Marketplace auto-adds these vars)
-const hasRedis = !!process.env.UPSTASH_REDIS_REST_URL && !!process.env.UPSTASH_REDIS_REST_TOKEN;
+// Check if Redis is configured
+// Upstash uses KV_REST_API_URL and KV_REST_API_TOKEN for compatibility
+const hasRedis = !!process.env.KV_REST_API_URL && !!process.env.KV_REST_API_TOKEN;
 
 // Initialize Upstash Redis client
 const redis = hasRedis
   ? new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL!,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+      url: process.env.KV_REST_API_URL!,
+      token: process.env.KV_REST_API_TOKEN!,
     })
   : null;
 
