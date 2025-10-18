@@ -63,13 +63,13 @@ The system saves:
 
 ### 5. Test It!
 
-1. Visit `http://localhost:3000/p/testpig`
+1. Visit `https://localhost:3000/p/testpig`
 2. Write a reflection and submit
 3. Check your terminal - you should see:
    ```
    💾 Reflection saved: { id: 'xxx', ownerId: 'guest:sess_...', ... }
    ```
-4. Visit `http://localhost:3000/admin/reflections` to see your data!
+4. Visit `https://localhost:3000/admin/reflections` to see your data!
 
 ---
 

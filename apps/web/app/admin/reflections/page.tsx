@@ -146,7 +146,7 @@ export default function AdminPage() {
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                     <p className="text-lg mb-2">No reflections yet</p>
-                    <p className="text-sm">Visit <code className="bg-gray-100 px-2 py-1 rounded">/p/testpig</code> and write a reflection</p>
+                    <p className="text-sm">Visit <code className="bg-gray-100 px-2 py-1 rounded">https://localhost:3000/p/testpig</code> and write a reflection</p>
                   </td>
                 </tr>
               ) : (
