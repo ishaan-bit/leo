@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { initAmbientSound, playAmbientSound, stopAmbientSound } from '../../lib/sound';
+import { initAmbientSound, playAmbientSound, stopAmbientSound, isMuted } from '../../lib/sound';
 
 type Props = {
   autoHintDelayMs?: number; // when to fade in the hint
@@ -16,15 +16,25 @@ export default function SoundToggle({ autoHintDelayMs = 2000, autoHideDelayMs = 
   const [hasInteracted, setHasInteracted] = useState(false);
 
   useEffect(() => {
-    // Pre-instantiate and start playing (muted) immediately
+    // Pre-instantiate and start playing immediately
     try {
       const sound = initAmbientSound();
       setInitialized(true);
       
-      // Check current volume to sync UI state
-      if (sound && sound.volume() > 0) {
-        setEnabled(true);
-      }
+      // Sync UI state with localStorage
+      const muted = isMuted();
+      setEnabled(!muted);
+      
+      // Listen for storage changes (when user toggles on another tab/page)
+      const handleStorageChange = (e: StorageEvent) => {
+        if (e.key === 'leo.ambient.muted') {
+          const nowMuted = e.newValue === 'true';
+          setEnabled(!nowMuted);
+        }
+      };
+      
+      window.addEventListener('storage', handleStorageChange);
+      return () => window.removeEventListener('storage', handleStorageChange);
     } catch {
       // no-op
     }
@@ -44,16 +54,27 @@ export default function SoundToggle({ autoHintDelayMs = 2000, autoHideDelayMs = 
   }, [autoHintDelayMs, autoHideDelayMs]);
 
   function toggle() {
+    console.log('[SoundToggle] Toggle clicked! Current enabled:', enabled);
     setHasInteracted(true);
-    setShowHint(false); // Hide hint on interaction
+    setShowHint(false);
+    
+    const sound = initAmbientSound();
+    console.log('[SoundToggle] Sound instance:', sound, 'Current volume:', sound?.volume());
     
     if (!enabled) {
-      playAmbientSound(); // Unmute (fade volume up)
+      console.log('[SoundToggle] Unmuting - fading to 0.4');
+      playAmbientSound();
       setEnabled(true);
     } else {
-      stopAmbientSound(); // Mute (fade volume down to 0)
+      console.log('[SoundToggle] Muting - fading to 0');
+      stopAmbientSound();
       setEnabled(false);
     }
+    
+    // Log volume after change
+    setTimeout(() => {
+      console.log('[SoundToggle] Volume after toggle:', sound?.volume());
+    }, 100);
   }
 
   return (
