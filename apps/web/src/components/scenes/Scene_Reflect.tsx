@@ -13,7 +13,7 @@ import type { TypingMetrics, VoiceMetrics, AffectVector } from '@/lib/behavioral
 import { composeAffectFromTyping, composeAffectFromVoice } from '@/lib/behavioral/metrics';
 import { getAdaptiveAmbientSystem } from '@/lib/audio/AdaptiveAmbientSystem';
 import { getTimeOfDay, getTimeTheme, getTimeBasedGreeting } from '@/lib/time-theme';
-import { generateHeartPuff, breathingAnimation, exhaleAnimation } from '@/lib/pig-animations';
+import { generateHeartPuff } from '@/lib/pig-animations';
 import dialogueData from '@/lib/copy/reflect.dialogue.json';
 
 interface Scene_ReflectProps {
@@ -389,69 +389,14 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
 
       {/* Main content - centered vertically with reduced top padding */}
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 py-4 md:py-8 pt-24">
-        {/* Pig avatar with breathing and typing reaction - positioned above text */}
-        <motion.div
-          ref={pigRef}
-          initial={{ opacity: 0, y: 20 }}
-          animate={
-            showHeartAnimation 
-              ? 'exhale' 
-              : scenePhase === 'listening'
-              ? 'leanIn'
-              : 'breathing'
-          }
-          variants={{
-            ...breathingAnimation,
-            ...exhaleAnimation,
-            leanIn: {
-              y: [0, 5, 0],
-              scale: [1, 1.05, 1],
-              transition: {
-                duration: 1.5,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              },
-            },
-          }}
-          className="relative mb-6 z-20"
-        >
+        {/* Pig avatar - SIMPLE, just like naming page */}
+        <div ref={pigRef} className="mb-8">
           <PinkPig 
-            size={200} 
-            state={scenePhase === 'listening' ? 'thinking' : 'idle'}
+            size={240} 
+            state={scenePhase === 'listening' ? 'thinking' : (showHeartAnimation ? 'happy' : 'idle')}
             onInputFocus={scenePhase === 'listening'}
           />
-          
-          {/* Ambient glow around pig - intensifies when listening */}
-          <motion.div
-            className="absolute inset-0 -z-10 rounded-full blur-3xl"
-            style={{
-              background: getTimeTheme(getTimeOfDay()).ambientLight,
-            }}
-            animate={{
-              scale: scenePhase === 'listening' ? [1, 1.35, 1] : [1, 1.25, 1],
-              opacity: scenePhase === 'listening' ? [0.45, 0.75, 0.45] : [0.35, 0.65, 0.35],
-            }}
-            transition={{
-              duration: 3.5,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          />
-          
-          {/* Subtle shadow ripple */}
-          <motion.div
-            className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-3/4 h-12 bg-gradient-to-t from-pink-300/30 via-pink-200/20 to-transparent rounded-full blur-2xl"
-            animate={{
-              scale: [0.9, 1.1, 0.9],
-              opacity: [0.3, 0.5, 0.3],
-            }}
-            transition={{
-              duration: 4,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          />
-        </motion.div>
+        </div>
 
         {/* Dialogue - poetic typography with word-by-word fade-in */}
         <motion.div
@@ -501,6 +446,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
                   onTextChange={handleTextChange}
                   onSubmit={handleTextSubmit}
                   disabled={isSubmitting}
+                  placeholder={`Dear ${pigName}...`}
                 />
               ) : (
                 <VoiceOrb
