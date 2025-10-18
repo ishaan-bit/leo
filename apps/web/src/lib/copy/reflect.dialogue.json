@@ -1,0 +1,113 @@
+{
+  "variants": {
+    "first": {
+      "intro": [
+        "You found your way here.",
+        "{pigName} has been waiting, curious.",
+        "The air is still. Listening."
+      ],
+      "prompt": [
+        "Tell me — what stirred something in you today, big or small?",
+        "What's been sitting with you?",
+        "What do you want to remember from today?"
+      ],
+      "outro": [
+        "This is where your words will live.",
+        "{pigName} will keep them safe.",
+        "I'll hold this for you."
+      ],
+      "visuals": {
+        "tone": "gold",
+        "camera": "panReveal"
+      }
+    },
+    "returning": {
+      "intro": [
+        "You're back. The air smells a little different today.",
+        "{pigName} missed you.",
+        "Welcome back. Things shifted while you were gone."
+      ],
+      "prompt": [
+        "Tell me — what stirred something in you today, big or small?",
+        "What brought you back here?",
+        "What's different since last time?"
+      ],
+      "outro": [
+        "I've kept your words safe.",
+        "{pigName} remembers everything you've shared.",
+        "Another thread in the tapestry."
+      ],
+      "visuals": {
+        "tone": "lilac",
+        "camera": "gentleDrift"
+      }
+    },
+    "longGap": {
+      "intro": [
+        "It's been a while since your last visit.",
+        "{pigName} wondered if you'd come back.",
+        "Time moved differently without you here."
+      ],
+      "prompt": [
+        "What have you carried with you?",
+        "What finally brought you back?",
+        "Tell me what's changed."
+      ],
+      "outro": [
+        "I'll keep this one close again.",
+        "{pigName} hasn't forgotten you.",
+        "Welcome home."
+      ],
+      "visuals": {
+        "tone": "indigo",
+        "camera": "slowZoom"
+      }
+    }
+  },
+  "typing": {
+    "start": [
+      "{pigName} tilts its head softly.",
+      "The world quiets to listen.",
+      "{pigName} settles in, patient."
+    ],
+    "pause": [
+      "Take your time.",
+      "{pigName} waits.",
+      "No rush."
+    ],
+    "editing": [
+      "{pigName} nods gently.",
+      "Finding the right words...",
+      "It's okay to change your mind."
+    ]
+  },
+  "voice": {
+    "listening": [
+      "{pigName} closes its eyes, listening.",
+      "Speaking...",
+      "I'm here."
+    ],
+    "processing": [
+      "{pigName} opens its eyes slowly.",
+      "Let me write that down for you...",
+      "I heard you."
+    ]
+  },
+  "completion": {
+    "success": [
+      "Your words drift upward, becoming light.",
+      "{pigName} glows softly.",
+      "Held safe now.",
+      "This moment is yours to keep."
+    ],
+    "error": [
+      "Something went wrong. Try again?",
+      "The connection faltered. Once more?",
+      "Let's try that again."
+    ]
+  },
+  "guestNudge": {
+    "copy": "Want {pigName} to remember this across devices?",
+    "button": "Sign in to save"
+  }
+}
