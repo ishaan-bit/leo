@@ -3,8 +3,9 @@
 import { useSearchParams } from 'next/navigation';
 import { useSceneState } from '@/providers/SceneStateProvider';
 import { motion } from 'framer-motion';
+import { Suspense } from 'react';
 
-export default function SpinPage() {
+function SpinContent() {
   const searchParams = useSearchParams();
   const seed = searchParams.get('seed');
   const { affect } = useSceneState();
@@ -67,5 +68,17 @@ export default function SpinPage() {
         </motion.a>
       </motion.div>
     </section>
+  );
+}
+
+export default function SpinPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-100 to-pink-100">
+        <p className="text-pink-700/60 animate-pulse">Loading...</p>
+      </div>
+    }>
+      <SpinContent />
+    </Suspense>
   );
 }

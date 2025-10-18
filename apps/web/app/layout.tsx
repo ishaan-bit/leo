@@ -1,6 +1,7 @@
 import '../src/styles/globals.css';
 import type { Metadata, Viewport } from 'next';
 import { AudioProvider } from '@/providers/AudioProvider';
+import { AuthProvider } from '@/providers/AuthProvider';
 
 export const metadata: Metadata = {
   title: 'Name Me',
@@ -55,9 +56,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           overflow: 'hidden'
         }}
       >
-        <AudioProvider>
-          {children}
-        </AudioProvider>
+        <AuthProvider>
+          <AudioProvider>
+            {children}
+          </AudioProvider>
+        </AuthProvider>
       </body>
     </html>
   );
