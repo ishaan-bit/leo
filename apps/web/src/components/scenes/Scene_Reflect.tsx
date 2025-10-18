@@ -31,6 +31,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
   const [showGuestNudge, setShowGuestNudge] = useState(false);
+  const [guestNudgeMinimized, setGuestNudgeMinimized] = useState(false);
   
   // Scene state
   const [currentAffect, setCurrentAffect] = useState<AffectVector>({
@@ -117,8 +118,15 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
 
   // Show guest nudge on first keystroke for non-authenticated users
   useEffect(() => {
-    // No timer - will trigger contextually in handleTextChange
-  }, [status]);
+    // Auto-minimize guest nudge after 5 seconds if shown
+    if (showGuestNudge && !guestNudgeMinimized) {
+      const minimizeTimer = setTimeout(() => {
+        setGuestNudgeMinimized(true);
+      }, 5000); // Minimize after 5 seconds
+      
+      return () => clearTimeout(minimizeTimer);
+    }
+  }, [showGuestNudge, guestNudgeMinimized]);
 
   // Check for reduced motion preference
   useEffect(() => {
@@ -504,19 +512,44 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
           {showGuestNudge && status === 'unauthenticated' && !showCompletion && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              animate={{ 
+                opacity: 1, 
+                y: 0,
+                scale: guestNudgeMinimized ? 0.85 : 1,
+              }}
               exit={{ opacity: 0, y: 20 }}
-              className="fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-sm rounded-full px-6 py-3 shadow-xl border border-pink-200"
+              className={`fixed ${guestNudgeMinimized ? 'bottom-4 right-4' : 'bottom-8 left-1/2 -translate-x-1/2'} 
+                bg-white/90 backdrop-blur-sm rounded-full shadow-xl border border-pink-200 
+                transition-all duration-500`}
+              style={{
+                padding: guestNudgeMinimized ? '0.75rem 1rem' : '1.5rem',
+                maxWidth: guestNudgeMinimized ? '280px' : '400px',
+              }}
+              onClick={() => !guestNudgeMinimized && setGuestNudgeMinimized(false)}
             >
-              <p className="text-sm font-serif text-pink-800 mb-2">
-                {dialogueData.guestNudge.copy.replace('{pigName}', pigName)}
-              </p>
-              <button
-                onClick={() => signIn('google')}
-                className="w-full bg-pink-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-pink-700 transition-colors"
-              >
-                {dialogueData.guestNudge.button}
-              </button>
+              {guestNudgeMinimized ? (
+                // Minimized state - compact
+                <button
+                  onClick={() => signIn('google')}
+                  className="flex items-center gap-2 text-xs font-serif text-pink-800 hover:text-pink-900"
+                >
+                  <span>💾</span>
+                  <span>Save reflections?</span>
+                </button>
+              ) : (
+                // Full state
+                <>
+                  <p className="text-sm font-serif text-pink-800 mb-2">
+                    {dialogueData.guestNudge.copy.replace('{pigName}', pigName)}
+                  </p>
+                  <button
+                    onClick={() => signIn('google')}
+                    className="w-full bg-pink-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-pink-700 transition-colors"
+                  >
+                    {dialogueData.guestNudge.button}
+                  </button>
+                </>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
