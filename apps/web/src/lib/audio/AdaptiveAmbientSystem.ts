@@ -20,13 +20,28 @@ class AdaptiveAmbientSystem {
 
   /**
    * Initialize all audio layers
+   * Gracefully handles missing audio files
    */
   async init(): Promise<void> {
     if (this.initialized) return;
 
     try {
+      // Helper to create Howl with error handling
+      const createHowl = (config: any) => {
+        const howl = new Howl({
+          ...config,
+          onloaderror: (id: any, error: any) => {
+            console.warn(`Audio file not found: ${config.src[0]} (gracefully continuing)`);
+          },
+          onplayerror: (id: any, error: any) => {
+            console.warn(`Audio playback failed: ${config.src[0]} (gracefully continuing)`);
+          },
+        });
+        return howl;
+      };
+
       // Ambient base layer (persistent from global audio)
-      this.ambientLayer = new Howl({
+      this.ambientLayer = createHowl({
         src: ['/audio/ambient.mp3'],
         loop: true,
         volume: 0.3,
@@ -34,7 +49,7 @@ class AdaptiveAmbientSystem {
       });
 
       // Pig breathing loop
-      this.pigBreathingLayer = new Howl({
+      this.pigBreathingLayer = createHowl({
         src: ['/audio/pigBreathing.wav'],
         loop: true,
         volume: 0.2,
@@ -42,14 +57,14 @@ class AdaptiveAmbientSystem {
       });
 
       // Ink ripple effect (one-shot)
-      this.inkRippleSound = new Howl({
+      this.inkRippleSound = createHowl({
         src: ['/audio/inkRipple.wav'],
         volume: 0.15,
         preload: true,
       });
 
       // Wind pad (tempo-responsive)
-      this.windPadLayer = new Howl({
+      this.windPadLayer = createHowl({
         src: ['/audio/windSoft.mp3'],
         loop: true,
         volume: 0,
@@ -57,21 +72,26 @@ class AdaptiveAmbientSystem {
       });
 
       // Chime tail (completion)
-      this.chimeTail = new Howl({
+      this.chimeTail = createHowl({
         src: ['/audio/chime.mp3'],
         volume: 0.4,
         preload: true,
       });
 
-      // Start ambient and breathing
-      this.ambientLayer.play();
-      this.pigBreathingLayer.play();
-      this.windPadLayer.play();
+      // Start ambient and breathing (safe play - won't crash if files missing)
+      try {
+        this.ambientLayer?.play();
+        this.pigBreathingLayer?.play();
+        this.windPadLayer?.play();
+      } catch (e) {
+        console.warn('Audio autoplay blocked or files missing - continuing silently');
+      }
 
       this.initialized = true;
-      console.log('🎵 Adaptive ambient system initialized');
+      console.log('🎵 Adaptive ambient system initialized (audio files optional)');
     } catch (error) {
       console.error('Failed to initialize adaptive ambient system:', error);
+      this.initialized = true; // Mark as initialized to prevent retry loops
     }
   }
 
