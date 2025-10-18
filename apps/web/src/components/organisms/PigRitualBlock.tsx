@@ -158,8 +158,8 @@ export default function PigRitualBlock({ pigId, initialName }: PigRitualBlockPro
       });
 
       if (res.ok) {
-        // Instant fade to reflection - frictionless
-        window.location.href = `/reflect/${pigId}`;
+        // Navigate to awakening scene
+        window.location.href = `/awakening`;
       } else {
         setError('Could not create guest session');
         setIsAuthenticating(false);
@@ -181,9 +181,9 @@ export default function PigRitualBlock({ pigId, initialName }: PigRitualBlockPro
       // Wait for user to see the message
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Redirect to Google OAuth with callback to reflection page
+      // Redirect to Google OAuth with callback to awakening scene
       await signIn('google', { 
-        callbackUrl: `/reflect/${pigId}` 
+        callbackUrl: `/awakening` 
       });
     } catch (err) {
       console.error('Error signing in with Google:', err);
