@@ -134,26 +134,26 @@ export default function NotebookInput({
 
   return (
     <div className="relative w-full max-w-2xl">
-      {/* Notebook container with journal aesthetic */}
+      {/* Notebook container with journal aesthetic - improved contrast */}
       <motion.div 
-        className="relative bg-[#fefbf5] backdrop-blur-sm rounded-lg border-2 border-pink-200/60 shadow-2xl overflow-hidden"
+        className="relative bg-[#fdf8f0] backdrop-blur-sm rounded-lg border-2 border-pink-300/70 shadow-2xl overflow-hidden"
         style={{
           backgroundImage: `
-            linear-gradient(90deg, transparent 0, transparent calc(100% - 1px), rgba(251, 207, 232, 0.1) calc(100% - 1px)),
-            linear-gradient(rgba(251, 207, 232, 0.03) 1px, transparent 1px)
+            linear-gradient(90deg, transparent 0, transparent calc(100% - 1px), rgba(251, 207, 232, 0.15) calc(100% - 1px)),
+            linear-gradient(rgba(251, 207, 232, 0.05) 1px, transparent 1px)
           `,
           backgroundSize: '100% 100%, 100% 28px',
           boxShadow: `
-            0 4px 20px rgba(251, 113, 133, ${0.1 + typingIntensity * 0.2}),
+            0 4px 20px rgba(251, 113, 133, ${0.15 + typingIntensity * 0.2}),
             inset 0 1px 0 rgba(255, 255, 255, 0.8),
-            inset 0 -1px 0 rgba(251, 113, 133, 0.1)
+            inset 0 -1px 0 rgba(251, 113, 133, 0.15)
           `,
         }}
         animate={{
           boxShadow: [
-            `0 4px 20px rgba(251, 113, 133, ${0.1 + typingIntensity * 0.2}), inset 0 1px 0 rgba(255, 255, 255, 0.8), inset 0 -1px 0 rgba(251, 113, 133, 0.1)`,
-            `0 6px 24px rgba(251, 113, 133, ${0.15 + typingIntensity * 0.25}), inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 0 rgba(251, 113, 133, 0.15)`,
-            `0 4px 20px rgba(251, 113, 133, ${0.1 + typingIntensity * 0.2}), inset 0 1px 0 rgba(255, 255, 255, 0.8), inset 0 -1px 0 rgba(251, 113, 133, 0.1)`,
+            `0 4px 20px rgba(251, 113, 133, ${0.15 + typingIntensity * 0.2}), inset 0 1px 0 rgba(255, 255, 255, 0.8), inset 0 -1px 0 rgba(251, 113, 133, 0.15)`,
+            `0 6px 24px rgba(251, 113, 133, ${0.2 + typingIntensity * 0.25}), inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 0 rgba(251, 113, 133, 0.2)`,
+            `0 4px 20px rgba(251, 113, 133, ${0.15 + typingIntensity * 0.2}), inset 0 1px 0 rgba(255, 255, 255, 0.8), inset 0 -1px 0 rgba(251, 113, 133, 0.15)`,
           ],
         }}
         transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
@@ -167,7 +167,7 @@ export default function NotebookInput({
         />
         
         {/* Stitched edge effect - left margin */}
-        <div className="absolute left-0 top-0 bottom-0 w-16 border-r border-dashed border-pink-300/40" />
+        <div className="absolute left-0 top-0 bottom-0 w-16 border-r border-dashed border-pink-400/50" />
         
         {/* Typing glow effect */}
         {isFocused && (
