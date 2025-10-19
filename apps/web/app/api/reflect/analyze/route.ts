@@ -34,9 +34,6 @@ export async function POST(request: NextRequest) {
 
     const reflection = JSON.parse(reflectionData as string);
 
-    // TODO: In production, call Python microservice via HTTP or queue
-    // For now, we'll add a placeholder analysis block
-    
     // Check if already analyzed
     if (reflection.analysis && reflection.analysis.version) {
       return NextResponse.json({
@@ -47,7 +44,14 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Placeholder analysis (Python service would compute this)
+    // TODO: Call Python backend deployed as serverless function
+    // For now, return placeholder - user must manually enrich with:
+    // python enrich_reflection.py <rid>
+    
+    console.log('⚠️  Analysis placeholder - Python backend not yet deployed');
+    console.log('   To enrich: cd behavioral-backend && python enrich_reflection.py', rid);
+    
+    // Placeholder analysis (replace with Python microservice call)
     const analysis = {
       version: '1.0.0',
       generated_at: new Date().toISOString(),
