@@ -44,14 +44,45 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // TODO: Call Python backend deployed as serverless function
-    // For now, return placeholder - user must manually enrich with:
-    // python enrich_reflection.py <rid>
+    // Call behavioral analysis server (phi-3 hybrid + temporal)
+    console.log('🧠 Calling behavioral analysis server for', rid);
     
-    console.log('⚠️  Analysis placeholder - Python backend not yet deployed');
-    console.log('   To enrich: cd behavioral-backend && python enrich_reflection.py', rid);
+    const behavioralApiUrl = process.env.BEHAVIORAL_API_URL || 'http://localhost:8000';
     
-    // Placeholder analysis (replace with Python microservice call)
+    try {
+      const enrichResponse = await fetch(`${behavioralApiUrl}/enrich/${rid}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!enrichResponse.ok) {
+        const errorText = await enrichResponse.text();
+        throw new Error(`Enrichment failed: ${enrichResponse.status} ${errorText}`);
+      }
+
+      const enrichResult = await enrichResponse.json();
+      
+      console.log('✅ Enrichment complete:', enrichResult);
+
+      return NextResponse.json({
+        ok: true,
+        message: 'Analysis completed via behavioral server (phi-3 hybrid)',
+        rid,
+        analysis_version: enrichResult.analysis_version,
+        latency_ms: enrichResult.latency_ms,
+      });
+
+    } catch (enrichError) {
+      console.error('❌ Behavioral server enrichment failed:', enrichError);
+      console.log('   Is behavioral server running? Start with: cd behavioral-backend && python server.py');
+      
+      // Fallback to placeholder if behavioral server is down
+      console.log('⚠️  Falling back to placeholder analysis');
+    }
+    
+    // Fallback placeholder analysis (only if Python backend fails)
     const analysis = {
       version: '1.0.0',
       generated_at: new Date().toISOString(),

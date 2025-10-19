@@ -8,6 +8,7 @@ import NotebookInput from '../atoms/NotebookInput';
 import VoiceOrb from '../atoms/VoiceOrb';
 import AuthStateIndicator from '../atoms/AuthStateIndicator';
 import SoundToggle from '../atoms/SoundToggle';
+import AnalysisLoading from '../atoms/AnalysisLoading';
 import type { ProcessedText } from '@/lib/multilingual/textProcessor';
 import type { TypingMetrics, VoiceMetrics, AffectVector } from '@/lib/behavioral/metrics';
 import { composeAffectFromTyping, composeAffectFromVoice } from '@/lib/behavioral/metrics';
@@ -29,6 +30,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   const [sessionVariant, setSessionVariant] = useState<SessionVariant>('first');
   const [inputMode, setInputMode] = useState<InputMode>('notebook');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false); // New: Track phi-3 analysis
   const [showCompletion, setShowCompletion] = useState(false);
   const [showGuestNudge, setShowGuestNudge] = useState(false);
   const [guestNudgeMinimized, setGuestNudgeMinimized] = useState(false);
@@ -579,6 +581,9 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Analysis Loading Overlay */}
+        <AnalysisLoading show={isAnalyzing} />
       </div>
     </div>
   );
