@@ -77,6 +77,11 @@ class CloudLLMProvider:
     def _call_huggingface(self, prompt: str, max_tokens: int, temperature: float) -> Optional[str]:
         """Call Hugging Face Inference API with phi-3."""
         try:
+            print(f"🔍 Calling HF Inference API", flush=True)
+            print(f"   Model: {self.model}", flush=True)
+            print(f"   Max tokens: {max_tokens}", flush=True)
+            print(f"   Has client: {hasattr(self, 'client')}", flush=True)
+            
             # Use text generation endpoint
             response = self.client.text_generation(
                 prompt,
@@ -87,14 +92,20 @@ class CloudLLMProvider:
                 do_sample=True,  # Enable sampling for temperature
             )
             
+            print(f"✅ HF API response received: {len(response) if response else 0} chars", flush=True)
+            
             if response:
                 return response.strip()
             else:
-                print(f"⚠️  Hugging Face API returned empty response")
+                print(f"⚠️  Hugging Face API returned empty response", flush=True)
                 return None
                 
         except Exception as e:
-            print(f"⚠️  Hugging Face API error: {e}")
+            print(f"❌ Hugging Face API error:", flush=True)
+            print(f"   Type: {type(e).__name__}", flush=True)
+            print(f"   Message: {str(e)}", flush=True)
+            import traceback
+            print(f"   Traceback: {traceback.format_exc()}", flush=True)
             return None
     
     def _call_openai(self, prompt: str, max_tokens: int, temperature: float) -> Optional[str]:
