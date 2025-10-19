@@ -1,9 +1,13 @@
 /**
  * Quick test for Hindi/Hinglish translation
- * Run: node test-translation.js
+ * Run: GOOGLE_TRANSLATE_API_KEY=your-key node test-translation.js
  */
 
-const GOOGLE_TRANSLATE_API_KEY = 'AIzaSyDmPj7YwSjEbrBayWmEc7-8qNJwknDWr5o';
+const GOOGLE_TRANSLATE_API_KEY = process.env.GOOGLE_TRANSLATE_API_KEY || (() => {
+  console.error('❌ Error: GOOGLE_TRANSLATE_API_KEY environment variable not set');
+  console.error('Usage: GOOGLE_TRANSLATE_API_KEY=your-key node test-translation.js');
+  process.exit(1);
+})();
 
 async function testTranslation(text) {
   console.log('\n🧪 Testing:', text);

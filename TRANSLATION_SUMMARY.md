@@ -113,7 +113,7 @@ Lang:   "english" (en)
 ### Local Development (✅ Configured)
 ```bash
 # apps/web/.env.local
-GOOGLE_TRANSLATE_API_KEY=AIzaSyDmPj7YwSjEbrBayWmEc7-8qNJwknDWr5o
+GOOGLE_TRANSLATE_API_KEY=your-google-translate-api-key-here
 ```
 
 ### Production (⏳ Next Step)
@@ -121,7 +121,7 @@ Add to Vercel environment variables:
 1. Go to: https://vercel.com/ishaan-bit/leo/settings/environment-variables
 2. Add:
    - **Name**: `GOOGLE_TRANSLATE_API_KEY`
-   - **Value**: `AIzaSyDmPj7YwSjEbrBayWmEc7-8qNJwknDWr5o`
+   - **Value**: `your-google-translate-api-key-here`
    - **Environment**: Production + Preview + Development
 3. Redeploy
 
