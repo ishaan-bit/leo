@@ -54,28 +54,44 @@ async def startup_event():
     global analyzer, upstash_store
     
     print("🚀 Initializing Hybrid Behavioral Analysis Server...")
+    print(f"📍 Python version: {sys.version}")
+    print(f"📍 Working directory: {os.getcwd()}")
     
     # Check for Upstash credentials
     upstash_url = os.getenv("UPSTASH_REDIS_REST_URL") or os.getenv("KV_REST_API_URL")
     upstash_token = os.getenv("UPSTASH_REDIS_REST_TOKEN") or os.getenv("KV_REST_API_TOKEN")
     
+    print(f"📍 Upstash URL present: {bool(upstash_url)}")
+    print(f"📍 Upstash token present: {bool(upstash_token)}")
+    
     if upstash_url and upstash_token:
         try:
+            print("🔗 Connecting to Upstash...")
             upstash_store = UpstashStore()  # No parameters needed
             print("✓ Upstash connection established")
         except Exception as e:
             print(f"⚠️  Upstash connection failed: {e}")
+            import traceback
+            traceback.print_exc()
     else:
         print("⚠️  Upstash credentials not found - enrichment endpoint disabled")
     
     # Initialize hybrid analyzer
-    analyzer = HybridAnalyzer(
-        use_llm=True,  # Enable phi-3
-        enable_temporal=True,  # Enable temporal tracking
-        ollama_url=os.getenv("OLLAMA_URL", "http://localhost:11434")
-    )
+    print("🤖 Initializing HybridAnalyzer...")
+    try:
+        analyzer = HybridAnalyzer(
+            use_llm=True,  # Enable phi-3
+            enable_temporal=True,  # Enable temporal tracking
+            ollama_url=os.getenv("OLLAMA_URL", "http://localhost:11434")
+        )
+        print("✓ HybridAnalyzer initialized")
+    except Exception as e:
+        print(f"❌ HybridAnalyzer initialization failed: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
     
-    print("✅ Server ready!")
+    print("✅ Server ready! All systems operational.")
 
 
 # Request/Response models
