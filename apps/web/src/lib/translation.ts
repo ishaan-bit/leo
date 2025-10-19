@@ -18,6 +18,20 @@ export type LanguageDetection = {
 };
 
 /**
+ * Common Hinglish words that indicate mixed language
+ */
+const HINGLISH_INDICATORS = [
+  // Common Hindi words in Roman script
+  'hai', 'hoga', 'karna', 'milkar', 'accha', 'laga', 'nahin', 'kya', 'kaun',
+  'kab', 'kahan', 'kyun', 'kaise', 'kal', 'aaj', 'abhi', 'yaar', 'bhai',
+  'dost', 'doston', 'se', 'ka', 'ki', 'ko', 'ne', 'par', 'mein', 'ho', 'ho',
+  'tha', 'thi', 'the', 'rahega', 'rahegi', 'raha', 'rahe', 'rahi',
+  // Common verbs
+  'kar', 'karo', 'karu', 'karke', 'karein', 'hoon', 'hun', 'ho', 'hain',
+  'tha', 'thi', 'the', 'gaya', 'gayi', 'gaye', 'liya', 'diya', 'aya', 'ayi',
+];
+
+/**
  * Detect language of input text
  */
 export function detectLanguage(text: string): LanguageDetection {
@@ -30,18 +44,17 @@ export function detectLanguage(text: string): LanguageDetection {
     };
   }
 
+  const lowerText = text.toLowerCase();
+  const words = lowerText.split(/\s+/);
+  
   const hasHindiScript = HINDI_CHAR_RANGE.test(text);
-  const hasEnglishWords = ENGLISH_WORD_PATTERN.test(text);
-
-  // Pure English (no Hindi script, valid English pattern)
-  if (!hasHindiScript && hasEnglishWords) {
-    return {
-      lang: 'english',
-      confidence: 0.95,
-      hasHindiScript: false,
-      hasEnglishWords: true,
-    };
-  }
+  const hasEnglishWords = /[a-zA-Z]/.test(text);
+  
+  // Check for Hinglish indicators (Hindi words in Roman script)
+  const hinglishWordCount = words.filter(word => 
+    HINGLISH_INDICATORS.some(indicator => word.includes(indicator))
+  ).length;
+  const hinglishRatio = hinglishWordCount / words.length;
 
   // Pure Hindi (has Devanagari, no English letters)
   if (hasHindiScript && !/[a-zA-Z]/.test(text)) {
@@ -53,22 +66,32 @@ export function detectLanguage(text: string): LanguageDetection {
     };
   }
 
-  // Mixed/Hinglish (has both OR has Hindi script with English letters)
-  if (hasHindiScript || /[a-zA-Z]/.test(text)) {
+  // Mixed/Hinglish (has Devanagari + English OR has Hinglish indicators)
+  if (hasHindiScript || hinglishRatio > 0.2) {
     return {
       lang: 'mixed',
       confidence: 0.85,
       hasHindiScript,
-      hasEnglishWords: /[a-zA-Z]/.test(text),
+      hasEnglishWords,
     };
   }
 
-  // Default fallback
+  // Pure English (no Hindi script, no Hinglish indicators)
+  if (!hasHindiScript && hinglishRatio < 0.1) {
+    return {
+      lang: 'english',
+      confidence: 0.9,
+      hasHindiScript: false,
+      hasEnglishWords: true,
+    };
+  }
+
+  // Default fallback to mixed for safety
   return {
-    lang: 'english',
-    confidence: 0.5,
-    hasHindiScript: false,
-    hasEnglishWords: false,
+    lang: 'mixed',
+    confidence: 0.6,
+    hasHindiScript,
+    hasEnglishWords,
   };
 }
 
