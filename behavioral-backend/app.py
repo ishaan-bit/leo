@@ -208,11 +208,14 @@ async def enrich_reflection(rid: str):
         raise HTTPException(status_code=500, detail=f"Enrichment failed: {str(e)}")
 
 
-# Run with: uvicorn server:app --reload --host 0.0.0.0 --port 8000
+# Run with: python app.py (Railway will set PORT env var)
 if __name__ == "__main__":
     import uvicorn
     
+    port = int(os.environ.get("PORT", 8000))
+    
     print("Starting Hybrid Behavioral Analysis Server...")
+    print(f"Port: {port}")
     print("Endpoints:")
     print("  POST /analyze - Analyze text with hybrid phi-3")
     print("  POST /enrich/{rid} - Enrich reflection by RID")
@@ -220,9 +223,9 @@ if __name__ == "__main__":
     print()
     
     uvicorn.run(
-        "server:app",
+        "app:app",
         host="0.0.0.0",
-        port=8000,
-        reload=True,
+        port=port,
+        reload=False,  # Disable reload in production
         log_level="info"
     )
