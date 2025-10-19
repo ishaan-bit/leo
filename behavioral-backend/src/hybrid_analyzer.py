@@ -111,7 +111,7 @@ class HybridAnalyzer:
     
     def _call_llm(self, prompt: str, max_tokens: int = 200) -> Optional[str]:
         """
-        Call LLM (Ollama phi-3 or OpenAI GPT-3.5).
+        Call LLM (Ollama, HuggingFace, or OpenAI).
         
         Args:
             prompt: Input prompt
@@ -122,9 +122,11 @@ class HybridAnalyzer:
         """
         if self.llm_provider == "ollama":
             return self._call_phi3(prompt, max_tokens)
-        elif self.llm_provider == "openai":
+        elif self.llm_provider in ["huggingface", "openai"]:
+            # Use cloud LLM (HuggingFace phi-3 or OpenAI GPT-3.5)
             return self.cloud_llm.call(prompt, max_tokens)
         else:
+            print(f"⚠️  Unknown LLM provider: {self.llm_provider}", flush=True)
             return None
     
     def _call_phi3(self, prompt: str, max_tokens: int = 200) -> Optional[str]:
