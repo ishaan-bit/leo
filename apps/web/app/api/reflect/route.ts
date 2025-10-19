@@ -341,22 +341,20 @@ export async function POST(request: NextRequest) {
       console.error('Failed to delete draft:', error);
     }
 
-    // 15. Trigger analysis (MUST await in serverless - can't be fire-and-forget)
+    // 15. Trigger analysis via direct Railway call (bypass Vercel function)
     console.log('🔥 Triggering analysis for rid:', rid);
-    const analysisPromise = fetch(`${request.nextUrl.origin}/api/reflect/analyze`, {
+    
+    const railwayUrl = process.env.BEHAVIORAL_API_URL || 'http://localhost:8000';
+    console.log('🔗 Calling Railway directly:', railwayUrl);
+    
+    // Call Railway's /enrich endpoint directly
+    fetch(`${railwayUrl}/enrich/${rid}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ rid }),
-    })
-      .then(res => {
-        console.log('✅ Analysis trigger response:', res.status);
-        return res.json();
-      })
-      .then(data => console.log('✅ Analysis response data:', data))
-      .catch(err => console.error('❌ Failed to trigger analysis:', err));
-
-    // Wait for analysis to start before returning (serverless requirement)
-    await analysisPromise;
+    }).catch(err => {
+      console.error('❌ Railway enrichment failed:', err);
+      // Non-fatal - reflection is already saved
+    });
 
     // 16. Success response
     return NextResponse.json({
