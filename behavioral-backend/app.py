@@ -11,6 +11,7 @@ Endpoints:
 import os
 import sys
 import time
+import json
 from typing import Dict, Any, Optional
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -216,41 +217,51 @@ async def enrich_reflection(rid: str):
         else:
             hybrid_result = None
         
-        # Step 2: Run full agent pipeline
+        # Step 2: Run full agent pipeline (already includes save)
         agent = ReflectionAnalysisAgent(upstash_store)
+        
+        # If we have hybrid results, inject them before processing
+        if hybrid_result and hybrid_result.get("llm_used"):
+            llm_data = hybrid_result["hybrid"]
+            # Add LLM data to reflection for agent to use
+            reflection["_llm_enriched"] = {
+                "emotion": llm_data.get("invoked", {}).get("emotion", "neutral"),
+                "valence": llm_data.get("invoked", {}).get("valence", 0.0),
+                "arousal": llm_data.get("invoked", {}).get("arousal", 0.5),
+                "confidence": llm_data.get("invoked", {}).get("confidence", 0.5),
+                "provider": "huggingface-phi3" if analyzer.llm_provider == "huggingface" else analyzer.llm_provider
+            }
+        
         result = agent.process_reflection(reflection)
         
         if "error" in result:
             raise HTTPException(status_code=500, detail=result["error"])
         
-        # Step 3: Merge hybrid LLM results into agent output
-        if hybrid_result and hybrid_result.get("llm_used") and "analysis" in result:
-            llm_data = hybrid_result["hybrid"]
+        # Step 3: If LLM was used, update the analysis
+        if "_llm_enriched" in reflection and "analysis" in result:
+            llm_info = reflection["_llm_enriched"]
             
-            # Update emotion analysis with LLM-enhanced results
-            if "feelings" in result["analysis"] and "invoked" in llm_data:
+            # Update emotion analysis
+            if "feelings" in result["analysis"]:
                 result["analysis"]["feelings"]["invoked"] = {
-                    "primary": llm_data["invoked"].get("emotion", "neutral"),
-                    "secondary": llm_data["invoked"].get("emotion", "neutral"),
-                    "score": llm_data["invoked"].get("confidence", 0.5)
+                    "primary": llm_info["emotion"],
+                    "secondary": llm_info["emotion"],
+                    "score": llm_info["confidence"]
                 }
                 result["analysis"]["feelings"]["expressed"] = {
-                    "valence": llm_data["invoked"].get("valence", 0.0),
-                    "arousal": llm_data["invoked"].get("arousal", 0.5),
-                    "confidence": llm_data["invoked"].get("confidence", 0.5)
+                    "valence": llm_info["valence"],
+                    "arousal": llm_info["arousal"],
+                    "confidence": llm_info["confidence"]
                 }
             
             # Update provenance
             if "provenance" in result["analysis"]:
-                provider = "huggingface-phi3" if analyzer.llm_provider == "huggingface" else analyzer.llm_provider
-                result["analysis"]["provenance"]["models"]["emotion_mapper"] = f"{provider}@v1"
-        
-        # Save enriched reflection back to Upstash
-        # Note: agent.process_reflection already saves, but we need to resave with LLM updates
-        rid_to_save = result.get("rid")
-        ts_to_save = result.get("timestamp")
-        if rid_to_save and ts_to_save:
-            upstash_store.save_reflection(rid_to_save, ts_to_save, result)
+                result["analysis"]["provenance"]["models"]["emotion_mapper"] = f"{llm_info['provider']}@v1"
+            
+            # Save updated result
+            rid_key = f"reflection:{result['rid']}"
+            upstash_store.kv.set(rid_key, json.dumps(result))
+            print(f"✅ Saved LLM-enriched reflection: {result['rid']}", flush=True)
         
         latency_ms = int((time.time() - start_time) * 1000)
         
