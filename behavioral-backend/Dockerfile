@@ -11,7 +11,7 @@ RUN python -m textblob.download_corpora
 
 # Copy source code
 COPY src/ ./src/
-COPY server.py .
+COPY app.py .
 COPY agent_service.py .
 COPY temporal_state.py .
 
@@ -23,4 +23,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD python -c "import requests; requests.get('http://localhost:8000/health')"
 
 # Run server
-CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
