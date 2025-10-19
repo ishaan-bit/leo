@@ -341,7 +341,14 @@ export async function POST(request: NextRequest) {
       console.error('Failed to delete draft:', error);
     }
 
-    // 15. Success response
+    // 15. Trigger analysis (fire-and-forget)
+    fetch(`${request.nextUrl.origin}/api/reflect/analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rid }),
+    }).catch(err => console.error('Failed to trigger analysis:', err));
+
+    // 16. Success response
     return NextResponse.json({
       ok: true,
       rid,

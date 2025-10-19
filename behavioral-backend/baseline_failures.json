@@ -1,0 +1,464 @@
+[
+  {
+    "id": "ID07",
+    "text": "Got stuck in traffic but stayed calm with music.",
+    "reasons": [
+      "tone: got positive, expected neutral"
+    ],
+    "output": {
+      "invoked": {
+        "emotion": "neutral",
+        "valence": 0.0,
+        "arousal": 0.3,
+        "confidence": 0.75
+      },
+      "expressed": {
+        "tone": "positive",
+        "intensity": 0.0
+      },
+      "willingness_to_express": 0.0,
+      "self_awareness_proxy": 0.211,
+      "event_keywords": [
+        "got",
+        "traffic",
+        "calm",
+        "music"
+      ],
+      "risk_flags": [],
+      "ERI": 0.191,
+      "baseline": {
+        "valence": 0.0,
+        "arousal": 0.3
+      },
+      "state": {
+        "v": 0.276,
+        "a": 0.302
+      }
+    }
+  },
+  {
+    "id": "ID10",
+    "text": "Doctor says results are normal. Relief.",
+    "reasons": [
+      "emotion: got neutral, expected one of ['surprise', 'joy', 'contentment']",
+      "tone: got neutral, expected positive"
+    ],
+    "output": {
+      "invoked": {
+        "emotion": "neutral",
+        "valence": 0.5,
+        "arousal": 0.3,
+        "confidence": 0.65
+      },
+      "expressed": {
+        "tone": "neutral",
+        "intensity": 0.0
+      },
+      "willingness_to_express": 0.0,
+      "self_awareness_proxy": 0.187,
+      "event_keywords": [
+        "relief",
+        "doctor",
+        "results"
+      ],
+      "risk_flags": [],
+      "ERI": 0.029,
+      "baseline": {
+        "valence": 0.0,
+        "arousal": 0.3
+      },
+      "state": {
+        "v": 0.034,
+        "a": 0.301
+      }
+    }
+  },
+  {
+    "id": "ID11",
+    "text": "Spilled coffee on laptop; annoyed but managing.",
+    "reasons": [
+      "keywords: missing ['laptop']"
+    ],
+    "output": {
+      "invoked": {
+        "emotion": "anger",
+        "valence": -0.3,
+        "arousal": 0.6,
+        "confidence": 0.3
+      },
+      "expressed": {
+        "tone": "negative",
+        "intensity": 0.0
+      },
+      "willingness_to_express": 0.0,
+      "self_awareness_proxy": 0.183,
+      "event_keywords": [
+        "spilled",
+        "coffee"
+      ],
+      "risk_flags": [],
+      "ERI": 0.134,
+      "baseline": {
+        "valence": 0.0,
+        "arousal": 0.3
+      },
+      "state": {
+        "v": -0.095,
+        "a": 0.448
+      }
+    }
+  },
+  {
+    "id": "ID13",
+    "text": "Did nothing special; just chores.",
+    "reasons": [
+      "tone: got positive, expected neutral"
+    ],
+    "output": {
+      "invoked": {
+        "emotion": "neutral",
+        "valence": 0.1,
+        "arousal": 0.3,
+        "confidence": 0.571
+      },
+      "expressed": {
+        "tone": "positive",
+        "intensity": 0.0
+      },
+      "willingness_to_express": 0.0,
+      "self_awareness_proxy": 0.184,
+      "event_keywords": [
+        "nothing",
+        "special",
+        "chores"
+      ],
+      "risk_flags": [],
+      "ERI": 0.065,
+      "baseline": {
+        "valence": 0.0,
+        "arousal": 0.3
+      },
+      "state": {
+        "v": 0.103,
+        "a": 0.302
+      }
+    }
+  },
+  {
+    "id": "ID15",
+    "text": "Presented to clients; nervous at first, then fine.",
+    "reasons": [
+      "valence: -0.32 not in [-0.1, 0.3]",
+      "tone: got negative, expected neutral"
+    ],
+    "output": {
+      "invoked": {
+        "emotion": "anxiety",
+        "valence": -0.32,
+        "arousal": 0.65,
+        "confidence": 0.5
+      },
+      "expressed": {
+        "tone": "negative",
+        "intensity": 0.04
+      },
+      "willingness_to_express": 0.0,
+      "self_awareness_proxy": 0.192,
+      "event_keywords": [
+        "presented",
+        "clients",
+        "fine"
+      ],
+      "risk_flags": [],
+      "ERI": 0.16,
+      "baseline": {
+        "valence": 0.0,
+        "arousal": 0.3
+      },
+      "state": {
+        "v": -0.151,
+        "a": 0.473
+      }
+    }
+  },
+  {
+    "id": "ID24",
+    "text": "Happy for them, but I feel left behind.",
+    "reasons": [
+      "valence: -0.55 not in [-0.5, 0.1]"
+    ],
+    "output": {
+      "invoked": {
+        "emotion": "sadness",
+        "valence": -0.55,
+        "arousal": 0.6,
+        "confidence": 0.5
+      },
+      "expressed": {
+        "tone": "negative",
+        "intensity": 0.04
+      },
+      "willingness_to_express": 0.25,
+      "self_awareness_proxy": 0.82,
+      "event_keywords": [],
+      "risk_flags": [],
+      "ERI": 0.179,
+      "baseline": {
+        "valence": 0.0,
+        "arousal": 0.3
+      },
+      "state": {
+        "v": -0.264,
+        "a": 0.449
+      }
+    }
+  },
+  {
+    "id": "ID26",
+    "text": "Finally did it, though it took forever and I'm exhausted.",
+    "reasons": [
+      "emotion: got anxiety, expected one of ['pride']",
+      "valence: -0.46 not in [0.0, 0.5]",
+      "arousal: 0.8 not in [0.3, 0.6]",
+      "tone: got negative, expected positive"
+    ],
+    "output": {
+      "invoked": {
+        "emotion": "anxiety",
+        "valence": -0.46,
+        "arousal": 0.8,
+        "confidence": 0.7
+      },
+      "expressed": {
+        "tone": "negative",
+        "intensity": 0.032
+      },
+      "willingness_to_express": 0.0,
+      "self_awareness_proxy": 0.204,
+      "event_keywords": [],
+      "risk_flags": [],
+      "ERI": 0.209,
+      "baseline": {
+        "valence": 0.0,
+        "arousal": 0.3
+      },
+      "state": {
+        "v": -0.218,
+        "a": 0.546
+      }
+    }
+  },
+  {
+    "id": "ID37",
+    "text": "Canceled plans to recharge.",
+    "reasons": [
+      "valence: 0.49 not in [-0.1, 0.4]",
+      "tone: got positive, expected neutral"
+    ],
+    "output": {
+      "invoked": {
+        "emotion": "contentment",
+        "valence": 0.49,
+        "arousal": 0.3,
+        "confidence": 0.5
+      },
+      "expressed": {
+        "tone": "positive",
+        "intensity": 0.0
+      },
+      "willingness_to_express": 0.0,
+      "self_awareness_proxy": 0.18,
+      "event_keywords": [
+        "canceled",
+        "plans"
+      ],
+      "risk_flags": [],
+      "ERI": 0.152,
+      "baseline": {
+        "valence": 0.0,
+        "arousal": 0.3
+      },
+      "state": {
+        "v": 0.234,
+        "a": 0.302
+      }
+    }
+  },
+  {
+    "id": "ID40",
+    "text": "News headlines made me fearful.",
+    "reasons": [
+      "valence: -0.83 not in [-0.8, -0.2]"
+    ],
+    "output": {
+      "invoked": {
+        "emotion": "fear",
+        "valence": -0.83,
+        "arousal": 0.7,
+        "confidence": 1.0
+      },
+      "expressed": {
+        "tone": "negative",
+        "intensity": 0.0
+      },
+      "willingness_to_express": 0.4,
+      "self_awareness_proxy": 0.192,
+      "event_keywords": [
+        "news",
+        "headlines"
+      ],
+      "risk_flags": [],
+      "ERI": 0.176,
+      "baseline": {
+        "valence": 0.0,
+        "arousal": 0.3
+      },
+      "state": {
+        "v": -0.401,
+        "a": 0.498
+      }
+    }
+  },
+  {
+    "id": "ID43",
+    "text": "Meditation helped; calmer now.",
+    "reasons": [
+      "valence: 0.56 not in [0.0, 0.5]"
+    ],
+    "output": {
+      "invoked": {
+        "emotion": "joy",
+        "valence": 0.56,
+        "arousal": 0.5,
+        "confidence": 0.5
+      },
+      "expressed": {
+        "tone": "positive",
+        "intensity": 0.0
+      },
+      "willingness_to_express": 0.0,
+      "self_awareness_proxy": 0.165,
+      "event_keywords": [
+        "meditation",
+        "calmer"
+      ],
+      "risk_flags": [],
+      "ERI": 0.206,
+      "baseline": {
+        "valence": 0.0,
+        "arousal": 0.3
+      },
+      "state": {
+        "v": 0.264,
+        "a": 0.4
+      }
+    }
+  },
+  {
+    "id": "ID46",
+    "text": "Unexpected bill but manageable.",
+    "reasons": [
+      "valence: -0.42 not in [-0.4, 0.0]",
+      "arousal: 0.8 not in [0.4, 0.7]"
+    ],
+    "output": {
+      "invoked": {
+        "emotion": "anxiety",
+        "valence": -0.42,
+        "arousal": 0.8,
+        "confidence": 0.5
+      },
+      "expressed": {
+        "tone": "negative",
+        "intensity": 0.0
+      },
+      "willingness_to_express": 0.0,
+      "self_awareness_proxy": 0.16,
+      "event_keywords": [
+        "unexpected",
+        "bill"
+      ],
+      "risk_flags": [],
+      "ERI": 0.212,
+      "baseline": {
+        "valence": 0.0,
+        "arousal": 0.3
+      },
+      "state": {
+        "v": -0.196,
+        "a": 0.545
+      }
+    }
+  },
+  {
+    "id": "ID48",
+    "text": "I'm numb today.",
+    "reasons": [
+      "valence: -0.67 not in [-0.5, 0.1]"
+    ],
+    "output": {
+      "invoked": {
+        "emotion": "sadness",
+        "valence": -0.67,
+        "arousal": 0.3,
+        "confidence": 1.0
+      },
+      "expressed": {
+        "tone": "negative",
+        "intensity": 0.0
+      },
+      "willingness_to_express": 0.0,
+      "self_awareness_proxy": 0.213,
+      "event_keywords": [
+        "numb",
+        "today"
+      ],
+      "risk_flags": [],
+      "ERI": 0.24,
+      "baseline": {
+        "valence": 0.0,
+        "arousal": 0.3
+      },
+      "state": {
+        "v": -0.317,
+        "a": 0.303
+      }
+    }
+  },
+  {
+    "id": "ID49",
+    "text": "Better than yesterday, still not great.",
+    "reasons": [
+      "valence: 0.575 not in [-0.4, 0.1]",
+      "arousal: 0.8 not in [0.2, 0.6]",
+      "tone: got positive, expected negative"
+    ],
+    "output": {
+      "invoked": {
+        "emotion": "sadness",
+        "valence": 0.575,
+        "arousal": 0.8,
+        "confidence": 0.625
+      },
+      "expressed": {
+        "tone": "positive",
+        "intensity": 0.053
+      },
+      "willingness_to_express": 0.0,
+      "self_awareness_proxy": 0.187,
+      "event_keywords": [
+        "yesterday"
+      ],
+      "risk_flags": [],
+      "ERI": 0.251,
+      "baseline": {
+        "valence": 0.0,
+        "arousal": 0.3
+      },
+      "state": {
+        "v": 0.273,
+        "a": 0.546
+      }
+    }
+  }
+]

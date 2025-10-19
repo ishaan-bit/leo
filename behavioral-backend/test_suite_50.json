@@ -1,0 +1,614 @@
+{
+  "meta": {
+    "version": "1.0",
+    "total_tests": 50,
+    "description": "Comprehensive acceptance test suite for baseline tuning and hybrid validation"
+  },
+  "tests": [
+    {
+      "id": "ID01",
+      "text": "Met my friends after many days; felt great and lighter.",
+      "acceptance": {
+        "emotion": "joy",
+        "valence": [0.55, 0.9],
+        "arousal": [0.5, 0.8],
+        "tone": "positive",
+        "risk_flags": [],
+        "keywords_must_include": ["friends"]
+      }
+    },
+    {
+      "id": "ID02",
+      "text": "Boss rebuked me. I went home early and slept.",
+      "acceptance": {
+        "emotion": null,
+        "valence": [-0.7, -0.2],
+        "arousal": [0.4, 0.7],
+        "tone": "negative",
+        "risk_flags": [],
+        "keywords_must_include": ["boss"]
+      }
+    },
+    {
+      "id": "ID03",
+      "text": "Had lunch at my desk, lots of work to finish by evening.",
+      "acceptance": {
+        "emotion": "neutral",
+        "valence": [-0.1, 0.1],
+        "arousal": [0.25, 0.5],
+        "tone": "neutral",
+        "risk_flags": [],
+        "keywords_must_include": ["lunch", "work"]
+      }
+    },
+    {
+      "id": "ID04",
+      "text": "I wish I were dead. Nothing matters.",
+      "acceptance": {
+        "emotion": "hopelessness",
+        "valence": [-0.9, -0.4],
+        "arousal": [0.1, 0.4],
+        "tone": "negative",
+        "risk_flags": ["self_harm", "hopelessness"],
+        "keywords_must_include": []
+      }
+    },
+    {
+      "id": "ID05",
+      "text": "Cracked the interview! Feeling proud.",
+      "acceptance": {
+        "emotion": "pride",
+        "valence": [0.5, 0.9],
+        "arousal": [0.5, 0.9],
+        "tone": "positive",
+        "risk_flags": [],
+        "keywords_must_include": ["interview"]
+      }
+    },
+    {
+      "id": "ID06",
+      "text": "Missed the deadline; I'm anxious about fallout.",
+      "acceptance": {
+        "emotion": "anxiety",
+        "valence": [-0.6, -0.2],
+        "arousal": [0.6, 0.9],
+        "tone": "negative",
+        "risk_flags": [],
+        "keywords_must_include": ["deadline"]
+      }
+    },
+    {
+      "id": "ID07",
+      "text": "Got stuck in traffic but stayed calm with music.",
+      "acceptance": {
+        "emotion": ["neutral", "sadness", "contentment"],
+        "valence": [-0.2, 0.2],
+        "arousal": [0.2, 0.5],
+        "tone": "neutral",
+        "risk_flags": [],
+        "keywords_must_include": ["traffic"]
+      }
+    },
+    {
+      "id": "ID08",
+      "text": "Argued with my partner; said things I regret.",
+      "acceptance": {
+        "emotion": "anger",
+        "valence": [-0.7, -0.2],
+        "arousal": [0.6, 0.9],
+        "tone": "negative",
+        "risk_flags": [],
+        "keywords_must_include": ["partner"]
+      }
+    },
+    {
+      "id": "ID09",
+      "text": "Walked in the park; felt peaceful and clear.",
+      "acceptance": {
+        "emotion": ["joy", "neutral", "contentment"],
+        "valence": [0.2, 0.7],
+        "arousal": [0.2, 0.5],
+        "tone": "positive",
+        "risk_flags": [],
+        "keywords_must_include": ["park"]
+      }
+    },
+    {
+      "id": "ID10",
+      "text": "Doctor says results are normal. Relief.",
+      "acceptance": {
+        "emotion": ["surprise", "joy", "contentment", "relief", "neutral"],
+        "valence": [0.3, 0.8],
+        "arousal": [0.3, 0.7],
+        "tone": "positive",
+        "risk_flags": [],
+        "keywords_must_include": ["results", "doctor"]
+      }
+    },
+    {
+      "id": "ID11",
+      "text": "Spilled coffee on laptop; annoyed but managing.",
+      "acceptance": {
+        "emotion": "anger",
+        "valence": [-0.4, 0.0],
+        "arousal": [0.4, 0.7],
+        "tone": "negative",
+        "risk_flags": [],
+        "keywords_must_include": ["coffee", "laptop"]
+      }
+    },
+    {
+      "id": "ID12",
+      "text": "Team praised my work today.",
+      "acceptance": {
+        "emotion": ["pride", "joy"],
+        "valence": [0.4, 0.9],
+        "arousal": [0.4, 0.8],
+        "tone": "positive",
+        "risk_flags": [],
+        "keywords_must_include": ["team"]
+      }
+    },
+    {
+      "id": "ID13",
+      "text": "Did nothing special; just chores.",
+      "acceptance": {
+        "emotion": "neutral",
+        "valence": [-0.1, 0.2],
+        "arousal": [0.2, 0.5],
+        "tone": "neutral",
+        "risk_flags": [],
+        "keywords_must_include": ["chores"]
+      }
+    },
+    {
+      "id": "ID14",
+      "text": "I can't go on like this.",
+      "acceptance": {
+        "emotion": ["sadness", "hopelessness"],
+        "valence": [-0.9, -0.4],
+        "arousal": [0.1, 0.5],
+        "tone": "negative",
+        "risk_flags": ["hopelessness"],
+        "keywords_must_include": []
+      }
+    },
+    {
+      "id": "ID15",
+      "text": "Presented to clients; nervous at first, then fine.",
+      "acceptance": {
+        "emotion": ["anxiety", "neutral"],
+        "valence": [-0.4, 0.3],
+        "arousal": [0.4, 0.8],
+        "tone": "neutral",
+        "risk_flags": [],
+        "keywords_must_include": ["clients"]
+      }
+    },
+    {
+      "id": "ID16",
+      "text": "Stomach pain since morning.",
+      "acceptance": {
+        "emotion": ["fear", "sadness"],
+        "valence": [-0.6, -0.1],
+        "arousal": [0.3, 0.7],
+        "tone": "negative",
+        "risk_flags": [],
+        "keywords_must_include": ["pain"]
+      }
+    },
+    {
+      "id": "ID17",
+      "text": "Paid off a small loan today.",
+      "acceptance": {
+        "emotion": ["joy", "pride"],
+        "valence": [0.3, 0.8],
+        "arousal": [0.3, 0.7],
+        "tone": "positive",
+        "risk_flags": [],
+        "keywords_must_include": ["loan"]
+      }
+    },
+    {
+      "id": "ID18",
+      "text": "Worried about layoffs at work.",
+      "acceptance": {
+        "emotion": "anxiety",
+        "valence": [-0.6, -0.2],
+        "arousal": [0.5, 0.9],
+        "tone": "negative",
+        "risk_flags": [],
+        "keywords_must_include": ["layoffs"]
+      }
+    },
+    {
+      "id": "ID19",
+      "text": "Kid aced the exam; I'm thrilled.",
+      "acceptance": {
+        "emotion": "joy",
+        "valence": [0.6, 0.95],
+        "arousal": [0.5, 0.9],
+        "tone": "positive",
+        "risk_flags": [],
+        "keywords_must_include": ["exam"]
+      }
+    },
+    {
+      "id": "ID20",
+      "text": "Forgot friend's birthday; ashamed.",
+      "acceptance": {
+        "emotion": "shame",
+        "valence": [-0.7, -0.2],
+        "arousal": [0.4, 0.8],
+        "tone": "negative",
+        "risk_flags": [],
+        "keywords_must_include": ["birthday"]
+      }
+    },
+    {
+      "id": "ID21",
+      "text": "I was having a great day until this happened.",
+      "acceptance": {
+        "emotion": null,
+        "valence": [-0.5, 0.1],
+        "arousal": [0.4, 0.8],
+        "tone": "negative",
+        "risk_flags": [],
+        "keywords_must_include": []
+      }
+    },
+    {
+      "id": "ID22",
+      "text": "I was feeling peaceful until my boss did this.",
+      "acceptance": {
+        "emotion": null,
+        "valence": [-0.6, -0.1],
+        "arousal": [0.5, 0.9],
+        "tone": "negative",
+        "risk_flags": [],
+        "keywords_must_include": ["boss"]
+      }
+    },
+    {
+      "id": "ID23",
+      "text": "It was fine… I guess.",
+      "acceptance": {
+        "emotion": ["neutral", "sadness"],
+        "valence": [-0.2, 0.2],
+        "arousal": [0.2, 0.5],
+        "tone": "neutral",
+        "risk_flags": [],
+        "keywords_must_include": []
+      }
+    },
+    {
+      "id": "ID24",
+      "text": "Happy for them, but I feel left behind.",
+      "acceptance": {
+        "emotion": ["sadness", "shame"],
+        "valence": [-0.6, 0.1],
+        "arousal": [0.3, 0.7],
+        "tone": "negative",
+        "risk_flags": [],
+        "keywords_must_include": []
+      }
+    },
+    {
+      "id": "ID25",
+      "text": "I'm okay. Really. Totally fine.",
+      "acceptance": {
+        "emotion": "neutral",
+        "valence": [-0.2, 0.2],
+        "arousal": [0.2, 0.6],
+        "tone": "neutral",
+        "risk_flags": [],
+        "willingness_to_express": [0.0, 0.5],
+        "keywords_must_include": []
+      }
+    },
+    {
+      "id": "ID26",
+      "text": "Finally did it, though it took forever and I'm exhausted.",
+      "acceptance": {
+        "emotion": "pride",
+        "valence": [0.0, 0.5],
+        "arousal": [0.3, 0.6],
+        "tone": "positive",
+        "risk_flags": [],
+        "keywords_must_include": []
+      }
+    },
+    {
+      "id": "ID27",
+      "text": "I didn't cry. I never cry.",
+      "acceptance": {
+        "emotion": "sadness",
+        "valence": [-0.6, 0.0],
+        "arousal": [0.3, 0.7],
+        "tone": "negative",
+        "risk_flags": [],
+        "ERI_above_median": true,
+        "keywords_must_include": []
+      }
+    },
+    {
+      "id": "ID28",
+      "text": "It's whatever.",
+      "acceptance": {
+        "emotion": "neutral",
+        "valence": [-0.2, 0.2],
+        "arousal": [0.2, 0.5],
+        "tone": "neutral",
+        "risk_flags": [],
+        "keywords_must_include": []
+      }
+    },
+    {
+      "id": "ID29",
+      "text": "Good news, I suppose.",
+      "acceptance": {
+        "emotion": "joy",
+        "valence": [0.1, 0.5],
+        "arousal": [0.3, 0.6],
+        "tone": "positive",
+        "risk_flags": [],
+        "keywords_must_include": []
+      }
+    },
+    {
+      "id": "ID30",
+      "text": "Not angry, just disappointed.",
+      "acceptance": {
+        "emotion": ["sadness", "disgust", "disappointment"],
+        "valence": [-0.6, -0.1],
+        "arousal": [0.3, 0.6],
+        "tone": "negative",
+        "risk_flags": [],
+        "keywords_must_include": []
+      }
+    },
+    {
+      "id": "ID31",
+      "text": "Lost my wallet; worried about the hassle.",
+      "acceptance": {
+        "emotion": "anxiety",
+        "valence": [-0.6, -0.2],
+        "arousal": [0.5, 0.9],
+        "tone": "negative",
+        "risk_flags": [],
+        "keywords_must_include": []
+      }
+    },
+    {
+      "id": "ID32",
+      "text": "Got a raise; feels unreal.",
+      "acceptance": {
+        "emotion": ["surprise", "joy"],
+        "valence": [0.5, 0.9],
+        "arousal": [0.5, 0.9],
+        "tone": "positive",
+        "risk_flags": [],
+        "keywords_must_include": []
+      }
+    },
+    {
+      "id": "ID33",
+      "text": "Insomnia again last night.",
+      "acceptance": {
+        "emotion": ["sadness", "anxiety"],
+        "valence": [-0.6, 0.0],
+        "arousal": [0.4, 0.8],
+        "tone": "negative",
+        "risk_flags": [],
+        "keywords_must_include": []
+      }
+    },
+    {
+      "id": "ID34",
+      "text": "Gym session was strong; clear head now.",
+      "acceptance": {
+        "emotion": ["pride", "joy"],
+        "valence": [0.3, 0.8],
+        "arousal": [0.3, 0.7],
+        "tone": "positive",
+        "risk_flags": [],
+        "keywords_must_include": []
+      }
+    },
+    {
+      "id": "ID35",
+      "text": "Handled a complaint without losing cool.",
+      "acceptance": {
+        "emotion": ["pride", "neutral"],
+        "valence": [0.1, 0.6],
+        "arousal": [0.3, 0.6],
+        "tone": "positive",
+        "risk_flags": [],
+        "keywords_must_include": []
+      }
+    },
+    {
+      "id": "ID36",
+      "text": "Parents argued again; I shut my door.",
+      "acceptance": {
+        "emotion": ["sadness", "anger"],
+        "valence": [-0.7, -0.2],
+        "arousal": [0.5, 0.9],
+        "tone": "negative",
+        "risk_flags": [],
+        "keywords_must_include": []
+      }
+    },
+    {
+      "id": "ID37",
+      "text": "Canceled plans to recharge.",
+      "acceptance": {
+        "emotion": ["neutral", "contentment"],
+        "valence": [-0.1, 0.5],
+        "arousal": [0.2, 0.5],
+        "tone": "neutral",
+        "risk_flags": [],
+        "keywords_must_include": []
+      }
+    },
+    {
+      "id": "ID38",
+      "text": "Bills piling up; I'm overwhelmed.",
+      "acceptance": {
+        "emotion": "anxiety",
+        "valence": [-0.8, -0.3],
+        "arousal": [0.6, 0.95],
+        "tone": "negative",
+        "risk_flags": [],
+        "keywords_must_include": ["bills"]
+      }
+    },
+    {
+      "id": "ID39",
+      "text": "Neighbor helped carry groceries; sweet gesture.",
+      "acceptance": {
+        "emotion": "joy",
+        "valence": [0.2, 0.7],
+        "arousal": [0.3, 0.6],
+        "tone": "positive",
+        "risk_flags": [],
+        "keywords_must_include": []
+      }
+    },
+    {
+      "id": "ID40",
+      "text": "News headlines made me fearful.",
+      "acceptance": {
+        "emotion": ["fear", "anxiety"],
+        "valence": [-0.85, -0.2],
+        "arousal": [0.5, 0.9],
+        "tone": "negative",
+        "risk_flags": [],
+        "keywords_must_include": []
+      }
+    },
+    {
+      "id": "ID41",
+      "text": "Colleague took credit; I swallowed it.",
+      "acceptance": {
+        "emotion": ["anger", "shame"],
+        "valence": [-0.7, -0.2],
+        "arousal": [0.5, 0.9],
+        "tone": "negative",
+        "risk_flags": [],
+        "willingness_to_express": [0.0, 0.5],
+        "keywords_must_include": []
+      }
+    },
+    {
+      "id": "ID42",
+      "text": "Child was sick, now recovering.",
+      "acceptance": {
+        "emotion": ["fear", "joy"],
+        "valence": [0.0, 0.6],
+        "arousal": [0.3, 0.7],
+        "tone": "positive",
+        "risk_flags": [],
+        "keywords_must_include": []
+      }
+    },
+    {
+      "id": "ID43",
+      "text": "Meditation helped; calmer now.",
+      "acceptance": {
+        "emotion": ["neutral", "joy", "contentment"],
+        "valence": [0.0, 0.6],
+        "arousal": [0.2, 0.5],
+        "tone": "positive",
+        "risk_flags": [],
+        "keywords_must_include": []
+      }
+    },
+    {
+      "id": "ID44",
+      "text": "I overreacted earlier.",
+      "acceptance": {
+        "emotion": ["shame", "sadness"],
+        "valence": [-0.6, -0.1],
+        "arousal": [0.3, 0.7],
+        "tone": "negative",
+        "risk_flags": [],
+        "self_awareness_proxy": [0.6, 1.0],
+        "keywords_must_include": []
+      }
+    },
+    {
+      "id": "ID45",
+      "text": "Supervisor nitpicked; I defended my choice.",
+      "acceptance": {
+        "emotion": "anger",
+        "valence": [-0.6, -0.1],
+        "arousal": [0.5, 0.85],
+        "tone": "negative",
+        "risk_flags": [],
+        "keywords_must_include": []
+      }
+    },
+    {
+      "id": "ID46",
+      "text": "Unexpected bill but manageable.",
+      "acceptance": {
+        "emotion": "anxiety",
+        "valence": [-0.45, 0.0],
+        "arousal": [0.4, 0.7],
+        "tone": "negative",
+        "risk_flags": [],
+        "keywords_must_include": []
+      }
+    },
+    {
+      "id": "ID47",
+      "text": "Started a habit tracker; hopeful.",
+      "acceptance": {
+        "emotion": ["joy", "pride"],
+        "valence": [0.2, 0.7],
+        "arousal": [0.3, 0.6],
+        "tone": "positive",
+        "risk_flags": [],
+        "keywords_must_include": []
+      }
+    },
+    {
+      "id": "ID48",
+      "text": "I'm numb today.",
+      "acceptance": {
+        "emotion": ["sadness", "neutral"],
+        "valence": [-0.7, 0.1],
+        "arousal": [0.1, 0.4],
+        "tone": "negative",
+        "risk_flags": [],
+        "expressed_intensity": [0.0, 0.25],
+        "keywords_must_include": []
+      }
+    },
+    {
+      "id": "ID49",
+      "text": "Better than yesterday, still not great.",
+      "acceptance": {
+        "emotion": "sadness",
+        "valence": [-0.4, 0.1],
+        "arousal": [0.2, 0.6],
+        "tone": "negative",
+        "risk_flags": [],
+        "keywords_must_include": []
+      }
+    },
+    {
+      "id": "ID50",
+      "text": "Everything feels pointless lately.",
+      "acceptance": {
+        "emotion": "hopelessness",
+        "valence": [-0.9, -0.4],
+        "arousal": [0.1, 0.5],
+        "tone": "negative",
+        "risk_flags": ["hopelessness"],
+        "keywords_must_include": []
+      }
+    }
+  ]
+}
