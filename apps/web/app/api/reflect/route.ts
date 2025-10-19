@@ -48,16 +48,19 @@ async function saveReflection(data: {
     created_at: new Date().toISOString(),
   };
   
-  // Save reflection
-  await kv.hset(`reflection:${reflectionId}`, reflection);
+  // Save reflection as JSON string (easier to view in KV dashboard)
+  await kv.set(`reflection:${reflectionId}`, JSON.stringify(reflection));
   
-  // Add to owner's reflection list
+  // Add to owner's reflection list (sorted set by timestamp)
   await kv.zadd(`reflections:${ownerId}`, { score: Date.now(), member: reflectionId });
   
-  // Add to pig's reflection list
+  // Add to pig's reflection list (sorted set by timestamp)
   await kv.zadd(`pig_reflections:${data.pigId}`, { score: Date.now(), member: reflectionId });
   
-  console.log('✅ Reflection saved to KV:', reflectionId);
+  // Also maintain a global reflection index for admin viewing
+  await kv.zadd('reflections:all', { score: Date.now(), member: reflectionId });
+  
+  console.log('✅ Reflection saved to KV:', reflectionId, 'Owner:', ownerId);
   return reflection;
 }
 
@@ -69,7 +72,8 @@ async function savePigInfo(data: {
   name: string;
 }) {
   const pigKey = `pig:${data.pigId}`;
-  const existing = await kv.hgetall(pigKey);
+  const existingStr = await kv.get(pigKey);
+  const existing = existingStr ? JSON.parse(existingStr as string) : null;
   
   const pigInfo = {
     pig_id: data.pigId,
@@ -81,7 +85,8 @@ async function savePigInfo(data: {
     updated_at: new Date().toISOString(),
   };
   
-  await kv.hset(pigKey, pigInfo);
+  // Save as JSON string for easier viewing in dashboard
+  await kv.set(pigKey, JSON.stringify(pigInfo));
   console.log('✅ Pig info saved:', data.pigId, data.name);
   return pigInfo;
 }
@@ -90,7 +95,10 @@ async function savePigInfo(data: {
 async function getReflectionsByPig(pigId: string, limit: number = 50) {
   const reflectionIds = await kv.zrange(`pig_reflections:${pigId}`, 0, limit - 1, { rev: true }) as string[];
   const reflections = await Promise.all(
-    reflectionIds.map((id: string) => kv.hgetall(`reflection:${id}`))
+    reflectionIds.map(async (id: string) => {
+      const data = await kv.get(`reflection:${id}`);
+      return data ? JSON.parse(data as string) : null;
+    })
   );
   return reflections.filter(Boolean);
 }
@@ -99,7 +107,10 @@ async function getReflectionsByPig(pigId: string, limit: number = 50) {
 async function getReflectionsByOwner(ownerId: string, limit: number = 50) {
   const reflectionIds = await kv.zrange(`reflections:${ownerId}`, 0, limit - 1, { rev: true }) as string[];
   const reflections = await Promise.all(
-    reflectionIds.map((id: string) => kv.hgetall(`reflection:${id}`))
+    reflectionIds.map(async (id: string) => {
+      const data = await kv.get(`reflection:${id}`);
+      return data ? JSON.parse(data as string) : null;
+    })
   );
   return reflections.filter(Boolean);
 }
