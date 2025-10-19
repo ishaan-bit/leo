@@ -342,11 +342,18 @@ export async function POST(request: NextRequest) {
     }
 
     // 15. Trigger analysis (fire-and-forget)
+    console.log('🔥 Triggering analysis for rid:', rid);
     fetch(`${request.nextUrl.origin}/api/reflect/analyze`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ rid }),
-    }).catch(err => console.error('Failed to trigger analysis:', err));
+    })
+      .then(res => {
+        console.log('✅ Analysis trigger response:', res.status);
+        return res.json();
+      })
+      .then(data => console.log('✅ Analysis response data:', data))
+      .catch(err => console.error('❌ Failed to trigger analysis:', err));
 
     // 16. Success response
     return NextResponse.json({

@@ -48,6 +48,8 @@ export async function POST(request: NextRequest) {
     console.log('🧠 Calling behavioral analysis server for', rid);
     
     const behavioralApiUrl = process.env.BEHAVIORAL_API_URL || 'http://localhost:8000';
+    console.log('🔗 BEHAVIORAL_API_URL:', behavioralApiUrl);
+    console.log('🔗 Full URL:', `${behavioralApiUrl}/enrich/${rid}`);
     
     try {
       const enrichResponse = await fetch(`${behavioralApiUrl}/enrich/${rid}`, {
