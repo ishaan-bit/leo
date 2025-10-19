@@ -245,8 +245,12 @@ async def enrich_reflection(rid: str):
                 provider = "huggingface-phi3" if analyzer.llm_provider == "huggingface" else analyzer.llm_provider
                 result["analysis"]["provenance"]["models"]["emotion_mapper"] = f"{provider}@v1"
         
-        # Save enriched reflection back
-        upstash_store.save_reflection(result)
+        # Save enriched reflection back to Upstash
+        # Note: agent.process_reflection already saves, but we need to resave with LLM updates
+        rid_to_save = result.get("rid")
+        ts_to_save = result.get("timestamp")
+        if rid_to_save and ts_to_save:
+            upstash_store.save_reflection(rid_to_save, ts_to_save, result)
         
         latency_ms = int((time.time() - start_time) * 1000)
         
