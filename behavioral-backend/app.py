@@ -238,7 +238,8 @@ if __name__ == "__main__":
     
     print("=" * 60, flush=True)
     print("Starting Hybrid Behavioral Analysis Server...", flush=True)
-    print(f"Port: {port}", flush=True)
+    print(f"PORT environment variable: {os.environ.get('PORT', 'NOT SET')}", flush=True)
+    print(f"Using port: {port}", flush=True)
     print(f"Host: 0.0.0.0", flush=True)
     print("Endpoints:", flush=True)
     print("  POST /analyze - Analyze text with hybrid phi-3", flush=True)
