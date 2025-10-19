@@ -5,9 +5,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { getOrCreateGuestSession } from '@/lib/guest-session';
 import { kv, logKvOperation, generateReflectionId } from '@/lib/kv';
+import { getAuth, getSid, kvKeys, buildOwnerId } from '@/lib/auth-helpers';
 import type {
   Reflection,
   ReflectionInput,
@@ -20,8 +19,10 @@ import type {
 } from '@/types/reflection.types';
 
 const REFLECTION_TTL = 2592000; // 30 days in seconds
+const SESSION_RECENT_TTL = 604800; // 7 days in seconds
 const RATE_LIMIT_WINDOW = 60; // 1 minute
 const RATE_LIMIT_MAX = 10; // 10 reflections per minute
+const MAX_RECENT_REFLECTIONS = 25; // Maximum recent reflections to keep
 
 
 /**
@@ -111,7 +112,6 @@ function validateInput(body: any): { valid: boolean; errors: Array<{ field: stri
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession();
     const body: ReflectionInput = await request.json();
     
     // 1. Validate input
@@ -124,13 +124,21 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // 2. Get session ID
-    const sessionId = await getOrCreateGuestSession();
-    const userId = (session?.user as any)?.id || null;
-    const ownerId = userId ? `user:${userId}` : `guest:${sessionId}`;
+    // 2. Get auth state and session ID
+    const auth = await getAuth();
+    const sid = await getSid();
+    const userId = auth?.userId || null;
+    const ownerId = buildOwnerId(userId, sid);
+
+    console.log('🔐 Auth check:', {
+      authPresent: !!auth,
+      userId,
+      sid,
+      ownerId,
+    });
 
     // 3. Rate limiting
-    const rateCheck = await checkRateLimit(sessionId);
+    const rateCheck = await checkRateLimit(sid);
     if (!rateCheck.allowed) {
       return NextResponse.json({
         error: 'Rate limit exceeded',
@@ -204,7 +212,7 @@ export async function POST(request: NextRequest) {
     const reflection: Reflection = {
       // Core IDs
       rid,
-      sid: sessionId,
+      sid,
       timestamp: body.timestamp,
       
       // Pig context
@@ -248,14 +256,14 @@ export async function POST(request: NextRequest) {
     };
 
     // 11. Write reflection:{rid} with TTL 30d
-    const reflectionKey = `reflection:${rid}`;
-    logKvOperation({ op: 'SETEX', key: reflectionKey, phase: 'start', sid: sessionId, rid });
+    const reflectionKey = kvKeys.reflection(rid);
+    logKvOperation({ op: 'SETEX', key: reflectionKey, phase: 'start', sid, rid });
 
     try {
       await kv.set(reflectionKey, JSON.stringify(reflection), { ex: REFLECTION_TTL });
-      logKvOperation({ op: 'SETEX', key: reflectionKey, phase: 'ok', sid: sessionId, rid });
+      logKvOperation({ op: 'SETEX', key: reflectionKey, phase: 'ok', sid, rid });
     } catch (error) {
-      logKvOperation({ op: 'SETEX', key: reflectionKey, phase: 'error', sid: sessionId, rid, error });
+      logKvOperation({ op: 'SETEX', key: reflectionKey, phase: 'error', sid, rid, error });
       
       return NextResponse.json({
         error: 'Failed to save reflection',
@@ -265,9 +273,9 @@ export async function POST(request: NextRequest) {
     }
 
     // 12. Add to sorted sets (for querying)
-    const ownerKey = `reflections:${ownerId}`;
-    const pigKey = `pig_reflections:${body.pigId}`;
-    const globalKey = 'reflections:all';
+    const ownerKey = kvKeys.reflectionsByOwner(ownerId);
+    const pigKey = kvKeys.reflectionsByPig(body.pigId);
+    const globalKey = kvKeys.reflectionsAll();
     const score = Date.now();
 
     try {
@@ -277,31 +285,57 @@ export async function POST(request: NextRequest) {
         kv.zadd(globalKey, { score, member: rid }),
       ]);
       
-      logKvOperation({ op: 'ZADD', key: ownerKey, phase: 'ok', sid: sessionId, rid });
+      logKvOperation({ op: 'ZADD', key: ownerKey, phase: 'ok', sid, rid });
     } catch (error) {
       // Non-fatal: reflection is saved, just indexing failed
       console.error('Failed to index reflection:', error);
     }
 
-    // 13. Delete draft if exists
+    // 13. Add to session recent_reflections list (for merge on sign-in)
+    const recentKey = kvKeys.sessionRecentReflections(sid);
     try {
-      await kv.del(`reflection:draft:${sessionId}`);
+      // Get existing list
+      const existingData = await kv.get(recentKey);
+      const existing: Array<{ rid: string; ts: number }> = existingData 
+        ? JSON.parse(existingData as string) 
+        : [];
+      
+      // Add new reflection
+      existing.unshift({ rid, ts: score });
+      
+      // Trim to max 25
+      const trimmed = existing.slice(0, MAX_RECENT_REFLECTIONS);
+      
+      // Write back with TTL
+      await kv.set(recentKey, JSON.stringify(trimmed), { ex: SESSION_RECENT_TTL });
+      
+      logKvOperation({ op: 'SET', key: recentKey, phase: 'ok', sid, rid });
+    } catch (error) {
+      // Non-fatal
+      console.error('Failed to update recent reflections:', error);
+    }
+
+    // 14. Delete draft if exists
+    try {
+      await kv.del(kvKeys.reflectionDraft(sid));
     } catch (error) {
       // Non-fatal
       console.error('Failed to delete draft:', error);
     }
 
-    // 14. Success response
+    // 15. Success response
     return NextResponse.json({
       ok: true,
       rid,
       message: 'Reflection saved',
+      userLinked: !!userId,
       data: {
         reflectionId: rid,
         ownerId,
         pigId: body.pigId,
         timestamp: body.timestamp,
         ttl_days: 30,
+        user_id: userId,
       },
     });
 
@@ -344,7 +378,6 @@ async function getReflectionsByOwner(ownerId: string, limit: number = 50) {
 // Get reflections for a pig or user
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession();
     const { searchParams } = new URL(request.url);
     const pigId = searchParams.get('pigId');
     const ownerId = searchParams.get('ownerId');

@@ -1,6 +1,7 @@
 /**
  * Session Bootstrap Endpoint
  * Creates or retrieves session for guest users
+ * Detects signed-in users and links session to user_id
  * 
  * POST /api/session/bootstrap
  * Writes: session:{sid} with TTL 7 days
@@ -8,6 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { kv, logKvOperation, generateSessionId } from '@/lib/kv';
+import { getAuth, getSid, kvKeys } from '@/lib/auth-helpers';
 import type { Session } from '@/types/reflection.types';
 import { createHash } from 'crypto';
 
@@ -31,30 +33,30 @@ function generateDeviceFingerprint(request: NextRequest): string {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
-    const { sid: providedSid, locale, timezone } = body;
+    const { locale, timezone } = body;
 
-    let sid = providedSid;
+    // Get auth state and session ID
+    const auth = await getAuth();
+    const sid = await getSid();
+
     let existing: Session | null = null;
 
-    // If sid provided, try to retrieve existing session
-    if (sid) {
-      const key = `session:${sid}`;
-      logKvOperation({ op: 'GET', key, phase: 'start', sid });
-      
-      try {
-        const data = await kv.get(key);
-        if (data) {
-          existing = JSON.parse(data as string);
-          logKvOperation({ op: 'GET', key, phase: 'ok', sid });
-        }
-      } catch (error) {
-        logKvOperation({ op: 'GET', key, phase: 'error', sid, error });
+    // Try to retrieve existing session
+    const key = kvKeys.session(sid);
+    logKvOperation({ op: 'GET', key, phase: 'start', sid });
+    
+    try {
+      const data = await kv.get(key);
+      if (data) {
+        existing = JSON.parse(data as string);
+        logKvOperation({ op: 'GET', key, phase: 'ok', sid });
       }
+    } catch (error) {
+      logKvOperation({ op: 'GET', key, phase: 'error', sid, error });
     }
 
     // Create new session if none exists
     if (!existing) {
-      sid = generateSessionId();
       const now = new Date().toISOString();
       const deviceFingerprint = generateDeviceFingerprint(request);
 
@@ -63,23 +65,31 @@ export async function POST(request: NextRequest) {
         created_at: now,
         last_active: now,
         pig_id: null,
-        user_id: null,
+        user_id: auth?.userId || null,
+        auth_state: auth ? 'signed_in' : 'guest',
         device_fingerprint: deviceFingerprint,
         locale: locale || null,
         timezone: timezone || null,
       };
 
-      const key = `session:${sid}`;
       logKvOperation({ op: 'SETEX', key, phase: 'start', sid });
 
       try {
         await kv.set(key, JSON.stringify(session), { ex: SESSION_TTL });
         logKvOperation({ op: 'SETEX', key, phase: 'ok', sid });
 
+        console.log('📝 Session created:', {
+          sid,
+          auth_state: session.auth_state,
+          user_id: session.user_id,
+        });
+
         return NextResponse.json({
           ok: true,
           sid,
           created: true,
+          auth_state: session.auth_state,
+          user_id: session.user_id,
           session,
         });
       } catch (error) {
@@ -93,23 +103,35 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Update last_active for existing session
+    // Update existing session
     const updatedSession: Session = {
       ...existing,
       last_active: new Date().toISOString(),
+      // Update auth state if user signed in
+      user_id: auth?.userId || existing.user_id,
+      auth_state: auth ? 'signed_in' : existing.auth_state,
     };
 
-    const key = `session:${sid}`;
     logKvOperation({ op: 'SETEX', key, phase: 'start', sid });
 
     try {
       await kv.set(key, JSON.stringify(updatedSession), { ex: SESSION_TTL });
       logKvOperation({ op: 'SETEX', key, phase: 'ok', sid });
 
+      console.log('📝 Session updated:', {
+        sid,
+        auth_state: updatedSession.auth_state,
+        user_id: updatedSession.user_id,
+        was_guest: existing.auth_state === 'guest',
+        now_signed_in: updatedSession.auth_state === 'signed_in',
+      });
+
       return NextResponse.json({
         ok: true,
         sid,
         created: false,
+        auth_state: updatedSession.auth_state,
+        user_id: updatedSession.user_id,
         session: updatedSession,
       });
     } catch (error) {

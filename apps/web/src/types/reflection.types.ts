@@ -146,9 +146,23 @@ export type Session = {
   last_active: string;            // ISO 8601
   pig_id: string | null;          // Linked pig (if named)
   user_id: string | null;         // Linked user (if signed in)
+  auth_state: 'guest' | 'signed_in'; // Authentication status
   device_fingerprint: string;     // Hashed IP + user agent
   locale: string | null;
   timezone: string | null;
+};
+
+/**
+ * User cache object (user:{uid})
+ * TTL: 30 days (2592000 seconds)
+ */
+export type User = {
+  user_id: string;
+  email: string;
+  name: string | null;
+  provider: string;               // 'google', etc.
+  created_at: string;             // ISO 8601
+  last_login_at: string;          // ISO 8601
 };
 
 /**
