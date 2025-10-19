@@ -344,17 +344,33 @@ export async function POST(request: NextRequest) {
     // 15. Trigger analysis via direct Railway call (bypass Vercel function)
     console.log('🔥 Triggering analysis for rid:', rid);
     
-    const railwayUrl = process.env.BEHAVIORAL_API_URL || 'http://localhost:8000';
-    console.log('🔗 Calling Railway directly:', railwayUrl);
+    const railwayUrl = process.env.BEHAVIORAL_API_URL;
+    console.log('🔗 Railway URL from env:', railwayUrl);
     
-    // Call Railway's /enrich endpoint directly
-    fetch(`${railwayUrl}/enrich/${rid}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    }).catch(err => {
-      console.error('❌ Railway enrichment failed:', err);
-      // Non-fatal - reflection is already saved
-    });
+    if (railwayUrl) {
+      try {
+        const enrichUrl = `${railwayUrl}/enrich/${rid}`;
+        console.log('🚀 Calling enrichment endpoint:', enrichUrl);
+        
+        const enrichResponse = await fetch(enrichUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: AbortSignal.timeout(5000), // 5 second timeout
+        });
+        
+        console.log('✅ Enrichment response status:', enrichResponse.status);
+        
+        if (!enrichResponse.ok) {
+          const errorText = await enrichResponse.text();
+          console.error('❌ Enrichment failed with status', enrichResponse.status, ':', errorText);
+        }
+      } catch (err) {
+        console.error('❌ Railway enrichment error:', err instanceof Error ? err.message : err);
+        // Non-fatal - reflection is already saved
+      }
+    } else {
+      console.warn('⚠️ BEHAVIORAL_API_URL not set - skipping enrichment');
+    }
 
     // 16. Success response
     return NextResponse.json({
