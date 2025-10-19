@@ -53,45 +53,50 @@ async def startup_event():
     """Initialize analyzer on startup."""
     global analyzer, upstash_store
     
-    print("🚀 Initializing Hybrid Behavioral Analysis Server...")
-    print(f"📍 Python version: {sys.version}")
-    print(f"📍 Working directory: {os.getcwd()}")
+    print("🚀 Initializing Hybrid Behavioral Analysis Server...", flush=True)
+    print(f"📍 Python version: {sys.version}", flush=True)
+    print(f"📍 Working directory: {os.getcwd()}", flush=True)
     
     # Check for Upstash credentials
     upstash_url = os.getenv("UPSTASH_REDIS_REST_URL") or os.getenv("KV_REST_API_URL")
     upstash_token = os.getenv("UPSTASH_REDIS_REST_TOKEN") or os.getenv("KV_REST_API_TOKEN")
     
-    print(f"📍 Upstash URL present: {bool(upstash_url)}")
-    print(f"📍 Upstash token present: {bool(upstash_token)}")
+    print(f"📍 Upstash URL present: {bool(upstash_url)}", flush=True)
+    print(f"📍 Upstash token present: {bool(upstash_token)}", flush=True)
+    sys.stdout.flush()
     
     if upstash_url and upstash_token:
         try:
-            print("🔗 Connecting to Upstash...")
+            print("🔗 Connecting to Upstash...", flush=True)
             upstash_store = UpstashStore()  # No parameters needed
-            print("✓ Upstash connection established")
+            print("✓ Upstash connection established", flush=True)
         except Exception as e:
-            print(f"⚠️  Upstash connection failed: {e}")
+            print(f"⚠️  Upstash connection failed: {e}", flush=True)
             import traceback
             traceback.print_exc()
+            sys.stdout.flush()
     else:
-        print("⚠️  Upstash credentials not found - enrichment endpoint disabled")
+        print("⚠️  Upstash credentials not found - enrichment endpoint disabled", flush=True)
     
     # Initialize hybrid analyzer
-    print("🤖 Initializing HybridAnalyzer...")
+    print("🤖 Initializing HybridAnalyzer...", flush=True)
+    sys.stdout.flush()
     try:
         analyzer = HybridAnalyzer(
             use_llm=True,  # Enable phi-3
             enable_temporal=True,  # Enable temporal tracking
             ollama_url=os.getenv("OLLAMA_URL", "http://localhost:11434")
         )
-        print("✓ HybridAnalyzer initialized")
+        print("✓ HybridAnalyzer initialized", flush=True)
     except Exception as e:
-        print(f"❌ HybridAnalyzer initialization failed: {e}")
+        print(f"❌ HybridAnalyzer initialization failed: {e}", flush=True)
         import traceback
         traceback.print_exc()
+        sys.stdout.flush()
         raise
     
-    print("✅ Server ready! All systems operational.")
+    print("✅ Server ready! All systems operational.", flush=True)
+    sys.stdout.flush()
 
 
 # Request/Response models
@@ -227,16 +232,20 @@ async def enrich_reflection(rid: str):
 # Run with: python app.py (Railway will set PORT env var)
 if __name__ == "__main__":
     import uvicorn
+    import sys
     
     port = int(os.environ.get("PORT", 8000))
     
-    print("Starting Hybrid Behavioral Analysis Server...")
-    print(f"Port: {port}")
-    print("Endpoints:")
-    print("  POST /analyze - Analyze text with hybrid phi-3")
-    print("  POST /enrich/{rid} - Enrich reflection by RID")
-    print("  GET /health - Health check")
-    print()
+    print("=" * 60, flush=True)
+    print("Starting Hybrid Behavioral Analysis Server...", flush=True)
+    print(f"Port: {port}", flush=True)
+    print(f"Host: 0.0.0.0", flush=True)
+    print("Endpoints:", flush=True)
+    print("  POST /analyze - Analyze text with hybrid phi-3", flush=True)
+    print("  POST /enrich/{rid} - Enrich reflection by RID", flush=True)
+    print("  GET /health - Health check", flush=True)
+    print("=" * 60, flush=True)
+    sys.stdout.flush()
     
     uvicorn.run(
         "app:app",
