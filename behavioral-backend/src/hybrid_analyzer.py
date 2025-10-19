@@ -74,14 +74,20 @@ class HybridAnalyzer:
         
         # Check LLM availability: Try Ollama first, fallback to Hugging Face phi-3
         if self.use_llm:
+            print(f"🔍 Checking LLM availability...", flush=True)
+            print(f"   Ollama URL: {self.ollama_url}", flush=True)
+            print(f"   Cloud LLM provider: {self.cloud_llm.provider}", flush=True)
+            print(f"   HF API key set: {bool(os.getenv('HUGGINGFACE_API_KEY'))}", flush=True)
+            
             if self._check_ollama_connection():
                 self.llm_provider = "ollama"
-                print("✓ Using Ollama phi-3 (local)")
+                print("✓ Using Ollama phi-3 (local)", flush=True)
             elif self.cloud_llm.is_available():
                 self.llm_provider = "huggingface"
-                print("✓ Using Hugging Face phi-3 (cloud)")
+                print("✓ Using Hugging Face phi-3 (cloud)", flush=True)
             else:
-                print("⚠️  No LLM available - install Ollama or set HUGGINGFACE_API_KEY")
+                print("⚠️  No LLM available - install Ollama or set HUGGINGFACE_API_KEY", flush=True)
+                print(f"   Cloud LLM available: {self.cloud_llm.is_available()}", flush=True)
                 self.use_llm = False
     
     def _check_ollama_connection(self) -> bool:
