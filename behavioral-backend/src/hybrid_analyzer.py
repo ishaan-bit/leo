@@ -184,6 +184,10 @@ class HybridAnalyzer:
         Returns:
             Enhanced analysis dict
         """
+        print(f"🔍 _enhance_with_llm called", flush=True)
+        print(f"   use_llm: {self.use_llm}", flush=True)
+        print(f"   llm_provider: {self.llm_provider}", flush=True)
+        
         # Build prompt for phi-3
         baseline_emotion = baseline_output.get("invoked", {}).get("emotion", "neutral")
         baseline_valence = baseline_output.get("invoked", {}).get("valence", 0.0)
@@ -204,8 +208,11 @@ JSON only, no explanation:"""
 
         llm_response = self._call_llm(prompt, max_tokens=100)
         
+        print(f"📝 LLM response: {llm_response[:100] if llm_response else 'None'}", flush=True)
+        
         if not llm_response:
             # LLM failed - return baseline
+            print(f"❌ LLM call returned None", flush=True)
             return baseline_output
         
         # Parse LLM response
