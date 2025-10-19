@@ -200,19 +200,53 @@ async def enrich_reflection(rid: str):
     start_time = time.time()
     
     try:
-        # Initialize agent
-        agent = ReflectionAnalysisAgent(upstash_store)
-        
         # Fetch reflection
         reflection = upstash_store.get_reflection_by_rid(rid)
         if not reflection:
             raise HTTPException(status_code=404, detail=f"Reflection {rid} not found")
         
-        # Process reflection
+        # Get text and user ID
+        text = reflection.get("normalized_text") or reflection.get("raw_text", "")
+        user_id = reflection.get("user_id") or reflection.get("owner_id", "unknown")
+        
+        # Step 1: Run hybrid analyzer with phi-3/HuggingFace
+        if analyzer:
+            hybrid_result = analyzer.analyze_reflection(text, user_id)
+            print(f"🤖 Hybrid analysis - LLM used: {hybrid_result.get('llm_used', False)}", flush=True)
+        else:
+            hybrid_result = None
+        
+        # Step 2: Run full agent pipeline
+        agent = ReflectionAnalysisAgent(upstash_store)
         result = agent.process_reflection(reflection)
         
         if "error" in result:
             raise HTTPException(status_code=500, detail=result["error"])
+        
+        # Step 3: Merge hybrid LLM results into agent output
+        if hybrid_result and hybrid_result.get("llm_used") and "analysis" in result:
+            llm_data = hybrid_result["hybrid"]
+            
+            # Update emotion analysis with LLM-enhanced results
+            if "feelings" in result["analysis"] and "invoked" in llm_data:
+                result["analysis"]["feelings"]["invoked"] = {
+                    "primary": llm_data["invoked"].get("emotion", "neutral"),
+                    "secondary": llm_data["invoked"].get("emotion", "neutral"),
+                    "score": llm_data["invoked"].get("confidence", 0.5)
+                }
+                result["analysis"]["feelings"]["expressed"] = {
+                    "valence": llm_data["invoked"].get("valence", 0.0),
+                    "arousal": llm_data["invoked"].get("arousal", 0.5),
+                    "confidence": llm_data["invoked"].get("confidence", 0.5)
+                }
+            
+            # Update provenance
+            if "provenance" in result["analysis"]:
+                provider = "huggingface-phi3" if analyzer.llm_provider == "huggingface" else analyzer.llm_provider
+                result["analysis"]["provenance"]["models"]["emotion_mapper"] = f"{provider}@v1"
+        
+        # Save enriched reflection back
+        upstash_store.save_reflection(result)
         
         latency_ms = int((time.time() - start_time) * 1000)
         
@@ -226,6 +260,7 @@ async def enrich_reflection(rid: str):
     except HTTPException:
         raise
     except Exception as e:
+        print(f"❌ Enrichment error: {e}", flush=True)
         raise HTTPException(status_code=500, detail=f"Enrichment failed: {str(e)}")
 
 
