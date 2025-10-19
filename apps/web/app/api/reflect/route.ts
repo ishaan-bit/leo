@@ -1,7 +1,108 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { getOrCreateGuestSession } from '@/lib/guest-session';
-import { saveReflection, savePigInfo } from '@/lib/reflection-service';
+import { kv } from '@vercel/kv';
+
+// Helper to generate reflection ID
+function generateReflectionId() {
+  return `refl_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+}
+
+// Save reflection to Vercel KV
+async function saveReflection(data: {
+  sessionId: string;
+  userId: string | null;
+  signedIn: boolean;
+  pigId: string;
+  pigName?: string;
+  text: string;
+  valence?: number;
+  arousal?: number;
+  cognitiveEffort?: number;
+  language?: string;
+  inputMode: string;
+  metrics?: any;
+  deviceInfo?: any;
+  consentResearch: boolean;
+}) {
+  const reflectionId = generateReflectionId();
+  const ownerId = data.signedIn && data.userId ? `user:${data.userId}` : `guest:${data.sessionId}`;
+  
+  const reflection = {
+    id: reflectionId,
+    owner_id: ownerId,
+    user_id: data.userId,
+    session_id: data.sessionId,
+    signed_in: data.signedIn,
+    pig_id: data.pigId,
+    pig_name: data.pigName || null,
+    text: data.text,
+    valence: data.valence ?? null,
+    arousal: data.arousal ?? null,
+    cognitive_effort: data.cognitiveEffort ?? null,
+    language: data.language || null,
+    input_mode: data.inputMode,
+    metrics: data.metrics || {},
+    device_info: data.deviceInfo || {},
+    consent_research: data.consentResearch,
+    created_at: new Date().toISOString(),
+  };
+  
+  // Save reflection
+  await kv.hset(`reflection:${reflectionId}`, reflection);
+  
+  // Add to owner's reflection list
+  await kv.zadd(`reflections:${ownerId}`, { score: Date.now(), member: reflectionId });
+  
+  // Add to pig's reflection list
+  await kv.zadd(`pig_reflections:${data.pigId}`, { score: Date.now(), member: reflectionId });
+  
+  console.log('✅ Reflection saved to KV:', reflectionId);
+  return reflection;
+}
+
+// Save pig info
+async function savePigInfo(data: {
+  pigId: string;
+  userId: string | null;
+  sessionId: string;
+  name: string;
+}) {
+  const pigKey = `pig:${data.pigId}`;
+  const existing = await kv.hgetall(pigKey);
+  
+  const pigInfo = {
+    pig_id: data.pigId,
+    name: data.name,
+    owner_id: data.userId ? `user:${data.userId}` : `guest:${data.sessionId}`,
+    user_id: data.userId,
+    session_id: data.sessionId,
+    created_at: existing?.created_at || new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+  
+  await kv.hset(pigKey, pigInfo);
+  console.log('✅ Pig info saved:', data.pigId, data.name);
+  return pigInfo;
+}
+
+// Get reflections by pig
+async function getReflectionsByPig(pigId: string, limit: number = 50) {
+  const reflectionIds = await kv.zrange(`pig_reflections:${pigId}`, 0, limit - 1, { rev: true }) as string[];
+  const reflections = await Promise.all(
+    reflectionIds.map((id: string) => kv.hgetall(`reflection:${id}`))
+  );
+  return reflections.filter(Boolean);
+}
+
+// Get reflections by owner
+async function getReflectionsByOwner(ownerId: string, limit: number = 50) {
+  const reflectionIds = await kv.zrange(`reflections:${ownerId}`, 0, limit - 1, { rev: true }) as string[];
+  const reflections = await Promise.all(
+    reflectionIds.map((id: string) => kv.hgetall(`reflection:${id}`))
+  );
+  return reflections.filter(Boolean);
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -47,7 +148,12 @@ export async function POST(request: NextRequest) {
     
     // Save pig info (name if provided)
     if (pigName) {
-      await savePigInfo(pigId, ownerId, pigName);
+      await savePigInfo({
+        pigId,
+        userId,
+        sessionId,
+        name: pigName,
+      });
     }
     
     // Save reflection to Supabase
@@ -101,9 +207,6 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       );
     }
-    
-    // Import reflection service functions
-    const { getReflectionsByPig, getReflectionsByOwner } = await import('@/lib/reflection-service');
     
     let reflections: any[] = [];
     if (pigId) {

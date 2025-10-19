@@ -1,19 +1,33 @@
 /**
- * Supabase client for database operations
+ * Upstash Redis KV client for database operations
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { Redis } from '@upstash/redis';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const redisUrl = process.env.KV_REST_API_URL;
+const redisToken = process.env.KV_REST_API_TOKEN;
 
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Missing Supabase environment variables. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to .env.local');
+// During build time, we don't need Redis to be initialized
+// Only check environment variables at runtime
+let redis: Redis;
+
+if (process.env.NEXT_PHASE === 'phase-production-build') {
+  // Mock Redis client for build time
+  redis = {} as Redis;
+} else {
+  if (!redisUrl || !redisToken) {
+    throw new Error('Missing Upstash Redis environment variables. Add KV_REST_API_URL and KV_REST_API_TOKEN to .env.local');
+  }
+  
+  redis = new Redis({
+    url: redisUrl,
+    token: redisToken,
+  });
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export { redis };
 
-// Type definitions for database tables
+// Type definitions for stored data
 export type ReflectionRow = {
   id: string;
   

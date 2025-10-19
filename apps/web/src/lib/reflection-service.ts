@@ -1,9 +1,49 @@
 /**
  * Reflection service
- * Handles saving, querying, and migrating reflections
+ * Handles saving, querying, and migrating reflections using Upstash Redis KV
  */
 
-import { supabase, ReflectionRow, PigRow, SessionUserLinkRow } from './supabase';
+import { redis } from './supabase';
+
+// Type definitions
+export type ReflectionRow = {
+  id: string;
+  owner_id: string;
+  user_id: string | null;
+  session_id: string;
+  signed_in: boolean;
+  pig_id: string;
+  pig_name: string | null;
+  text: string;
+  feeling_seed: string | null;
+  valence: number | null;
+  arousal: number | null;
+  language: string | null;
+  input_mode: 'typing' | 'voice';
+  time_of_day: 'morning' | 'noon' | 'evening' | 'night';
+  metrics: any;
+  device_info: any;
+  created_at: string;
+  consent_research: boolean;
+};
+
+export type PigInfoRow = {
+  pig_id: string;
+  user_id: string | null;
+  session_id: string;
+  name: string;
+  created_at: string;
+  last_reflection_at: string | null;
+};
+
+// Redis key patterns
+const KEYS = {
+  reflection: (id: string) => `reflection:${id}`,
+  reflectionsByOwner: (ownerId: string) => `owner:${ownerId}:reflections`,
+  reflectionsByPig: (pigId: string) => `pig:${pigId}:reflections`,
+  pig: (pigId: string) => `pig:${pigId}:info`,
+  sessionLink: (sessionId: string) => `session:${sessionId}:link`,
+};
 
 export type SaveReflectionInput = {
   // Identity
@@ -34,11 +74,22 @@ export type SaveReflectionInput = {
   consentResearch?: boolean;
 };
 
+export type SavePigInfoInput = {
+  pigId: string;
+  userId?: string | null;
+  sessionId: string;
+  name: string;
+  createdAt?: string;
+};
+
 /**
- * Save a reflection to Supabase
+ * Save a reflection to Redis KV
  */
 export async function saveReflection(input: SaveReflectionInput) {
   try {
+    // Generate unique ID
+    const id = `refl_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
     // Determine owner_id
     const ownerId = input.signedIn && input.userId
       ? `user:${input.userId}`
@@ -52,46 +103,48 @@ export async function saveReflection(input: SaveReflectionInput) {
     else if (hour >= 17 && hour < 21) timeOfDay = 'evening';
     else timeOfDay = 'night';
     
-    // Insert reflection
-    const { data, error } = await supabase
-      .from('reflections')
-      .insert({
-        owner_id: ownerId,
-        user_id: input.userId || null,
-        session_id: input.sessionId,
-        signed_in: input.signedIn,
-        pig_id: input.pigId,
-        pig_name: input.pigName || null,
-        text: input.text,
-        feeling_seed: input.feelingSeed || null,
-        valence: input.valence || null,
-        arousal: input.arousal || null,
-        language: input.language || null,
-        input_mode: input.inputMode,
-        time_of_day: timeOfDay,
-        metrics: input.metrics || null,
-        device_info: input.deviceInfo || null,
-        consent_research: input.consentResearch !== false,
-      })
-      .select()
-      .single();
+    // Create reflection object
+    const reflection: ReflectionRow = {
+      id,
+      owner_id: ownerId,
+      user_id: input.userId || null,
+      session_id: input.sessionId,
+      signed_in: input.signedIn,
+      pig_id: input.pigId,
+      pig_name: input.pigName || null,
+      text: input.text,
+      feeling_seed: input.feelingSeed || null,
+      valence: input.valence || null,
+      arousal: input.arousal || null,
+      language: input.language || null,
+      input_mode: input.inputMode,
+      time_of_day: timeOfDay,
+      metrics: input.metrics || null,
+      device_info: input.deviceInfo || null,
+      created_at: new Date().toISOString(),
+      consent_research: input.consentResearch !== false,
+    };
     
-    if (error) {
-      console.error('[ReflectionService] Error saving reflection:', error);
-      throw error;
-    }
+    // Save reflection
+    await redis.set(KEYS.reflection(id), JSON.stringify(reflection));
+    
+    // Add to owner's reflection list
+    await redis.lpush(KEYS.reflectionsByOwner(ownerId), id);
+    
+    // Add to pig's reflection list
+    await redis.lpush(KEYS.reflectionsByPig(input.pigId), id);
     
     // Update pig's last_reflection_at
     await updatePigLastReflection(input.pigId);
     
-    console.log('💾 Reflection saved:', {
-      id: data.id,
+    console.log('💾 Reflection saved to Redis:', {
+      id,
       ownerId,
       pigId: input.pigId,
       wordCount: input.text.split(/\s+/).length,
     });
     
-    return data;
+    return reflection;
   } catch (error) {
     console.error('[ReflectionService] Failed to save reflection:', error);
     throw error;
@@ -99,92 +152,104 @@ export async function saveReflection(input: SaveReflectionInput) {
 }
 
 /**
- * Get reflections for an owner (user or guest)
+ * Get reflections by owner (user or guest session)
  */
 export async function getReflectionsByOwner(ownerId: string, limit = 50) {
-  const { data, error } = await supabase
-    .from('reflections')
-    .select('*')
-    .eq('owner_id', ownerId)
-    .order('created_at', { ascending: false })
-    .limit(limit);
-  
-  if (error) {
-    console.error('[ReflectionService] Error fetching reflections:', error);
-    throw error;
+  try {
+    // Get list of reflection IDs
+    const reflectionIds = await redis.lrange(KEYS.reflectionsByOwner(ownerId), 0, limit - 1);
+    
+    if (reflectionIds.length === 0) {
+      return [];
+    }
+    
+    // Fetch all reflections
+    const reflectionKeys = reflectionIds.map((id: string) => KEYS.reflection(id));
+    const reflections = await redis.mget(...reflectionKeys);
+    
+    // Parse and filter out nulls
+    return (reflections as (string | null)[])
+      .filter((r): r is string => r !== null)
+      .map((r: string) => JSON.parse(r) as ReflectionRow)
+      .sort((a: ReflectionRow, b: ReflectionRow) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  } catch (error) {
+    console.error('[ReflectionService] Failed to get reflections by owner:', error);
+    return [];
   }
-  
-  return data;
 }
 
 /**
- * Get reflections for a specific pig
+ * Get reflections by pig
  */
 export async function getReflectionsByPig(pigId: string, limit = 50) {
-  const { data, error } = await supabase
-    .from('reflections')
-    .select('*')
-    .eq('pig_id', pigId)
-    .order('created_at', { ascending: false })
-    .limit(limit);
-  
-  if (error) {
-    console.error('[ReflectionService] Error fetching pig reflections:', error);
-    throw error;
+  try {
+    // Get list of reflection IDs
+    const reflectionIds = await redis.lrange(KEYS.reflectionsByPig(pigId), 0, limit - 1);
+    
+    if (reflectionIds.length === 0) {
+      return [];
+    }
+    
+    // Fetch all reflections
+    const reflectionKeys = reflectionIds.map((id: string) => KEYS.reflection(id));
+    const reflections = await redis.mget(...reflectionKeys);
+    
+    // Parse and filter out nulls
+    return (reflections as (string | null)[])
+      .filter((r): r is string => r !== null)
+      .map((r: string) => JSON.parse(r) as ReflectionRow)
+      .sort((a: ReflectionRow, b: ReflectionRow) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  } catch (error) {
+    console.error('[ReflectionService] Failed to get reflections by pig:', error);
+    return [];
   }
-  
-  return data;
 }
 
 /**
- * Migrate guest reflections to user account (on sign-in)
+ * Migrate guest reflections to a signed-in user
  */
 export async function migrateGuestToUser(sessionId: string, userId: string) {
   try {
-    console.log(`🔄 Migrating reflections: session ${sessionId} → user ${userId}`);
-    
     const guestOwnerId = `guest:${sessionId}`;
     const userOwnerId = `user:${userId}`;
     
-    // 1. Update all reflections from guest to user
-    const { data: updated, error: updateError } = await supabase
-      .from('reflections')
-      .update({
+    console.log('🔄 Starting migration:', { sessionId, userId });
+    
+    // Get all guest reflections
+    const guestReflections = await getReflectionsByOwner(guestOwnerId);
+    
+    if (guestReflections.length === 0) {
+      console.log('✅ No guest reflections to migrate');
+      return { migrated: 0 };
+    }
+    
+    // Update each reflection
+    for (const reflection of guestReflections) {
+      const updated: ReflectionRow = {
+        ...reflection,
         owner_id: userOwnerId,
         user_id: userId,
         signed_in: true,
-      })
-      .eq('owner_id', guestOwnerId)
-      .select();
-    
-    if (updateError) {
-      console.error('[ReflectionService] Migration error:', updateError);
-      throw updateError;
+      };
+      
+      // Update reflection data
+      await redis.set(KEYS.reflection(reflection.id), JSON.stringify(updated));
+      
+      // Add to user's reflection list
+      await redis.lpush(KEYS.reflectionsByOwner(userOwnerId), reflection.id);
     }
     
-    console.log(`✅ Migrated ${updated?.length || 0} reflections`);
+    // Delete guest's reflection list (reflections themselves stay with new owner)
+    await redis.del(KEYS.reflectionsByOwner(guestOwnerId));
     
-    // 2. Update pig ownership if any
-    await supabase
-      .from('pigs')
-      .update({ owner_id: userOwnerId })
-      .eq('owner_id', guestOwnerId);
+    // Create session link for future reference
+    await redis.set(KEYS.sessionLink(sessionId), userId);
     
-    // 3. Record the link
-    await supabase
-      .from('session_user_links')
-      .insert({
-        session_id: sessionId,
-        user_id: userId,
-        migration_completed: true,
-      });
+    console.log(`✅ Migrated ${guestReflections.length} reflections from guest to user`);
     
-    return {
-      success: true,
-      migratedCount: updated?.length || 0,
-    };
+    return { migrated: guestReflections.length };
   } catch (error) {
-    console.error('[ReflectionService] Migration failed:', error);
+    console.error('[ReflectionService] Failed to migrate guest to user:', error);
     throw error;
   }
 }
@@ -192,105 +257,149 @@ export async function migrateGuestToUser(sessionId: string, userId: string) {
 /**
  * Save or update pig info
  */
-export async function savePigInfo(pigId: string, ownerId: string, pigName?: string) {
+export async function savePigInfo(input: SavePigInfoInput) {
   try {
-    // Check if pig exists
-    const { data: existing } = await supabase
-      .from('pigs')
-      .select('*')
-      .eq('pig_id', pigId)
-      .single();
+    const pigInfo: PigInfoRow = {
+      pig_id: input.pigId,
+      user_id: input.userId || null,
+      session_id: input.sessionId,
+      name: input.name,
+      created_at: input.createdAt || new Date().toISOString(),
+      last_reflection_at: null,
+    };
+    
+    // Check if pig already exists
+    const existing = await redis.get(KEYS.pig(input.pigId));
     
     if (existing) {
       // Update existing pig
-      const updates: any = {};
-      if (pigName && !existing.pig_name) {
-        updates.pig_name = pigName;
-        updates.named_at = new Date().toISOString();
+      const existingPig = JSON.parse(existing as string) as PigInfoRow;
+      
+      // If user is being added, update pig ownership
+      if (input.userId && !existingPig.user_id) {
+        pigInfo.user_id = input.userId;
       }
       
-      if (Object.keys(updates).length > 0) {
-        await supabase
-          .from('pigs')
-          .update(updates)
-          .eq('pig_id', pigId);
-      }
-    } else {
-      // Create new pig
-      await supabase
-        .from('pigs')
-        .insert({
-          pig_id: pigId,
-          pig_name: pigName || null,
-          owner_id: ownerId,
-          named_at: pigName ? new Date().toISOString() : null,
-        });
+      // Preserve last_reflection_at
+      pigInfo.last_reflection_at = existingPig.last_reflection_at;
     }
+    
+    // Save pig info
+    await redis.set(KEYS.pig(input.pigId), JSON.stringify(pigInfo));
+    
+    console.log('🐷 Pig info saved:', { pigId: input.pigId, name: input.name });
+    
+    return pigInfo;
   } catch (error) {
-    console.error('[ReflectionService] Error saving pig info:', error);
+    console.error('[ReflectionService] Failed to save pig info:', error);
+    throw error;
   }
 }
 
 /**
- * Update pig's last reflection timestamp
+ * Update pig's last_reflection_at timestamp
  */
 async function updatePigLastReflection(pigId: string) {
   try {
-    await supabase
-      .from('pigs')
-      .update({ last_reflection_at: new Date().toISOString() })
-      .eq('pig_id', pigId);
+    const existing = await redis.get(KEYS.pig(pigId));
+    
+    if (existing) {
+      const pigInfo = JSON.parse(existing as string) as PigInfoRow;
+      pigInfo.last_reflection_at = new Date().toISOString();
+      await redis.set(KEYS.pig(pigId), JSON.stringify(pigInfo));
+    }
   } catch (error) {
-    console.error('[ReflectionService] Error updating pig timestamp:', error);
+    console.error('[ReflectionService] Failed to update pig last_reflection_at:', error);
   }
 }
 
 /**
- * Get owner stats (count, avg valence/arousal, etc.)
+ * Get pig info
  */
-export async function getOwnerStats(ownerId: string) {
-  const { data, error } = await supabase
-    .rpc('get_owner_stats', { p_owner_id: ownerId });
-  
-  if (error) {
-    console.error('[ReflectionService] Error fetching stats:', error);
+export async function getPigInfo(pigId: string) {
+  try {
+    const data = await redis.get(KEYS.pig(pigId));
+    
+    if (!data) return null;
+    
+    return JSON.parse(data as string) as PigInfoRow;
+  } catch (error) {
+    console.error('[ReflectionService] Failed to get pig info:', error);
     return null;
   }
-  
-  return data;
 }
 
 /**
- * Get all reflections (admin view)
- */
-export async function getAllReflections(limit = 100, offset = 0) {
-  const { data, error } = await supabase
-    .from('reflections')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .range(offset, offset + limit - 1);
-  
-  if (error) {
-    console.error('[ReflectionService] Error fetching all reflections:', error);
-    throw error;
-  }
-  
-  return data;
-}
-
-/**
- * Delete reflections by owner (GDPR compliance)
+ * Delete all reflections for an owner (for testing/cleanup)
  */
 export async function deleteReflectionsByOwner(ownerId: string) {
-  const { error } = await supabase
-    .from('reflections')
-    .delete()
-    .eq('owner_id', ownerId);
-  
-  if (error) {
-    console.error('[ReflectionService] Error deleting reflections:', error);
+  try {
+    // Get all reflection IDs
+    const reflectionIds = await redis.lrange(KEYS.reflectionsByOwner(ownerId), 0, -1);
+    
+    if (reflectionIds.length === 0) {
+      return { deleted: 0 };
+    }
+    
+    // Delete each reflection
+    const reflectionKeys = reflectionIds.map(id => KEYS.reflection(id));
+    await redis.del(...reflectionKeys);
+    
+    // Delete owner's reflection list
+    await redis.del(KEYS.reflectionsByOwner(ownerId));
+    
+    console.log(`🗑️ Deleted ${reflectionIds.length} reflections for owner ${ownerId}`);
+    
+    return { deleted: reflectionIds.length };
+  } catch (error) {
+    console.error('[ReflectionService] Failed to delete reflections:', error);
     throw error;
   }
-  
-  console.log(`🗑️ Deleted all reflections for ${ownerId}`);
+}
+
+/**
+ * Get owner stats (basic implementation for Redis)
+ */
+export async function getOwnerStats(ownerId: string) {
+  try {
+    const reflections = await getReflectionsByOwner(ownerId);
+    
+    if (reflections.length === 0) {
+      return {
+        count: 0,
+        avgValence: null,
+        avgArousal: null,
+        lastReflectionAt: null,
+      };
+    }
+    
+    const valences = reflections.map((r: ReflectionRow) => r.valence).filter((v: number | null): v is number => v !== null);
+    const arousals = reflections.map((r: ReflectionRow) => r.arousal).filter((a: number | null): a is number => a !== null);
+    
+    return {
+      count: reflections.length,
+      avgValence: valences.length > 0 ? valences.reduce((a: number, b: number) => a + b, 0) / valences.length : null,
+      avgArousal: arousals.length > 0 ? arousals.reduce((a: number, b: number) => a + b, 0) / arousals.length : null,
+      lastReflectionAt: reflections[0].created_at,
+    };
+  } catch (error) {
+    console.error('[ReflectionService] Failed to get owner stats:', error);
+    return null;
+  }
+}
+
+/**
+ * Get all reflections (admin view) - simplified for Redis
+ * Note: This is inefficient for Redis KV. For production, consider using a different approach.
+ */
+export async function getAllReflections(limit = 100, offset = 0) {
+  try {
+    // This is a simplified implementation
+    // In production, you'd want to maintain a separate "all reflections" list
+    console.warn('[ReflectionService] getAllReflections is not fully implemented for Redis');
+    return [];
+  } catch (error) {
+    console.error('[ReflectionService] Failed to get all reflections:', error);
+    throw error;
+  }
 }
