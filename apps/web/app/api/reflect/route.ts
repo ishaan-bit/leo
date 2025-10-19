@@ -341,9 +341,9 @@ export async function POST(request: NextRequest) {
       console.error('Failed to delete draft:', error);
     }
 
-    // 15. Trigger analysis (fire-and-forget)
+    // 15. Trigger analysis (MUST await in serverless - can't be fire-and-forget)
     console.log('🔥 Triggering analysis for rid:', rid);
-    fetch(`${request.nextUrl.origin}/api/reflect/analyze`, {
+    const analysisPromise = fetch(`${request.nextUrl.origin}/api/reflect/analyze`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ rid }),
@@ -354,6 +354,9 @@ export async function POST(request: NextRequest) {
       })
       .then(data => console.log('✅ Analysis response data:', data))
       .catch(err => console.error('❌ Failed to trigger analysis:', err));
+
+    // Wait for analysis to start before returning (serverless requirement)
+    await analysisPromise;
 
     // 16. Success response
     return NextResponse.json({
