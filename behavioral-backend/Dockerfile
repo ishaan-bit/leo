@@ -14,6 +14,10 @@ COPY src/ ./src/
 COPY app.py .
 COPY agent_service.py .
 COPY temporal_state.py .
+COPY entrypoint.sh .
+
+# Make entrypoint executable
+RUN chmod +x entrypoint.sh
 
 # Expose port
 EXPOSE 8000
@@ -23,4 +27,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD python -c "import requests; requests.get('http://localhost:8000/health')"
 
 # Run server
-CMD uvicorn app:app --host 0.0.0.0 --port ${PORT:-8000}
+ENTRYPOINT ["./entrypoint.sh"]
