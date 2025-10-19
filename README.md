@@ -8,7 +8,14 @@ Leo creates meaningful micro-rituals through playful interaction with pink pig t
 
 **Target Audience**: Urban India, 25-35, seeking mindfulness moments in digital life.
 
-## 📁 Project Structure
+## � Production Deployment
+
+- **Frontend**: https://leo-indol-theta.vercel.app
+- **Backend**: https://strong-happiness-production.up.railway.app
+- **AI Analysis**: OpenAI GPT-3.5-turbo (phi-3 locally via Ollama)
+- **Database**: Upstash Redis
+
+## �📁 Project Structure
 
 ```
 Leo/
