@@ -6,6 +6,9 @@ WORKDIR /app
 COPY requirements-server.txt .
 RUN pip install --no-cache-dir -r requirements-server.txt
 
+# Download TextBlob corpora
+RUN python -m textblob.download_corpora
+
 # Copy application code
 COPY . .
 
