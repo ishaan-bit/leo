@@ -1,33 +1,44 @@
 """
-Cloud LLM Provider - OpenAI fallback for production
-When Ollama is not available, use OpenAI GPT-3.5-turbo
+Cloud LLM Provider - Hugging Face Inference API with phi-3
+When Ollama is not available, use HF Inference API for phi-3
 """
 
 import os
 import json
 import requests
 from typing import Optional, Dict
+from huggingface_hub import InferenceClient
 
 
 class CloudLLMProvider:
     """
     Cloud LLM provider supporting multiple backends:
-    - OpenAI GPT-3.5-turbo (production)
-    - OpenAI GPT-4 (premium)
+    - Hugging Face Inference API (phi-3) - PRIMARY
+    - OpenAI GPT-3.5-turbo (fallback)
     - Anthropic Claude (alternative)
     """
     
-    def __init__(self, provider: str = "openai", model: str = "gpt-3.5-turbo"):
+    def __init__(self, provider: str = "huggingface", model: str = "microsoft/Phi-3-mini-4k-instruct"):
         """
         Initialize cloud LLM provider.
         
         Args:
-            provider: "openai" or "anthropic"
-            model: Model name (e.g., "gpt-3.5-turbo", "gpt-4", "claude-3-haiku")
+            provider: "huggingface", "openai", or "anthropic"
+            model: Model name (default: "microsoft/Phi-3-mini-4k-instruct")
         """
         self.provider = provider
         self.model = model
-        self.api_key = os.getenv("OPENAI_API_KEY") if provider == "openai" else os.getenv("ANTHROPIC_API_KEY")
+        
+        if provider == "huggingface":
+            self.api_key = os.getenv("HUGGINGFACE_API_KEY")
+            if self.api_key:
+                self.client = InferenceClient(token=self.api_key)
+        elif provider == "openai":
+            self.api_key = os.getenv("OPENAI_API_KEY")
+        elif provider == "anthropic":
+            self.api_key = os.getenv("ANTHROPIC_API_KEY")
+        else:
+            self.api_key = None
         
     def is_available(self) -> bool:
         """Check if API key is configured."""
@@ -50,7 +61,9 @@ class CloudLLMProvider:
             return None
         
         try:
-            if self.provider == "openai":
+            if self.provider == "huggingface":
+                return self._call_huggingface(prompt, max_tokens, temperature)
+            elif self.provider == "openai":
                 return self._call_openai(prompt, max_tokens, temperature)
             elif self.provider == "anthropic":
                 return self._call_anthropic(prompt, max_tokens, temperature)
@@ -59,6 +72,29 @@ class CloudLLMProvider:
                 return None
         except Exception as e:
             print(f"⚠️  Cloud LLM call failed: {e}")
+            return None
+    
+    def _call_huggingface(self, prompt: str, max_tokens: int, temperature: float) -> Optional[str]:
+        """Call Hugging Face Inference API with phi-3."""
+        try:
+            # Use text generation endpoint
+            response = self.client.text_generation(
+                prompt,
+                model=self.model,
+                max_new_tokens=max_tokens,
+                temperature=temperature,
+                return_full_text=False,  # Only return generated text
+                do_sample=True,  # Enable sampling for temperature
+            )
+            
+            if response:
+                return response.strip()
+            else:
+                print(f"⚠️  Hugging Face API returned empty response")
+                return None
+                
+        except Exception as e:
+            print(f"⚠️  Hugging Face API error: {e}")
             return None
     
     def _call_openai(self, prompt: str, max_tokens: int, temperature: float) -> Optional[str]:

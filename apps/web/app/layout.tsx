@@ -5,6 +5,7 @@ import { AuthProvider } from '@/providers/AuthProvider';
 export const metadata: Metadata = {
   title: 'Name Me',
   description: 'A gentle naming ritual for your flying pig.',
+  // Railway backend connected
   openGraph: {
     title: 'Name Me',
     description: 'A gentle naming ritual for your flying pig.',

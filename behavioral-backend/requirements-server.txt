@@ -8,6 +8,7 @@ pydantic>=2.4.0
 # LLM Integration
 requests>=2.31.0
 openai>=1.0.0  # For cloud LLM fallback
+huggingface-hub>=0.20.0  # For Hugging Face Inference API (phi-3)
 
 # NLP & Analysis
 textblob>=0.17.1

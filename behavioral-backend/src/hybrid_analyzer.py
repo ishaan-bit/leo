@@ -48,9 +48,9 @@ class HybridAnalyzer:
         self.ollama_url = ollama_url
         self.phi3_model = "phi3:latest"
         
-        # Initialize LLM providers (try Ollama first, fallback to OpenAI)
-        self.llm_provider = "ollama"  # "ollama" or "openai"
-        self.cloud_llm = CloudLLMProvider(provider="openai", model="gpt-3.5-turbo")
+        # Initialize LLM providers (try Ollama first, fallback to HuggingFace phi-3)
+        self.llm_provider = "ollama"  # "ollama", "huggingface", or "openai"
+        self.cloud_llm = CloudLLMProvider(provider="huggingface", model="microsoft/Phi-3-mini-4k-instruct")
         
         # Initialize temporal manager if enabled
         self.temporal_manager = None
@@ -72,16 +72,16 @@ class HybridAnalyzer:
                 print(f"⚠️  Could not initialize temporal manager: {e}")
                 self.enable_temporal = False
         
-        # Check LLM availability: Try Ollama first, fallback to OpenAI
+        # Check LLM availability: Try Ollama first, fallback to Hugging Face phi-3
         if self.use_llm:
             if self._check_ollama_connection():
                 self.llm_provider = "ollama"
                 print("✓ Using Ollama phi-3 (local)")
             elif self.cloud_llm.is_available():
-                self.llm_provider = "openai"
-                print("✓ Using OpenAI GPT-3.5 (cloud fallback)")
+                self.llm_provider = "huggingface"
+                print("✓ Using Hugging Face phi-3 (cloud)")
             else:
-                print("⚠️  No LLM available - install Ollama or set OPENAI_API_KEY")
+                print("⚠️  No LLM available - install Ollama or set HUGGINGFACE_API_KEY")
                 self.use_llm = False
     
     def _check_ollama_connection(self) -> bool:
