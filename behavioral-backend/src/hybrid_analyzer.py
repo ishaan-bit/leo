@@ -61,7 +61,7 @@ class HybridAnalyzer:
                 upstash_token = os.getenv("UPSTASH_REDIS_REST_TOKEN") or os.getenv("KV_REST_API_TOKEN")
                 
                 if upstash_url and upstash_token:
-                    upstash_store = UpstashStore(upstash_url, upstash_token)
+                    upstash_store = UpstashStore()  # Reads from environment variables
                     temporal_persistence = TemporalPersistence(upstash_store)
                     self.temporal_manager = TemporalStateManager(temporal_persistence)
                     print("✓ Temporal state manager initialized with Upstash")
