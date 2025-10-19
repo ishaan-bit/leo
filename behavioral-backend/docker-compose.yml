@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  # Hybrid Analysis API
+  behavioral-api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      # Upstash credentials (from .env file)
+      - UPSTASH_REDIS_REST_URL=${UPSTASH_REDIS_REST_URL}
+      - UPSTASH_REDIS_REST_TOKEN=${UPSTASH_REDIS_REST_TOKEN}
+      # Ollama endpoint (runs on host or separate container)
+      - OLLAMA_URL=http://host.docker.internal:11434
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+  # Optional: Run Ollama in container (requires GPU support)
+  # Uncomment if you want to run Ollama inside Docker
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ollama-data:/root/.ollama
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: 1
+  #             capabilities: [gpu]
+  #   restart: unless-stopped
+
+# volumes:
+#   ollama-data:

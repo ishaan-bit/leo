@@ -98,7 +98,7 @@ def detect_emotion_and_valence(text: str) -> Dict:
             "anger": ["angry", "furious", "pissed", "rebuke", "rebuked", "annoyed", "irritated", "argued", "nitpicked", "took credit", "disappointed", "defended", "defended my choice", "annoyed but", "spilled coffee", "spilled"],
             "sadness": ["sad", "depressed", "down", "unhappy", "miserable", "cry", "crying", "left behind", "sick", "numb", "still not", "not great", "stuck in traffic", "yesterday", "insomnia"],
             "relief": ["relief", "relieved", "normal", "results are normal"],
-            "anxiety": ["anxious", "worried", "nervous", "stressed", "panic", "fallout", "layoffs", "overwhelmed", "hassle", "bills piling", "unexpected bill", "manageable"],
+            "anxiety": ["anxious", "worried", "nervous", "stressed", "panic", "fallout", "layoffs", "overwhelmed", "hassle", "bills piling", "unexpected bill", "manageable", "strained financially", "lost my job", "lost job", "financial strain", "money problems", "can't afford", "broke", "debt", "bills"],
             "fear": ["fear", "fearful", "scared", "afraid", "fearful", "headlines made me fearful", "pain"],
             "shame": ["ashamed", "shame", "forgot", "overreacted", "regret", "left behind"],
             "contentment": ["content", "satisfied", "peaceful", "calm", "relaxed", "clear", "calmer", "meditation", "recharge", "canceled plans", "stayed calm"],
