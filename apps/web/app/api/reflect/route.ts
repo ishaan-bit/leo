@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { kv, logKvOperation, generateReflectionId } from '@/lib/kv';
 import { getAuth, getSid, kvKeys, buildOwnerId } from '@/lib/auth-helpers';
+import { processReflectionText } from '@/lib/translation';
 import type {
   Reflection,
   ReflectionInput,
@@ -151,9 +152,26 @@ export async function POST(request: NextRequest) {
     // 4. Generate reflection ID
     const rid = generateReflectionId();
 
-    // 5. Build typing/voice summaries
+    // 5. Get raw text and translate/normalize
     const rawText = body.originalText || body.voiceTranscript || '';
     const inputMode = body.inputType === 'voice' ? 'voice' : 'typing';
+
+    // 5a. Process text: detect language + translate to English
+    const translationResult = await processReflectionText(rawText);
+    const normalizedText = translationResult.normalizedText;
+    const langDetected = translationResult.langDetected;
+
+    console.log('🌐 Translation:', {
+      rid,
+      lang: langDetected,
+      translation_used: translationResult.translationUsed,
+      translation_error: translationResult.translationError,
+      raw_preview: rawText.substring(0, 50),
+      normalized_preview: normalizedText.substring(0, 50),
+    });
+
+    // 6. Build typing/voice summaries
+    // 6. Build typing/voice summaries
     
     let typingSummary: TypingMetrics | null = null;
     let voiceSummary: VoiceMetrics | null = null;
@@ -178,14 +196,14 @@ export async function POST(request: NextRequest) {
         confidence_min: body.metrics.voice.confidence_min || 0,
         silence_gaps_ms: body.metrics.voice.silence_gaps_ms || [],
         word_count: rawText.split(/\s+/).length,
-        lang_detected: body.detectedLanguage || 'unknown',
+        lang_detected: langDetected, // Use detected language
       };
     }
 
-    // 6. Extract behavioral signals
+    // 7. Extract behavioral signals
     const signals = extractSignals(typingSummary || undefined, voiceSummary || undefined);
 
-    // 7. Build client context
+    // 8. Build client context
     const clientContext: ClientContext = {
       device: body.deviceInfo?.device || 'desktop',
       os: body.deviceInfo?.os,
@@ -195,20 +213,20 @@ export async function POST(request: NextRequest) {
       viewport: body.deviceInfo?.viewport,
     };
 
-    // 8. Consent flags
+    // 9. Consent flags
     const consentFlags: ConsentFlags = {
       research: body.consentResearch !== false, // Default true
       audio_retention: body.consentAudioRetention === true, // Default false
     };
 
-    // 9. Processing version
+    // 10. Processing version
     const version: ProcessingVersion = {
       nlp: '1.0.0',
       valence: '1.0.0',
       ui: '1.0.0',
     };
 
-    // 10. Build complete Reflection object
+    // 11. Build complete Reflection object
     const reflection: Reflection = {
       // Core IDs
       rid,
@@ -219,10 +237,10 @@ export async function POST(request: NextRequest) {
       pig_id: body.pigId,
       pig_name_snapshot: body.pigName || null,
       
-      // Content
-      raw_text: rawText,
-      normalized_text: body.normalizedText || null,
-      lang_detected: body.detectedLanguage || null,
+      // Content - NOW WITH TRANSLATION
+      raw_text: rawText,              // Original input (Hindi/English/Hinglish)
+      normalized_text: normalizedText, // Translated to English
+      lang_detected: langDetected,     // 'english', 'hindi', 'mixed'
       
       // Input mode
       input_mode: inputMode,
