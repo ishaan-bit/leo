@@ -290,6 +290,25 @@ export async function POST(request: NextRequest) {
       }, { status: 503 });
     }
 
+    // 11b. Push to enrichment worker queue
+    try {
+      const normalizedPayload = {
+        rid,
+        sid,
+        timestamp: body.timestamp,
+        normalized_text: normalizedText,
+        lang_detected: langDetected,
+        input_mode: inputMode,
+        client_context: clientContext,
+      };
+      
+      await kv.rpush('reflections:normalized', JSON.stringify(normalizedPayload));
+      console.log(`📤 Pushed ${rid} to enrichment queue`);
+    } catch (error) {
+      // Non-fatal: reflection is saved, enrichment can be triggered manually
+      console.error('Failed to push to enrichment queue:', error);
+    }
+
     // 12. Add to sorted sets (for querying)
     const ownerKey = kvKeys.reflectionsByOwner(ownerId);
     const pigKey = kvKeys.reflectionsByPig(body.pigId);
