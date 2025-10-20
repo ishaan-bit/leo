@@ -1,0 +1,24 @@
+# Enrichment Worker Dependencies
+
+# Redis client for Upstash
+redis==5.0.1
+
+# HTTP client for Ollama
+requests==2.31.0
+
+# NLP and analytics (using prebuilt wheels)
+numpy>=1.24.0
+scipy>=1.10.0
+
+# Timezone handling
+pytz==2023.3.post1
+
+# Logging
+python-json-logger==2.0.7
+
+# Environment variables
+python-dotenv==1.0.0
+
+# FastAPI for health endpoint
+fastapi==0.104.1
+uvicorn[standard]==0.24.0

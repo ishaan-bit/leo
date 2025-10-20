@@ -1,0 +1,50 @@
+{"id":"ex_001","normalized_text":"exhausted after long day, nothing went right","expect":{"events":["fatigue","frustration"],"wheel_primary":"sadness","valence_range":[0.15,0.35],"arousal_range":[0.25,0.45]}}
+{"id":"ex_002","normalized_text":"so angry, people keep ignoring my requests","expect":{"events":["anger","irritation"],"wheel_primary":"anger","valence_range":[0.20,0.40],"arousal_range":[0.65,0.85]}}
+{"id":"ex_003","normalized_text":"feeling stuck, made no progress on the project","expect":{"events":["low_progress","frustration"],"wheel_primary":"sadness","valence_range":[0.25,0.45],"arousal_range":[0.35,0.55]}}
+{"id":"ex_004","normalized_text":"worried about tomorrow's presentation, can't sleep","expect":{"events":["anxiety","anticipation"],"wheel_primary":"fear","valence_range":[0.25,0.45],"arousal_range":[0.70,0.90]}}
+{"id":"ex_005","normalized_text":"really happy with how the meeting went today","expect":{"events":["accomplishment","joy"],"wheel_primary":"joy","valence_range":[0.70,0.90],"arousal_range":[0.55,0.75]}}
+{"id":"ex_006","normalized_text":"peaceful evening, just relaxing and reading","expect":{"events":["contentment","relaxation"],"wheel_primary":"joy","valence_range":[0.65,0.85],"arousal_range":[0.20,0.40]}}
+{"id":"ex_007","normalized_text":"frustrated with myself for procrastinating again","expect":{"events":["disappointment","self_criticism"],"wheel_primary":"sadness","valence_range":[0.30,0.50],"arousal_range":[0.45,0.65]}}
+{"id":"ex_008","normalized_text":"excited about the new opportunity at work","expect":{"events":["anticipation","excitement"],"wheel_primary":"joy","valence_range":[0.75,0.95],"arousal_range":[0.70,0.90]}}
+{"id":"ex_009","normalized_text":"lonely, haven't talked to anyone all day","expect":{"events":["loneliness","isolation"],"wheel_primary":"sadness","valence_range":[0.20,0.40],"arousal_range":[0.25,0.45]}}
+{"id":"ex_010","normalized_text":"overwhelmed by all the tasks I need to do","expect":{"events":["stress","anxiety"],"wheel_primary":"fear","valence_range":[0.25,0.45],"arousal_range":[0.65,0.85]}}
+{"id":"ex_011","normalized_text":"proud of finishing the difficult assignment","expect":{"events":["accomplishment","pride"],"wheel_primary":"joy","valence_range":[0.70,0.90],"arousal_range":[0.50,0.70]}}
+{"id":"ex_012","normalized_text":"tired but satisfied after productive day","expect":{"events":["fatigue","contentment"],"wheel_primary":"joy","valence_range":[0.55,0.75],"arousal_range":[0.30,0.50]}}
+{"id":"ex_013","normalized_text":"irritated by constant interruptions","expect":{"events":["irritation","frustration"],"wheel_primary":"anger","valence_range":[0.30,0.50],"arousal_range":[0.60,0.80]}}
+{"id":"ex_014","normalized_text":"grateful for friend's support today","expect":{"events":["gratitude","connection"],"wheel_primary":"joy","valence_range":[0.70,0.90],"arousal_range":[0.45,0.65]}}
+{"id":"ex_015","normalized_text":"confused about what to do next","expect":{"events":["confusion","uncertainty"],"wheel_primary":"surprise","valence_range":[0.40,0.60],"arousal_range":[0.50,0.70]}}
+{"id":"ex_016","normalized_text":"disappointed that plans fell through","expect":{"events":["disappointment","letdown"],"wheel_primary":"sadness","valence_range":[0.30,0.50],"arousal_range":[0.35,0.55]}}
+{"id":"ex_017","normalized_text":"energized after morning exercise","expect":{"events":["vitality","well_being"],"wheel_primary":"joy","valence_range":[0.70,0.90],"arousal_range":[0.65,0.85]}}
+{"id":"ex_018","normalized_text":"nervous about the upcoming exam","expect":{"events":["anxiety","nervousness"],"wheel_primary":"fear","valence_range":[0.30,0.50],"arousal_range":[0.65,0.85]}}
+{"id":"ex_019","normalized_text":"bored, nothing interesting to do","expect":{"events":["boredom","apathy"],"wheel_primary":"disgust","valence_range":[0.35,0.55],"arousal_range":[0.15,0.35]}}
+{"id":"ex_020","normalized_text":"relieved that the stressful situation is over","expect":{"events":["relief","calm"],"wheel_primary":"joy","valence_range":[0.60,0.80],"arousal_range":[0.35,0.55]}}
+{"id":"ex_021","normalized_text":"angry at how I was treated","expect":{"events":["anger","resentment"],"wheel_primary":"anger","valence_range":[0.20,0.40],"arousal_range":[0.70,0.90]}}
+{"id":"ex_022","normalized_text":"sad about missing the family gathering","expect":{"events":["sadness","longing"],"wheel_primary":"sadness","valence_range":[0.25,0.45],"arousal_range":[0.30,0.50]}}
+{"id":"ex_023","normalized_text":"hopeful about the future","expect":{"events":["hope","optimism"],"wheel_primary":"anticipation","valence_range":[0.65,0.85],"arousal_range":[0.50,0.70]}}
+{"id":"ex_024","normalized_text":"disgusted by the messy situation","expect":{"events":["disgust","repulsion"],"wheel_primary":"disgust","valence_range":[0.20,0.40],"arousal_range":[0.50,0.70]}}
+{"id":"ex_025","normalized_text":"surprised by the unexpected news","expect":{"events":["surprise","shock"],"wheel_primary":"surprise","valence_range":[0.45,0.65],"arousal_range":[0.70,0.90]}}
+{"id":"ex_026","normalized_text":"ashamed of my behavior yesterday","expect":{"events":["shame","guilt"],"wheel_primary":"disgust","valence_range":[0.20,0.40],"arousal_range":[0.45,0.65]}}
+{"id":"ex_027","normalized_text":"trusting that things will work out","expect":{"events":["trust","acceptance"],"wheel_primary":"trust","valence_range":[0.60,0.80],"arousal_range":[0.35,0.55]}}
+{"id":"ex_028","normalized_text":"scared about the uncertain future","expect":{"events":["fear","dread"],"wheel_primary":"fear","valence_range":[0.20,0.40],"arousal_range":[0.65,0.85]}}
+{"id":"ex_029","normalized_text":"content with how life is going","expect":{"events":["contentment","satisfaction"],"wheel_primary":"joy","valence_range":[0.70,0.90],"arousal_range":[0.30,0.50]}}
+{"id":"ex_030","normalized_text":"annoyed by the noise outside","expect":{"events":["annoyance","irritation"],"wheel_primary":"anger","valence_range":[0.35,0.55],"arousal_range":[0.55,0.75]}}
+{"id":"ex_031","normalized_text":"very tired and irritated, didn't make much progress today","expect":{"events":["fatigue","irritation","low_progress"],"wheel_primary":"sadness","valence_range":[0.20,0.35],"arousal_range":[0.50,0.70]}}
+{"id":"ex_032","normalized_text":"accomplished all my goals for the week","expect":{"events":["accomplishment","pride"],"wheel_primary":"joy","valence_range":[0.75,0.95],"arousal_range":[0.55,0.75]}}
+{"id":"ex_033","normalized_text":"feeling overwhelmed and stressed out","expect":{"events":["stress","overwhelm"],"wheel_primary":"fear","valence_range":[0.25,0.45],"arousal_range":[0.70,0.90]}}
+{"id":"ex_034","normalized_text":"calm and focused on the task","expect":{"events":["focus","calm"],"wheel_primary":"trust","valence_range":[0.60,0.80],"arousal_range":[0.40,0.60]}}
+{"id":"ex_035","normalized_text":"sad and missing my family","expect":{"events":["sadness","loneliness"],"wheel_primary":"sadness","valence_range":[0.25,0.45],"arousal_range":[0.30,0.50]}}
+{"id":"ex_036","normalized_text":"joyful after spending time with loved ones","expect":{"events":["joy","connection"],"wheel_primary":"joy","valence_range":[0.75,0.95],"arousal_range":[0.55,0.75]}}
+{"id":"ex_037","normalized_text":"fearful about the medical test results","expect":{"events":["fear","anxiety"],"wheel_primary":"fear","valence_range":[0.20,0.40],"arousal_range":[0.70,0.90]}}
+{"id":"ex_038","normalized_text":"pleased with the positive feedback","expect":{"events":["pride","validation"],"wheel_primary":"joy","valence_range":[0.70,0.90],"arousal_range":[0.50,0.70]}}
+{"id":"ex_039","normalized_text":"numb and disconnected from everything","expect":{"events":["apathy","dissociation"],"wheel_primary":"disgust","valence_range":[0.30,0.50],"arousal_range":[0.15,0.35]}}
+{"id":"ex_040","normalized_text":"enthusiastic about the new project","expect":{"events":["enthusiasm","excitement"],"wheel_primary":"joy","valence_range":[0.75,0.95],"arousal_range":[0.70,0.90]}}
+{"id":"ex_041","normalized_text":"resentful about being taken for granted","expect":{"events":["resentment","bitterness"],"wheel_primary":"anger","valence_range":[0.25,0.45],"arousal_range":[0.55,0.75]}}
+{"id":"ex_042","normalized_text":"melancholic thinking about the past","expect":{"events":["melancholy","nostalgia"],"wheel_primary":"sadness","valence_range":[0.35,0.55],"arousal_range":[0.30,0.50]}}
+{"id":"ex_043","normalized_text":"inspired by the motivational talk","expect":{"events":["inspiration","motivation"],"wheel_primary":"anticipation","valence_range":[0.70,0.90],"arousal_range":[0.60,0.80]}}
+{"id":"ex_044","normalized_text":"indifferent to the outcome","expect":{"events":["indifference","detachment"],"wheel_primary":"disgust","valence_range":[0.45,0.65],"arousal_range":[0.20,0.40]}}
+{"id":"ex_045","normalized_text":"jealous of others' success","expect":{"events":["jealousy","envy"],"wheel_primary":"anger","valence_range":[0.30,0.50],"arousal_range":[0.55,0.75]}}
+{"id":"ex_046","normalized_text":"compassionate towards those suffering","expect":{"events":["compassion","empathy"],"wheel_primary":"trust","valence_range":[0.55,0.75],"arousal_range":[0.40,0.60]}}
+{"id":"ex_047","normalized_text":"ecstatic about the good news","expect":{"events":["ecstasy","elation"],"wheel_primary":"joy","valence_range":[0.85,1.00],"arousal_range":[0.80,1.00]}}
+{"id":"ex_048","normalized_text":"terrified of the dangerous situation","expect":{"events":["terror","panic"],"wheel_primary":"fear","valence_range":[0.10,0.30],"arousal_range":[0.80,1.00]}}
+{"id":"ex_049","normalized_text":"serene and at peace","expect":{"events":["serenity","tranquility"],"wheel_primary":"joy","valence_range":[0.70,0.90],"arousal_range":[0.15,0.35]}}
+{"id":"ex_050","normalized_text":"conflicted about the difficult decision","expect":{"events":["ambivalence","conflict"],"wheel_primary":"surprise","valence_range":[0.40,0.60],"arousal_range":[0.50,0.70]}}

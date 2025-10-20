@@ -116,6 +116,124 @@ export type Reflection = {
   
   // Versioning
   version: ProcessingVersion;
+  
+  // ========== ENRICHED FIELDS (added by worker) ==========
+  // These fields are populated asynchronously by the enrichment worker
+  
+  timezone_used?: string;         // Timezone for circadian analysis
+  
+  final?: {
+    invoked: string;              // Internal feeling label(s)
+    expressed: string;            // Outward tone label(s)
+    expressed_text: string | null; // Optional gloss
+    wheel: {
+      primary: string;            // Plutchik primary emotion
+      secondary: string;          // Plutchik secondary emotion
+    };
+    valence: number;              // 0..1
+    arousal: number;              // 0..1
+    confidence: number;           // 0..1
+    events: Array<{               // Detected life events
+      label: string;
+      confidence: number;
+    }>;
+    warnings: string[];           // Processing warnings
+  };
+  
+  congruence?: number;            // Invoked↔expressed coherence (0..1)
+  
+  temporal?: {
+    ema: {
+      v_1d: number; v_7d: number; v_28d: number;
+      a_1d: number; a_7d: number; a_28d: number;
+    };
+    zscore: {
+      valence: number | null;
+      arousal: number | null;
+      window_days: number;
+    };
+    wow_change: {
+      valence: number | null;
+      arousal: number | null;
+    };
+    streaks: {
+      positive_valence_days: number;
+      negative_valence_days: number;
+    };
+    last_marks: {
+      last_positive_at: string | null;
+      last_negative_at: string | null;
+      last_risk_at: string | null;
+    };
+    circadian: {
+      hour_local: number;
+      phase: string;
+      sleep_adjacent: boolean;
+    };
+  };
+  
+  willingness?: {
+    willingness_to_express: number;
+    inhibition: number;
+    amplification: number;
+    dissociation: number;
+    social_desirability: number;
+  };
+  
+  comparator?: {
+    expected: {
+      invoked: string;
+      expressed: string;
+      valence: number;
+      arousal: number;
+    };
+    deviation: {
+      valence: number;
+      arousal: number;
+    };
+    note: string;
+  };
+  
+  recursion?: {
+    method: string;
+    links: Array<{
+      rid: string;
+      score: number;
+      relation: string;
+    }>;
+    thread_summary: string;
+    thread_state: string;
+  };
+  
+  state?: {
+    valence_mu: number;
+    arousal_mu: number;
+    energy_mu: number;
+    fatigue_mu: number;
+    sigma: number;
+    confidence: number;
+  };
+  
+  quality?: {
+    text_len: number;
+    uncertainty: number;
+  };
+  
+  risk_signals_weak?: string[];   // Risk signals (e.g., "anergy_trend", "CRITICAL_SUICIDE_RISK")
+  
+  provenance?: {
+    baseline_version: string;
+    ollama_model: string;
+  };
+  
+  meta?: {
+    mode: string;                 // e.g., "hybrid-local"
+    blend: number;                // Baseline weight
+    revision: number;
+    created_at: string;
+    ollama_latency_ms: number;
+    warnings: string[];
+  };
 };
 
 /**
