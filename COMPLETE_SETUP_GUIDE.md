@@ -326,6 +326,43 @@ UPSTASH_REDIS_REST_TOKEN=...
 
 ---
 
+## 🧹 Data Model Cleanup (October 20, 2025)
+
+**Major improvements to reflection schema:**
+
+✅ **Removed redundant fields:**
+- ❌ Old `analysis` object (1400+ bytes of duplicates)
+- ❌ Empty `tags_auto` and `tags_user` arrays
+- ❌ Placeholder `self_awareness` scores (all 0s)
+- ❌ Duplicate `temporal`, `recursion`, `risk` fields
+
+✅ **Result**: 40% storage reduction per reflection!
+
+✅ **Clarified data sources:**
+- **Frontend `valence`/`arousal`**: Lightweight estimates from typing/voice patterns
+- **Enriched `final.valence`/`arousal`**: Accurate ML analysis from Ollama
+- **Clear separation**: Use `final.*` for display, frontend values are just rough estimates
+
+### Clean Existing Reflections
+
+If you have old reflections with the `analysis` object, clean them:
+
+```powershell
+cd enrichment-worker
+python clean_one.py <reflection_id>
+# Example: python clean_one.py refl_1760942250813_ds8qayvdn
+```
+
+Or clean all reflections in a session:
+```powershell
+python cleanup_old_analysis.py
+# Enter session ID when prompted
+```
+
+See `SCHEMA_CLEANUP.md` for full documentation.
+
+---
+
 ## 📦 Files Created This Session
 
 | File | Purpose |
@@ -338,7 +375,10 @@ UPSTASH_REDIS_REST_TOKEN=...
 | `tools/compare_enrichments.py` | Baseline vs Hybrid comparison |
 | `tools/check_acceleration.py` | Hardware detection and Ollama benchmark |
 | `start-backend.ps1` | Convenient startup script |
-| `ENRICHMENT_QUICKSTART.md` | User guide (this file) |
+| `clean_one.py` | Clean single reflection (remove analysis object) |
+| `cleanup_old_analysis.py` | Batch cleanup script for sessions |
+| `SCHEMA_CLEANUP.md` | Full documentation of data model cleanup |
+| `COMPLETE_SETUP_GUIDE.md` | User guide (this file) |
 
 ---
 
