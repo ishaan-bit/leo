@@ -247,16 +247,13 @@ export async function POST(request: NextRequest) {
       typing_summary: typingSummary,
       voice_summary: voiceSummary,
       
-      // Affect analysis
+      // Affect estimation (lightweight from typing/voice features)
+      // NOTE: These are quick frontend estimates. Worker adds accurate final.valence/arousal
       valence: body.affect?.valence ?? null,
       arousal: body.affect?.arousal ?? null,
       confidence: body.affect?.cognitiveEffort ?? null,
       
-      // Tags
-      tags_auto: [],
-      tags_user: [],
-      
-      // Signals
+      // Behavioral signals (from typing/voice patterns)
       signals,
       
       // Consent

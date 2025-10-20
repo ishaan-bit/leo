@@ -92,16 +92,13 @@ export type Reflection = {
   typing_summary: TypingMetrics | null;
   voice_summary: VoiceMetrics | null;
   
-  // Affect analysis
-  valence: number | null;         // -1 to 1 (negative to positive)
-  arousal: number | null;         // 0 to 1 (calm to excited)
-  confidence: number | null;      // 0 to 1 (model confidence)
+  // Affect estimation (lightweight frontend analysis from typing/voice features)
+  // NOTE: These are quick estimates. Use final.valence/arousal for accurate analysis.
+  valence: number | null;         // -1 to 1 (rough estimate from input behavior)
+  arousal: number | null;         // 0 to 1 (rough estimate from input behavior)
+  confidence: number | null;      // 0 to 1 (cognitive effort estimate)
   
-  // Tags & classification
-  tags_auto: string[];            // Auto-generated tags
-  tags_user: string[];            // User-added tags
-  
-  // Behavioral signals
+  // Behavioral signals (from typing/voice patterns)
   signals: BehavioralSignals;
   
   // Privacy & consent

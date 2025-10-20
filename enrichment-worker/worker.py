@@ -199,13 +199,10 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
         if streaks['negative_valence_days'] >= 1 and not last_marks.get('last_negative_at'):
             last_marks['last_negative_at'] = timestamp
         
-        # 4. Build final enriched document (NEW SCHEMA)
+        # 4. Build enriched fields (will be merged into existing reflection)
         enriched = {
-            'rid': rid,
-            'sid': sid,
-            'timestamp': timestamp,
+            # Only enriched fields - NOT duplicating rid, sid, timestamp from original
             'timezone_used': TIMEZONE,
-            'normalized_text': normalized_text,
             
             'final': {
                 'invoked': invoked,
@@ -263,16 +260,12 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
             
             'meta': {
                 'mode': 'hybrid-local',
+                'model': 'phi3:latest',
                 'blend': BASELINE_BLEND,
                 'revision': 1,
-                'created_at': datetime.utcnow().isoformat() + 'Z',
+                'enriched_at': datetime.utcnow().isoformat() + 'Z',
                 'ollama_latency_ms': latency_ms,
                 'warnings': warnings,
-                'mode': 'hybrid-local',
-                'model': 'phi3',
-                'blend': BASELINE_BLEND,
-                'revision': 1,
-                'created_at': datetime.utcnow().isoformat() + 'Z',
             }
         }
         
