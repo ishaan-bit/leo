@@ -1,0 +1,7 @@
+# Vercel ignore file - exclude build artifacts and large files
+.next/cache
+node_modules
+.env*.local
+*.log
+.DS_Store
+Thumbs.db
