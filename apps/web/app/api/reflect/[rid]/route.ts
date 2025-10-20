@@ -10,10 +10,10 @@ import { kv } from '@vercel/kv';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { rid: string } }
+  { params }: { params: Promise<{ rid: string }> }
 ) {
   try {
-    const { rid } = params;
+    const { rid } = await params;
 
     if (!rid || !rid.startsWith('refl_')) {
       return NextResponse.json(
