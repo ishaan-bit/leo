@@ -8,7 +8,7 @@ import NotebookInput from '../atoms/NotebookInput';
 import VoiceOrb from '../atoms/VoiceOrb';
 import AuthStateIndicator from '../atoms/AuthStateIndicator';
 import SoundToggle from '../atoms/SoundToggle';
-import AnalysisLoading from '../atoms/AnalysisLoading';
+import InterludeFlow from '../organisms/InterludeFlow';
 import type { ProcessedText } from '@/lib/multilingual/textProcessor';
 import type { TypingMetrics, VoiceMetrics, AffectVector } from '@/lib/behavioral/metrics';
 import { composeAffectFromTyping, composeAffectFromVoice } from '@/lib/behavioral/metrics';
@@ -30,8 +30,8 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   const [sessionVariant, setSessionVariant] = useState<SessionVariant>('first');
   const [inputMode, setInputMode] = useState<InputMode>('notebook');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isAnalyzing, setIsAnalyzing] = useState(false); // New: Track phi-3 analysis
-  const [showCompletion, setShowCompletion] = useState(false);
+  const [showInterlude, setShowInterlude] = useState(false);
+  const [currentReflectionId, setCurrentReflectionId] = useState<string | null>(null);
   const [showGuestNudge, setShowGuestNudge] = useState(false);
   const [guestNudgeMinimized, setGuestNudgeMinimized] = useState(false);
   
@@ -202,7 +202,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     setTimeout(() => setShowHeartAnimation(false), 2000);
     
     // Save reflection
-    await saveReflection({
+    const reflectionId = await saveReflection({
       pigId,
       inputType: 'notebook',
       originalText: processed.original,
@@ -217,12 +217,21 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     // Update last visit
     localStorage.setItem('leo.reflect.lastVisit', Date.now().toString());
     
-    // Show completion state
-    setShowCompletion(true);
-    
-    setTimeout(() => {
-      setIsSubmitting(false);
-    }, 3000);
+    // Start interlude flow
+    if (reflectionId) {
+      setCurrentReflectionId(reflectionId);
+      
+      // Small delay before showing interlude (let heart animation finish)
+      setTimeout(() => {
+        setIsSubmitting(false);
+        setShowInterlude(true);
+      }, 1500);
+    } else {
+      // Fallback if no reflection ID
+      setTimeout(() => {
+        setIsSubmitting(false);
+      }, 3000);
+    }
   };
 
   // Handle voice submission
@@ -250,7 +259,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     setTimeout(() => setShowHeartAnimation(false), 2000);
     
     // Save reflection
-    await saveReflection({
+    const reflectionId = await saveReflection({
       pigId,
       inputType: 'voice',
       originalText: processed.original,
@@ -265,16 +274,24 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     // Update last visit
     localStorage.setItem('leo.reflect.lastVisit', Date.now().toString());
     
-    // Show completion state
-    setShowCompletion(true);
-    
-    setTimeout(() => {
-      setIsSubmitting(false);
-    }, 3000);
+    // Start interlude flow
+    if (reflectionId) {
+      setCurrentReflectionId(reflectionId);
+      
+      // Small delay before showing interlude
+      setTimeout(() => {
+        setIsSubmitting(false);
+        setShowInterlude(true);
+      }, 1500);
+    } else {
+      setTimeout(() => {
+        setIsSubmitting(false);
+      }, 3000);
+    }
   };
 
   // Save reflection to backend
-  const saveReflection = async (data: any) => {
+  const saveReflection = async (data: any): Promise<string | null> => {
     try {
       // Get device info
       const getDeviceInfo = () => {
@@ -314,10 +331,14 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
       if (!response.ok) {
         throw new Error('Failed to save reflection');
       }
+      
+      const result = await response.json();
+      return result.rid || null;
     } catch (error) {
       console.error('Error saving reflection:', error);
       const errorDialogue = dialogueData.completion.error[0];
       setDialogue(errorDialogue);
+      return null;
     }
   };
 
@@ -325,6 +346,50 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   const toggleInputMode = () => {
     setInputMode(prev => prev === 'notebook' ? 'voice' : 'notebook');
   };
+
+  // Handle interlude completion
+  const handleInterludeComplete = () => {
+    // TODO: Navigate to progression view or show enriched results
+    console.log('[Scene_Reflect] Interlude complete, enrichment ready');
+    
+    // For now, reset to allow another reflection
+    setShowInterlude(false);
+    setCurrentReflectionId(null);
+    setScenePhase('entering');
+    
+    // Reset dialogue
+    const timeGreeting = getTimeBasedGreeting(pigName);
+    setDialogue(timeGreeting);
+  };
+
+  const handleInterludeTimeout = () => {
+    console.log('[Scene_Reflect] Enrichment timeout, continuing in background');
+    
+    // Reset to allow another reflection
+    setShowInterlude(false);
+    setCurrentReflectionId(null);
+    setScenePhase('entering');
+    
+    const timeGreeting = getTimeBasedGreeting(pigName);
+    setDialogue(timeGreeting);
+  };
+
+  const handleInterludeSkip = () => {
+    console.log('[Scene_Reflect] User skipped interlude');
+  };
+
+  // If showing interlude, render it as overlay
+  if (showInterlude && currentReflectionId) {
+    return (
+      <InterludeFlow
+        reflectionId={currentReflectionId}
+        pigName={pigName}
+        onComplete={handleInterludeComplete}
+        onTimeout={handleInterludeTimeout}
+        onSkip={handleInterludeSkip}
+      />
+    );
+  }
 
   return (
     <div className={`min-h-screen bg-gradient-to-br ${backgroundTone} relative overflow-hidden transition-colors duration-1000`}>
@@ -474,7 +539,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
 
         {/* Input area */}
         <AnimatePresence mode="wait">
-          {!showCompletion && (
+          {!isSubmitting && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -508,36 +573,9 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
           )}
         </AnimatePresence>
 
-        {/* Completion state */}
-        <AnimatePresence>
-          {showCompletion && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center"
-            >
-              <motion.div
-                animate={{
-                  scale: [1, 1.2, 1],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                }}
-                className="text-6xl mb-4"
-              >
-                ✨
-              </motion.div>
-              <p className="text-lg font-serif italic text-pink-800">
-                Your reflection has been held safe.
-              </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
         {/* Guest nudge */}
         <AnimatePresence>
-          {showGuestNudge && status === 'unauthenticated' && !showCompletion && (
+          {showGuestNudge && status === 'unauthenticated' && !isSubmitting && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ 
@@ -581,9 +619,6 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Analysis Loading Overlay */}
-        <AnalysisLoading show={isAnalyzing} />
       </div>
     </div>
   );
