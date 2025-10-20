@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import PigRitualBlock from '@/components/organisms/PigRitualBlock';
 
 interface PigPageProps {
-  params: { pigId: string };
+  params: Promise<{ pigId: string }>;
 }
 
 export async function generateMetadata({ params }: PigPageProps): Promise<Metadata> {
@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: PigPageProps): Promise<Metada
 }
 
 export default async function PigPage({ params }: PigPageProps) {
-  const { pigId } = params;
+  const { pigId } = await params;
 
   // Fetch pig data from API to check if already named
   let pig = null;
