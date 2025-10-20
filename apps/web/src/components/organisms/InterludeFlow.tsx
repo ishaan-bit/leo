@@ -37,28 +37,29 @@ interface InterludeFlowProps {
   onSkip?: () => void;
 }
 
-// Copy pools for each phase
+// Copy pools for each phase - poetic, whisper-like
 const COPY = {
   heldSafe: {
-    line1: (pigName: string) => `${pigName} glows softly.`,
-    line2: 'Your moment has been held safe.',
+    line1: 'Your moment has been held safe.',
+    delay: 1500, // 1.5s delay before showing
   },
   interlude: [
-    'Drifting through your thoughts…',
-    'Letting your moment settle…',
     'A quiet breath between things.',
-    'Staying with the gentle part.',
-    "We'll be ready soon.",
+    'Time holding its breath.',
+    'The soft space after speaking.',
+    'Letting it settle.',
+    'A pause, like wind through leaves.',
+    'Stillness carries weight too.',
   ],
   reassurance: [
-    'Taking a moment longer than usual…',
-    'Almost there, staying with it…',
-    'A little more time to reflect…',
+    'Still here with you…',
+    'Taking a little longer…',
+    'Staying with it…',
   ],
-  complete: [
-    'Your moment is ready.',
-    "Let's see what surfaced.",
-  ],
+  complete: {
+    line1: 'Your moment is ready.',
+    duration: 2000,
+  },
   timeout: {
     message: "We'll finish in the background.",
     action: 'You can return later.',
@@ -84,7 +85,7 @@ export default function InterludeFlow({
   onSkip,
 }: InterludeFlowProps) {
   const [phase, setPhase] = useState<InterludePhase>('held_safe');
-  const [currentCopy, setCurrentCopy] = useState<string>(COPY.heldSafe.line2);
+  const [currentCopy, setCurrentCopy] = useState<string>(COPY.heldSafe.line1);
   const [showSkip, setShowSkip] = useState(false);
   const [showReassurance, setShowReassurance] = useState(false);
   const [copyIndex, setCopyIndex] = useState(0);
@@ -244,7 +245,7 @@ export default function InterludeFlow({
     }
     
     setPhase('complete_transition');
-    setCurrentCopy(COPY.complete[Math.floor(Math.random() * COPY.complete.length)]);
+    setCurrentCopy(COPY.complete.line1);
     setShowSkip(false);
   };
   
@@ -311,17 +312,18 @@ export default function InterludeFlow({
           {phase === 'held_safe' && (
             <motion.div
               key="held-safe"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.6, ease: 'easeOut' }}
-              className="text-center space-y-3"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ 
+                duration: 1.5, 
+                delay: COPY.heldSafe.delay / 1000, // Convert ms to s
+                ease: [0.4, 0, 0.2, 1] // easeInOutCirc 
+              }}
+              className="text-center"
             >
-              <p className="text-xl md:text-2xl font-serif italic text-pink-800">
-                {COPY.heldSafe.line1(pigName)}
-              </p>
-              <p className="text-2xl md:text-3xl font-serif italic text-[#9C1F5F]">
-                {COPY.heldSafe.line2}
+              <p className="text-2xl md:text-3xl font-serif italic text-[#7D2054] tracking-wider leading-relaxed">
+                {COPY.heldSafe.line1}
               </p>
             </motion.div>
           )}
@@ -332,10 +334,10 @@ export default function InterludeFlow({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.8, ease: 'easeOut' }}
+              transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
               className="text-center"
             >
-              <p className="text-2xl md:text-3xl font-serif italic text-[#9C1F5F] leading-snug">
+              <p className="text-2xl md:text-3xl font-serif italic text-[#7D2054] tracking-wide leading-relaxed">
                 {currentCopy}
               </p>
               
