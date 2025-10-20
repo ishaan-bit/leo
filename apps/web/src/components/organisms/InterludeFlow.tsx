@@ -283,8 +283,8 @@ export default function InterludeFlow({
         reduceMotion={prefersReducedMotion}
       />
       
-      {/* Copy Display */}
-      <div className="relative z-20 flex flex-col items-center justify-center space-y-8 px-6 max-w-2xl">
+      {/* Copy Display - Positioned below pig */}
+      <div className="fixed bottom-24 left-0 right-0 z-20 flex flex-col items-center px-6 max-w-2xl mx-auto">
         <AnimatePresence mode="wait">
           {phase === 'held_safe' && (
             <motion.div
