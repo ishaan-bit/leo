@@ -374,10 +374,6 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     setDialogue(timeGreeting);
   };
 
-  const handleInterludeSkip = () => {
-    console.log('[Scene_Reflect] User skipped interlude');
-  };
-
   // If showing interlude, render it as overlay
   if (showInterlude && currentReflectionId) {
     return (
@@ -386,7 +382,6 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
         pigName={pigName}
         onComplete={handleInterludeComplete}
         onTimeout={handleInterludeTimeout}
-        onSkip={handleInterludeSkip}
       />
     );
   }

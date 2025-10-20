@@ -1,8 +1,11 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import InterludeVisuals from './InterludeVisuals';
+import AuthStateIndicator from '../atoms/AuthStateIndicator';
+import SoundToggle from '../atoms/SoundToggle';
 import { useEnrichmentStatus } from '@/hooks/useEnrichmentStatus';
 
 /**
@@ -34,7 +37,6 @@ interface InterludeFlowProps {
   pigName: string;
   onComplete: () => void;
   onTimeout?: () => void;
-  onSkip?: () => void;
 }
 
 // Copy pools for each phase - poetic, whisper-like
@@ -70,7 +72,6 @@ const TIMING = {
   HELD_SAFE_DURATION: 2500,           // 2.5s
   COMPLETE_TRANSITION_DURATION: 2000, // 2s
   MINIMUM_TOTAL_DWELL: 8000,          // 8s minimum experience
-  SHOW_SKIP_AFTER: 12000,             // 12s before showing skip
   SOFT_TIMEOUT: 90000,                // 90s soft timeout
   HARD_TIMEOUT: 150000,               // 150s hard timeout
   ABSOLUTE_CAP: 180000,               // 3 minutes max
@@ -82,11 +83,10 @@ export default function InterludeFlow({
   pigName,
   onComplete,
   onTimeout,
-  onSkip,
 }: InterludeFlowProps) {
+  const { data: session, status } = useSession();
   const [phase, setPhase] = useState<InterludePhase>('held_safe');
   const [currentCopy, setCurrentCopy] = useState<string>(COPY.heldSafe.line1);
-  const [showSkip, setShowSkip] = useState(false);
   const [showReassurance, setShowReassurance] = useState(false);
   const [copyIndex, setCopyIndex] = useState(0);
   
@@ -136,17 +136,6 @@ export default function InterludeFlow({
       return () => clearTimeout(timer);
     }
   }, [phase, reflectionId, prefersReducedMotion]);
-  
-  // Show skip button after delay
-  useEffect(() => {
-    if (phase === 'interlude_active') {
-      const timer = setTimeout(() => {
-        setShowSkip(true);
-      }, TIMING.SHOW_SKIP_AFTER);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [phase]);
   
   // Check for minimum dwell time
   useEffect(() => {
@@ -246,35 +235,10 @@ export default function InterludeFlow({
     
     setPhase('complete_transition');
     setCurrentCopy(COPY.complete.line1);
-    setShowSkip(false);
   };
   
-  const handleSkip = () => {
-    if (copyRotationTimerRef.current) {
-      clearInterval(copyRotationTimerRef.current);
-    }
-    
-    const totalDuration = Date.now() - startTimeRef.current;
-    logTelemetry('interlude_skipped', {
-      reflectionId,
-      duration: totalDuration,
-      enrichmentTime: elapsedTime,
-    });
-    
-    if (onSkip) {
-      onSkip();
-    }
-    
-    // If enrichment is ready, go to complete; otherwise show text-only progress
-    if (isReady) {
-      transitionToComplete();
-    } else {
-      setCurrentCopy('Continuing in the background…');
-      setTimeout(() => {
-        onComplete();
-      }, 1500);
-    }
-  };
+  // No skip button - user experiences full interlude flow
+  // Emergency timeout at 90s soft, 150s hard handled by enrichment polling
   
   const handleTimeout = () => {
     if (copyRotationTimerRef.current) {
@@ -299,6 +263,19 @@ export default function InterludeFlow({
   
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-pink-50 to-rose-100 overflow-hidden">
+      {/* Sound Toggle - Persists through interlude */}
+      <SoundToggle />
+      
+      {/* Auth State Indicator - Top center */}
+      <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-6 px-6">
+        <div className="flex items-center gap-4 backdrop-blur-sm bg-white/30 rounded-full px-4 py-2">
+          <AuthStateIndicator 
+            userName={session?.user?.name || session?.user?.email}
+            isGuest={status === 'unauthenticated'}
+          />
+        </div>
+      </div>
+      
       {/* Interlude Visuals */}
       <InterludeVisuals
         phase={phase}
@@ -351,24 +328,6 @@ export default function InterludeFlow({
                 </motion.p>
               )}
             </motion.div>
-          )}
-        </AnimatePresence>
-        
-        {/* Skip Button */}
-        <AnimatePresence>
-          {showSkip && phase === 'interlude_active' && (
-            <motion.button
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              onClick={handleSkip}
-              className="mt-8 px-6 py-2 text-sm text-pink-600 hover:text-pink-800 
-                         border border-pink-300 rounded-full hover:border-pink-400 
-                         transition-colors duration-200 backdrop-blur-sm bg-white/30"
-              aria-label="Skip interlude"
-            >
-              Skip interlude
-            </motion.button>
           )}
         </AnimatePresence>
       </div>
