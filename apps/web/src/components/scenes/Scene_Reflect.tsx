@@ -352,37 +352,25 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
 
   // Handle interlude completion
   const handleInterludeComplete = (primaryEmotion: string) => {
-    // TODO: Navigate to progression view or show enriched results
-    console.log('[Scene_Reflect] Interlude complete, primary emotion:', primaryEmotion);
+    console.log('[Scene_Reflect] ✅ Interlude complete, primary emotion:', primaryEmotion);
+    console.log('[Scene_Reflect] Navigating to landing zone for:', primaryEmotion);
     
-    // For now, reset to allow another reflection
-    setShowInterlude(false);
-    setCurrentReflectionId(null);
-    setScenePhase('entering');
-    
-    // Reset dialogue
-    const timeGreeting = getTimeBasedGreeting(pigName);
-    setDialogue(timeGreeting);
+    // Navigate to the landing zone page for this primary emotion
+    // The landing zone will show the enriched results
+    window.location.href = `/awakening?primary=${primaryEmotion}&rid=${currentReflectionId}`;
   };
 
   const handleInterludeTimeout = () => {
-    console.log('[Scene_Reflect] Enrichment timeout, continuing in background');
+    console.log('[Scene_Reflect] ⏱️ Enrichment timeout, continuing in background');
     
-    // Reset to allow another reflection
-    setShowInterlude(false);
-    setCurrentReflectionId(null);
-    setScenePhase('entering');
-    
-    const timeGreeting = getTimeBasedGreeting(pigName);
-    setDialogue(timeGreeting);
+    // Navigate anyway - landing zone can show partial results
+    if (currentReflectionId) {
+      window.location.href = `/awakening?rid=${currentReflectionId}`;
+    }
   };
 
-  // DEBUG: Log state before conditional check
-  console.log('[Scene_Reflect] Render check:', { showInterlude, currentReflectionId, isSubmitting, scenePhase });
-  
   // If showing interlude, render it as overlay
   if (showInterlude && currentReflectionId) {
-    console.log('[Scene_Reflect] ✅ Rendering CityInterlude with reflectionId:', currentReflectionId);
     return (
       <CityInterlude
         reflectionId={currentReflectionId}
