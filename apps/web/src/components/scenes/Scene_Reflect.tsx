@@ -382,9 +382,12 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     setDialogue(timeGreeting);
   };
 
+  // DEBUG: Log state before conditional check
+  console.log('[Scene_Reflect] Render check:', { showInterlude, currentReflectionId, isSubmitting, scenePhase });
+  
   // If showing interlude, render it as overlay
   if (showInterlude && currentReflectionId) {
-    console.log('[Scene_Reflect] Rendering CityInterlude with reflectionId:', currentReflectionId);
+    console.log('[Scene_Reflect] ✅ Rendering CityInterlude with reflectionId:', currentReflectionId);
     return (
       <CityInterlude
         reflectionId={currentReflectionId}
