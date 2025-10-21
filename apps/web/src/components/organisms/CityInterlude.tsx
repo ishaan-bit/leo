@@ -195,7 +195,7 @@ export default function CityInterlude({
     };
   }, [cityPulseActive, prefersReducedMotion]);
 
-  // Detect primary emotion from Stage-1 completion
+  // Detect primary emotion from Stage-1 completion - ONLY REAL TRIGGER
   useEffect(() => {
     console.log('[CityInterlude] Detection check:', {
       hasFinal: !!reflection?.final,
@@ -206,6 +206,12 @@ export default function CityInterlude({
     });
     
     if (!reflection?.final?.wheel?.primary) {
+      console.log('[CityInterlude] ⚠️ No primary found, path check:', {
+        reflection_exists: !!reflection,
+        final_exists: !!reflection?.final,
+        wheel_exists: !!reflection?.final?.wheel,
+        primary_value: reflection?.final?.wheel?.primary
+      });
       return;
     }
     
