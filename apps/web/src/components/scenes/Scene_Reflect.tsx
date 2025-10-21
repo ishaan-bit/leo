@@ -220,11 +220,11 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     // Start interlude flow
     if (reflectionId) {
       console.log('[Scene_Reflect] Reflection saved with ID:', reflectionId);
-      setCurrentReflectionId(reflectionId);
       
       // Small delay before showing interlude (let heart animation finish)
       setTimeout(() => {
         console.log('[Scene_Reflect] Showing CityInterlude');
+        setCurrentReflectionId(reflectionId);
         setIsSubmitting(false);
         setShowInterlude(true);
       }, 1500);
@@ -280,11 +280,11 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     // Start interlude flow
     if (reflectionId) {
       console.log('[Scene_Reflect] Reflection saved with ID (voice):', reflectionId);
-      setCurrentReflectionId(reflectionId);
       
       // Small delay before showing interlude
       setTimeout(() => {
         console.log('[Scene_Reflect] Showing CityInterlude (voice)');
+        setCurrentReflectionId(reflectionId);
         setIsSubmitting(false);
         setShowInterlude(true);
       }, 1500);
