@@ -33,7 +33,16 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(reflection);
+    // Parse if it's a string (Upstash sometimes returns JSON strings)
+    const parsed = typeof reflection === 'string' ? JSON.parse(reflection) : reflection;
+    
+    console.log('[GET /api/reflect/[rid]] Returning reflection:', {
+      rid,
+      hasFinal: !!parsed.final,
+      primary: parsed.final?.wheel?.primary,
+    });
+
+    return NextResponse.json(parsed);
   } catch (error) {
     console.error('[GET /api/reflect/[rid]] Error:', error);
     return NextResponse.json(
