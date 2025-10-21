@@ -8,7 +8,7 @@ import NotebookInput from '../atoms/NotebookInput';
 import VoiceOrb from '../atoms/VoiceOrb';
 import AuthStateIndicator from '../atoms/AuthStateIndicator';
 import SoundToggle from '../atoms/SoundToggle';
-import InterludeFlow from '../organisms/InterludeFlow';
+import CityInterlude from '../organisms/CityInterlude';
 import type { ProcessedText } from '@/lib/multilingual/textProcessor';
 import type { TypingMetrics, VoiceMetrics, AffectVector } from '@/lib/behavioral/metrics';
 import { composeAffectFromTyping, composeAffectFromVoice } from '@/lib/behavioral/metrics';
@@ -219,14 +219,17 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     
     // Start interlude flow
     if (reflectionId) {
+      console.log('[Scene_Reflect] Reflection saved with ID:', reflectionId);
       setCurrentReflectionId(reflectionId);
       
       // Small delay before showing interlude (let heart animation finish)
       setTimeout(() => {
+        console.log('[Scene_Reflect] Showing CityInterlude');
         setIsSubmitting(false);
         setShowInterlude(true);
       }, 1500);
     } else {
+      console.warn('[Scene_Reflect] No reflection ID returned from save');
       // Fallback if no reflection ID
       setTimeout(() => {
         setIsSubmitting(false);
@@ -276,14 +279,17 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     
     // Start interlude flow
     if (reflectionId) {
+      console.log('[Scene_Reflect] Reflection saved with ID (voice):', reflectionId);
       setCurrentReflectionId(reflectionId);
       
       // Small delay before showing interlude
       setTimeout(() => {
+        console.log('[Scene_Reflect] Showing CityInterlude (voice)');
         setIsSubmitting(false);
         setShowInterlude(true);
       }, 1500);
     } else {
+      console.warn('[Scene_Reflect] No reflection ID returned from save (voice)');
       setTimeout(() => {
         setIsSubmitting(false);
       }, 3000);
@@ -333,7 +339,9 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
       }
       
       const result = await response.json();
-      return result.rid || null;
+      console.log('[Scene_Reflect] Save response:', result);
+      // API returns data.reflectionId or rid for backwards compatibility
+      return result.data?.reflectionId || result.rid || null;
     } catch (error) {
       console.error('Error saving reflection:', error);
       const errorDialogue = dialogueData.completion.error[0];
@@ -348,9 +356,9 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   };
 
   // Handle interlude completion
-  const handleInterludeComplete = () => {
+  const handleInterludeComplete = (primaryEmotion: string) => {
     // TODO: Navigate to progression view or show enriched results
-    console.log('[Scene_Reflect] Interlude complete, enrichment ready');
+    console.log('[Scene_Reflect] Interlude complete, primary emotion:', primaryEmotion);
     
     // For now, reset to allow another reflection
     setShowInterlude(false);
@@ -376,8 +384,9 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
 
   // If showing interlude, render it as overlay
   if (showInterlude && currentReflectionId) {
+    console.log('[Scene_Reflect] Rendering CityInterlude with reflectionId:', currentReflectionId);
     return (
-      <InterludeFlow
+      <CityInterlude
         reflectionId={currentReflectionId}
         pigName={pigName}
         onComplete={handleInterludeComplete}
