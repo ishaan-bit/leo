@@ -202,13 +202,15 @@ export default function CityInterlude({
     const primary = reflection.final.wheel.primary.toLowerCase();
     const zone = getZone(primary);
     
-    if (zone && currentPhase === 4) {
-      console.log(`[CityInterlude] Primary detected: ${primary} → ${zone.name}`);
+    // Allow detection in phase 3 or 4 (don't wait for phase 4)
+    if (zone && (currentPhase === 3 || currentPhase === 4)) {
+      console.log(`[CityInterlude] ✅ PRIMARY DETECTED: ${primary} → ${zone.name}`);
       setPrimaryEmotion(primary);
       setPrimaryLocked(true);
       
       // Start zoom sequence after 1s stillness
       setTimeout(() => {
+        console.log('[CityInterlude] Starting zoom sequence to', zone.name);
         setCurrentPhase(5); // Zoom phase
         setZoomStartTime(Date.now());
         
@@ -225,7 +227,7 @@ export default function CityInterlude({
             },
           };
           
-          console.log('[CityInterlude] Zoom complete:', event);
+          console.log('[CityInterlude] 🎯 Zoom complete, calling onComplete:', event);
           
           // Dispatch custom event
           if (typeof window !== 'undefined') {

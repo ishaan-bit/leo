@@ -181,10 +181,28 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   const handleTextSubmit = async (processed: ProcessedText, metrics: TypingMetrics) => {
     console.log('[Scene_Reflect] handleTextSubmit called');
     setIsSubmitting(true);
+    setScenePhase('completing');
     
     const affect = composeAffectFromTyping(metrics);
     
-    // Save reflection immediately
+    // Trigger heart puff animation (full celebration)
+    setHeartPuffs(generateHeartPuff(6));
+    setShowHeartAnimation(true);
+    setPigMood('happy');
+    
+    // Play completion chime
+    audioSystemRef.current.playChime();
+    
+    // Show completion dialogue
+    const completionDialogue = dialogueData.completion.success[
+      Math.floor(Math.random() * dialogueData.completion.success.length)
+    ];
+    setDialogue(completionDialogue.replace('{pigName}', pigName));
+    
+    // Clear heart animation after delay
+    setTimeout(() => setShowHeartAnimation(false), 2000);
+    
+    // Save reflection
     const reflectionId = await saveReflection({
       pigId,
       inputType: 'notebook',
@@ -202,12 +220,14 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     // Update last visit
     localStorage.setItem('leo.reflect.lastVisit', Date.now().toString());
     
-    // If we have reflection ID, go straight to interlude
+    // Transition to interlude after heart animation completes
     if (reflectionId) {
-      console.log('[Scene_Reflect] Setting states for CityInterlude');
-      setCurrentReflectionId(reflectionId);
-      setShowInterlude(true);
-      setIsSubmitting(false);
+      console.log('[Scene_Reflect] Transitioning to CityInterlude');
+      setTimeout(() => {
+        setCurrentReflectionId(reflectionId);
+        setShowInterlude(true);
+        setIsSubmitting(false);
+      }, 1500); // Let heart animation finish
     } else {
       console.error('[Scene_Reflect] No reflection ID - cannot show interlude');
       setIsSubmitting(false);
@@ -218,10 +238,28 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   const handleVoiceSubmit = async (processed: ProcessedText, metrics: VoiceMetrics) => {
     console.log('[Scene_Reflect] handleVoiceSubmit called');
     setIsSubmitting(true);
+    setScenePhase('completing');
     
     const affect = composeAffectFromVoice(metrics);
     
-    // Save reflection immediately
+    // Trigger heart puff animation
+    setHeartPuffs(generateHeartPuff(6));
+    setShowHeartAnimation(true);
+    setPigMood('happy');
+    
+    // Play completion chime
+    audioSystemRef.current.playChime();
+    
+    // Show completion dialogue
+    const completionDialogue = dialogueData.completion.success[
+      Math.floor(Math.random() * dialogueData.completion.success.length)
+    ];
+    setDialogue(completionDialogue.replace('{pigName}', pigName));
+    
+    // Clear heart animation after delay
+    setTimeout(() => setShowHeartAnimation(false), 2000);
+    
+    // Save reflection
     const reflectionId = await saveReflection({
       pigId,
       inputType: 'voice',
@@ -239,12 +277,14 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     // Update last visit
     localStorage.setItem('leo.reflect.lastVisit', Date.now().toString());
     
-    // If we have reflection ID, go straight to interlude
+    // Transition to interlude after heart animation completes
     if (reflectionId) {
-      console.log('[Scene_Reflect] Setting states for CityInterlude (voice)');
-      setCurrentReflectionId(reflectionId);
-      setShowInterlude(true);
-      setIsSubmitting(false);
+      console.log('[Scene_Reflect] Transitioning to CityInterlude (voice)');
+      setTimeout(() => {
+        setCurrentReflectionId(reflectionId);
+        setShowInterlude(true);
+        setIsSubmitting(false);
+      }, 1500);
     } else {
       console.error('[Scene_Reflect] No reflection ID - cannot show interlude (voice)');
       setIsSubmitting(false);
