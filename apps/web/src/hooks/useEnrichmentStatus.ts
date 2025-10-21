@@ -77,10 +77,25 @@ export function useEnrichmentStatus(
       }
 
       const data = await response.json();
+      console.log('[useEnrichmentStatus] 🔍 RAW API RESPONSE:', data);
+      console.log('[useEnrichmentStatus] 🔍 Type of data:', typeof data);
+      console.log('[useEnrichmentStatus] 🔍 data.final:', data.final);
+      console.log('[useEnrichmentStatus] 🔍 data.final?.wheel:', data.final?.wheel);
+      console.log('[useEnrichmentStatus] 🔍 data.final?.wheel?.primary:', data.final?.wheel?.primary);
+      
+      console.log('[useEnrichmentStatus] Poll response:', {
+        rid: reflectionId,
+        hasFinal: !!data.final,
+        hasWheel: !!data.final?.wheel,
+        primary: data.final?.wheel?.primary,
+        status: data.status,
+      });
+      
       setReflection(data);
 
       // Check if enrichment is complete (has 'final' field)
       if (data.final) {
+        console.log('[useEnrichmentStatus] ✅ Enrichment complete!', data.final.wheel);
         setIsReady(true);
         setIsLoading(false);
         
