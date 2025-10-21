@@ -352,21 +352,19 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
 
   // Handle interlude completion
   const handleInterludeComplete = (primaryEmotion: string) => {
-    console.log('[Scene_Reflect] ✅ Interlude complete, primary emotion:', primaryEmotion);
-    console.log('[Scene_Reflect] Navigating to landing zone for:', primaryEmotion);
+    console.log('[Scene_Reflect] ✅ ZOOM COMPLETE! Primary:', primaryEmotion);
     
-    // Navigate to the landing zone page for this primary emotion
-    // The landing zone will show the enriched results
-    window.location.href = `/awakening?primary=${primaryEmotion}&rid=${currentReflectionId}`;
+    // Keep showing interlude - zoom has finished, halo is visible
+    // TODO: Add "continue" button or auto-navigate after delay
+    alert(`Zoom complete! Primary emotion: ${primaryEmotion}\n\nTODO: Navigate to landing zone page`);
   };
 
   const handleInterludeTimeout = () => {
-    console.log('[Scene_Reflect] ⏱️ Enrichment timeout, continuing in background');
+    console.log('[Scene_Reflect] ⏱️ Enrichment timeout - keeping interlude visible');
     
-    // Navigate anyway - landing zone can show partial results
-    if (currentReflectionId) {
-      window.location.href = `/awakening?rid=${currentReflectionId}`;
-    }
+    // Keep showing interlude even on timeout
+    // The ambient scene continues
+    alert('Enrichment timeout - but interlude continues playing');
   };
 
   // If showing interlude, render it as overlay

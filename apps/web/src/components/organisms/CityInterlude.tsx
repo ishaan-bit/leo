@@ -197,20 +197,38 @@ export default function CityInterlude({
 
   // Detect primary emotion from Stage-1 completion
   useEffect(() => {
-    if (!reflection?.final?.wheel?.primary || primaryLocked) return;
+    console.log('[CityInterlude] Detection check:', {
+      hasFinal: !!reflection?.final,
+      hasWheel: !!reflection?.final?.wheel,
+      primary: reflection?.final?.wheel?.primary,
+      primaryLocked,
+      currentPhase,
+    });
+    
+    if (!reflection?.final?.wheel?.primary) {
+      return;
+    }
     
     const primary = reflection.final.wheel.primary.toLowerCase();
     const zone = getZone(primary);
     
-    // Allow detection in phase 3 or 4 (don't wait for phase 4)
-    if (zone && (currentPhase === 3 || currentPhase === 4)) {
-      console.log(`[CityInterlude] ✅ PRIMARY DETECTED: ${primary} → ${zone.name}`);
-      setPrimaryEmotion(primary);
+    console.log('[CityInterlude] 🔍 Primary from backend:', primary, '→ Zone:', zone?.name || 'NOT FOUND');
+    
+    // Primary detected but waiting for phase 4 (pulsating buildings)
+    if (zone && !primaryLocked && currentPhase < 4) {
+      console.log('[CityInterlude] ⏳ Primary ready, waiting for phase 4 (pulsating buildings)...');
+      setPrimaryEmotion(primary); // Store it
+      return;
+    }
+    
+    // Trigger zoom when we hit phase 4 AND have primary
+    if (zone && !primaryLocked && currentPhase === 4) {
+      console.log(`[CityInterlude] 🎯✅ PHASE 4 + PRIMARY DETECTED → ZOOM! ${primary} → ${zone.name}`);
       setPrimaryLocked(true);
       
       // Start zoom sequence after 1s stillness
       setTimeout(() => {
-        console.log('[CityInterlude] Starting zoom sequence to', zone.name);
+        console.log('[CityInterlude] 🚀 Starting zoom sequence to', zone.name);
         setCurrentPhase(5); // Zoom phase
         setZoomStartTime(Date.now());
         
