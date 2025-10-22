@@ -251,12 +251,12 @@ export default function BreathingSequence({
         </motion.div>
       </motion.div>
 
-      {/* Breathing prompt - positioned below Leo, synced with breathing */}
+      {/* Breathing prompt - positioned below Leo to avoid building name overlap */}
       <motion.div
         className="absolute left-1/2 z-30 pointer-events-none"
         style={{
           x: '-50%',
-          top: 'calc(35% + 120px)', // Moved closer to Leo (was +140px)
+          top: 'calc(35% + 160px)', // Moved further down to avoid building name (was +120px)
         }}
         animate={{ 
           opacity: isInhaling ? [0.3, 0.95, 0.95] : [0.95, 0.3, 0.3],
@@ -346,10 +346,10 @@ export default function BreathingSequence({
                   ))}
                 </div>
 
-                {/* Building name - luminescent zone color per Willcox wheel */}
+                {/* Building name - higher position to avoid inhale/exhale overlap */}
                 {isPrimary && (
                   <motion.div
-                    className="absolute -top-24 left-1/2 -translate-x-1/2 whitespace-nowrap font-serif italic text-6xl font-bold z-30"
+                    className="absolute -top-32 left-1/2 -translate-x-1/2 whitespace-nowrap font-serif italic text-6xl font-bold z-30"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 1, delay: 2.5 }}
@@ -386,12 +386,22 @@ export default function BreathingSequence({
         })}
       </motion.div>
 
-      {/* Floating words - yellow/gold color for semantic content */}
+      {/* Floating words - constrained to avoid Leo's center area */}
       <AnimatePresence>
         {words.map(word => {
-          const radius = 180;
-          const x = 50 + (Math.cos(word.angle) * radius) / 10;
-          const y = 35 + (Math.sin(word.angle) * radius) / 10;
+          // Constrain radius and avoid center (Leo is at 35% vertical, 50% horizontal)
+          const radius = 200;
+          const angle = word.angle;
+          
+          // Calculate position but avoid Leo's zone (30-40% vertical, 40-60% horizontal)
+          let x = 50 + (Math.cos(angle) * radius) / 8; // Wider spread
+          let y = 35 + (Math.sin(angle) * radius) / 8;
+          
+          // If too close to Leo, push to edges
+          if (x > 40 && x < 60 && y > 30 && y < 40) {
+            // Push horizontally outward
+            x = x < 50 ? x - 15 : x + 15;
+          }
           
           return (
             <motion.div

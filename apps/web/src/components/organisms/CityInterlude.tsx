@@ -57,6 +57,9 @@ const COPY = {
   phase1: 'Your moment has been held safe.',
   phase2: 'A quiet breath between things.',
   phase3: 'And time holding its breath.',
+  phase4a: 'While the city stirs below.',
+  phase4b: 'Each tower a feeling waiting.',
+  phase4c: 'To be named.',
 };
 
 // Enhanced timing for Ghibli-style atmospheric transitions (compressed by ~10s total)
@@ -82,6 +85,7 @@ export default function CityInterlude({
   const [currentPhase, setCurrentPhase] = useState<1 | 2 | 3 | 4 | 5>(1); // Added phase 5 for zoom
   const [currentBeat, setCurrentBeat] = useState<1 | 2 | 3 | 4 | 5 | 6 | 7 | 8>(1);
   const [showCopy, setShowCopy] = useState<string | null>(null);
+  const [phase4CycleIndex, setPhase4CycleIndex] = useState(0); // For cycling phase 4 text
   const [cityPulseActive, setCityPulseActive] = useState(false);
   const [primaryEmotion, setPrimaryEmotion] = useState<string | null>(null);
   const [primaryLocked, setPrimaryLocked] = useState(false);
@@ -142,6 +146,7 @@ export default function CityInterlude({
         // 30s (was 42s)
         setCurrentPhase(4);
         setCityPulseActive(true);
+        setShowCopy(COPY.phase4a); // Start phase 4 cycling
       } else if (elapsed >= TIMING.PHASE3_START && currentPhase < 3) {
         // 10s (was 26s)
         setCurrentPhase(3);
@@ -167,6 +172,22 @@ export default function CityInterlude({
     }, 16); // 60fps for smooth gradient breathing
     
     return () => clearInterval(interval);
+  }, [currentPhase]);
+
+  // Cycle through phase 4 poetic lines to prevent stuck appearance
+  useEffect(() => {
+    if (currentPhase !== 4) return;
+    
+    const phase4Lines = [COPY.phase4a, COPY.phase4b, COPY.phase4c];
+    let cycleIndex = 0;
+    
+    const cycleInterval = setInterval(() => {
+      cycleIndex = (cycleIndex + 1) % phase4Lines.length;
+      setShowCopy(phase4Lines[cycleIndex]);
+      setPhase4CycleIndex(cycleIndex);
+    }, 4000); // Change every 4 seconds
+    
+    return () => clearInterval(cycleInterval);
   }, [currentPhase]);
 
   // Show initial copy
