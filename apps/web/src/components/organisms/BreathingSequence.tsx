@@ -184,8 +184,6 @@ export default function BreathingSequence({
 
   // Poll for Stage-2 enrichment (post_enrichment payload)
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-    
     const pollInterval = setInterval(async () => {
       try {
         const response = await fetch(`/api/reflect/${reflectionId}`);
@@ -193,14 +191,13 @@ export default function BreathingSequence({
         
         const reflection = await response.json();
         
-        // Check for post_enrichment payload
+        // Check for post_enrichment payload - triggers Stage 2 immediately
         if (reflection.final?.post_enrichment && !stage2.started) {
           const postEnrichment = reflection.final.post_enrichment;
           
-          console.log('[Stage2] Post-enrichment received:', postEnrichment);
-          clearTimeout(timeoutId); // Cancel timeout
+          console.log('[Stage2] ✅ Post-enrichment received early (before MIN_CYCLES):', postEnrichment);
           
-          // Initialize Stage 2 with payload
+          // Initialize Stage 2 with payload (can happen before MIN_CYCLES)
           setStage2(prev => ({
             ...prev,
             payload: {
@@ -217,7 +214,7 @@ export default function BreathingSequence({
               opacity: 0,
               glow: 0,
             },
-            phase: 'continuity', // Start Stage 2
+            phase: 'continuity', // Start Stage 2 immediately
             started: true,
           }));
         }
@@ -233,35 +230,10 @@ export default function BreathingSequence({
       }
     }, 2000);
     
-    // Fallback timeout: if enrichment doesn't arrive after MIN_CYCLES + 5s, use emotion-based content
-    timeoutId = setTimeout(() => {
-      console.log('[Stage2] Checking fallback - started:', stage2.started, 'cycles:', cycleCount);
-      if (!stage2.started) {
-        console.log('[Stage2] ⏱️ Timeout - using emotion-based fallback content for', primary);
-        const fallbackPayload = EMOTION_FALLBACK_CONTENT[primary];
-        
-        setStage2(prev => ({
-          ...prev,
-          payload: fallbackPayload,
-          window: {
-            lit: false,
-            window_id: reflectionId,
-            x: 35,
-            y: 35 + Math.random() * 20,
-            opacity: 0,
-            glow: 0,
-          },
-          phase: 'continuity',
-          started: true,
-        }));
-      }
-    }, (MIN_CYCLES * cycleDuration) + 5000); // Wait for min cycles + 5s buffer (reduced from 10s)
-    
     return () => {
       clearInterval(pollInterval);
-      clearTimeout(timeoutId);
     };
-  }, [reflectionId, cycleCount, stage2.started, primary, cycleDuration]);
+  }, [reflectionId, cycleCount, stage2.started, primary]);
 
   // Continuous breathing animation loop
   useEffect(() => {
@@ -279,6 +251,27 @@ export default function BreathingSequence({
       if (currentCycle > cycleCount) {
         setCycleCount(currentCycle);
         console.log('[Breathing] Cycle', currentCycle, 'complete');
+        
+        // Trigger Stage 2 immediately after MIN_CYCLES if enrichment hasn't arrived yet
+        if (currentCycle >= MIN_CYCLES && !stage2.started) {
+          console.log('[Stage2] 🎯 MIN_CYCLES reached - triggering fallback immediately');
+          const fallbackPayload = EMOTION_FALLBACK_CONTENT[primary];
+          
+          setStage2(prev => ({
+            ...prev,
+            payload: fallbackPayload,
+            window: {
+              lit: false,
+              window_id: reflectionId,
+              x: 35,
+              y: 35 + Math.random() * 20,
+              opacity: 0,
+              glow: 0,
+            },
+            phase: 'continuity',
+            started: true,
+          }));
+        }
         
         // Stage 2 phase progression (each phase lasts 1 breath cycle)
         if (stage2.started && stage2.payload) {
