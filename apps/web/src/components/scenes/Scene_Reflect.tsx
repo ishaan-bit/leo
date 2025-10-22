@@ -9,6 +9,7 @@ import VoiceOrb from '../atoms/VoiceOrb';
 import AuthStateIndicator from '../atoms/AuthStateIndicator';
 import SoundToggle from '../atoms/SoundToggle';
 import CityInterlude from '../organisms/CityInterlude';
+import BreathingSequence from '../organisms/BreathingSequence';
 import type { ProcessedText } from '@/lib/multilingual/textProcessor';
 import type { TypingMetrics, VoiceMetrics, AffectVector } from '@/lib/behavioral/metrics';
 import { composeAffectFromTyping, composeAffectFromVoice } from '@/lib/behavioral/metrics';
@@ -16,6 +17,7 @@ import { getAdaptiveAmbientSystem } from '@/lib/audio/AdaptiveAmbientSystem';
 import { getTimeOfDay, getTimeTheme, getTimeBasedGreeting } from '@/lib/time-theme';
 import { generateHeartPuff } from '@/lib/pig-animations';
 import dialogueData from '@/lib/copy/reflect.dialogue.json';
+import { getZone, type PrimaryEmotion } from '@/lib/zones';
 
 interface Scene_ReflectProps {
   pigId: string;
@@ -31,7 +33,15 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   const [inputMode, setInputMode] = useState<InputMode>('notebook');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showInterlude, setShowInterlude] = useState(false);
+  const [showBreathing, setShowBreathing] = useState(false);
   const [currentReflectionId, setCurrentReflectionId] = useState<string | null>(null);
+  const [breathingContext, setBreathingContext] = useState<{
+    primary: PrimaryEmotion;
+    secondary?: string;
+    zoneName: string;
+    zoneColor: string;
+    invokedWords: string[];
+  } | null>(null);
   const [showGuestNudge, setShowGuestNudge] = useState(false);
   const [guestNudgeMinimized, setGuestNudgeMinimized] = useState(false);
   
@@ -350,13 +360,56 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     setInputMode(prev => prev === 'notebook' ? 'voice' : 'notebook');
   };
 
-  // Handle interlude completion
-  const handleInterludeComplete = (primaryEmotion: string) => {
-    console.log('[Scene_Reflect] ✅ ZOOM COMPLETE! Primary:', primaryEmotion);
+  // Handle interlude completion → transition to breathing
+  const handleInterludeComplete = async (primaryEmotion: string) => {
+    console.log('[Scene_Reflect] ✅ Zoom complete, fetching reflection data for breathing');
     
-    // Keep showing interlude - zoom has finished, halo is visible
-    // TODO: Add "continue" button or auto-navigate after delay
-    alert(`Zoom complete! Primary emotion: ${primaryEmotion}\n\nTODO: Navigate to landing zone page`);
+    try {
+      // Fetch full reflection to get secondary + invoked words
+      const response = await fetch(`/api/reflect/${currentReflectionId}`);
+      if (!response.ok) throw new Error('Failed to fetch reflection');
+      
+      const reflection = await response.json();
+      const zone = getZone(primaryEmotion);
+      
+      if (!zone) {
+        console.error('[Scene_Reflect] No zone found for primary:', primaryEmotion);
+        return;
+      }
+      
+      const invokedWords = reflection.final?.invoked
+        ? (Array.isArray(reflection.final.invoked)
+            ? reflection.final.invoked
+            : reflection.final.invoked.split(/[+\s]+/).map((w: string) => w.trim()))
+        : (reflection.final?.events?.labels || []);
+      
+      console.log('[Scene_Reflect] Transitioning to breathing:', {
+        primary: primaryEmotion,
+        secondary: reflection.final?.wheel?.secondary,
+        zone: zone.name,
+        invokedWords,
+      });
+      
+      setBreathingContext({
+        primary: primaryEmotion as PrimaryEmotion,
+        secondary: reflection.final?.wheel?.secondary,
+        zoneName: zone.name,
+        zoneColor: zone.color,
+        invokedWords,
+      });
+      
+      setShowInterlude(false);
+      setShowBreathing(true);
+    } catch (error) {
+      console.error('[Scene_Reflect] Error fetching reflection for breathing:', error);
+    }
+  };
+
+  // Handle breathing completion → navigate to landing zone
+  const handleBreathingComplete = () => {
+    console.log('[Scene_Reflect] 🌅 Breathing complete, navigating to landing zone');
+    // TODO: Navigate to landing zone page
+    alert('Breathing complete! Next: Landing zone exploration');
   };
 
   const handleInterludeTimeout = () => {
@@ -373,12 +426,23 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
       <CityInterlude
         reflectionId={currentReflectionId}
         pigName={pigName}
-        onComplete={(primary: string) => {
-          console.log(`[Scene_Reflect] ✅ City interlude zoom complete: ${primary}`);
-          // TODO: Navigate to landing zone page
-          // For now, just log - no popup
-        }}
+        onComplete={handleInterludeComplete}
         onTimeout={handleInterludeTimeout}
+      />
+    );
+  }
+
+  // If showing breathing sequence, render it
+  if (showBreathing && currentReflectionId && breathingContext) {
+    return (
+      <BreathingSequence
+        reflectionId={currentReflectionId}
+        primary={breathingContext.primary}
+        secondary={breathingContext.secondary}
+        zoneName={breathingContext.zoneName}
+        zoneColor={breathingContext.zoneColor}
+        invokedWords={breathingContext.invokedWords}
+        onComplete={handleBreathingComplete}
       />
     );
   }

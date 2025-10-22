@@ -239,7 +239,7 @@ export default function CityInterlude({
         setCurrentPhase(5); // Zoom phase
         setZoomStartTime(Date.now());
         
-        // Emit completion after 10s zoom sequence
+        // Emit completion after 8s zoom sequence (reduced from 10s for smoother handoff)
         setTimeout(() => {
           const event = {
             type: 'stage1_transition_complete',
@@ -252,16 +252,16 @@ export default function CityInterlude({
             },
           };
           
-          console.log('[CityInterlude] 🎯 Zoom complete, calling onComplete:', event);
+          console.log('[CityInterlude] 🎯 Zoom complete, transitioning to breathing sequence');
           
           // Dispatch custom event
           if (typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent('stage1_transition_complete', { detail: event.payload }));
           }
           
-          // Call onComplete callback
+          // Call onComplete callback with full context for breathing sequence
           onComplete(primary);
-        }, 10000); // 10s zoom sequence
+        }, 8000); // 8s zoom sequence
       }, 1000); // 1s stillness
     }
   }, [reflection, primaryLocked, currentPhase, reflectionId, onComplete]);
