@@ -42,6 +42,7 @@ export default function CityInterludeV2({
   const orchestratorRef = useRef<StageOrchestrator | null>(null);
   
   // UI state
+  const [currentPhase, setCurrentPhase] = useState<1 | 2 | 3 | 4 | 5>(1); // 1-3: text, 4: skyline, 5: zoom
   const [isZooming, setIsZooming] = useState(false);
   const [selectedTower, setSelectedTower] = useState<WillcoxPrimary | null>(null);
   const [pulsingComplete, setPulsingComplete] = useState(false);
@@ -85,24 +86,70 @@ export default function CityInterludeV2({
     }
   }, [reflection]);
 
-  // Timeline: Mark pulsing complete after PULSING_DURATION
+  // Text phase timeline (phases 1-3: 30s total before skyline)
   useEffect(() => {
-    const timer = setTimeout(() => {
-      console.log(`[CityInterlude] ⏱️  Pulsing timeline complete`);
-      setPulsingComplete(true);
-      
-      if (orchestratorRef.current) {
-        orchestratorRef.current.markPulsingComplete();
-      }
-    }, PULSING_DURATION);
-
-    return () => clearTimeout(timer);
+    const phase1Timer = setTimeout(() => setCurrentPhase(2), 8000);  // 8s
+    const phase2Timer = setTimeout(() => setCurrentPhase(3), 18000); // +10s = 18s
+    const phase3Timer = setTimeout(() => setCurrentPhase(4), 30000); // +12s = 30s → show skyline
+    
+    return () => {
+      clearTimeout(phase1Timer);
+      clearTimeout(phase2Timer);
+      clearTimeout(phase3Timer);
+    };
   }, []);
+
+  // Text content for phases 1-3
+  const phaseText = {
+    1: "Your reflection is being processed...",
+    2: "Finding the right words...",
+    3: "Almost ready...",
+  };
+
+  // Skyline pulsing timeline (phase 4: 12s after skyline appears)
+  useEffect(() => {
+    if (currentPhase === 4) {
+      const timer = setTimeout(() => {
+        console.log(`[CityInterlude] ⏱️  Pulsing timeline complete`);
+        setPulsingComplete(true);
+        
+        if (orchestratorRef.current) {
+          orchestratorRef.current.markPulsingComplete();
+        }
+      }, PULSING_DURATION);
+
+      return () => clearTimeout(timer);
+    }
+  }, [currentPhase]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-gradient-to-b from-[#0A0714] to-[#2B2357]">
-      {/* City skyline with 6 towers */}
-      <motion.div
+      
+      {/* Text phases 1-3 (before skyline) */}
+      {currentPhase >= 1 && currentPhase <= 3 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1.2 }}
+          className="absolute inset-0 flex items-center justify-center"
+        >
+          <motion.p
+            key={currentPhase}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.8 }}
+            className="font-display text-3xl text-dusk-lavender/80 px-8 text-center"
+          >
+            {phaseText[currentPhase as 1 | 2 | 3]}
+          </motion.p>
+        </motion.div>
+      )}
+
+      {/* City skyline with 6 towers (phase 4+) */}
+      {currentPhase >= 4 && (
+        <motion.div
         className="absolute bottom-0 left-0 right-0"
         style={{ height: '50vh' }}
         animate={isZooming && selectedTower ? {
@@ -214,6 +261,7 @@ export default function CityInterludeV2({
           );
         })}
       </motion.div>
+      )}
 
       {/* Status indicator */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-center">
