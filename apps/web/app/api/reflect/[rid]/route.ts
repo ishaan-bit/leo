@@ -8,6 +8,11 @@ import { kv } from '@vercel/kv';
  * Used by interlude polling to check if enrichment is complete
  */
 
+// CRITICAL: Disable all caching - this endpoint must always fetch fresh data
+// Enrichment happens asynchronously, so we need to poll for updates
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ rid: string }> }
