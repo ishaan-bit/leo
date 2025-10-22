@@ -924,7 +924,7 @@ export default function CityInterlude({
         </motion.div>
       )}
 
-      {/* Copy display - positioned below Leo */}
+      {/* Copy display - positioned below Leo, persist phase 3 with rotation */}
       <div className="absolute bottom-24 md:bottom-32 left-0 right-0 z-30 flex flex-col items-center px-6 max-w-2xl mx-auto">
         <AnimatePresence mode="wait">
           {showCopy && (
@@ -935,11 +935,19 @@ export default function CityInterlude({
                 color: currentPhase >= 3 ? '#E8D5F2' : '#7D2054',
               }}
               initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
+              animate={{ 
+                opacity: 1, 
+                y: 0,
+                // Keep rotating and pulsing after phase 3 text appears
+                scale: showCopy === COPY.phase3 ? [1, 1.02, 1] : 1,
+                rotate: showCopy === COPY.phase3 ? [0, 0.5, 0, -0.5, 0] : 0,
+              }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ 
-                duration: 1.5, 
-                ease: [0.45, 0.05, 0.55, 0.95] // Breathing ease like background
+                opacity: { duration: 1.5, ease: [0.45, 0.05, 0.55, 0.95] },
+                y: { duration: 1.5, ease: [0.45, 0.05, 0.55, 0.95] },
+                scale: { duration: 4, repeat: Infinity, ease: [0.45, 0.05, 0.55, 0.95] },
+                rotate: { duration: 6, repeat: Infinity, ease: [0.45, 0.05, 0.55, 0.95] },
               }}
             >
               {showCopy}

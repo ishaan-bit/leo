@@ -251,12 +251,12 @@ export default function BreathingSequence({
         </motion.div>
       </motion.div>
 
-      {/* Breathing prompt - synced with Leo breathing, smooth pulse */}
+      {/* Breathing prompt - positioned below Leo, synced with breathing */}
       <motion.div
         className="absolute left-1/2 z-30 pointer-events-none"
         style={{
           x: '-50%',
-          top: 'calc(35% + 140px)',
+          top: 'calc(35% + 120px)', // Moved closer to Leo (was +140px)
         }}
         animate={{ 
           opacity: isInhaling ? [0.3, 0.95, 0.95] : [0.95, 0.3, 0.3],
