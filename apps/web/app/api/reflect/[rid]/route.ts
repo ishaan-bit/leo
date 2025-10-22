@@ -33,8 +33,13 @@ export async function GET(
       );
     }
 
+    console.log('[GET /api/reflect/[rid]] Raw from Upstash - type:', typeof reflection);
+    console.log('[GET /api/reflect/[rid]] Raw first 200 chars:', JSON.stringify(reflection).substring(0, 200));
+
     // Parse if it's a string (Upstash sometimes returns JSON strings)
     const parsed = typeof reflection === 'string' ? JSON.parse(reflection) : reflection;
+    
+    console.log('[GET /api/reflect/[rid]] After parsing - has final?:', !!parsed.final);
     
     console.log('[GET /api/reflect/[rid]] Returning reflection:', {
       rid,
