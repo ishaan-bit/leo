@@ -233,10 +233,11 @@ export default function BreathingSequence({
       }
     }, 2000);
     
-    // Fallback timeout: if enrichment doesn't arrive after MIN_CYCLES + 10s, use emotion-based content
+    // Fallback timeout: if enrichment doesn't arrive after MIN_CYCLES + 5s, use emotion-based content
     timeoutId = setTimeout(() => {
-      if (!stage2.started && cycleCount >= MIN_CYCLES) {
-        console.log('[Stage2] Timeout - using emotion-based fallback content');
+      console.log('[Stage2] Checking fallback - started:', stage2.started, 'cycles:', cycleCount);
+      if (!stage2.started) {
+        console.log('[Stage2] ⏱️ Timeout - using emotion-based fallback content for', primary);
         const fallbackPayload = EMOTION_FALLBACK_CONTENT[primary];
         
         setStage2(prev => ({
@@ -254,7 +255,7 @@ export default function BreathingSequence({
           started: true,
         }));
       }
-    }, (MIN_CYCLES * cycleDuration) + 10000); // Wait for min cycles + 10s buffer
+    }, (MIN_CYCLES * cycleDuration) + 5000); // Wait for min cycles + 5s buffer (reduced from 10s)
     
     return () => {
       clearInterval(pollInterval);
@@ -323,13 +324,13 @@ export default function BreathingSequence({
             setStage2(prev => ({ ...prev, stage2CycleCount: stage2Cycle + 1 }));
           }
         }
-        
-        // Check if we can complete breathing sequence
-        if ((stage2Complete || stage2.phase === 'complete') && currentCycle >= MIN_CYCLES) {
-          console.log('[Breathing] ✅ Ready to complete');
-          setTimeout(onComplete, 2000);
-          return;
-        }
+      }
+      
+      // ONLY complete breathing after Stage 2 is done (not just after MIN_CYCLES)
+      // Don't exit early - let Stage 2 complete first
+      if (stage2.phase === 'complete' && currentCycle >= MIN_CYCLES) {
+        console.log('[Breathing] ✅ Stage 2 complete, ready to finish');
+        // Don't call onComplete here - let Continue button handle it
       }
       
       animationFrameRef.current = requestAnimationFrame(animate);

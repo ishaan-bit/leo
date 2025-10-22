@@ -408,11 +408,23 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   // Handle breathing completion → return to reflection scene for next entry
   const handleBreathingComplete = () => {
     console.log('[Scene_Reflect] 🌅 Stage 2 complete, returning to reflection');
+    
+    // Smooth fade out breathing, then reset
     setShowBreathing(false);
-    // Reset state for new reflection
-    setCurrentReflectionId(null);
-    setBreathingContext(null);
-    setScenePhase('entering');
+    
+    // After fade completes, reset state for new reflection
+    setTimeout(() => {
+      setCurrentReflectionId(null);
+      setBreathingContext(null);
+      setScenePhase('entering');
+      setIsSubmitting(false);
+      
+      // Reset dialogue to time-based greeting
+      const timeGreeting = getTimeBasedGreeting(pigName);
+      setDialogue(timeGreeting);
+      
+      console.log('[Scene_Reflect] ✅ Ready for next reflection');
+    }, 800); // Wait for breathing scene fade-out
   };
 
   const handleInterludeTimeout = () => {
