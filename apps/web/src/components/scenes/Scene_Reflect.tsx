@@ -10,6 +10,7 @@ import AuthStateIndicator from '../atoms/AuthStateIndicator';
 import SoundToggle from '../atoms/SoundToggle';
 import CityInterlude from '../organisms/CityInterlude';
 import BreathingSequence from '../organisms/BreathingSequence';
+import YourMoment from '../organisms/YourMoment';
 import type { ProcessedText } from '@/lib/multilingual/textProcessor';
 import type { TypingMetrics, VoiceMetrics, AffectVector } from '@/lib/behavioral/metrics';
 import { composeAffectFromTyping, composeAffectFromVoice } from '@/lib/behavioral/metrics';
@@ -34,6 +35,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showInterlude, setShowInterlude] = useState(false);
   const [showBreathing, setShowBreathing] = useState(false);
+  const [showYourMoment, setShowYourMoment] = useState(false);
   const [currentReflectionId, setCurrentReflectionId] = useState<string | null>(null);
   const [breathingContext, setBreathingContext] = useState<{
     primary: PrimaryEmotion;
@@ -41,6 +43,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     zoneName: string;
     zoneColor: string;
     invokedWords: string[];
+    tempo: number; // Breath cycle duration in ms
   } | null>(null);
   const [showGuestNudge, setShowGuestNudge] = useState(false);
   const [guestNudgeMinimized, setGuestNudgeMinimized] = useState(false);
@@ -383,11 +386,17 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
             : reflection.final.invoked.split(/[+\s]+/).map((w: string) => w.trim()))
         : (reflection.final?.events?.labels || []);
       
+      // Calculate breath tempo (total cycle duration in ms)
+      const { computeBreatheParams } = await import('@/lib/breathe-config');
+      const breatheParams = computeBreatheParams(primaryEmotion as PrimaryEmotion, reflection.final?.wheel?.secondary);
+      const breathTempo = (breatheParams.cycle.in + breatheParams.cycle.h1 + breatheParams.cycle.out + breatheParams.cycle.h2) * 1000;
+      
       console.log('[Scene_Reflect] Transitioning to breathing:', {
         primary: primaryEmotion,
         secondary: reflection.final?.wheel?.secondary,
         zone: zone.name,
         invokedWords,
+        breathTempo,
       });
       
       setBreathingContext({
@@ -396,6 +405,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
         zoneName: zone.name,
         zoneColor: zone.color,
         invokedWords,
+        tempo: breathTempo,
       });
       
       setShowInterlude(false);
@@ -405,11 +415,11 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     }
   };
 
-  // Handle breathing completion → navigate to landing zone
+  // Handle breathing completion → navigate to YourMoment landing zone
   const handleBreathingComplete = () => {
-    console.log('[Scene_Reflect] 🌅 Breathing complete, navigating to landing zone');
-    // TODO: Navigate to landing zone page
-    alert('Breathing complete! Next: Landing zone exploration');
+    console.log('[Scene_Reflect] 🌅 Breathing complete, transitioning to Your Moment');
+    setShowBreathing(false);
+    setShowYourMoment(true);
   };
 
   const handleInterludeTimeout = () => {
@@ -468,6 +478,30 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
           onComplete={handleBreathingComplete}
         />
       </>
+    );
+  }
+
+  // If showing Your Moment landing zone, render it
+  if (showYourMoment && currentReflectionId && breathingContext) {
+    return (
+      <YourMoment
+        reflectionId={currentReflectionId}
+        primary={breathingContext.primary}
+        secondary={breathingContext.secondary}
+        zoneName={breathingContext.zoneName}
+        zoneColor={breathingContext.zoneColor}
+        breathTempo={breathingContext.tempo}
+        pigName={pigName}
+        onComplete={() => {
+          // Return to reflection scene for next entry
+          console.log('[Scene_Reflect] Your Moment complete, returning to reflection');
+          setShowYourMoment(false);
+          // Reset state for new reflection
+          setCurrentReflectionId(null);
+          setBreathingContext(null);
+          setScenePhase('entering');
+        }}
+      />
     );
   }
 
