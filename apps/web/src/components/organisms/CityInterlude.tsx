@@ -231,6 +231,7 @@ export default function CityInterlude({
     if (zone && !primaryLocked && currentPhase === 4) {
       console.log(`[CityInterlude] 🎯✅ PHASE 4 + PRIMARY DETECTED → ZOOM! ${primary} → ${zone.name}`);
       setPrimaryLocked(true);
+      setPrimaryEmotion(primary); // CRITICAL: Store primary for zoom animation
       
       // Start zoom sequence after 1s stillness
       setTimeout(() => {

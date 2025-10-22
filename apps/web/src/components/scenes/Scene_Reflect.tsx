@@ -374,9 +374,9 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
         reflectionId={currentReflectionId}
         pigName={pigName}
         onComplete={(primary: string) => {
-          console.log(`[Scene_Reflect] City interlude complete: ${primary}`);
+          console.log(`[Scene_Reflect] ✅ City interlude zoom complete: ${primary}`);
           // TODO: Navigate to landing zone page
-          alert(`Interlude complete! Primary: ${primary}`);
+          // For now, just log - no popup
         }}
         onTimeout={handleInterludeTimeout}
       />
