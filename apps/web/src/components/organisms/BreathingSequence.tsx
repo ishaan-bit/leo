@@ -15,7 +15,8 @@ interface BreathingSequenceProps {
   onComplete: () => void;
 }
 
-// Emotional towers - same as CityInterlude
+// Emotional towers - repositioned for breathing sequence
+// Primary tower positioned at 35% (center-left) for visibility
 const TOWERS = [
   { id: 'joyful', name: 'Haven', color: '#FFD700', x: 15, height: 180 },
   { id: 'powerful', name: 'Vire', color: '#FF6B35', x: 25, height: 220 },
@@ -24,6 +25,11 @@ const TOWERS = [
   { id: 'mad', name: 'Sable', color: '#C1121F', x: 70, height: 190 },
   { id: 'scared', name: 'Vanta', color: '#5A189A', x: 85, height: 170 },
 ];
+
+// Get repositioned X for primary tower (center-left at 35%)
+const getPrimaryTowerX = (towerId: string) => {
+  return 35; // Center-left position
+};
 
 const MIN_CYCLES = 3;
 const EASING = [0.42, 0, 0.58, 1] as const; // easeInOutSine
@@ -238,29 +244,34 @@ export default function BreathingSequence({
         </motion.div>
       </motion.div>
 
-      {/* Breathing prompt */}
+      {/* Breathing prompt - white color for UI elements */}
       <motion.div
         className="absolute left-1/2 z-30 pointer-events-none"
         style={{
           x: '-50%',
           top: 'calc(35% + 140px)',
         }}
-        animate={{ opacity: 0.9, scale: isInhaling ? 1.05 : 0.95 }}
+        animate={{ opacity: 1, scale: isInhaling ? 1.05 : 0.95 }}
         transition={{ duration: 0.5, ease: EASING }}
       >
         <div
-          className="text-4xl font-sans tracking-widest lowercase font-light"
+          className="text-5xl font-sans tracking-widest uppercase font-bold"
           style={{
-            color: zoneColor,
-            textShadow: `0 0 20px ${zoneColor}, 0 0 40px ${zoneColor}80`,
-            letterSpacing: '0.3em',
+            color: '#FFFFFF',
+            textShadow: `
+              0 0 30px #FFFFFF,
+              0 0 60px #FFFFFF,
+              0 0 90px #FFFFFF80,
+              0 4px 8px rgba(0,0,0,0.5)
+            `,
+            letterSpacing: '0.4em',
           }}
         >
           {isInhaling ? 'inhale' : 'exhale'}
         </div>
       </motion.div>
 
-      {/* City skyline with towers */}
+      {/* City skyline with towers - primary repositioned to center-left */}
       <motion.div
         className="absolute bottom-0 left-0 right-0 z-25"
         style={{ height: '50vh' }}
@@ -270,22 +281,26 @@ export default function BreathingSequence({
       >
         {TOWERS.map(tower => {
           const isPrimary = tower.id === primary;
-          const towerOpacity = isPrimary ? 1 : 0.2;
+          const towerOpacity = isPrimary ? 1 : 0;
+          const displayX = isPrimary ? getPrimaryTowerX(tower.id) : tower.x;
           
           return (
             <motion.div
               key={tower.id}
               className="absolute bottom-0"
               style={{
-                left: `${tower.x}%`,
+                left: `${displayX}%`,
                 width: '80px',
                 height: `${tower.height * 1.8}px`,
               }}
               animate={{
-                opacity: isInhaling ? towerOpacity * 1.1 : towerOpacity * 0.8,
+                opacity: towerOpacity,
                 scale: isPrimary ? (isInhaling ? 1.02 : 0.98) : 1,
               }}
-              transition={{ duration: cycle.in, ease: EASING }}
+              transition={{ 
+                opacity: { duration: isPrimary ? 0.5 : 1.5, delay: isPrimary ? 2 : 0 },
+                scale: { duration: cycle.in, ease: EASING }
+              }}
             >
               {/* Tower body */}
               <div
@@ -318,19 +333,21 @@ export default function BreathingSequence({
                   ))}
                 </div>
 
-                {/* Building name - ALWAYS VISIBLE */}
+                {/* Building name - WHITE, BOLD, HIGHLY VISIBLE */}
                 {isPrimary && (
                   <motion.div
-                    className="absolute -top-20 left-1/2 -translate-x-1/2 whitespace-nowrap font-serif italic text-4xl z-30"
+                    className="absolute -top-24 left-1/2 -translate-x-1/2 whitespace-nowrap font-serif italic text-6xl font-bold z-30"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ duration: 1, delay: 1 }}
+                    transition={{ duration: 1, delay: 2.5 }}
                     style={{
-                      color: tower.color,
+                      color: '#FFFFFF',
                       textShadow: `
-                        0 0 40px ${tower.color},
-                        0 0 80px ${tower.color},
-                        0 0 120px ${tower.color}80
+                        0 0 50px #FFFFFF,
+                        0 0 100px #FFFFFF,
+                        0 0 150px #FFFFFF,
+                        0 0 200px ${tower.color},
+                        0 6px 12px rgba(0,0,0,0.8)
                       `,
                     }}
                   >
@@ -356,7 +373,7 @@ export default function BreathingSequence({
         })}
       </motion.div>
 
-      {/* Floating words */}
+      {/* Floating words - yellow/gold color for semantic content */}
       <AnimatePresence>
         {words.map(word => {
           const radius = 180;
@@ -369,15 +386,20 @@ export default function BreathingSequence({
               className="absolute pointer-events-none z-40"
               style={{ left: `${x}%`, top: `${y}%` }}
               initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 0.9, scale: 1.05, y: -30 }}
+              animate={{ opacity: 1, scale: 1.05, y: -30 }}
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ duration: 5, ease: EASING }}
             >
               <span
-                className="text-3xl font-serif italic"
+                className="text-4xl font-serif italic font-bold"
                 style={{
-                  color: zoneColor,
-                  textShadow: `0 0 15px ${zoneColor}, 0 0 30px ${zoneColor}80`,
+                  color: '#FFD700',
+                  textShadow: `
+                    0 0 30px #FFD700,
+                    0 0 60px #FFD700,
+                    0 0 90px #FFD70080,
+                    0 4px 8px rgba(0,0,0,0.6)
+                  `,
                 }}
               >
                 {word.text}
