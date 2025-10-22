@@ -34,6 +34,9 @@ const TOWERS = [
   { id: 'scared', name: 'Sable', color: '#5A189A', x: 85, height: 170 },
 ];
 
+// Minimum cycles before allowing completion (even if Stage-2 finishes early)
+const MIN_CYCLES_REQUIRED = 3;
+
 export default function BreathingSequence({
   reflectionId,
   primary,
@@ -72,13 +75,19 @@ export default function BreathingSequence({
         const reflection = await response.json();
         const status = reflection.status || reflection.final?.status;
         
-        console.log('[BreathingSequence] Stage-2 poll:', { status, hasFinal: !!reflection.final });
+        console.log('[BreathingSequence] Stage-2 poll:', { status, hasFinal: !!reflection.final, currentCycle: cycleCountRef.current });
         
-        if (status === 'complete') {
-          console.log('[BreathingSequence] 🎨 Stage-2 complete, ending breathing loop');
+        // Only complete if BOTH conditions met:
+        // 1. Stage-2 enrichment complete
+        // 2. Minimum cycles (3) completed
+        if (status === 'complete' && cycleCountRef.current >= MIN_CYCLES_REQUIRED) {
+          console.log('[BreathingSequence] 🎨 Stage-2 complete + minimum cycles met, ending breathing loop');
           setStage2Complete(true);
           clearInterval(pollInterval);
           setPhase('breathe_outro');
+        } else if (status === 'complete' && cycleCountRef.current < MIN_CYCLES_REQUIRED) {
+          console.log('[BreathingSequence] ⏳ Stage-2 complete but waiting for minimum cycles:', cycleCountRef.current, '/', MIN_CYCLES_REQUIRED);
+          setStage2Complete(true); // Mark complete but keep breathing
         }
       } catch (error) {
         console.error('[BreathingSequence] Poll error:', error);
@@ -221,7 +230,7 @@ export default function BreathingSequence({
     }, 3000);
   }, [pickWord, reflectionId, invokedWords.length]);
 
-  // Continuous breathing loop (no fixed total cycles - runs until Stage-2 complete)
+  // Continuous breathing loop (no fixed total cycles - runs until Stage-2 complete + minimum cycles)
   useEffect(() => {
     if (phase !== 'breathe_loop') return;
     
@@ -232,25 +241,24 @@ export default function BreathingSequence({
       if (cycleStage === 'inhale') {
         timer = setTimeout(() => setCycleStage('hold1'), inhale * 1000);
       } else if (cycleStage === 'hold1') {
-        // Occasionally add word mid-inhale (1 in 5 chance)
-        if (Math.random() < 0.2) {
-          addFloatingWord();
-        }
         timer = setTimeout(() => setCycleStage('exhale'), h1 * 1000);
       } else if (cycleStage === 'exhale') {
-        timer = setTimeout(() => {
-          setCycleStage('hold2');
-          
-          // Always add word on exhale end
-          addFloatingWord();
-        }, exhale * 1000);
+        timer = setTimeout(() => setCycleStage('hold2'), exhale * 1000);
       } else if (cycleStage === 'hold2') {
         timer = setTimeout(() => {
           cycleCountRef.current += 1;
           setCurrentCycle(cycleCountRef.current);
-          setCycleStage('inhale');
           
           console.log('[BreathingSequence] 🫁 Cycle', cycleCountRef.current, 'complete');
+          
+          // Check if we can complete now (Stage-2 done + minimum cycles met)
+          if (stage2Complete && cycleCountRef.current >= MIN_CYCLES_REQUIRED) {
+            console.log('[BreathingSequence] ✅ Minimum cycles complete, transitioning to outro');
+            setPhase('breathe_outro');
+          } else {
+            // Continue breathing
+            setCycleStage('inhale');
+          }
         }, h2 * 1000);
       }
     };
@@ -258,7 +266,18 @@ export default function BreathingSequence({
     advance();
     
     return () => clearTimeout(timer);
-  }, [phase, cycleStage, cycle, addFloatingWord]);
+  }, [phase, cycleStage, cycle, stage2Complete]);
+
+  // Continuous word floating (every 2-3 seconds during breathe_loop)
+  useEffect(() => {
+    if (phase !== 'breathe_loop') return;
+    
+    const wordInterval = setInterval(() => {
+      addFloatingWord();
+    }, 2000 + Math.random() * 1000); // 2-3 seconds
+    
+    return () => clearInterval(wordInterval);
+  }, [phase, addFloatingWord]);
 
   // Breathe outro (3s fade)
   useEffect(() => {
@@ -345,6 +364,39 @@ export default function BreathingSequence({
         ))}
       </div>
 
+      {/* Breathing prompts - large, prominent, center screen */}
+      <AnimatePresence mode="wait">
+        {phase === 'breathe_loop' && (cycleStage === 'inhale' || cycleStage === 'exhale') && (
+          <motion.div
+            key={cycleStage}
+            className="absolute top-[25%] left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: [0, 1, 1, 0.7], scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ 
+              duration: 0.8,
+              opacity: { times: [0, 0.3, 0.7, 1] }
+            }}
+          >
+            <div
+              className="text-6xl md:text-8xl font-serif italic tracking-wider"
+              style={{
+                color: zoneColor,
+                textShadow: `
+                  0 0 20px ${zoneColor},
+                  0 0 40px ${zoneColor},
+                  0 0 60px ${zoneColor}80,
+                  0 0 80px ${zoneColor}40
+                `,
+                letterSpacing: '0.15em',
+              }}
+            >
+              {cycleStage === 'inhale' ? 'INHALE' : 'EXHALE'}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Leo - hovering above primary tower, gentle breathing */}
       <motion.div
         className="absolute z-20"
@@ -390,7 +442,21 @@ export default function BreathingSequence({
       </motion.div>
 
       {/* City skyline with six towers (primary centered, others faded) */}
-      <div className="absolute bottom-0 left-0 right-0 z-25" style={{ height: '50vh' }}>
+      {/* Inherit CityInterlude zoom end state (scale:2.5, y:-30%), then smoothly zoom out during neon_reveal */}
+      <motion.div
+        className="absolute bottom-0 left-0 right-0 z-25"
+        style={{ height: '50vh' }}
+        initial={{ scale: 2.5, y: '-30%' }}
+        animate={
+          phase === 'neon_reveal'
+            ? { scale: 1, y: 0 } // Smooth zoom out during 3s neon reveal
+            : { scale: 1, y: 0 } // Stay normal during breathe_loop
+        }
+        transition={{
+          duration: phase === 'neon_reveal' ? 3 : 0,
+          ease: [0.22, 1, 0.36, 1], // easeOutCubic (match CityInterlude)
+        }}
+      >
         {TOWERS.map((tower, idx) => {
           const isPrimary = tower.id === primary;
           const towerOpacity = isPrimary ? 1 : 0.2; // Fade non-primary towers
@@ -454,33 +520,50 @@ export default function BreathingSequence({
                   })}
                 </div>
 
-                {/* Neon tower name - anchored above roof, flickers with breathing */}
+                {/* Neon tower name - anchored above roof, strong Enter-the-Void glow */}
                 {isPrimary && (
                   <motion.div
                     className="absolute -top-16 left-1/2 -translate-x-1/2 whitespace-nowrap font-serif italic text-3xl z-30"
                     style={{ 
-                      color: tower.color, 
-                      textShadow: `0 0 20px ${tower.color}, 0 0 40px ${tower.color}` 
+                      color: tower.color,
+                      textShadow: `
+                        0 0 40px ${tower.color},
+                        0 0 80px ${tower.color},
+                        0 0 120px ${tower.color}80,
+                        0 2px 4px rgba(0,0,0,0.5)
+                      `,
                     }}
                     animate={{
-                      textShadow: [
-                        `0 0 ${20 * lightIntensity}px ${tower.color}, 0 0 ${40 * lightIntensity}px ${tower.color}`,
-                        `0 0 ${30 * lightIntensity}px ${tower.color}, 0 0 ${60 * lightIntensity}px ${tower.color}`,
-                        `0 0 ${20 * lightIntensity}px ${tower.color}, 0 0 ${40 * lightIntensity}px ${tower.color}`,
-                      ],
+                      textShadow: phase === 'neon_reveal' 
+                        ? [
+                            `0 0 0px ${tower.color}, 0 0 0px ${tower.color}`,
+                            `0 0 60px ${tower.color}, 0 0 120px ${tower.color}`,
+                            `0 0 40px ${tower.color}, 0 0 80px ${tower.color}`,
+                            `0 0 60px ${tower.color}, 0 0 120px ${tower.color}`,
+                            `0 0 50px ${tower.color}, 0 0 100px ${tower.color}`,
+                            `0 0 60px ${tower.color}, 0 0 120px ${tower.color}`,
+                          ]
+                        : [ // Breathe with breathing rhythm
+                            `0 0 ${40 * lightIntensity}px ${tower.color}, 0 0 ${80 * lightIntensity}px ${tower.color}`,
+                            `0 0 ${60 * lightIntensity}px ${tower.color}, 0 0 ${120 * lightIntensity}px ${tower.color}`,
+                            `0 0 ${40 * lightIntensity}px ${tower.color}, 0 0 ${80 * lightIntensity}px ${tower.color}`,
+                          ],
                       opacity: phase === 'neon_reveal' 
-                        ? [0, 1, 0.9, 1, 0.95, 1] // Enter-the-Void style flicker
-                        : [0.9, 1, 0.9], // Subtle pulse with breathing
+                        ? [0, 1, 0.9, 1, 0.95, 1] // Enter-the-Void flicker
+                        : [0.95, 1, 0.95], // Subtle pulse
                     }}
                     transition={{
                       textShadow: {
-                        duration: cycle.in + cycle.out,
-                        repeat: Infinity,
-                        ease: [0.45, 0.05, 0.55, 0.95],
+                        duration: phase === 'neon_reveal' ? 2.5 : (cycle.in + cycle.out),
+                        times: phase === 'neon_reveal' ? [0, 0.25, 0.4, 0.6, 0.8, 1] : undefined,
+                        repeat: phase === 'neon_reveal' ? 0 : Infinity,
+                        ease: phase === 'neon_reveal' ? 'easeOut' : [0.45, 0.05, 0.55, 0.95],
                       },
-                      opacity: phase === 'neon_reveal'
-                        ? { duration: 2, times: [0, 0.3, 0.4, 0.6, 0.8, 1] }
-                        : { duration: 2, repeat: Infinity },
+                      opacity: {
+                        duration: phase === 'neon_reveal' ? 2.5 : 2,
+                        times: phase === 'neon_reveal' ? [0, 0.25, 0.4, 0.6, 0.8, 1] : undefined,
+                        repeat: phase === 'neon_reveal' ? 0 : Infinity,
+                      },
                     }}
                   >
                     {tower.name}
@@ -529,13 +612,14 @@ export default function BreathingSequence({
             </motion.div>
           );
         })}
-      </div>
+      </motion.div>
 
-      {/* Floating semantic words - continuous drift between cycles */}
+      {/* Floating semantic words - continuous drift in upper portion of screen */}
       <AnimatePresence>
         {floatingWords.map((word) => {
           const driftY = WORD_DRIFT_PX[primary] || -20;
-          const driftX = (Math.random() - 0.5) * 30; // Small horizontal drift
+          const driftX = (Math.random() - 0.5) * 40; // Horizontal drift
+          const startY = 10 + Math.random() * 10; // Random Y between 10-20% (top portion)
           
           return (
             <motion.div
@@ -543,26 +627,30 @@ export default function BreathingSequence({
               className="absolute pointer-events-none z-40"
               style={{
                 left: `${word.x}%`,
-                top: '45%',
+                top: `${startY}%`,
               }}
               initial={{ opacity: 0, x: 0, y: 0 }}
               animate={{
-                opacity: [0, 0.7, 0.7, 0],
+                opacity: [0, 0.8, 0.8, 0],
                 x: driftX,
                 y: driftY,
               }}
               exit={{ opacity: 0 }}
               transition={{ 
-                duration: 3, 
+                duration: 3.5, 
                 ease: 'easeOut',
                 opacity: { times: [0, 0.2, 0.7, 1] }
               }}
             >
               <span
-                className="text-2xl md:text-3xl font-serif italic"
+                className="text-3xl md:text-4xl font-serif italic"
                 style={{
                   color: zoneColor,
-                  textShadow: `0 0 8px ${zoneColor}80`,
+                  textShadow: `
+                    0 0 12px ${zoneColor},
+                    0 0 24px ${zoneColor}80,
+                    0 0 36px ${zoneColor}40
+                  `,
                 }}
               >
                 {word.text}
