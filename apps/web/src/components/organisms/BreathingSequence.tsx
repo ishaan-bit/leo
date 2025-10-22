@@ -386,21 +386,33 @@ export default function BreathingSequence({
         })}
       </motion.div>
 
-      {/* Floating words - constrained to avoid Leo's center area */}
+      {/* Floating words - safe zones to avoid UI overlap */}
       <AnimatePresence>
         {words.map(word => {
-          // Constrain radius and avoid center (Leo is at 35% vertical, 50% horizontal)
-          const radius = 200;
+          // Safe zones: avoid top 15% (auth bar), center 30-45% vertical (Leo + prompts)
+          // Place words in safe horizontal bands: left (10-35%), right (65-90%)
           const angle = word.angle;
+          const normalizedAngle = (angle % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
           
-          // Calculate position but avoid Leo's zone (30-40% vertical, 40-60% horizontal)
-          let x = 50 + (Math.cos(angle) * radius) / 8; // Wider spread
-          let y = 35 + (Math.sin(angle) * radius) / 8;
+          // Determine safe vertical zone based on angle quadrant
+          let x, y;
           
-          // If too close to Leo, push to edges
-          if (x > 40 && x < 60 && y > 30 && y < 40) {
-            // Push horizontally outward
-            x = x < 50 ? x - 15 : x + 15;
+          if (normalizedAngle < Math.PI / 2) {
+            // Top-right quadrant → place in upper-right safe zone
+            x = 65 + Math.random() * 20; // 65-85%
+            y = 18 + Math.random() * 10; // 18-28% (below auth bar, above Leo)
+          } else if (normalizedAngle < Math.PI) {
+            // Bottom-right quadrant → place in lower-right safe zone
+            x = 65 + Math.random() * 20; // 65-85%
+            y = 50 + Math.random() * 15; // 50-65% (below Leo, above towers)
+          } else if (normalizedAngle < Math.PI * 1.5) {
+            // Bottom-left quadrant → place in lower-left safe zone
+            x = 10 + Math.random() * 20; // 10-30%
+            y = 50 + Math.random() * 15; // 50-65% (below Leo, above towers)
+          } else {
+            // Top-left quadrant → place in upper-left safe zone
+            x = 10 + Math.random() * 20; // 10-30%
+            y = 18 + Math.random() * 10; // 18-28% (below auth bar, above Leo)
           }
           
           return (
@@ -409,18 +421,18 @@ export default function BreathingSequence({
               className="absolute pointer-events-none z-40"
               style={{ left: `${x}%`, top: `${y}%` }}
               initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1.05, y: -30 }}
+              animate={{ opacity: 1, scale: 1.05, y: -20 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 5, ease: EASING }}
+              transition={{ duration: 6, ease: EASING }}
             >
               <span
-                className="text-4xl font-serif italic font-bold"
+                className="text-3xl font-serif italic font-bold"
                 style={{
                   color: '#FFD700',
                   textShadow: `
-                    0 0 30px #FFD700,
-                    0 0 60px #FFD700,
-                    0 0 90px #FFD70080,
+                    0 0 20px #FFD700,
+                    0 0 40px #FFD700,
+                    0 0 60px #FFD70080,
                     0 4px 8px rgba(0,0,0,0.6)
                   `,
                 }}

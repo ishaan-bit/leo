@@ -34,41 +34,42 @@ export interface SecondaryModifier {
 }
 
 // Base presets by primary emotion (matched to Building Zones)
+// Cycles slowed down 1.5x for more contemplative breathing
 export const PRIMARY_PRESETS: Record<PrimaryEmotion, PrimaryPreset> = {
   joyful: {
     color: '#FFD479', // Warm amber-gold (Haven)
     audio: '/audio/breathe/low_whoosh_joy.mp3',
-    cycle: { in: 3, h1: 0.5, out: 3, h2: 0.5 }, // Light & quick
+    cycle: { in: 4.5, h1: 0.8, out: 4.5, h2: 0.8 }, // Light & quick (was 3/0.5/3/0.5)
     light: { mode: 'bloom', intensity: [0.4, 1.0] },
   },
   sad: {
     color: '#637DFF', // Indigo-blue (Ashmere)
     audio: '/audio/breathe/hum_rain_sad.mp3',
-    cycle: { in: 6, h1: 1, out: 6, h2: 1 }, // Slow & heavy
+    cycle: { in: 9, h1: 1.5, out: 9, h2: 1.5 }, // Slow & heavy (was 6/1/6/1)
     light: { mode: 'sink', intensity: [0.25, 0.8] },
   },
   mad: {
     color: '#FF4949', // Deep red (Sable)
     audio: '/audio/breathe/crackle_mad.mp3',
-    cycle: { in: 2, h1: 0.3, out: 2, h2: 0.3 }, // Sharp & forceful
+    cycle: { in: 3, h1: 0.5, out: 3, h2: 0.5 }, // Sharp & forceful (was 2/0.3/2/0.3)
     light: { mode: 'strobe', intensity: [0.5, 1.0], strobe: true },
   },
   scared: {
     color: '#A770FF', // Purple-grey (Vanta)
     audio: '/audio/breathe/tremolo_fear.mp3',
-    cycle: { in: 2, h1: 0.5, out: 4, h2: 0.5 }, // Uneven, trembling
+    cycle: { in: 3, h1: 0.8, out: 6, h2: 0.8 }, // Uneven, trembling (was 2/0.5/4/0.5)
     light: { mode: 'jitter', intensity: [0.35, 0.95], jitter: true },
   },
   peaceful: {
     color: '#4FFFE3', // Soft teal (Vera)
     audio: '/audio/breathe/ocean_peace.mp3',
-    cycle: { in: 4, h1: 1, out: 4, h2: 1 }, // Balanced
+    cycle: { in: 6, h1: 1.5, out: 6, h2: 1.5 }, // Balanced (was 4/1/4/1)
     light: { mode: 'drift', intensity: [0.3, 0.9] },
   },
   powerful: {
     color: '#FF77C4', // Electric white-gold (Vire)
     audio: '/audio/breathe/resonant_power.mp3',
-    cycle: { in: 5, h1: 1, out: 5, h2: 1 }, // Expanding
+    cycle: { in: 7.5, h1: 1.5, out: 7.5, h2: 1.5 }, // Expanding (was 5/1/5/1)
     light: { mode: 'surge', intensity: [0.45, 1.0] },
   },
 };
