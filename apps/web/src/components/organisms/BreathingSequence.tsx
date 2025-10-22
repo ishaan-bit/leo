@@ -6,6 +6,46 @@ import Image from 'next/image';
 import { type PrimaryEmotion, computeBreatheParams, FALLBACK_WORDS } from '@/lib/breathe-config';
 import type { Stage2State, PostEnrichmentPayload, Stage2Phase, WindowState } from '@/lib/stage2-types';
 
+// Emotion-based fallback content for Stage 2
+const EMOTION_FALLBACK_CONTENT: Record<PrimaryEmotion, PostEnrichmentPayload> = {
+  joyful: {
+    poems: ['Joy blooms where attention lingers', 'Every moment holds its own light'],
+    tips: ['Notice what makes you smile today', 'Share your brightness with someone', 'Let happiness ripple outward'],
+    closing_line: 'Your joy is a gift to yourself and others',
+    tip_moods: ['peaceful', 'celebratory', 'pride'],
+  },
+  powerful: {
+    poems: ['Strength flows through gentle persistence', 'You are the architect of your becoming'],
+    tips: ['Channel energy into clear intention', 'Set one boundary with compassion', 'Celebrate your quiet power'],
+    closing_line: 'Your power grows in purposeful action',
+    tip_moods: ['pride', 'peaceful', 'celebratory'],
+  },
+  peaceful: {
+    poems: ['Stillness speaks in whispers', 'Peace is found in the spaces between'],
+    tips: ['Rest without guilt today', 'Notice one moment of ease', 'Let calm be your companion'],
+    closing_line: 'Peace is always available within you',
+    tip_moods: ['peaceful', 'peaceful', 'peaceful'],
+  },
+  sad: {
+    poems: ['Sorrow softens the hardened places', 'Tears water the seeds of healing'],
+    tips: ['Feel without fixing today', 'Reach out if you need support', 'Sadness is not a failure'],
+    closing_line: 'Your feelings deserve tender acknowledgment',
+    tip_moods: ['peaceful', 'pride', 'peaceful'],
+  },
+  mad: {
+    poems: ['Anger reveals what matters most', 'Your fire can forge new paths'],
+    tips: ['Name what you\'re protecting', 'Express safely, then release', 'Channel heat into purposeful change'],
+    closing_line: 'Your anger holds important wisdom',
+    tip_moods: ['pride', 'peaceful', 'celebratory'],
+  },
+  scared: {
+    poems: ['Fear shows where courage is needed', 'You are braver than you feel'],
+    tips: ['Take one small step forward', 'Share your fear with someone safe', 'Remember: you\'ve survived before'],
+    closing_line: 'Courage is fear that has found its footing',
+    tip_moods: ['peaceful', 'pride', 'celebratory'],
+  },
+};
+
 interface BreathingSequenceProps {
   reflectionId: string;
   primary: PrimaryEmotion;
@@ -70,10 +110,13 @@ export default function BreathingSequence({
   const breatheParams = computeBreatheParams(primary, secondary);
   const { cycle, color, audio } = breatheParams;
   
+  // Slow down tempo by 20% during Stage 2 continuity phase
+  const tempoMultiplier = stage2.phase === 'continuity' ? 1.2 : 1;
+  
   // Slow down to resting pulse (6s) during closing phase
   const activeCycle = stage2.phase === 'closing' 
     ? { in: 3, out: 3 } // 6s resting pulse
-    : cycle;
+    : { in: cycle.in * tempoMultiplier, out: cycle.out * tempoMultiplier };
   const cycleDuration = (activeCycle.in + activeCycle.out) * 1000; // ms
   const primaryTower = TOWERS.find(t => t.id === primary) || TOWERS[0];
 
@@ -141,6 +184,8 @@ export default function BreathingSequence({
 
   // Poll for Stage-2 enrichment (post_enrichment payload)
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    
     const pollInterval = setInterval(async () => {
       try {
         const response = await fetch(`/api/reflect/${reflectionId}`);
@@ -153,6 +198,7 @@ export default function BreathingSequence({
           const postEnrichment = reflection.final.post_enrichment;
           
           console.log('[Stage2] Post-enrichment received:', postEnrichment);
+          clearTimeout(timeoutId); // Cancel timeout
           
           // Initialize Stage 2 with payload
           setStage2(prev => ({
@@ -187,8 +233,34 @@ export default function BreathingSequence({
       }
     }, 2000);
     
-    return () => clearInterval(pollInterval);
-  }, [reflectionId, cycleCount, stage2.started]);
+    // Fallback timeout: if enrichment doesn't arrive after MIN_CYCLES + 10s, use emotion-based content
+    timeoutId = setTimeout(() => {
+      if (!stage2.started && cycleCount >= MIN_CYCLES) {
+        console.log('[Stage2] Timeout - using emotion-based fallback content');
+        const fallbackPayload = EMOTION_FALLBACK_CONTENT[primary];
+        
+        setStage2(prev => ({
+          ...prev,
+          payload: fallbackPayload,
+          window: {
+            lit: false,
+            window_id: reflectionId,
+            x: 35,
+            y: 35 + Math.random() * 20,
+            opacity: 0,
+            glow: 0,
+          },
+          phase: 'continuity',
+          started: true,
+        }));
+      }
+    }, (MIN_CYCLES * cycleDuration) + 10000); // Wait for min cycles + 10s buffer
+    
+    return () => {
+      clearInterval(pollInterval);
+      clearTimeout(timeoutId);
+    };
+  }, [reflectionId, cycleCount, stage2.started, primary, cycleDuration]);
 
   // Continuous breathing animation loop
   useEffect(() => {
@@ -536,11 +608,10 @@ export default function BreathingSequence({
         })}
       </AnimatePresence>
 
-      {/* Cycle counter */}
-      {cycleCount > 0 && (
+      {/* Cycle counter - hidden during Stage 2 */}
+      {cycleCount > 0 && stage2.phase === 'idle' && (
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/30 text-sm font-mono">
           cycle {cycleCount} {stage2Complete && cycleCount >= MIN_CYCLES && '· ready'}
-          {stage2.phase !== 'idle' && ` · stage2: ${stage2.phase}`}
         </div>
       )}
 
@@ -590,7 +661,11 @@ export default function BreathingSequence({
                 {stage2.phase === 'poem1' && stage2.payload && (
                   <motion.div
                     key="poem1"
-                    className="text-center text-white text-xs font-serif italic leading-relaxed"
+                    className="text-center font-serif italic leading-relaxed"
+                    style={{
+                      color: `${zoneColor}B3`, // 70% opacity
+                      fontSize: '14px',
+                    }}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{
                       opacity: isInhaling ? 1 : [1, 0.3],
@@ -607,7 +682,11 @@ export default function BreathingSequence({
                 {stage2.phase === 'tips' && stage2.payload && (
                   <motion.div
                     key={`tip-${stage2.currentTipIndex}`}
-                    className="text-center text-white text-xs font-sans leading-relaxed"
+                    className="text-center font-sans leading-relaxed"
+                    style={{
+                      color: `${zoneColor}B3`, // 70% opacity
+                      fontSize: '13px',
+                    }}
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{
                       opacity: 1,
@@ -639,7 +718,11 @@ export default function BreathingSequence({
                 {stage2.phase === 'poem2' && stage2.payload && (
                   <motion.div
                     key="poem2"
-                    className="text-center text-white text-xs font-serif italic leading-relaxed"
+                    className="text-center font-serif italic leading-relaxed"
+                    style={{
+                      color: `${zoneColor}B3`, // 70% opacity
+                      fontSize: '14px',
+                    }}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{
                       opacity: 1,
@@ -677,12 +760,15 @@ export default function BreathingSequence({
           <motion.div
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-none"
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: [0, 1, 1], y: 0 }}
+            animate={{ opacity: [0, 0.7, 0.7], y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: activeCycle.out, ease: EASING, times: [0, 0.3, 1] }}
           >
-            <p className="text-white/80 text-2xl font-serif italic text-center max-w-md">
-              Your moment begins to take shape...
+            <p 
+              className="text-2xl font-serif italic text-center max-w-md"
+              style={{ color: `${zoneColor}B3` }}
+            >
+              Your moment takes shape...
             </p>
           </motion.div>
         )}
@@ -692,7 +778,7 @@ export default function BreathingSequence({
       <AnimatePresence>
         {stage2.phase === 'closing' && stage2.payload && (
           <motion.div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-none flex flex-col items-center gap-6"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-6"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
@@ -715,25 +801,50 @@ export default function BreathingSequence({
             </motion.div>
 
             {/* Closing text */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-8 py-6 max-w-lg text-center">
-              <p className="text-white text-lg font-serif italic leading-relaxed mb-2">
+            <div 
+              className="backdrop-blur-sm rounded-2xl px-8 py-6 max-w-lg text-center"
+              style={{
+                backgroundColor: `${zoneColor}1A`, // 10% opacity
+                border: `1px solid ${zoneColor}4D`, // 30% opacity
+              }}
+            >
+              <p 
+                className="text-lg font-serif italic leading-relaxed mb-2"
+                style={{ color: `${zoneColor}B3` }}
+              >
                 If anything came to mind, write it down and feed it to {pigName}.
               </p>
               {stage2.payload.closing_line && (
-                <p className="text-white/70 text-sm font-sans mt-4">
+                <p 
+                  className="text-sm font-sans mt-4 italic"
+                  style={{ color: `${zoneColor}99` }}
+                >
                   {stage2.payload.closing_line}
                 </p>
               )}
             </div>
 
-            {/* Leo turns slightly */}
-            <motion.div
-              className="absolute -top-64 left-0"
-              animate={{ rotate: [0, 15, 0] }}
-              transition={{ duration: 4, ease: 'easeInOut' }}
+            {/* Continue button - glassmorphism with halo gradient */}
+            <motion.button
+              onClick={() => {
+                console.log('[Stage2] Continue button clicked');
+                onComplete();
+              }}
+              className="pointer-events-auto px-8 py-3 rounded-full font-medium text-white backdrop-blur-sm transition-all duration-300 hover:scale-105"
+              style={{
+                background: `linear-gradient(135deg, ${zoneColor}66, ${zoneColor}99)`,
+                border: `1px solid ${zoneColor}CC`,
+                boxShadow: `0 4px 20px ${zoneColor}66, inset 0 1px 2px rgba(255,255,255,0.2)`,
+              }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 3, duration: 1 }}
+              whileHover={{
+                boxShadow: `0 8px 30px ${zoneColor}99, inset 0 1px 2px rgba(255,255,255,0.3)`,
+              }}
             >
-              <Image src="/images/leo.svg" alt="Leo" width={120} height={120} />
-            </motion.div>
+              Continue
+            </motion.button>
           </motion.div>
         )}
       </AnimatePresence>
