@@ -59,7 +59,7 @@ export default function BreathingSequence({
   const cycleDuration = (cycle.in + cycle.out) * 1000; // ms
   const primaryTower = TOWERS.find(t => t.id === primary) || TOWERS[0];
 
-  // Initialize word pool
+  // Initialize word pool - ONLY invoked, expressed, primary, secondary, tertiary
   useEffect(() => {
     const initWords = async () => {
       try {
@@ -69,18 +69,25 @@ export default function BreathingSequence({
         const reflection = await response.json();
         const pool: string[] = [];
         
+        // 1. Invoked words (primary source)
         if (invokedWords.length > 0) pool.push(...invokedWords);
-        if (reflection.final?.expressed) {
-          pool.push(...reflection.final.expressed.split(/[+\s]+/).filter(Boolean));
-        }
-        if (reflection.final?.wheel?.primary) pool.push(reflection.final.wheel.primary);
-        if (reflection.final?.wheel?.secondary) pool.push(reflection.final.wheel.secondary);
-        if (reflection.raw_text) {
-          pool.push(...reflection.raw_text.split(/\s+/).slice(0, 3));
+        
+        // 2. Expressed emotion
+        if (reflection.final?.expressed && reflection.final.expressed !== 'null') {
+          const expressed = reflection.final.expressed.split(/[+\s]+/).map((w: string) => w.trim()).filter(Boolean);
+          pool.push(...expressed);
         }
         
-        wordPool.current = pool.length > 0 ? pool : [...FALLBACK_WORDS];
-        console.log('[Breathing] Word pool:', wordPool.current.length, 'words');
+        // 3. Wheel emotions ONLY (no random text words)
+        if (reflection.final?.wheel?.primary) pool.push(reflection.final.wheel.primary);
+        if (reflection.final?.wheel?.secondary) pool.push(reflection.final.wheel.secondary);
+        if (reflection.final?.wheel?.tertiary) pool.push(reflection.final.wheel.tertiary);
+        
+        // Filter out short/meaningless words
+        const filteredPool = pool.filter(w => w && w.length > 2);
+        
+        wordPool.current = filteredPool.length > 0 ? filteredPool : [...FALLBACK_WORDS];
+        console.log('[Breathing] Word pool:', wordPool.current.length, 'words', wordPool.current);
       } catch (error) {
         console.error('[Breathing] Failed to load words:', error);
         wordPool.current = [...FALLBACK_WORDS];
@@ -244,27 +251,33 @@ export default function BreathingSequence({
         </motion.div>
       </motion.div>
 
-      {/* Breathing prompt - white color for UI elements */}
+      {/* Breathing prompt - synced with Leo breathing, smooth pulse */}
       <motion.div
         className="absolute left-1/2 z-30 pointer-events-none"
         style={{
           x: '-50%',
           top: 'calc(35% + 140px)',
         }}
-        animate={{ opacity: 1, scale: isInhaling ? 1.05 : 0.95 }}
-        transition={{ duration: 0.5, ease: EASING }}
+        animate={{ 
+          opacity: isInhaling ? [0.3, 0.95, 0.95] : [0.95, 0.3, 0.3],
+          scale: isInhaling ? [0.95, 1.08, 1.08] : [1.08, 0.92, 0.92],
+        }}
+        transition={{ 
+          duration: cycle.in,
+          ease: EASING,
+          times: [0, 0.5, 1],
+        }}
       >
         <div
-          className="text-5xl font-sans tracking-widest uppercase font-bold"
+          className="text-4xl font-sans tracking-widest lowercase font-light"
           style={{
-            color: '#FFFFFF',
+            color: 'rgba(255, 255, 255, 0.9)',
             textShadow: `
-              0 0 30px #FFFFFF,
-              0 0 60px #FFFFFF,
-              0 0 90px #FFFFFF80,
-              0 4px 8px rgba(0,0,0,0.5)
+              0 0 20px rgba(255, 255, 255, 0.8),
+              0 0 40px rgba(255, 255, 255, 0.6),
+              0 2px 8px rgba(0,0,0,0.4)
             `,
-            letterSpacing: '0.4em',
+            letterSpacing: '0.35em',
           }}
         >
           {isInhaling ? 'inhale' : 'exhale'}
@@ -333,7 +346,7 @@ export default function BreathingSequence({
                   ))}
                 </div>
 
-                {/* Building name - WHITE, BOLD, HIGHLY VISIBLE */}
+                {/* Building name - luminescent zone color per Willcox wheel */}
                 {isPrimary && (
                   <motion.div
                     className="absolute -top-24 left-1/2 -translate-x-1/2 whitespace-nowrap font-serif italic text-6xl font-bold z-30"
@@ -341,13 +354,13 @@ export default function BreathingSequence({
                     animate={{ opacity: 1 }}
                     transition={{ duration: 1, delay: 2.5 }}
                     style={{
-                      color: '#FFFFFF',
+                      color: tower.color,
                       textShadow: `
-                        0 0 50px #FFFFFF,
-                        0 0 100px #FFFFFF,
-                        0 0 150px #FFFFFF,
-                        0 0 200px ${tower.color},
-                        0 6px 12px rgba(0,0,0,0.8)
+                        0 0 60px ${tower.color},
+                        0 0 120px ${tower.color},
+                        0 0 180px ${tower.color},
+                        0 0 240px ${tower.color}80,
+                        0 2px 12px rgba(0,0,0,0.4)
                       `,
                     }}
                   >
