@@ -141,6 +141,50 @@ export default function BreathingSequence({
 
   // Poll for Stage-2 enrichment (post_enrichment payload)
   useEffect(() => {
+    // Generate fallback content based on primary emotion
+    const generateFallback = (primaryEmotion: string) => {
+      const fallbacks: Record<string, any> = {
+        joyful: {
+          poems: ['Light spills through\nwhere joy lives', 'This warmth\nis yours to keep'],
+          tips: ['Notice what makes you smile', 'Share this feeling with someone', 'Let it fill your chest'],
+          closing_line: 'May this brightness stay with you',
+          tip_moods: ['celebratory', 'peaceful', 'celebratory']
+        },
+        powerful: {
+          poems: ['You are the storm\nand the stillness after', 'This strength\nwas always yours'],
+          tips: ['Feel your feet on the ground', 'Own this moment fully', 'Let your voice be heard'],
+          closing_line: 'Stand tall in what you know',
+          tip_moods: ['pride', 'pride', 'celebratory']
+        },
+        peaceful: {
+          poems: ['Soft edges\ngentle breathing', 'Here, everything\ncan slow down'],
+          tips: ['Let your shoulders drop', 'Notice the quiet spaces', 'This calm is always here'],
+          closing_line: 'Rest in this stillness',
+          tip_moods: ['peaceful', 'peaceful', 'peaceful']
+        },
+        sad: {
+          poems: ['Even rain\nfeeds the earth', 'This heaviness\nwill soften'],
+          tips: ['Let it move through you', 'There\'s no rush to be okay', 'Tears are part of healing'],
+          closing_line: 'Be gentle with yourself',
+          tip_moods: ['peaceful', 'peaceful', 'pride']
+        },
+        mad: {
+          poems: ['Fire burns\nbut doesn\'t consume', 'Your anger\nis information'],
+          tips: ['Name what crossed your boundary', 'This energy can transform', 'What do you need to protect?'],
+          closing_line: 'Your boundaries matter',
+          tip_moods: ['pride', 'celebratory', 'pride']
+        },
+        scared: {
+          poems: ['Fear keeps you\nwatchful, alive', 'You\'ve survived\nevery storm so far'],
+          tips: ['What feels unsafe right now?', 'Ground yourself in what\'s real', 'You don\'t have to face this alone'],
+          closing_line: 'You are still here, still breathing',
+          tip_moods: ['peaceful', 'pride', 'peaceful']
+        }
+      };
+      
+      return fallbacks[primaryEmotion] || fallbacks.peaceful;
+    };
+    
     const pollInterval = setInterval(async () => {
       try {
         const response = await fetch(`/api/reflect/${reflectionId}`);
@@ -148,13 +192,13 @@ export default function BreathingSequence({
         
         const reflection = await response.json();
         
-        // Check for post_enrichment payload
-        if (reflection.final?.post_enrichment && !stage2.started) {
-          const postEnrichment = reflection.final.post_enrichment;
+        // Check for post_enrichment payload OR use fallback
+        if (!stage2.started) {
+          const postEnrichment = reflection.final?.post_enrichment || generateFallback(primary);
           
-          console.log('[Stage2] Post-enrichment received:', postEnrichment);
+          console.log('[Stage2] Using payload:', postEnrichment);
           
-          // Initialize Stage 2 with payload
+          // Initialize Stage 2 with payload (real or fallback)
           setStage2(prev => ({
             ...prev,
             payload: {
@@ -188,7 +232,7 @@ export default function BreathingSequence({
     }, 2000);
     
     return () => clearInterval(pollInterval);
-  }, [reflectionId, cycleCount, stage2.started]);
+  }, [reflectionId, cycleCount, stage2.started, primary]);
 
   // Continuous breathing animation loop
   useEffect(() => {
