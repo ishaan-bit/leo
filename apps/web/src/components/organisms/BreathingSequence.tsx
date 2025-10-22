@@ -251,13 +251,6 @@ export default function BreathingSequence({
             setStage2(prev => ({ ...prev, stage2CycleCount: stage2Cycle + 1 }));
           }
         }
-        
-        // Check if we can complete breathing sequence
-        if ((stage2Complete || stage2.phase === 'complete') && currentCycle >= MIN_CYCLES) {
-          console.log('[Breathing] Γ£à Ready to complete');
-          setTimeout(onComplete, 2000);
-          return;
-        }
       }
       
       animationFrameRef.current = requestAnimationFrame(animate);
