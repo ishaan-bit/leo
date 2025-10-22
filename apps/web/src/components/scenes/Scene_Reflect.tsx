@@ -464,6 +464,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
           zoneName={breathingContext.zoneName}
           zoneColor={breathingContext.zoneColor}
           invokedWords={breathingContext.invokedWords}
+          pigName={pigName}
           onComplete={handleBreathingComplete}
         />
       </>

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { type PrimaryEmotion, computeBreatheParams, FALLBACK_WORDS } from '@/lib/breathe-config';
+import type { Stage2State, PostEnrichmentPayload, Stage2Phase, WindowState } from '@/lib/stage2-types';
 
 interface BreathingSequenceProps {
   reflectionId: string;
@@ -12,6 +13,7 @@ interface BreathingSequenceProps {
   zoneName: string;
   zoneColor: string;
   invokedWords?: string[];
+  pigName?: string; // For Stage 2 closing cue
   onComplete: () => void;
 }
 
@@ -41,6 +43,7 @@ export default function BreathingSequence({
   zoneName,
   zoneColor,
   invokedWords = [],
+  pigName = 'Leo',
   onComplete,
 }: BreathingSequenceProps) {
   const [breathProgress, setBreathProgress] = useState(0); // 0-1 continuous
@@ -49,6 +52,16 @@ export default function BreathingSequence({
   const [isReady, setIsReady] = useState(false);
   const [stage2Complete, setStage2Complete] = useState(false);
   
+  // Stage 2 state
+  const [stage2, setStage2] = useState<Stage2State>({
+    phase: 'idle',
+    payload: null,
+    window: null,
+    currentTipIndex: 0,
+    stage2CycleCount: 0,
+    started: false,
+  });
+  
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const wordPool = useRef<string[]>([]);
   const animationFrameRef = useRef<number>();
@@ -56,7 +69,12 @@ export default function BreathingSequence({
   
   const breatheParams = computeBreatheParams(primary, secondary);
   const { cycle, color, audio } = breatheParams;
-  const cycleDuration = (cycle.in + cycle.out) * 1000; // ms
+  
+  // Slow down to resting pulse (6s) during closing phase
+  const activeCycle = stage2.phase === 'closing' 
+    ? { in: 3, out: 3 } // 6s resting pulse
+    : cycle;
+  const cycleDuration = (activeCycle.in + activeCycle.out) * 1000; // ms
   const primaryTower = TOWERS.find(t => t.id === primary) || TOWERS[0];
 
   // Initialize word pool - ONLY invoked, expressed, primary, secondary, tertiary
@@ -121,7 +139,7 @@ export default function BreathingSequence({
     };
   }, [audio]);
 
-  // Poll for Stage-2 completion
+  // Poll for Stage-2 enrichment (post_enrichment payload)
   useEffect(() => {
     const pollInterval = setInterval(async () => {
       try {
@@ -129,8 +147,37 @@ export default function BreathingSequence({
         if (!response.ok) return;
         
         const reflection = await response.json();
-        const status = reflection.status || reflection.final?.status;
         
+        // Check for post_enrichment payload
+        if (reflection.final?.post_enrichment && !stage2.started) {
+          const postEnrichment = reflection.final.post_enrichment;
+          
+          console.log('[Stage2] Post-enrichment received:', postEnrichment);
+          
+          // Initialize Stage 2 with payload
+          setStage2(prev => ({
+            ...prev,
+            payload: {
+              poems: postEnrichment.poems || ['...', '...'],
+              tips: postEnrichment.tips || [],
+              closing_line: postEnrichment.closing_line || '',
+              tip_moods: postEnrichment.tip_moods || [],
+            },
+            window: {
+              lit: false,
+              window_id: reflectionId,
+              x: 35, // Primary tower X position
+              y: 35 + Math.random() * 20, // Mid-height on tower
+              opacity: 0,
+              glow: 0,
+            },
+            phase: 'continuity', // Start Stage 2
+            started: true,
+          }));
+        }
+        
+        // Check for overall completion status
+        const status = reflection.status || reflection.final?.status;
         if (status === 'complete') {
           console.log('[Breathing] Stage-2 complete, cycle:', cycleCount);
           setStage2Complete(true);
@@ -141,7 +188,7 @@ export default function BreathingSequence({
     }, 2000);
     
     return () => clearInterval(pollInterval);
-  }, [reflectionId, cycleCount]);
+  }, [reflectionId, cycleCount, stage2.started]);
 
   // Continuous breathing animation loop
   useEffect(() => {
@@ -160,8 +207,53 @@ export default function BreathingSequence({
         setCycleCount(currentCycle);
         console.log('[Breathing] Cycle', currentCycle, 'complete');
         
-        // Check if we can complete
-        if (stage2Complete && currentCycle >= MIN_CYCLES) {
+        // Stage 2 phase progression (each phase lasts 1 breath cycle)
+        if (stage2.started && stage2.payload) {
+          const stage2Cycle = stage2.stage2CycleCount;
+          
+          // Phase 0 (cycle 0): Continuity handoff
+          if (stage2.phase === 'continuity' && stage2Cycle >= 1) {
+            console.log('[Stage2] → Poem 1 (ignite window)');
+            setStage2(prev => ({ ...prev, phase: 'poem1', stage2CycleCount: stage2Cycle + 1 }));
+          }
+          // Phase 1 (cycle 1): Poem 1
+          else if (stage2.phase === 'poem1' && stage2Cycle >= 2) {
+            console.log('[Stage2] → Tips sequence');
+            setStage2(prev => ({ ...prev, phase: 'tips', stage2CycleCount: stage2Cycle + 1 }));
+          }
+          // Phase 2 (cycles 2-N): Tips (1 cycle per tip)
+          else if (stage2.phase === 'tips') {
+            const tipIndex = stage2.currentTipIndex;
+            const totalTips = stage2.payload.tips.length;
+            
+            if (tipIndex < totalTips - 1) {
+              console.log(`[Stage2] → Tip ${tipIndex + 2}/${totalTips}`);
+              setStage2(prev => ({ 
+                ...prev, 
+                currentTipIndex: tipIndex + 1,
+                stage2CycleCount: stage2Cycle + 1 
+              }));
+            } else {
+              console.log('[Stage2] → Poem 2 (release)');
+              setStage2(prev => ({ ...prev, phase: 'poem2', stage2CycleCount: stage2Cycle + 1 }));
+            }
+          }
+          // Phase 3 (cycle after tips): Poem 2
+          else if (stage2.phase === 'poem2' && stage2Cycle >= 3 + stage2.payload.tips.length) {
+            console.log('[Stage2] → Closing cue');
+            setStage2(prev => ({ ...prev, phase: 'closing', stage2CycleCount: stage2Cycle + 1 }));
+          }
+          // Phase 4 (cycle after poem2): Closing
+          else if (stage2.phase === 'closing' && stage2Cycle >= 5 + stage2.payload.tips.length) {
+            console.log('[Stage2] ✅ Complete');
+            setStage2(prev => ({ ...prev, phase: 'complete' }));
+          } else {
+            setStage2(prev => ({ ...prev, stage2CycleCount: stage2Cycle + 1 }));
+          }
+        }
+        
+        // Check if we can complete breathing sequence
+        if ((stage2Complete || stage2.phase === 'complete') && currentCycle >= MIN_CYCLES) {
           console.log('[Breathing] ✅ Ready to complete');
           setTimeout(onComplete, 2000);
           return;
@@ -178,7 +270,7 @@ export default function BreathingSequence({
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [isReady, cycleDuration, cycleCount, stage2Complete, onComplete]);
+  }, [isReady, cycleDuration, cycleCount, stage2Complete, stage2, onComplete]);
 
   // Add floating words periodically
   useEffect(() => {
@@ -219,7 +311,7 @@ export default function BreathingSequence({
             ? 'linear-gradient(to bottom, #1A1734, #3B3367, #1A1734)'
             : 'linear-gradient(to bottom, #0A0714, #2B2357, #0A0714)',
         }}
-        transition={{ duration: cycle.in, ease: EASING }}
+        transition={{ duration: activeCycle.in, ease: EASING }}
       />
       
       {/* Stars */}
@@ -233,7 +325,7 @@ export default function BreathingSequence({
               top: `${Math.random() * 80}%`,
             }}
             animate={{ opacity: starOpacity, scale: isInhaling ? 1.3 : 1 }}
-            transition={{ duration: cycle.in, ease: EASING }}
+            transition={{ duration: activeCycle.in, ease: EASING }}
           />
         ))}
       </div>
@@ -245,7 +337,7 @@ export default function BreathingSequence({
       >
         <motion.div
           animate={{ scale: leoScale }}
-          transition={{ duration: cycle.in, ease: EASING }}
+          transition={{ duration: activeCycle.in, ease: EASING }}
         >
           <Image src="/images/leo.svg" alt="Leo" width={200} height={200} priority />
         </motion.div>
@@ -263,7 +355,7 @@ export default function BreathingSequence({
           scale: isInhaling ? [0.95, 1.08, 1.08] : [1.08, 0.92, 0.92],
         }}
         transition={{ 
-          duration: cycle.in,
+          duration: activeCycle.in,
           ease: EASING,
           times: [0, 0.5, 1],
         }}
@@ -312,7 +404,7 @@ export default function BreathingSequence({
               }}
               transition={{ 
                 opacity: { duration: isPrimary ? 0.5 : 1.5, delay: isPrimary ? 2 : 0 },
-                scale: { duration: cycle.in, ease: EASING }
+                scale: { duration: activeCycle.in, ease: EASING }
               }}
             >
               {/* Tower body */}
@@ -377,7 +469,7 @@ export default function BreathingSequence({
                       filter: 'blur(40px)',
                     }}
                     animate={{ scale: isInhaling ? 1.4 : 0.8 }}
-                    transition={{ duration: cycle.in, ease: EASING }}
+                    transition={{ duration: activeCycle.in, ease: EASING }}
                   />
                 )}
               </div>
@@ -448,8 +540,204 @@ export default function BreathingSequence({
       {cycleCount > 0 && (
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/30 text-sm font-mono">
           cycle {cycleCount} {stage2Complete && cycleCount >= MIN_CYCLES && '· ready'}
+          {stage2.phase !== 'idle' && ` · stage2: ${stage2.phase}`}
         </div>
       )}
+
+      {/* Stage 2: Illuminated Window */}
+      <AnimatePresence>
+        {stage2.window && stage2.phase !== 'idle' && (
+          <motion.div
+            className="absolute z-40 pointer-events-none"
+            style={{
+              left: `${stage2.window.x}%`,
+              bottom: `${stage2.window.y}%`,
+              width: '160px',
+              height: '120px',
+            }}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{
+              opacity: stage2.phase === 'continuity' ? 0 : 1,
+              scale: stage2.phase === 'poem1' && isInhaling ? [0.8, 1.2, 1] : 1,
+            }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 1, ease: EASING }}
+          >
+            {/* Window glow */}
+            <div
+              className="absolute inset-0 rounded-lg"
+              style={{
+                background: `radial-gradient(circle, ${zoneColor}CC 0%, ${zoneColor}66 50%, transparent 100%)`,
+                filter: 'blur(20px)',
+              }}
+            />
+            
+            {/* Window pane */}
+            <div
+              className="absolute inset-0 rounded-lg border-2 flex items-center justify-center p-4 overflow-hidden"
+              style={{
+                backgroundColor: `${zoneColor}33`,
+                borderColor: `${zoneColor}99`,
+                boxShadow: `
+                  0 0 40px ${zoneColor}99,
+                  inset 0 0 20px ${zoneColor}33
+                `,
+              }}
+            >
+              {/* Text content based on phase */}
+              <AnimatePresence mode="wait">
+                {/* Phase 1: Poem 1 */}
+                {stage2.phase === 'poem1' && stage2.payload && (
+                  <motion.div
+                    key="poem1"
+                    className="text-center text-white text-xs font-serif italic leading-relaxed"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{
+                      opacity: isInhaling ? 1 : [1, 0.3],
+                      y: isInhaling ? 0 : [0, -30],
+                    }}
+                    exit={{ opacity: 0, y: -40 }}
+                    transition={{ duration: activeCycle.in, ease: EASING }}
+                  >
+                    {stage2.payload.poems[0]}
+                  </motion.div>
+                )}
+
+                {/* Phase 2: Tips (current tip) */}
+                {stage2.phase === 'tips' && stage2.payload && (
+                  <motion.div
+                    key={`tip-${stage2.currentTipIndex}`}
+                    className="text-center text-white text-xs font-sans leading-relaxed"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{
+                      opacity: 1,
+                      scale: 1,
+                      // Micro-animations based on tip mood
+                      y: stage2.payload.tip_moods?.[stage2.currentTipIndex] === 'peaceful'
+                        ? [0, -2, 0] // Rain ripple
+                        : 0,
+                      x: stage2.payload.tip_moods?.[stage2.currentTipIndex] === 'celebratory'
+                        ? [0, 2, -2, 0] // Rhythmic wave
+                        : 0,
+                    }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{
+                      duration: stage2.payload.tip_moods?.[stage2.currentTipIndex] === 'pride'
+                        ? 0.3 // Flash pulse
+                        : 2,
+                      repeat: stage2.payload.tip_moods?.[stage2.currentTipIndex] === 'peaceful'
+                        ? Infinity
+                        : 0,
+                      ease: EASING,
+                    }}
+                  >
+                    {stage2.payload.tips[stage2.currentTipIndex]}
+                  </motion.div>
+                )}
+
+                {/* Phase 3: Poem 2 */}
+                {stage2.phase === 'poem2' && stage2.payload && (
+                  <motion.div
+                    key="poem2"
+                    className="text-center text-white text-xs font-serif italic leading-relaxed"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{
+                      opacity: 1,
+                      y: 0,
+                    }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: activeCycle.in, ease: EASING }}
+                  >
+                    {stage2.payload.poems[1]}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Upward glow during poem2 exhale */}
+            {stage2.phase === 'poem2' && !isInhaling && (
+              <motion.div
+                className="absolute -top-32 left-1/2 -translate-x-1/2 w-32 h-32"
+                style={{
+                  background: `radial-gradient(circle, ${zoneColor}66 0%, transparent 70%)`,
+                  filter: 'blur(30px)',
+                }}
+                initial={{ opacity: 0, y: 0 }}
+                animate={{ opacity: [0, 0.8, 0], y: -60 }}
+                transition={{ duration: activeCycle.out, ease: EASING }}
+              />
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Stage 2: Phase 0 - Continuity text */}
+      <AnimatePresence>
+        {stage2.phase === 'continuity' && !isInhaling && (
+          <motion.div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-none"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: [0, 1, 1], y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: activeCycle.out, ease: EASING, times: [0, 0.3, 1] }}
+          >
+            <p className="text-white/80 text-2xl font-serif italic text-center max-w-md">
+              Your moment begins to take shape...
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Stage 2: Phase 4 - Closing cue */}
+      <AnimatePresence>
+        {stage2.phase === 'closing' && stage2.payload && (
+          <motion.div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-none flex flex-col items-center gap-6"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 2, ease: EASING }}
+          >
+            {/* Sticky note icon */}
+            <motion.div
+              className="text-6xl"
+              animate={{
+                y: [0, -10, 0],
+                rotate: [-5, 5, -5],
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            >
+              📝
+            </motion.div>
+
+            {/* Closing text */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-8 py-6 max-w-lg text-center">
+              <p className="text-white text-lg font-serif italic leading-relaxed mb-2">
+                If anything came to mind, write it down and feed it to {pigName}.
+              </p>
+              {stage2.payload.closing_line && (
+                <p className="text-white/70 text-sm font-sans mt-4">
+                  {stage2.payload.closing_line}
+                </p>
+              )}
+            </div>
+
+            {/* Leo turns slightly */}
+            <motion.div
+              className="absolute -top-64 left-0"
+              animate={{ rotate: [0, 15, 0] }}
+              transition={{ duration: 4, ease: 'easeInOut' }}
+            >
+              <Image src="/images/leo.svg" alt="Leo" width={120} height={120} />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
+

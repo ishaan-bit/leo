@@ -27,6 +27,8 @@ export type Zone = {
   symbol: SymbolSpec;
   caption: string;
   subTone: SubTone;
+  arousal: number;
+  valence: number;
 };
 
 export type EnrichmentContext = {
@@ -168,6 +170,8 @@ export function buildZone(
     symbol,
     caption,
     subTone,
+    arousal: ctx.arousal,
+    valence: ctx.valence,
   };
 }
 

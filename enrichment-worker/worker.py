@@ -15,18 +15,8 @@ load_dotenv()
 
 # Import modules
 from src.modules.redis_client import get_redis
-from src.modules.ollama_client import OllamaClient
-from src.modules.analytics import (
-    TemporalAnalyzer, 
-    CircadianAnalyzer, 
-    WillingnessAnalyzer,
-    LatentStateTracker,
-    QualityAnalyzer,
-    RiskSignalDetector
-)
-from src.modules.comparator import EventComparator
-from src.modules.recursion import RecursionDetector
-from src.modules.event_mapper import map_generic_events
+from src.modules.hybrid_scorer import HybridScorer
+from src.modules.post_enricher import PostEnricher
 
 # Configuration
 POLL_MS = int(os.getenv('WORKER_POLL_MS', '500'))
@@ -36,21 +26,23 @@ TIMEZONE = os.getenv('TIMEZONE', 'Asia/Kolkata')
 
 # Initialize components
 redis_client = get_redis()
-ollama_client = OllamaClient(
-    base_url=os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434'),
-    model=os.getenv('OLLAMA_MODEL', 'phi3:latest'),
+ollama_client = HybridScorer(
+    hf_token=os.getenv('HF_TOKEN'),
+    ollama_base_url=os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434'),
+    ollama_model=os.getenv('OLLAMA_MODEL', 'phi3:latest'),
+    hf_weight=float(os.getenv('HF_WEIGHT', '0.4')),
+    emb_weight=float(os.getenv('EMB_WEIGHT', '0.3')),
+    ollama_weight=float(os.getenv('OLLAMA_WEIGHT', '0.3')),
     timeout=int(os.getenv('OLLAMA_TIMEOUT', '30'))
 )
 
-# Analytics modules
-temporal_analyzer = TemporalAnalyzer(windows=[1, 7, 28], zscore_window_days=90)
-circadian_analyzer = CircadianAnalyzer(timezone=TIMEZONE)
-willingness_analyzer = WillingnessAnalyzer()
-state_tracker = LatentStateTracker(alpha=0.3)
-quality_analyzer = QualityAnalyzer()
-risk_detector = RiskSignalDetector(anergy_threshold=3, irritation_threshold=3, window_days=5)
-comparator = EventComparator()
-recursion_detector = RecursionDetector(max_links=5, similarity_threshold=0.7, time_window_days=14)
+# Stage-2 Post-Enricher
+post_enricher = PostEnricher(
+    ollama_base_url=os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434'),
+    ollama_model=os.getenv('OLLAMA_MODEL', 'phi3:latest'),
+    temperature=float(os.getenv('STAGE2_TEMPERATURE', '0.8')),
+    timeout=int(os.getenv('STAGE2_TIMEOUT', '120'))
+)
 
 
 def check_health() -> Dict:
@@ -64,7 +56,7 @@ def check_health() -> Dict:
         'ollama': 'ok' if ollama_ok else 'down',
         'redis': 'ok' if redis_ok else 'down',
         'status': status,
-        'model': ollama_client.model,
+        'model': ollama_client.ollama_model,
     }
 
 
@@ -97,192 +89,99 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
         history = redis_client.get_user_history(sid, limit=90)
         print(f"📊 Loaded {len(history)} past reflections for {sid}")
         
-        # 2. Call Ollama for core enrichment
-        print(f"🤖 Calling Ollama...")
-        ollama_result = ollama_client.enrich(normalized_text)
+        # 2. Stage-1: Call Hybrid Scorer for core enrichment (includes all analytics)
+        print(f"🤖 Stage-1: Hybrid Scorer...")
+        ollama_result = ollama_client.enrich(normalized_text, history, timestamp)
         
         if not ollama_result:
-            print(f"❌ Ollama enrichment failed for {rid}")
-            # Update worker status
-            redis_client.set_worker_status('degraded', {'reason': 'ollama_failed', 'rid': rid})
+            print(f"❌ Hybrid scorer failed for {rid}")
+            redis_client.set_worker_status('degraded', {'reason': 'hybrid_scorer_failed', 'rid': rid})
             return None
         
-        # Validate and clamp
-        ollama_result = ollama_client.validate_and_clamp(ollama_result)
-        
-        # Extract values
-        invoked = ollama_result['invoked']
-        expressed = ollama_result['expressed']
-        wheel = ollama_result.get('wheel', {'primary': None, 'secondary': None})
-        valence = ollama_result['valence']
-        arousal = ollama_result['arousal']
-        confidence = ollama_result['confidence']
-        events_raw = ollama_result['events']
-        warnings = ollama_result['warnings']
-        ollama_cues = ollama_result['willingness_cues']
-        latency_ms = ollama_result.get('_latency_ms', 0)
-        
-        # Reject if expressed is verbatim input (validation rule)
-        if expressed.lower().strip() == normalized_text.lower().strip():
-            warnings.append("expressed_verbatim_input")
-            # Force to label
-            expressed = "matter-of-fact"
-        
-        # 3. Baseline Analytics
-        print(f"📈 Running baseline analytics...")
-        
-        # Temporal
-        ema_1d = temporal_analyzer.compute_ema(valence, history, 1)
-        ema_7d = temporal_analyzer.compute_ema(valence, history, 7)
-        ema_28d = temporal_analyzer.compute_ema(valence, history, 28)
-        
-        ema_a_1d = temporal_analyzer.compute_ema(arousal, history, 1)
-        ema_a_7d = temporal_analyzer.compute_ema(arousal, history, 7)
-        ema_a_28d = temporal_analyzer.compute_ema(arousal, history, 28)
-        
-        zscore_v = temporal_analyzer.compute_zscore(valence, history, 'valence')
-        zscore_a = temporal_analyzer.compute_zscore(arousal, history, 'arousal')
-        
-        wow_v = temporal_analyzer.compute_wow_change(history, 'valence')
-        wow_a = temporal_analyzer.compute_wow_change(history, 'arousal')
-        
-        streaks = temporal_analyzer.compute_streaks(history, valence)
-        last_marks = temporal_analyzer.get_last_marks(history)
-        
-        # Circadian
-        circadian = circadian_analyzer.analyze(timestamp)
-        
-        # Willingness
-        text_cues = willingness_analyzer.extract_cues(normalized_text)
-        
-        # Merge Ollama cues with text-extracted cues
-        merged_cues = {
-            'hedges': list(set(text_cues['hedges'] + ollama_cues.get('hedges', []))),
-            'intensifiers': list(set(text_cues['intensifiers'] + ollama_cues.get('intensifiers', []))),
-            'negations': list(set(text_cues['negations'] + ollama_cues.get('negations', []))),
-            'self_reference': list(set(text_cues['self_reference'] + ollama_cues.get('self_reference', []))),
-        }
-        
-        willingness = willingness_analyzer.compute_willingness(
-            invoked, expressed, merged_cues, valence, valence  # Using same valence for now
-        )
-        
-        # Latent state
-        energy = (valence + arousal) / 2.0  # Simplified
-        fatigue = 1 - energy
-        state = state_tracker.update_state(valence, arousal, history, energy, fatigue)
-        
-        # Quality
-        quality = quality_analyzer.analyze(normalized_text, confidence)
-        
-        # Map generic events to specific ones
-        events = map_generic_events(events_raw, normalized_text, valence, arousal)
-        
-        # Extract event labels for comparator
-        event_labels = [e['label'] for e in events]
-        
-        # Comparator
-        comparator_result = comparator.compare(event_labels, valence, arousal)
-        
-        # Compute congruence from invoked↔expressed (top-level field)
-        congruence = comparator.compute_invoked_expressed_congruence(invoked, expressed)
-        
-        # Recursion
-        recursion = recursion_detector.detect_links(
-            normalized_text, event_labels, timestamp, history
-        )
-        
-        # Risk signals
-        risk_signals = risk_detector.detect(history, event_labels, normalized_text)
-        
-        # Update last_marks if negative streak
-        if streaks['negative_valence_days'] >= 1 and not last_marks.get('last_negative_at'):
-            last_marks['last_negative_at'] = timestamp
-        
-        # 4. Build enriched fields (will be merged into existing reflection)
-        enriched = {
-            # Only enriched fields - NOT duplicating rid, sid, timestamp from original
+        # 3. Build Stage-1 enriched fields for Redis
+        enriched_stage1 = {
             'timezone_used': TIMEZONE,
-            
             'final': {
-                'invoked': invoked,
-                'expressed': expressed,
-                'expressed_text': None,  # Optional gloss
-                'wheel': wheel,
-                'valence': valence,
-                'arousal': arousal,
-                'confidence': confidence,
-                'events': events,
-                'warnings': warnings,
+                'invoked': ollama_result['invoked'],
+                'expressed': ollama_result['expressed'],
+                'expressed_text': None,
+                'wheel': ollama_result['wheel'],
+                'valence': ollama_result['valence'],
+                'arousal': ollama_result['arousal'],
+                'confidence': ollama_result['confidence'],
+                'events': ollama_result['events'],
+                'warnings': ollama_result['warnings'],
             },
-            
-            'congruence': congruence,
-            
-            'temporal': {
-                'ema': {
-                    'v_1d': ema_1d,
-                    'v_7d': ema_7d,
-                    'v_28d': ema_28d,
-                    'a_1d': ema_a_1d,
-                    'a_7d': ema_a_7d,
-                    'a_28d': ema_a_28d,
-                },
-                'zscore': {
-                    'valence': zscore_v if zscore_v != 0.0 else None,
-                    'arousal': zscore_a if zscore_a != 0.0 else None,
-                    'window_days': 90,
-                },
-                'wow_change': {
-                    'valence': wow_v if wow_v != 0.0 else None,
-                    'arousal': wow_a if wow_a != 0.0 else None,
-                },
-                'streaks': streaks,
-                'last_marks': last_marks,
-                'circadian': circadian,
-            },
-            
-            'willingness': willingness,
-            
-            'comparator': comparator_result,
-            
-            'recursion': recursion,
-            
-            'state': state,
-            
-            'quality': quality,
-            
-            'risk_signals_weak': risk_signals,
-            
-            'provenance': {
-                'baseline_version': 'rules@v1',
-                'ollama_model': ollama_client.model,
-            },
-            
-            'meta': {
-                'mode': 'hybrid-local',
-                'model': 'phi3:latest',
-                'blend': BASELINE_BLEND,
-                'revision': 1,
-                'enriched_at': datetime.utcnow().isoformat() + 'Z',
-                'ollama_latency_ms': latency_ms,
-                'warnings': warnings,
-            }
+            'congruence': ollama_result['congruence'],
+            'temporal': ollama_result['temporal'],
+            'willingness': ollama_result['willingness'],
+            'willingness_cues': ollama_result['willingness_cues'],
+            'comparator': ollama_result['comparator'],
+            'recursion': ollama_result['recursion'],
+            'state': ollama_result['state'],
+            'quality': ollama_result['quality'],
+            'risk_signals_weak': ollama_result['risk_signals_weak'],
+            'provenance': ollama_result['provenance'],
+            'meta': ollama_result['meta'],
+            'status': 'stage1_complete',  # Mark as Stage-1 complete
         }
         
-        # 5. Write to Redis
-        success = redis_client.set_enriched(rid, enriched)
+        # 4. Save Stage-1 results immediately to Upstash
+        print(f"\n{'='*60}")
+        print(f"💾 SAVING STAGE-1 TO UPSTASH NOW...")
+        print(f"{'='*60}")
+        success_stage1 = redis_client.set_enriched(rid, enriched_stage1)
         
-        total_time = int((time.time() - start_time) * 1000)
-        
-        if success:
-            print(f"✅ Enriched {rid} in {total_time}ms")
-            return enriched
-        else:
-            print(f"❌ Failed to write enriched data for {rid}")
+        if not success_stage1:
+            print(f"❌ Failed to write Stage-1 data for {rid}")
             return None
+        
+        stage1_time = int((time.time() - start_time) * 1000)
+        print(f"✅ STAGE-1 SAVED TO UPSTASH in {stage1_time}ms")
+        print(f"   → Key: reflections:enriched:{rid}")
+        print(f"   → Status: stage1_complete")
+        print(f"   → Frontend can query Upstash NOW for analytical data")
+        print(f"{'='*60}\n")
+        
+        # 5. Stage-2: Post-Enrichment (creative content) - runs after Stage-1 is saved
+        print(f"🎨 Stage-2: Post-Enricher (background)...")
+        try:
+            ollama_result['status'] = 'stage1_complete'
+            final_result = post_enricher.run_post_enrichment(ollama_result)
+            
+            # Add post_enrichment to existing enriched data
+            enriched_stage1['post_enrichment'] = final_result['post_enrichment']
+            enriched_stage1['status'] = 'complete'  # Both stages done
+            
+            # 6. Update Upstash with Stage-2 results
+            print(f"\n{'='*60}")
+            print(f"💾 UPDATING UPSTASH WITH STAGE-2...")
+            print(f"{'='*60}")
+            success_stage2 = redis_client.set_enriched(rid, enriched_stage1)
+            
+            if success_stage2:
+                total_time = int((time.time() - start_time) * 1000)
+                print(f"✅ STAGE-2 SAVED TO UPSTASH in {total_time - stage1_time}ms")
+                print(f"   → Key: reflections:enriched:{rid}")
+                print(f"   → Status: complete")
+                print(f"   → Added: post_enrichment (poems, tips, closing)")
+                print(f"✅ FULL PIPELINE COMPLETE in {total_time}ms")
+                print(f"{'='*60}\n")
+            else:
+                print(f"⚠️  Failed to write Stage-2 data, but Stage-1 is saved")
+                
+        except Exception as e:
+            print(f"⚠️  Stage-2 failed: {e}")
+            print(f"   Stage-1 data is already saved and usable")
+            # Don't return None - Stage-1 is already saved
+        
+        return enriched_stage1
         
     except Exception as e:
         print(f"❌ Error processing {rid}: {type(e).__name__}: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
         import traceback
         traceback.print_exc()
         return None
@@ -292,8 +191,8 @@ def main():
     """Main worker loop"""
     print("🚀 Enrichment Worker Starting...")
     print(f"   Poll interval: {POLL_MS}ms")
-    print(f"   Ollama: {ollama_client.base_url}")
-    print(f"   Model: {ollama_client.model}")
+    print(f"   Ollama: {ollama_client.ollama_base_url}")
+    print(f"   Model: {ollama_client.ollama_model}")
     print(f"   Timezone: {TIMEZONE}")
     print(f"   Baseline blend: {BASELINE_BLEND}")
     
