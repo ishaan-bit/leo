@@ -112,24 +112,27 @@ export function computeBreatheParams(
   secondary?: string
 ): { cycle: BreatheCycle; light: LightConfig; color: string; audio: string; cueHint: string } {
   const base = PRIMARY_PRESETS[primary];
-  const mod = SECONDARY_MODIFIERS[secondary?.toLowerCase() || 'default'];
+  
+  // Safely get modifier, fallback to 'default' if secondary not found
+  const secondaryKey = secondary?.toLowerCase() || 'default';
+  const mod = SECONDARY_MODIFIERS[secondaryKey] || SECONDARY_MODIFIERS['default'];
 
-  // Apply deltas to cycle
+  // Apply deltas to cycle (with safe access)
   const cycle: BreatheCycle = {
-    in: Math.max(1, base.cycle.in + (mod.cycleDelta.in || 0)),
-    h1: Math.max(0.5, base.cycle.h1 + (mod.cycleDelta.h1 || 0)),
-    out: Math.max(1, base.cycle.out + (mod.cycleDelta.out || 0)),
-    h2: Math.max(0.5, base.cycle.h2 + (mod.cycleDelta.h2 || 0)),
+    in: Math.max(1, base.cycle.in + (mod?.cycleDelta?.in || 0)),
+    h1: Math.max(0.5, base.cycle.h1 + (mod?.cycleDelta?.h1 || 0)),
+    out: Math.max(1, base.cycle.out + (mod?.cycleDelta?.out || 0)),
+    h2: Math.max(0.5, base.cycle.h2 + (mod?.cycleDelta?.h2 || 0)),
   };
 
-  // Merge light config
+  // Merge light config (with safe access)
   const light: LightConfig = {
     ...base.light,
-    strobe: mod.light.strobe || base.light.strobe,
-    jitter: mod.light.jitter || base.light.jitter,
+    strobe: mod?.light?.strobe || base.light.strobe,
+    jitter: mod?.light?.jitter || base.light.jitter,
     intensity: [
-      Math.max(0.1, base.light.intensity[0] + (mod.light.amp || 0)),
-      Math.min(1.0, base.light.intensity[1] + (mod.light.amp || 0)),
+      Math.max(0.1, base.light.intensity[0] + (mod?.light?.amp || 0)),
+      Math.min(1.0, base.light.intensity[1] + (mod?.light?.amp || 0)),
     ],
   };
 
@@ -138,7 +141,7 @@ export function computeBreatheParams(
     light,
     color: base.color,
     audio: base.audio,
-    cueHint: mod.cueHint,
+    cueHint: mod?.cueHint || 'steady',
   };
 }
 

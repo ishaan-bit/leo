@@ -391,7 +391,19 @@ export default function BreathingSequence({
       </motion.div>
 
       {/* City skyline with six towers (primary centered, others faded) */}
-      <div className="absolute bottom-0 left-0 right-0 z-25" style={{ height: '50vh' }}>
+      <motion.div 
+        className="absolute bottom-0 left-0 right-0 z-25" 
+        style={{ height: '50vh' }}
+        initial={{ scale: 2.5, y: '-30%' }} // Inherit zoom end state from CityInterlude
+        animate={{ 
+          scale: phase === 'neon_reveal' ? [2.5, 2.2] : 2.2, // Subtle zoom out during neon reveal
+          y: phase === 'neon_reveal' ? ['-30%', '-25%'] : '-25%', // Ease up slightly
+        }}
+        transition={{
+          duration: 3,
+          ease: [0.22, 1, 0.36, 1],
+        }}
+      >
         {TOWERS.map((tower, idx) => {
           const isPrimary = tower.id === primary;
           const towerOpacity = isPrimary ? 1 : 0.2; // Fade non-primary towers
@@ -530,7 +542,7 @@ export default function BreathingSequence({
             </motion.div>
           );
         })}
-      </div>
+      </motion.div>
 
       {/* Floating semantic words - continuous drift between cycles */}
       <AnimatePresence>
