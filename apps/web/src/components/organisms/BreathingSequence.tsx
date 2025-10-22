@@ -512,10 +512,10 @@ export default function BreathingSequence({
               key={word.id}
               className="absolute pointer-events-none z-40"
               style={{ left: `${x}%`, top: `${y}%` }}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1.05, y: -20 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 6, ease: EASING }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 2, ease: EASING }}
             >
               <span
                 className="text-3xl font-serif italic font-bold"
