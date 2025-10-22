@@ -319,7 +319,6 @@ export default function BreathingSequence({
   };
 
   const lightIntensity = phase === 'breathe_loop' ? getLightIntensity() : (phase === 'breathe_outro' ? 0.3 : 1);
-  const baseWindowPulse = 0.4 + Math.sin(Date.now() / 2000) * 0.2; // Continuous city pulse
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden bg-gradient-to-b from-[#0A0714] via-[#2B2357] to-[#0A0714]">
@@ -391,19 +390,7 @@ export default function BreathingSequence({
       </motion.div>
 
       {/* City skyline with six towers (primary centered, others faded) */}
-      <motion.div 
-        className="absolute bottom-0 left-0 right-0 z-25" 
-        style={{ height: '50vh' }}
-        initial={{ scale: 2.5, y: '-30%' }} // Inherit zoom end state from CityInterlude
-        animate={{ 
-          scale: phase === 'neon_reveal' ? [2.5, 2.2] : 2.2, // Subtle zoom out during neon reveal
-          y: phase === 'neon_reveal' ? ['-30%', '-25%'] : '-25%', // Ease up slightly
-        }}
-        transition={{
-          duration: 3,
-          ease: [0.22, 1, 0.36, 1],
-        }}
-      >
+      <div className="absolute bottom-0 left-0 right-0 z-25" style={{ height: '50vh' }}>
         {TOWERS.map((tower, idx) => {
           const isPrimary = tower.id === primary;
           const towerOpacity = isPrimary ? 1 : 0.2; // Fade non-primary towers
@@ -542,7 +529,7 @@ export default function BreathingSequence({
             </motion.div>
           );
         })}
-      </motion.div>
+      </div>
 
       {/* Floating semantic words - continuous drift between cycles */}
       <AnimatePresence>
