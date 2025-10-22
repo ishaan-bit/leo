@@ -350,7 +350,31 @@ export default function BreathingSequence({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-gradient-to-b from-[#0A0714] via-[#2B2357] to-[#0A0714]">
+    <div className="fixed inset-0 z-50 overflow-hidden">
+      {/* Sky background - breathes with cycle (brighter on inhale, dimmer on exhale) */}
+      <motion.div
+        className="absolute inset-0"
+        animate={{
+          background: phase === 'breathe_loop'
+            ? (cycleStage === 'inhale'
+                ? [
+                    'linear-gradient(to bottom, #0A0714, #2B2357, #0A0714)',
+                    'linear-gradient(to bottom, #1A1734, #3B3367, #1A1734)',
+                  ]
+                : cycleStage === 'exhale'
+                ? [
+                    'linear-gradient(to bottom, #1A1734, #3B3367, #1A1734)',
+                    'linear-gradient(to bottom, #0A0714, #2B2357, #0A0714)',
+                  ]
+                : 'linear-gradient(to bottom, #0A0714, #2B2357, #0A0714)')
+            : 'linear-gradient(to bottom, #0A0714, #2B2357, #0A0714)',
+        }}
+        transition={{
+          duration: cycleStage === 'inhale' ? cycle.in : cycleStage === 'exhale' ? cycle.out : 1,
+          ease: [0.42, 0, 0.58, 1], // easeInOutSine
+        }}
+      />
+      
       {/* Stars (from CityInterlude) - pulse with breathing */}
       <div className="absolute inset-0 pointer-events-none">
         {Array.from({ length: 120 }).map((_, i) => (
@@ -375,13 +399,14 @@ export default function BreathingSequence({
                 : 2 + Math.random() * 3,
               repeat: phase === 'breathe_loop' ? 0 : Infinity,
               delay: phase === 'breathe_loop' ? 0 : Math.random() * 5,
-              ease: [0.45, 0.05, 0.55, 0.95],
+              ease: [0.42, 0, 0.58, 1], // easeInOutSine
             }}
           />
         ))}
       </div>
 
       {/* Leo - breathing animation (expand/contract with cycle) */}
+      {/* Positioned above building halo, chest scales with inhale/exhale */}
       <motion.div
         className="absolute z-20"
         style={{
@@ -404,7 +429,7 @@ export default function BreathingSequence({
           transition={{
             scale: {
               duration: cycleStage === 'inhale' ? cycle.in : cycleStage === 'exhale' ? cycle.out : 1,
-              ease: [0.45, 0.05, 0.55, 0.95],
+              ease: [0.42, 0, 0.58, 1], // easeInOutSine
             },
             rotate: {
               duration: 6,
@@ -428,6 +453,7 @@ export default function BreathingSequence({
       </motion.div>
 
       {/* Breathing prompts - centered horizontally below Leo */}
+      {/* Complete fade-out before fade-in, no overlap */}
       <AnimatePresence mode="wait">
         {phase === 'breathe_loop' && (cycleStage === 'inhale' || cycleStage === 'exhale') && (
           <motion.div
@@ -436,20 +462,25 @@ export default function BreathingSequence({
             style={{
               top: 'calc(35% + 130px)', // Below Leo (35% + Leo height/2 + spacing)
             }}
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.95 }}
             animate={{ 
-              opacity: [0, 0.9, 0.9, 0.7],
-              scale: cycleStage === 'inhale' ? [0.9, 1.05] : [1.05, 0.95],
+              opacity: [0, 0, 0.9, 0.9],
+              scale: cycleStage === 'inhale' ? [0.95, 1, 1.05, 1.05] : [0.95, 1, 0.95, 0.95],
             }}
-            exit={{ opacity: 0, scale: 0.9 }}
+            exit={{ 
+              opacity: [0.9, 0, 0],
+              scale: 0.9,
+            }}
             transition={{ 
               opacity: {
-                duration: 0.6,
-                times: [0, 0.2, 0.7, 1],
+                duration: cycleStage === 'inhale' ? cycle.in : cycle.out,
+                times: [0, 0.15, 0.3, 1], // Delay fade-in to ensure previous faded out
+                ease: [0.42, 0, 0.58, 1], // easeInOutSine
               },
               scale: {
                 duration: cycleStage === 'inhale' ? cycle.in : cycle.out,
-                ease: [0.45, 0.05, 0.55, 0.95],
+                times: [0, 0.2, 0.6, 1],
+                ease: [0.42, 0, 0.58, 1],
               },
             }}
           >
@@ -513,11 +544,11 @@ export default function BreathingSequence({
               transition={{
                 opacity: { 
                   duration: cycleStage === 'inhale' ? cycle.in : cycleStage === 'exhale' ? cycle.out : 1.5,
-                  ease: cycleStage === 'inhale' || cycleStage === 'exhale' ? [0.45, 0.05, 0.55, 0.95] : 'easeOut',
+                  ease: cycleStage === 'inhale' || cycleStage === 'exhale' ? [0.42, 0, 0.58, 1] : 'easeOut',
                 },
                 scale: {
                   duration: cycleStage === 'inhale' ? cycle.in : cycleStage === 'exhale' ? cycle.out : 0.5,
-                  ease: [0.45, 0.05, 0.55, 0.95],
+                  ease: [0.42, 0, 0.58, 1], // easeInOutSine
                 },
               }}
             >
@@ -577,7 +608,8 @@ export default function BreathingSequence({
                   })}
                 </div>
 
-                {/* Neon tower name - anchored above roof, strong Enter-the-Void glow */}
+                {/* Neon tower name - persistent, only opacity animates */}
+                {/* Building name (e.g., "Haven", "Ashmere") remains throughout */}
                 {isPrimary && (
                   <motion.div
                     className="absolute -top-16 left-1/2 -translate-x-1/2 whitespace-nowrap font-serif italic text-3xl z-30"
@@ -590,6 +622,7 @@ export default function BreathingSequence({
                         0 2px 4px rgba(0,0,0,0.5)
                       `,
                     }}
+                    initial={{ opacity: 0 }}
                     animate={{
                       textShadow: phase === 'neon_reveal' 
                         ? [
@@ -607,23 +640,22 @@ export default function BreathingSequence({
                           ],
                       opacity: phase === 'neon_reveal' 
                         ? [0, 1, 0.9, 1, 0.95, 1] // Enter-the-Void flicker
-                        : [0.95, 1, 0.95], // Subtle pulse
+                        : 1, // Always visible during breathe_loop (no remount)
                     }}
                     transition={{
                       textShadow: {
                         duration: phase === 'neon_reveal' ? 2.5 : (cycle.in + cycle.out),
                         times: phase === 'neon_reveal' ? [0, 0.25, 0.4, 0.6, 0.8, 1] : undefined,
                         repeat: phase === 'neon_reveal' ? 0 : Infinity,
-                        ease: phase === 'neon_reveal' ? 'easeOut' : [0.45, 0.05, 0.55, 0.95],
+                        ease: [0.42, 0, 0.58, 1], // easeInOutSine
                       },
                       opacity: {
-                        duration: phase === 'neon_reveal' ? 2.5 : 2,
+                        duration: phase === 'neon_reveal' ? 2.5 : 0,
                         times: phase === 'neon_reveal' ? [0, 0.25, 0.4, 0.6, 0.8, 1] : undefined,
-                        repeat: phase === 'neon_reveal' ? 0 : Infinity,
                       },
                     }}
                   >
-                    {tower.name}
+                    {zoneName}
                   </motion.div>
                 )}
 
@@ -656,11 +688,12 @@ export default function BreathingSequence({
                             : cycleStage === 'hold1'
                             ? cycle.h1
                             : cycle.h2,
-                        ease: [0.45, 0.05, 0.55, 0.95],
+                        ease: [0.42, 0, 0.58, 1], // easeInOutSine
                       },
                       opacity: {
                         duration: phase === 'breathe_outro' ? 3 : 2,
                         repeat: phase === 'breathe_outro' ? 0 : Infinity,
+                        ease: [0.42, 0, 0.58, 1],
                       },
                     }}
                   />
@@ -672,6 +705,7 @@ export default function BreathingSequence({
       </motion.div>
 
       {/* Floating semantic words - gentle pulse around Leo */}
+      {/* Fade-in (1s), hold (2s), fade-out (1s), random staggering */}
       <AnimatePresence>
         {floatingWords.map((word) => {
           const driftY = (WORD_DRIFT_PX[primary] || -20) * 0.5; // Reduced drift
@@ -692,17 +726,24 @@ export default function BreathingSequence({
               }}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{
-                opacity: [0, 0.7, 0.85, 0.75, 0.5, 0],
-                scale: [0.8, 1, 1.05, 1, 0.95, 0.8],
+                // Fade-in (1s, 0-0.2), hold (2s, 0.2-0.7), fade-out (1s, 0.7-1.0)
+                opacity: [0, 0.75, 0.8, 0.75, 0],
+                scale: [0.8, 1, 1.03, 1, 0.9],
                 x: driftX,
                 y: driftY,
               }}
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ 
-                duration: 5, // Longer duration (was 3.5)
-                ease: 'easeInOut',
-                opacity: { times: [0, 0.15, 0.4, 0.6, 0.85, 1] },
-                scale: { times: [0, 0.2, 0.5, 0.7, 0.9, 1] },
+                duration: 4, // Total: 1s fade-in + 2s hold + 1s fade-out
+                ease: [0.42, 0, 0.58, 1], // easeInOutSine
+                opacity: { 
+                  times: [0, 0.25, 0.5, 0.75, 1], // 1s/4s, 2s/4s, 1s/4s
+                  ease: [0.42, 0, 0.58, 1],
+                },
+                scale: { 
+                  times: [0, 0.25, 0.5, 0.75, 1],
+                  ease: [0.42, 0, 0.58, 1],
+                },
               }}
             >
               <motion.span
@@ -728,7 +769,7 @@ export default function BreathingSequence({
                   textShadow: {
                     duration: phase === 'breathe_loop' ? (cycle.in + cycle.out) : 3,
                     repeat: Infinity,
-                    ease: [0.45, 0.05, 0.55, 0.95],
+                    ease: [0.42, 0, 0.58, 1],
                   },
                 }}
               >

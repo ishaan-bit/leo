@@ -33,43 +33,43 @@ export interface SecondaryModifier {
   cueHint: string;
 }
 
-// Base presets by primary emotion
+// Base presets by primary emotion (matched to Building Zones)
 export const PRIMARY_PRESETS: Record<PrimaryEmotion, PrimaryPreset> = {
   joyful: {
-    color: '#FFD479',
+    color: '#FFD479', // Warm amber-gold (Haven)
     audio: '/audio/breathe/low_whoosh_joy.mp3',
-    cycle: { in: 4, h1: 1, out: 4, h2: 1 },
+    cycle: { in: 3, h1: 0.5, out: 3, h2: 0.5 }, // Light & quick
     light: { mode: 'bloom', intensity: [0.4, 1.0] },
   },
   sad: {
-    color: '#637DFF',
+    color: '#637DFF', // Indigo-blue (Ashmere)
     audio: '/audio/breathe/hum_rain_sad.mp3',
-    cycle: { in: 5, h1: 2, out: 6, h2: 2 },
+    cycle: { in: 6, h1: 1, out: 6, h2: 1 }, // Slow & heavy
     light: { mode: 'sink', intensity: [0.25, 0.8] },
   },
   mad: {
-    color: '#FF4949',
+    color: '#FF4949', // Deep red (Sable)
     audio: '/audio/breathe/crackle_mad.mp3',
-    cycle: { in: 3, h1: 0.5, out: 3, h2: 0.5 },
+    cycle: { in: 2, h1: 0.3, out: 2, h2: 0.3 }, // Sharp & forceful
     light: { mode: 'strobe', intensity: [0.5, 1.0], strobe: true },
   },
   scared: {
-    color: '#A770FF',
+    color: '#A770FF', // Purple-grey (Vanta)
     audio: '/audio/breathe/tremolo_fear.mp3',
-    cycle: { in: 2, h1: 1, out: 3, h2: 1 },
+    cycle: { in: 2, h1: 0.5, out: 4, h2: 0.5 }, // Uneven, trembling
     light: { mode: 'jitter', intensity: [0.35, 0.95], jitter: true },
   },
-  powerful: {
-    color: '#FF77C4',
-    audio: '/audio/breathe/resonant_power.mp3',
-    cycle: { in: 4, h1: 2, out: 4, h2: 2 },
-    light: { mode: 'surge', intensity: [0.45, 1.0] },
-  },
   peaceful: {
-    color: '#4FFFE3',
+    color: '#4FFFE3', // Soft teal (Vera)
     audio: '/audio/breathe/ocean_peace.mp3',
-    cycle: { in: 5, h1: 2, out: 5, h2: 2 },
+    cycle: { in: 4, h1: 1, out: 4, h2: 1 }, // Balanced
     light: { mode: 'drift', intensity: [0.3, 0.9] },
+  },
+  powerful: {
+    color: '#FF77C4', // Electric white-gold (Vire)
+    audio: '/audio/breathe/resonant_power.mp3',
+    cycle: { in: 5, h1: 1, out: 5, h2: 1 }, // Expanding
+    light: { mode: 'surge', intensity: [0.45, 1.0] },
   },
 };
 
