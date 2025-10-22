@@ -5,13 +5,15 @@
  * city zones (towers) with visual identity for the zoom sequence.
  */
 
+// IMPORTANT: These MUST match the Willcox Feelings Wheel 6 primaries from the backend
+// Backend returns: Joyful, Sad, Peaceful, Powerful, Scared, Mad
 export type PrimaryEmotion = 
   | 'joyful'
   | 'sad' 
   | 'peaceful'
   | 'powerful'
-  | 'fearful'
-  | 'angry';
+  | 'scared'   // Willcox uses "Scared" not "fearful"
+  | 'mad';     // Willcox uses "Mad" not "angry"
 
 export interface Zone {
   id: PrimaryEmotion;
@@ -31,7 +33,7 @@ export const ZONE_MAP: Record<PrimaryEmotion, Zone> = {
   },
   sad: {
     id: 'sad',
-    name: 'Vanta',
+    name: 'Ashmere',             // Changed from Vanta
     color: '#7D8597',           // Steel gray
     hue: '#B0C4DE',            // Pale steel-blue sky tint
     description: 'The tower of quiet sorrow',
@@ -45,21 +47,21 @@ export const ZONE_MAP: Record<PrimaryEmotion, Zone> = {
   },
   powerful: {
     id: 'powerful',
-    name: 'Ashmere',
+    name: 'Vanta',               // Changed from Ashmere
     color: '#FF6B35',           // Orange
     hue: '#008B8B',            // Deep teal/azure sky tint
     description: 'The tower of fierce strength',
   },
-  fearful: {
-    id: 'fearful',
-    name: 'Vire',
+  scared: {                      // Changed from "fearful"
+    id: 'scared',
+    name: 'Sable',               // Changed from Vire
     color: '#5A189A',           // Purple
     hue: '#4B0082',            // Indigo-violet sky tint
     description: 'The tower of trembling shadows',
   },
-  angry: {
-    id: 'angry',
-    name: 'Sable',
+  mad: {                         // Changed from "angry"
+    id: 'mad',
+    name: 'Vire',                // Changed from Sable
     color: '#C1121F',           // Red
     hue: '#8B0000',            // Ember-red sky tint
     description: 'The tower of burning resolve',
