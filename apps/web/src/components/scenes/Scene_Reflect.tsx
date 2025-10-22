@@ -8,7 +8,7 @@ import NotebookInput from '../atoms/NotebookInput';
 import VoiceOrb from '../atoms/VoiceOrb';
 import AuthStateIndicator from '../atoms/AuthStateIndicator';
 import SoundToggle from '../atoms/SoundToggle';
-import CityInterludeV2 from '../organisms/CityInterludeV2';
+import CityInterlude from '../organisms/CityInterlude';
 import type { ProcessedText } from '@/lib/multilingual/textProcessor';
 import type { TypingMetrics, VoiceMetrics, AffectVector } from '@/lib/behavioral/metrics';
 import { composeAffectFromTyping, composeAffectFromVoice } from '@/lib/behavioral/metrics';
@@ -370,12 +370,13 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   // If showing interlude, render it as overlay
   if (showInterlude && currentReflectionId) {
     return (
-      <CityInterludeV2
+      <CityInterlude
         reflectionId={currentReflectionId}
-        onComplete={(primary, tower) => {
-          console.log(`[Scene_Reflect] Zoom complete: ${primary} → ${tower.name}`);
+        pigName={pigName}
+        onComplete={(primary: string) => {
+          console.log(`[Scene_Reflect] City interlude complete: ${primary}`);
           // TODO: Navigate to landing zone page
-          alert(`Zoom complete! Primary: ${primary}, Tower: ${tower.name}`);
+          alert(`Interlude complete! Primary: ${primary}`);
         }}
         onTimeout={handleInterludeTimeout}
       />
