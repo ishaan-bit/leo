@@ -10,6 +10,7 @@ import AuthStateIndicator from '../atoms/AuthStateIndicator';
 import SoundToggle from '../atoms/SoundToggle';
 import CityInterlude from '../organisms/CityInterlude';
 import BreathingSequence from '../organisms/BreathingSequence';
+import MomentsLibrary from '../organisms/MomentsLibrary';
 import type { ProcessedText } from '@/lib/multilingual/textProcessor';
 import type { TypingMetrics, VoiceMetrics, AffectVector } from '@/lib/behavioral/metrics';
 import { composeAffectFromTyping, composeAffectFromVoice } from '@/lib/behavioral/metrics';
@@ -34,6 +35,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showInterlude, setShowInterlude] = useState(false);
   const [showBreathing, setShowBreathing] = useState(false);
+  const [showMomentsLibrary, setShowMomentsLibrary] = useState(false);
   const [currentReflectionId, setCurrentReflectionId] = useState<string | null>(null);
   const [breathingContext, setBreathingContext] = useState<{
     primary: PrimaryEmotion;
@@ -405,14 +407,22 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     }
   };
 
-  // Handle breathing completion → return to reflection scene for next entry
+  // Handle breathing completion → transition to moments library
   const handleBreathingComplete = () => {
-    console.log('[Scene_Reflect] 🌅 Stage 2 complete, returning to reflection');
+    console.log('[Scene_Reflect] 🌅 Breathing complete, transitioning to Moments Library');
     
-    // Smooth fade out breathing, then reset
+    // Smooth transition to moments library
     setShowBreathing(false);
+    setShowMomentsLibrary(true);
+  };
+  
+  // Handle moments library - new reflection request
+  const handleNewReflection = () => {
+    console.log('[Scene_Reflect] ✨ New reflection requested from library');
     
-    // After fade completes, reset state for new reflection
+    // Close library and reset for new reflection
+    setShowMomentsLibrary(false);
+    
     setTimeout(() => {
       setCurrentReflectionId(null);
       setBreathingContext(null);
@@ -424,7 +434,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
       setDialogue(timeGreeting);
       
       console.log('[Scene_Reflect] ✅ Ready for next reflection');
-    }, 800); // Wait for breathing scene fade-out
+    }, 600); // Wait for library fade-out
   };
 
   const handleInterludeTimeout = () => {
@@ -481,6 +491,41 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
           invokedWords={breathingContext.invokedWords}
           pigName={pigName}
           onComplete={handleBreathingComplete}
+        />
+      </>
+    );
+  }
+  
+  // If showing moments library, render it
+  if (showMomentsLibrary && breathingContext) {
+    return (
+      <>
+        {/* Keep Auth state and Sound toggle visible */}
+        <div className="fixed top-0 left-0 right-0 z-[60] flex items-center justify-center px-6 py-4 pointer-events-none"
+          style={{
+            paddingTop: 'max(1rem, env(safe-area-inset-top))',
+            paddingLeft: 'max(1.5rem, env(safe-area-inset-left))',
+            paddingRight: 'max(1.5rem, env(safe-area-inset-right))',
+          }}
+        >
+          <motion.div
+            initial={{ opacity: 1 }}
+            className="pointer-events-auto"
+          >
+            <AuthStateIndicator 
+              userName={session?.user?.name}
+              isGuest={status === 'unauthenticated'}
+            />
+          </motion.div>
+        </div>
+        
+        <SoundToggle />
+        
+        <MomentsLibrary
+          pigId={pigId}
+          pigName={pigName}
+          currentPrimary={breathingContext.primary}
+          onNewReflection={handleNewReflection}
         />
       </>
     );
