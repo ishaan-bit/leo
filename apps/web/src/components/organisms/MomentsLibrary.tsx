@@ -31,16 +31,16 @@ interface MomentsLibraryProps {
 
 const EASING = [0.65, 0, 0.35, 1] as const;
 
-// Tower configuration - SAME AS BREATHING INTERLUDE
-// Using exact colors, names, positions from BreathingSequence
+// Tower configuration with corrected zone labels
 // MAPPING: joyful→Vera, powerful→Ashmere, peaceful→Haven, sad→Vanta, scared→Vire, mad→Sable
+// ZONE LABELS: Vera (Joyful), Ashmere (Powerful), Haven (Peaceful), Vanta (Sad), Vire (Fearful), Sable (Angry)
 const TOWER_CONFIGS = [
-  { id: 'joyful' as PrimaryEmotion, name: 'Vera', color: '#FFD700', x: 15, height: 180 },
-  { id: 'powerful' as PrimaryEmotion, name: 'Ashmere', color: '#FF6B35', x: 25, height: 220 },
-  { id: 'peaceful' as PrimaryEmotion, name: 'Haven', color: '#6A9FB5', x: 40, height: 160 },
-  { id: 'sad' as PrimaryEmotion, name: 'Vanta', color: '#7D8597', x: 55, height: 200 },
-  { id: 'scared' as PrimaryEmotion, name: 'Vire', color: '#5A189A', x: 70, height: 190 },
-  { id: 'mad' as PrimaryEmotion, name: 'Sable', color: '#C1121F', x: 85, height: 170 },
+  { id: 'joyful' as PrimaryEmotion, name: 'Vera', label: 'Joyful', color: '#FFD700', x: 8, height: 180 },
+  { id: 'powerful' as PrimaryEmotion, name: 'Ashmere', label: 'Powerful', color: '#FF6B35', x: 22, height: 220 },
+  { id: 'peaceful' as PrimaryEmotion, name: 'Haven', label: 'Peaceful', color: '#6A9FB5', x: 38, height: 160 },
+  { id: 'sad' as PrimaryEmotion, name: 'Vanta', label: 'Sad', color: '#7D8597', x: 54, height: 200 },
+  { id: 'scared' as PrimaryEmotion, name: 'Vire', label: 'Fearful', color: '#5A189A', x: 70, height: 190 },
+  { id: 'mad' as PrimaryEmotion, name: 'Sable', label: 'Angry', color: '#C1121F', x: 86, height: 170 },
 ];
 
 export default function MomentsLibrary({
@@ -55,6 +55,7 @@ export default function MomentsLibrary({
   const [hoveredTower, setHoveredTower] = useState<PrimaryEmotion | null>(null);
   const [visibleTowers, setVisibleTowers] = useState<Set<PrimaryEmotion>>(new Set([currentPrimary]));
   const [isLoading, setIsLoading] = useState(true);
+  const [blinkingWindow, setBlinkingWindow] = useState<string | null>(null);
   
   const containerRef = useRef<HTMLDivElement>(null);
   const leoRef = useRef<HTMLDivElement>(null);
@@ -157,6 +158,27 @@ export default function MomentsLibrary({
     sequence();
   }, [phase, currentPrimary]);
 
+  // Idle window blink animation - hints at interactivity
+  useEffect(() => {
+    if (phase !== 'library' || moments.length === 0) return;
+
+    const blinkRandomWindow = () => {
+      // Pick a random moment
+      const randomMoment = moments[Math.floor(Math.random() * moments.length)];
+      setBlinkingWindow(`window-${randomMoment.zone}-${randomMoment.id}`);
+      
+      // Clear after 1.5s
+      setTimeout(() => setBlinkingWindow(null), 1500);
+    };
+
+    // Blink every 5-8 seconds
+    const interval = setInterval(() => {
+      blinkRandomWindow();
+    }, 5000 + Math.random() * 3000);
+
+    return () => clearInterval(interval);
+  }, [phase, moments]);
+
   // Group moments by zone (always grouped by zones now)
   const momentsByZone = moments.reduce((acc, moment) => {
     if (!acc[moment.zone]) acc[moment.zone] = [];
@@ -182,11 +204,11 @@ export default function MomentsLibrary({
       animate={{ opacity: 1 }}
       transition={{ duration: 0.8, ease: 'easeOut' }}
     >
-      {/* Sky background - warm lavender to peach dawn gradient */}
+      {/* Sky background - deep mauve to soft peach dawn gradient (symbolizes reflection & renewal) */}
       <motion.div
         className="absolute inset-0"
         style={{
-          background: 'linear-gradient(to bottom, #5E4B7E 0%, #8B6A9E 25%, #CFA8E0 50%, #E8C5D9 75%, #FAD2D6 100%)',
+          background: 'linear-gradient(to bottom, #4A3B5E 0%, #6B5380 20%, #8B6A9E 40%, #CFA8E0 60%, #E8C5D9 80%, #FFDAB9 100%)',
         }}
         animate={{
           filter: [
@@ -257,12 +279,14 @@ export default function MomentsLibrary({
         }}
       />
       
-      {/* Stars with parallax and random twinkling */}
+      {/* Stars with parallax drift and random twinkling */}
       <div className="absolute inset-0 pointer-events-none">
         {Array.from({ length: 150 }).map((_, i) => {
           const size = Math.random() > 0.7 ? 2 : 1;
           const twinkleDuration = 2 + Math.random() * 3;
           const twinleDelay = Math.random() * 4;
+          const driftDistance = Math.random() * 30 - 15; // -15 to +15 px horizontal drift
+          const driftDuration = 40 + Math.random() * 20; // 40-60s slow drift
           
           return (
             <motion.div
@@ -277,30 +301,63 @@ export default function MomentsLibrary({
               animate={{
                 opacity: [0.6, 0.8, 0.6],
                 scale: [1, 1.2, 1],
+                x: [0, driftDistance, 0], // Slow horizontal parallax drift
               }}
               transition={{
-                duration: twinkleDuration,
-                repeat: Infinity,
-                delay: twinleDelay,
-                ease: 'easeInOut',
+                opacity: {
+                  duration: twinkleDuration,
+                  repeat: Infinity,
+                  delay: twinleDelay,
+                  ease: 'easeInOut',
+                },
+                scale: {
+                  duration: twinkleDuration,
+                  repeat: Infinity,
+                  delay: twinleDelay,
+                  ease: 'easeInOut',
+                },
+                x: {
+                  duration: driftDuration,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                },
               }}
             />
           );
         })}
       </div>
 
-      {/* Leo - floating below title, positioned between header and building labels */}
+      {/* Leo - ~18% larger with breathing glow, positioned between header and building labels */}
       <motion.div
         ref={leoRef}
         className="absolute z-40"
         initial={{ left: '50%', top: '40%', x: '-50%', y: '-50%', scale: 1 }}
         animate={
           phase === 'library'
-            ? { left: '50%', top: '20%', x: '-50%', y: '0%', scale: 0.7 }
+            ? { left: '50%', top: '24%', x: '-50%', y: '0%', scale: 0.85 }
             : { left: '50%', top: '40%', x: '-50%', y: '-50%', scale: 1 }
         }
         transition={{ duration: 1.2, ease: EASING }}
       >
+        {/* Breathing glow pulse (slow, rhythmic) */}
+        <motion.div
+          className="absolute inset-0 rounded-full"
+          style={{
+            background: 'radial-gradient(circle, rgba(255, 210, 220, 0.4) 0%, transparent 70%)',
+            filter: 'blur(30px)',
+            transform: 'scale(1.3)',
+          }}
+          animate={{
+            opacity: [0.3, 0.6, 0.3],
+            scale: [1.25, 1.4, 1.25],
+          }}
+          transition={{
+            duration: 4,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+        
         <motion.div
           animate={{
             y: [0, -5, 0, -3, 0],
@@ -327,7 +384,7 @@ export default function MomentsLibrary({
               ease: 'easeInOut',
             }}
           >
-            <Image src="/images/leo.svg" alt="Leo" width={160} height={160} priority />
+            <Image src="/images/leo.svg" alt="Leo" width={188} height={188} priority />
           </motion.div>
         </motion.div>
       </motion.div>
@@ -383,71 +440,159 @@ export default function MomentsLibrary({
               >
                 {/* Windows - warm lit windows representing moments */}
                 <div className="absolute inset-4 grid grid-cols-4 gap-2">
-                  {momentsByZone[tower.id]?.slice(0, 24).map((moment, i) => (
-                    <motion.div
-                      key={`window-${tower.id}-${moment.id}`}
-                      className="rounded-[1px] cursor-pointer relative group"
-                      animate={{
-                        backgroundColor: [
-                          `rgba(248, 216, 181, 0.15)`,
-                          `rgba(255, 230, 200, 0.5)`,
-                          `rgba(248, 216, 181, 0.15)`,
-                        ],
-                      }}
-                      transition={{
-                        duration: 2 + Math.random() * 2,
-                        repeat: Infinity,
-                        delay: i * 0.1,
-                      }}
-                      whileHover={{
-                        scale: 1.3,
-                        backgroundColor: `rgba(255, 230, 200, 0.9)`,
-                        boxShadow: `0 0 20px rgba(255, 230, 200, 0.8)`,
-                      }}
-                      onClick={() => setSelectedMoment(moment)}
-                    >
-                      {/* Window tooltip on hover */}
-                      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20">
-                        <div className="bg-white/95 backdrop-blur-sm px-3 py-2 rounded-lg shadow-lg text-xs text-gray-800 max-w-xs">
-                          <div className="font-medium mb-1">
-                            {moment.text.slice(0, 60)}{moment.text.length > 60 ? '...' : ''}
-                          </div>
-                          <div className="text-gray-500">
-                            {new Date(moment.timestamp).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                            })}
+                  {momentsByZone[tower.id]?.slice(0, 24).map((moment, i) => {
+                    const windowKey = `window-${tower.id}-${moment.id}`;
+                    const isBlinking = blinkingWindow === windowKey;
+                    
+                    return (
+                      <motion.div
+                        key={windowKey}
+                        className="rounded-[1px] cursor-pointer relative group"
+                        style={{ cursor: 'pointer' }}
+                        animate={{
+                          backgroundColor: isBlinking 
+                            ? [
+                                `rgba(255, 230, 200, 0.9)`,
+                                `rgba(255, 245, 220, 1)`,
+                                `rgba(255, 230, 200, 0.9)`,
+                              ]
+                            : [
+                                `rgba(248, 216, 181, 0.15)`,
+                                `rgba(255, 230, 200, 0.5)`,
+                                `rgba(248, 216, 181, 0.15)`,
+                              ],
+                          boxShadow: isBlinking
+                            ? [
+                                `0 0 8px rgba(255, 230, 200, 0.4)`,
+                                `0 0 25px rgba(255, 230, 200, 0.9), 0 4px 30px rgba(255, 230, 200, 0.6)`,
+                                `0 0 8px rgba(255, 230, 200, 0.4)`,
+                              ]
+                            : `0 0 0px transparent`,
+                        }}
+                        transition={{
+                          duration: isBlinking ? 0.8 : 2 + Math.random() * 2,
+                          repeat: Infinity,
+                          delay: isBlinking ? 0 : i * 0.1,
+                        }}
+                        whileHover={{
+                          scale: 1.3,
+                          backgroundColor: `rgba(255, 230, 200, 0.95)`,
+                          boxShadow: `0 0 20px rgba(255, 230, 200, 0.8), 0 6px 40px rgba(255, 230, 200, 0.5)`,
+                        }}
+                        onClick={() => setSelectedMoment(moment)}
+                      >
+                        {/* Vertical glow pulse on hover */}
+                        <motion.div
+                          className="absolute inset-0 opacity-0 group-hover:opacity-100 pointer-events-none"
+                          style={{
+                            background: `linear-gradient(to bottom, transparent 0%, rgba(255, 230, 200, 0.6) 50%, transparent 100%)`,
+                            filter: 'blur(4px)',
+                          }}
+                          animate={{
+                            y: ['-100%', '100%'],
+                          }}
+                          transition={{
+                            duration: 1.5,
+                            repeat: Infinity,
+                            ease: 'easeInOut',
+                          }}
+                        />
+                        
+                        {/* Window tooltip on hover */}
+                        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20">
+                          <div className="bg-white/95 backdrop-blur-sm px-3 py-2 rounded-lg shadow-lg text-xs text-gray-800 max-w-xs">
+                            <div className="font-semibold mb-1 text-purple-600">Open this moment</div>
+                            <div className="font-medium mb-1">
+                              {moment.text.slice(0, 60)}{moment.text.length > 60 ? '...' : ''}
+                            </div>
+                            <div className="text-gray-500">
+                              {new Date(moment.timestamp).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                              })}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </motion.div>
-                  ))}
+                      </motion.div>
+                    );
+                  })}
                 </div>
 
-                {/* Building name - SAME STYLE AS INTERLUDE: large serif italic with glow */}
+                {/* Building name with zone label - translucent, naturally placed above building */}
                 <AnimatePresence>
                   {phase === 'library' && isVisible && hasMoments && (
                     <motion.div
-                      className="absolute -top-20 left-1/2 -translate-x-1/2 whitespace-nowrap font-serif italic text-4xl font-bold z-30 pointer-events-none"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: isHovered ? 1 : 0.7 }}
-                      transition={{ duration: 0.6, delay: 0.5 }}
-                      style={{
-                        color: tower.color,
-                        textShadow: `
-                          0 0 40px ${tower.color},
-                          0 0 80px ${tower.color},
-                          0 0 120px ${tower.color},
-                          0 2px 12px rgba(0,0,0,0.3)
-                        `,
+                      className="absolute -top-24 left-1/2 -translate-x-1/2 whitespace-nowrap z-30 text-center"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ 
+                        opacity: isHovered ? 1 : 0.9,
+                        y: 0,
                       }}
+                      transition={{ duration: 0.6, delay: 0.5 }}
                     >
-                      {tower.name}
+                      {/* Tower name - large serif italic with hover glow */}
+                      <motion.div
+                        className="font-serif italic text-4xl font-bold pointer-events-none mb-1"
+                        style={{
+                          color: tower.color,
+                          textShadow: isHovered
+                            ? `
+                                0 0 50px ${tower.color},
+                                0 0 100px ${tower.color},
+                                0 0 150px ${tower.color},
+                                0 2px 12px rgba(0,0,0,0.3)
+                              `
+                            : `
+                                0 0 40px ${tower.color},
+                                0 0 80px ${tower.color},
+                                0 0 120px ${tower.color},
+                                0 2px 12px rgba(0,0,0,0.3)
+                              `,
+                        }}
+                      >
+                        {tower.name}
+                      </motion.div>
+                      
+                      {/* Zone label - fades in on hover */}
+                      <motion.div
+                        className="text-sm font-medium"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: isHovered ? 1 : 0 }}
+                        transition={{ duration: 0.3 }}
+                        style={{
+                          fontFamily: '"Inter", -apple-system, sans-serif',
+                          color: tower.color,
+                          textShadow: `0 1px 8px rgba(0,0,0,0.2)`,
+                        }}
+                      >
+                        {tower.label}
+                      </motion.div>
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
+
+              {/* Tower base reflection - soft radial haze for depth */}
+              {phase === 'library' && isVisible && hasMoments && (
+                <motion.div
+                  className="absolute -bottom-4 left-1/2 -translate-x-1/2 pointer-events-none"
+                  style={{
+                    width: '120px',
+                    height: '40px',
+                    background: `radial-gradient(ellipse, ${tower.color}30 0%, transparent 70%)`,
+                    filter: 'blur(15px)',
+                  }}
+                  animate={{
+                    opacity: [0.4, 0.6, 0.4],
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
+                />
+              )}
 
               {/* Current tower glow pulse */}
               {isCurrent && phase === 'intro' && (
@@ -473,19 +618,20 @@ export default function MomentsLibrary({
         })}
       </motion.div>
 
-      {/* Title - centered, elegant entry */}
+      {/* Title - lowered slightly for better balance, sequential fade-in */}
       <AnimatePresence>
         {phase === 'library' && (
           <>
+            {/* Main Title */}
             <motion.div
-              className="absolute top-12 left-0 right-0 z-30 text-center pointer-events-none"
+              className="absolute top-16 md:top-20 left-0 right-0 z-30 text-center pointer-events-none px-4"
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.8, delay: 0.4, ease: EASING }}
+              transition={{ duration: 0.8, delay: 0.3, ease: EASING }}
             >
               <h1
-                className="text-5xl md:text-7xl mb-3"
+                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl mb-3"
                 style={{
                   fontFamily: '"EB Garamond", "Georgia", serif',
                   fontWeight: 500,
@@ -496,8 +642,18 @@ export default function MomentsLibrary({
               >
                 Living City of Moments
               </h1>
+            </motion.div>
+            
+            {/* Subtitle - layered reveal after title */}
+            <motion.div
+              className="absolute top-28 md:top-36 left-0 right-0 z-30 text-center pointer-events-none px-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.8, delay: 0.7, ease: EASING }}
+            >
               <p
-                className="text-base md:text-lg"
+                className="text-sm sm:text-base md:text-lg"
                 style={{
                   fontFamily: '"Inter", -apple-system, sans-serif',
                   color: '#5A4962',
@@ -509,67 +665,68 @@ export default function MomentsLibrary({
               </p>
             </motion.div>
 
-            {/* Share a New Moment Button - centered at bottom with soft gradient and glow */}
+            {/* Share a New Moment Icon - top-left */}
             <motion.button
-              className="absolute bottom-12 left-1/2 -translate-x-1/2 z-40 pointer-events-auto rounded-2xl overflow-hidden"
+              className="fixed top-4 left-4 z-50 pointer-events-auto rounded-full overflow-hidden group"
               onClick={onNewReflection}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, scale: 0.8 }}
               animate={{ 
                 opacity: 1, 
-                y: 0,
+                scale: 1,
               }}
-              exit={{ opacity: 0, y: 20 }}
+              exit={{ opacity: 0, scale: 0.8 }}
               whileHover={{ 
-                scale: 1.06,
-                boxShadow: '0 12px 48px rgba(181, 123, 224, 0.5)',
+                scale: 1.1,
               }}
-              whileTap={{ scale: 0.96 }}
-              transition={{ duration: 0.7, delay: 1.2, ease: EASING }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ duration: 0.6, delay: 1.4, ease: EASING }}
+              aria-label="Share a New Moment"
+              title="Share a New Moment"
               style={{
-                background: 'linear-gradient(135deg, #C8A8E0 0%, #E8B3D9 50%, #F5C5D6 100%)',
-                boxShadow: '0 8px 32px rgba(181, 123, 224, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.3)',
+                background: 'linear-gradient(135deg, #FFD700 0%, #FFC1CC 100%)',
+                boxShadow: '0 4px 16px rgba(255, 215, 0, 0.3)',
+                width: '48px',
+                height: '48px',
               }}
             >
-              <motion.div 
-                className="px-10 py-4 flex items-center gap-2.5"
+              {/* Sparkle with occasional pulse */}
+              <motion.div
+                className="w-full h-full flex items-center justify-center"
                 animate={{
                   filter: [
-                    'drop-shadow(0 0 8px rgba(255, 255, 255, 0.3))',
-                    'drop-shadow(0 0 16px rgba(255, 255, 255, 0.5))',
-                    'drop-shadow(0 0 8px rgba(255, 255, 255, 0.3))',
+                    'drop-shadow(0 0 4px rgba(255, 215, 0, 0.4))',
+                    'drop-shadow(0 0 12px rgba(255, 215, 0, 0.8))',
+                    'drop-shadow(0 0 4px rgba(255, 215, 0, 0.4))',
                   ],
                 }}
                 transition={{
-                  duration: 2.5,
+                  duration: 12,
                   repeat: Infinity,
                   ease: 'easeInOut',
                 }}
               >
                 <motion.span 
-                  className="text-xl"
+                  className="text-2xl"
                   animate={{
-                    scale: [1, 1.2, 1],
-                    rotate: [0, 10, -10, 0],
+                    scale: [1, 1.15, 1],
+                    rotate: [0, 12, -12, 0],
                   }}
                   transition={{
-                    duration: 2,
+                    duration: 12,
                     repeat: Infinity,
                     ease: 'easeInOut',
                   }}
                 >
                   ✨
                 </motion.span>
-                <span 
-                  className="text-white text-base tracking-wide"
-                  style={{
-                    fontFamily: '"Inter", -apple-system, sans-serif',
-                    fontWeight: 500,
-                    textShadow: '0 1px 3px rgba(0, 0, 0, 0.15)',
-                  }}
-                >
-                  Share a New Moment
-                </span>
               </motion.div>
+              
+              {/* Tooltip on hover */}
+              <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                <div className="bg-white/95 backdrop-blur-sm px-3 py-2 rounded-lg shadow-lg text-xs text-gray-800">
+                  <div className="font-semibold">Share a New Moment</div>
+                </div>
+              </div>
             </motion.button>
           </>
         )}
@@ -589,12 +746,23 @@ export default function MomentsLibrary({
         </div>
       )}
 
-      {/* Empty State */}
+      {/* Empty State - brief centered message with fade */}
       {!isLoading && phase === 'library' && moments.length === 0 && (
-        <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
-          <div className="text-center">
+        <motion.div 
+          className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.8, delay: 1 }}
+        >
+          <motion.div 
+            className="text-center px-6"
+            initial={{ opacity: 1 }}
+            animate={{ opacity: [1, 1, 0] }}
+            transition={{ duration: 6, times: [0, 0.7, 1], ease: 'easeInOut' }}
+          >
             <div 
-              className="text-3xl mb-4 italic"
+              className="text-2xl md:text-3xl mb-4 italic"
               style={{
                 fontFamily: '"EB Garamond", "Georgia", serif',
                 color: '#5A4962',
@@ -604,16 +772,16 @@ export default function MomentsLibrary({
               Your city is waiting to light up.
             </div>
             <div 
-              className="text-lg"
+              className="text-base md:text-lg mb-2"
               style={{
                 fontFamily: '"Inter", -apple-system, sans-serif',
                 color: '#8A7999',
               }}
             >
-              Share your first breath to begin.
+              Click the sparkle above to create your first moment.
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
 
       {/* Moment Detail Modal */}
