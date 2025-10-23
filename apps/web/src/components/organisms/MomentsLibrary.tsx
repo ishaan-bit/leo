@@ -117,26 +117,54 @@ export default function MomentsLibrary({
     console.log('[MomentsLibrary] 🎬 Component mounted!', { pigId, pigName, currentPrimary });
   }, []);
 
-  // Fetch moments from API
+  // Fetch moments from API with retry logic
   useEffect(() => {
-    const fetchMoments = async () => {
+    const fetchMoments = async (retryCount = 0): Promise<void> => {
+      const maxRetries = 3;
+      const retryDelay = 2000; // 2s between retries
+      
       try {
-        console.log('[MomentsLibrary] 📡 Fetching moments for pig:', pigId);
+        console.log(`[MomentsLibrary] 📡 Fetching moments for pig: ${pigId} (attempt ${retryCount + 1}/${maxRetries + 1})`);
+        
         const response = await fetch(`/api/pig/${pigId}/moments`);
         
         if (!response.ok) {
-          throw new Error(`API returned ${response.status}`);
+          const errorText = await response.text();
+          throw new Error(`API returned ${response.status}: ${errorText}`);
         }
         
         const data = await response.json();
-        console.log('[MomentsLibrary] ✅ Fetched', data.count, 'moments');
-        console.log('[MomentsLibrary] 📊 Moments:', data.moments);
+        console.log('[MomentsLibrary] ✅ Successfully fetched moments:', {
+          count: data.count,
+          success: data.success,
+          hasMoments: !!data.moments,
+          momentsLength: data.moments?.length || 0,
+        });
+        
+        // Log zone distribution
+        if (data.moments && data.moments.length > 0) {
+          const zoneCount = data.moments.reduce((acc: Record<string, number>, m: Moment) => {
+            acc[m.zone] = (acc[m.zone] || 0) + 1;
+            return acc;
+          }, {});
+          console.log('[MomentsLibrary] 📊 Moments by zone:', zoneCount);
+        } else {
+          console.log('[MomentsLibrary] 🏜️ No moments found - city is empty');
+        }
         
         setMoments(data.moments || []);
       } catch (error) {
-        console.error('[MomentsLibrary] ❌ Error fetching moments:', error);
-        // Show error state but don't crash
-        setMoments([]);
+        console.error(`[MomentsLibrary] ❌ Error fetching moments (attempt ${retryCount + 1}):`, error);
+        
+        // Retry logic
+        if (retryCount < maxRetries) {
+          console.log(`[MomentsLibrary] 🔄 Retrying in ${retryDelay/1000}s...`);
+          await new Promise(resolve => setTimeout(resolve, retryDelay));
+          return fetchMoments(retryCount + 1);
+        } else {
+          console.error('[MomentsLibrary] ❌ Max retries reached. Showing empty state.');
+          setMoments([]);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -229,6 +257,43 @@ export default function MomentsLibrary({
           ease: 'easeInOut'
         }}
       />
+      
+      {/* Loading shimmer during fetch */}
+      {isLoading && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center">
+          <div className="text-center">
+            <motion.div
+              className="text-2xl mb-4 italic"
+              style={{
+                fontFamily: '"EB Garamond", "Georgia", serif',
+                color: '#5A4962',
+                textShadow: '0 2px 10px rgba(90, 73, 98, 0.3)',
+              }}
+              animate={{
+                opacity: [0.3, 1, 0.3],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            >
+              Awakening your city...
+            </motion.div>
+            <motion.div
+              className="w-48 h-1 bg-gradient-to-r from-transparent via-purple-400 to-transparent rounded-full mx-auto"
+              animate={{
+                x: ['-100%', '100%'],
+              }}
+              transition={{
+                duration: 1.5,
+                repeat: Infinity,
+                ease: 'linear',
+              }}
+            />
+          </div>
+        </div>
+      )}
       
       {/* Atmospheric haze at skyline base */}
       <motion.div
