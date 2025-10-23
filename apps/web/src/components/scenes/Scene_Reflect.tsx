@@ -8,6 +8,7 @@ import NotebookInput from '../atoms/NotebookInput';
 import VoiceOrb from '../atoms/VoiceOrb';
 import AuthStateIndicator from '../atoms/AuthStateIndicator';
 import SoundToggle from '../atoms/SoundToggle';
+import MomentsNavIcon from '../atoms/MomentsNavIcon';
 import CityInterlude from '../organisms/CityInterlude';
 import BreathingSequence from '../organisms/BreathingSequence';
 import MomentsLibrary from '../organisms/MomentsLibrary';
@@ -580,6 +581,11 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
       
       {/* Sound toggle - rendered separately, positions itself with fixed */}
       <SoundToggle />
+      
+      {/* Moments Navigation Icon - links to Living City */}
+      {!showBreathing && !showMomentsLibrary && (
+        <MomentsNavIcon onClick={() => setShowMomentsLibrary(true)} />
+      )}
       
       {/* Atmospheric particles with time-based colors */}
       <div className="absolute inset-0 pointer-events-none">

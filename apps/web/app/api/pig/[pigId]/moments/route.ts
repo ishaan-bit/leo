@@ -20,23 +20,71 @@ export async function GET(
     }
 
     // Fetch all reflections for this pig
+    // Pattern: reflection:pig_id:reflection_id or reflections:enriched:reflection_id
     const reflectionKeys = await kv.keys(`reflection:${pigId}:*`);
+    const enrichedKeys = await kv.keys(`reflections:enriched:refl_*`);
+    
+    const allKeys = [...new Set([...reflectionKeys, ...enrichedKeys])];
     
     const moments = [];
     
-    for (const key of reflectionKeys) {
+    for (const key of allKeys) {
       const reflection = await kv.get(key);
       
       if (reflection && typeof reflection === 'object') {
         const data = reflection as any;
         
+        // Skip if not for this pig
+        if (data.pig_id && data.pig_id !== pigId) {
+          continue;
+        }
+        
+        // Extract primary zone from final.wheel.primary (e.g., "Scared" → map to fear)
+        const primaryEmotion = data.final?.wheel?.primary || 'Peaceful';
+        
+        // Map Gloria Willcox emotion to zone
+        const zoneMapping: Record<string, string> = {
+          'Joyful': 'joy',
+          'Playful': 'joy',
+          'Content': 'joy',
+          'Peaceful': 'trust',
+          'Trusting': 'trust',
+          'Powerful': 'trust',
+          'Scared': 'fear',
+          'Anxious': 'fear',
+          'Rejected': 'fear',
+          'Sad': 'sadness',
+          'Lonely': 'sadness',
+          'Depressed': 'sadness',
+          'Mad': 'anger',
+          'Angry': 'anger',
+          'Hurt': 'anger',
+          'Disgusted': 'disgust',
+          'Disapproving': 'disgust',
+          'Awful': 'disgust',
+          'Surprised': 'surprise',
+          'Startled': 'surprise',
+          'Confused': 'surprise',
+        };
+        
+        const zone = zoneMapping[primaryEmotion] || 'trust';
+        
         // Extract moment data
         const moment = {
-          id: key.split(':')[2] || key, // Extract reflection ID
-          text: data.original || data.normalized || '',
-          zone: data.final?.wheel?.primary || 'joy',
+          id: data.rid || key.split(':').pop() || key,
+          text: data.normalized_text || data.raw_text || '',
+          zone,
+          primaryEmotion,
+          secondary: data.final?.wheel?.secondary || '',
+          tertiary: data.final?.wheel?.tertiary || '',
           timestamp: data.timestamp || new Date().toISOString(),
-          excerpt: (data.original || data.normalized || '').slice(0, 100) + '...',
+          invoked: data.final?.invoked || '',
+          expressed: data.final?.expressed || '',
+          poems: data.post_enrichment?.poems || [],
+          tips: data.post_enrichment?.tips || [],
+          closingLine: data.post_enrichment?.closing_line || '',
+          valence: data.final?.valence || data.valence || 0.5,
+          arousal: data.final?.arousal || data.arousal || 0.5,
         };
         
         moments.push(moment);
