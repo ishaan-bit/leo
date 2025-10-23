@@ -551,13 +551,20 @@ export default function BreathingSequence({
     schedule(() => {
       setLeoBubbleState('hidden');
       setBubbleStep('idle');
+      console.log('[Breathing] CTA faded out, waiting before transition to library...');
     }, FADE_IN + HOLD_TEXT + 800); // Hold CTA briefly, then fade
+    
+    // S14: Trigger transition to Moments Library
+    schedule(() => {
+      console.log('[Breathing] 🌆 Triggering transition to Moments Library');
+      onComplete(); // This triggers Scene_Reflect to show MomentsLibrary
+    }, 1200); // Additional 1.2s rest after CTA fades (matching library intro timing)
     
     return () => {
       // Cleanup all scheduled timeouts if component unmounts
       timeouts.forEach(timeout => clearTimeout(timeout));
     };
-  }, [stage2Complete, stage2.payload]);
+  }, [stage2Complete, stage2.payload, onComplete]);
 
   // Breathing helpers
   const isInhaling = breathProgress < 0.5;

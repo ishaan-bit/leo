@@ -410,10 +410,16 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   // Handle breathing completion → transition to moments library
   const handleBreathingComplete = () => {
     console.log('[Scene_Reflect] 🌅 Breathing complete, transitioning to Moments Library');
+    console.log('[Scene_Reflect] Current context:', breathingContext);
     
     // Smooth transition to moments library
     setShowBreathing(false);
-    setShowMomentsLibrary(true);
+    
+    // Small delay for fade out
+    setTimeout(() => {
+      console.log('[Scene_Reflect] 🏛️ Showing Moments Library');
+      setShowMomentsLibrary(true);
+    }, 300);
   };
   
   // Handle moments library - new reflection request

@@ -53,6 +53,11 @@ export default function MomentsLibrary({
   const containerRef = useRef<HTMLDivElement>(null);
   const leoRef = useRef<HTMLDivElement>(null);
 
+  // Log component mount
+  useEffect(() => {
+    console.log('[MomentsLibrary] 🎬 Component mounted!', { pigId, pigName, currentPrimary });
+  }, []);
+
   // Fetch moments from API
   useEffect(() => {
     const fetchMoments = async () => {
@@ -77,25 +82,33 @@ export default function MomentsLibrary({
   useEffect(() => {
     if (phase !== 'intro') return;
 
+    console.log('[MomentsLibrary] 🏛️ Starting intro phase with current tower:', currentPrimary);
+
     const sequence = async () => {
       // Wait 1.2s idle after intro
+      console.log('[MomentsLibrary] ⏳ Waiting 1.2s before skyline rebuild...');
       await new Promise(resolve => setTimeout(resolve, 1200));
       
       // Trigger tower re-introduction
+      console.log('[MomentsLibrary] 🌆 Transitioning to skyline phase');
       setPhase('skyline');
       
       // Sequentially reveal towers
       const towerOrder = TOWER_CONFIGS.filter(t => t.id !== currentPrimary).map(t => t.id);
+      console.log('[MomentsLibrary] 🏗️ Revealing towers in order:', towerOrder);
       
       for (let i = 0; i < towerOrder.length; i++) {
         await new Promise(resolve => setTimeout(resolve, 160)); // 160ms stagger
+        console.log('[MomentsLibrary] ✨ Revealing tower:', towerOrder[i]);
         setVisibleTowers(prev => new Set([...prev, towerOrder[i]]));
       }
       
       // Wait for all towers to settle
+      console.log('[MomentsLibrary] ⏳ All towers revealed, settling...');
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Transition to library phase
+      console.log('[MomentsLibrary] 📚 Transitioning to library phase');
       setPhase('library');
     };
 
