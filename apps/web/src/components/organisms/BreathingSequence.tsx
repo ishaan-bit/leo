@@ -88,6 +88,7 @@ export default function BreathingSequence({
   const startTimeRef = useRef<number>(Date.now());
   const leoContainerRef = useRef<HTMLDivElement>(null);
   const buildingContainerRef = useRef<HTMLDivElement>(null);
+  const orchestrationStartedRef = useRef(false); // Prevent duplicate orchestration runs
   const breathingContainerRef = useRef<HTMLDivElement>(null);
   
   const breatheParams = computeBreatheParams(primary, secondary);
@@ -322,6 +323,7 @@ export default function BreathingSequence({
     console.log('[Bubble Sequence] Effect triggered:', { 
       stage2Complete, 
       hasPayload: !!stage2.payload,
+      orchestrationStarted: orchestrationStartedRef.current,
       payload: stage2.payload,
       poems: stage2.payload?.poems,
       tips: stage2.payload?.tips
@@ -329,6 +331,12 @@ export default function BreathingSequence({
     
     if (!stage2Complete) {
       console.log('[Bubble Sequence] Not starting - stage2 not complete');
+      return;
+    }
+    
+    // Guard: Prevent duplicate orchestration runs
+    if (orchestrationStartedRef.current) {
+      console.log('[Bubble Sequence] ✅ Orchestration already running, skipping duplicate effect');
       return;
     }
     
@@ -377,7 +385,9 @@ export default function BreathingSequence({
       return; // Exit this effect run, will re-run when stage2.payload updates
     }
     
-    console.log('[Bubble Sequence] Starting orchestration!');
+    // Mark orchestration as started to prevent duplicate runs
+    orchestrationStartedRef.current = true;
+    console.log('[Bubble Sequence] 🎬 Starting orchestration!');
     
     const FADE_IN = 800;
     const HOLD_TEXT = 2200;
@@ -609,8 +619,10 @@ export default function BreathingSequence({
       // Cleanup all scheduled timeouts if component unmounts
       console.log('[Bubble Sequence] 🧹 Cleaning up', timeouts.length, 'scheduled timeouts');
       timeouts.forEach(timeout => clearTimeout(timeout));
+      // Reset the ref if we unmount mid-orchestration
+      orchestrationStartedRef.current = false;
     };
-  }, [stage2Complete, stage2.payload, onComplete]);
+  }, [stage2Complete, onComplete]); // Removed stage2.payload from deps - it's an object reference that changes on every setStage2()
 
   // Breathing helpers
   const isInhaling = breathProgress < 0.5;

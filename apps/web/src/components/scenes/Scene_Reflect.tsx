@@ -489,6 +489,12 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
         
         <SoundToggle />
         
+        {/* Moments Navigation Icon - allow skipping to library from breathing */}
+        <MomentsNavIcon onClick={() => {
+          setShowBreathing(false);
+          setTimeout(() => setShowMomentsLibrary(true), 300);
+        }} />
+        
         <BreathingSequence
           reflectionId={currentReflectionId}
           primary={breathingContext.primary}
@@ -504,7 +510,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   }
   
   // If showing moments library, render it
-  if (showMomentsLibrary && breathingContext) {
+  if (showMomentsLibrary) {
     return (
       <>
         {/* Keep Auth state and Sound toggle visible */}
@@ -531,7 +537,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
         <MomentsLibrary
           pigId={pigId}
           pigName={pigName}
-          currentPrimary={breathingContext.primary}
+          currentPrimary={(breathingContext?.primary || 'joy') as PrimaryEmotion} // Default to joy if no context
           onNewReflection={handleNewReflection}
         />
       </>
