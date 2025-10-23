@@ -443,6 +443,7 @@ export default function MomentsLibrary({
                   {momentsByZone[tower.id]?.slice(0, 24).map((moment, i) => {
                     const windowKey = `window-${tower.id}-${moment.id}`;
                     const isBlinking = blinkingWindow === windowKey;
+                    const isNewest = i === 0; // First moment in sorted array (newest)
                     
                     return (
                       <motion.div
@@ -450,7 +451,13 @@ export default function MomentsLibrary({
                         className="rounded-[1px] cursor-pointer relative group"
                         style={{ cursor: 'pointer' }}
                         animate={{
-                          backgroundColor: isBlinking 
+                          backgroundColor: isNewest
+                            ? [
+                                `rgba(255, 245, 220, 1)`,
+                                `rgba(255, 255, 240, 1)`,
+                                `rgba(255, 245, 220, 1)`,
+                              ]
+                            : isBlinking 
                             ? [
                                 `rgba(255, 230, 200, 0.9)`,
                                 `rgba(255, 245, 220, 1)`,
@@ -461,7 +468,13 @@ export default function MomentsLibrary({
                                 `rgba(255, 230, 200, 0.5)`,
                                 `rgba(248, 216, 181, 0.15)`,
                               ],
-                          boxShadow: isBlinking
+                          boxShadow: isNewest
+                            ? [
+                                `0 0 20px rgba(255, 230, 200, 0.9), 0 4px 40px rgba(255, 215, 0, 0.7)`,
+                                `0 0 30px rgba(255, 245, 220, 1), 0 6px 50px rgba(255, 215, 0, 0.9)`,
+                                `0 0 20px rgba(255, 230, 200, 0.9), 0 4px 40px rgba(255, 215, 0, 0.7)`,
+                              ]
+                            : isBlinking
                             ? [
                                 `0 0 8px rgba(255, 230, 200, 0.4)`,
                                 `0 0 25px rgba(255, 230, 200, 0.9), 0 4px 30px rgba(255, 230, 200, 0.6)`,
@@ -470,7 +483,7 @@ export default function MomentsLibrary({
                             : `0 0 0px transparent`,
                         }}
                         transition={{
-                          duration: isBlinking ? 0.8 : 2 + Math.random() * 2,
+                          duration: isNewest ? 1.5 : (isBlinking ? 0.8 : 2 + Math.random() * 2),
                           repeat: Infinity,
                           delay: isBlinking ? 0 : i * 0.1,
                         }}
@@ -554,16 +567,18 @@ export default function MomentsLibrary({
                         {tower.name}
                       </motion.div>
                       
-                      {/* Zone label - fades in on hover */}
+                      {/* Zone label - enhanced visibility with background and stronger contrast */}
                       <motion.div
-                        className="text-sm font-medium"
+                        className="text-sm font-medium px-3 py-1 rounded-full inline-block"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: isHovered ? 1 : 0 }}
                         transition={{ duration: 0.3 }}
                         style={{
                           fontFamily: '"Inter", -apple-system, sans-serif',
-                          color: tower.color,
-                          textShadow: `0 1px 8px rgba(0,0,0,0.2)`,
+                          color: '#FFFFFF',
+                          backgroundColor: `${tower.color}DD`,
+                          textShadow: `0 1px 4px rgba(0,0,0,0.8), 0 0 12px ${tower.color}`,
+                          boxShadow: `0 2px 8px rgba(0,0,0,0.3), 0 0 20px ${tower.color}60`,
                         }}
                       >
                         {tower.label}
@@ -624,7 +639,7 @@ export default function MomentsLibrary({
           <>
             {/* Main Title */}
             <motion.div
-              className="absolute top-16 md:top-20 left-0 right-0 z-30 text-center pointer-events-none px-4"
+              className="absolute top-16 md:top-20 left-0 right-0 z-20 text-center pointer-events-none px-4"
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
@@ -644,9 +659,9 @@ export default function MomentsLibrary({
               </h1>
             </motion.div>
             
-            {/* Subtitle - layered reveal after title */}
+            {/* Subtitle - layered reveal after title, enhanced visibility */}
             <motion.div
-              className="absolute top-28 md:top-36 left-0 right-0 z-30 text-center pointer-events-none px-4"
+              className="absolute top-28 md:top-36 left-0 right-0 z-20 text-center pointer-events-none px-4"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -656,9 +671,10 @@ export default function MomentsLibrary({
                 className="text-sm sm:text-base md:text-lg"
                 style={{
                   fontFamily: '"Inter", -apple-system, sans-serif',
-                  color: '#5A4962',
-                  fontWeight: 400,
+                  color: '#2B1D33',
+                  fontWeight: 500,
                   letterSpacing: '0.03em',
+                  textShadow: '0 1px 3px rgba(255, 255, 255, 0.8), 0 2px 8px rgba(43, 29, 51, 0.25)',
                 }}
               >
                 Each window holds a breath you once shared.

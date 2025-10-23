@@ -249,19 +249,19 @@ export default function CityInterlude({
       return;
     }
     
-    // Trigger zoom when we hit phase 4 AND have primary
+    // Trigger transition when we hit phase 4 AND have primary
     if (zone && !primaryLocked && currentPhase === 4) {
-      console.log(`[CityInterlude] 🎯✅ PHASE 4 + PRIMARY DETECTED → ZOOM! ${primary} → ${zone.name}`);
+      console.log(`[CityInterlude] 🎯✅ PHASE 4 + PRIMARY DETECTED → TRANSITION! ${primary} → ${zone.name}`);
       setPrimaryLocked(true);
-      setPrimaryEmotion(primary); // CRITICAL: Store primary for zoom animation
+      setPrimaryEmotion(primary); // Store primary for highlighting
       
-      // Start zoom sequence after 1s stillness
+      // Simple fade transition - no zoom
       setTimeout(() => {
-        console.log('[CityInterlude] 🚀 Starting zoom sequence to', zone.name);
-        setCurrentPhase(5); // Zoom phase
+        console.log('[CityInterlude] ✨ Showing zone name, fading other towers');
+        setCurrentPhase(5); // Transition phase
         setZoomStartTime(Date.now());
         
-        // Emit completion after 8s zoom sequence (reduced from 10s for smoother handoff)
+        // Complete transition after 3s (time to show zone name and fade others)
         setTimeout(() => {
           const event = {
             type: 'stage1_transition_complete',
@@ -274,17 +274,17 @@ export default function CityInterlude({
             },
           };
           
-          console.log('[CityInterlude] 🎯 Zoom complete, transitioning to breathing sequence');
+          console.log('[CityInterlude] 🎯 Transition complete, moving to breathing sequence');
           
           // Dispatch custom event
           if (typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent('stage1_transition_complete', { detail: event.payload }));
           }
           
-          // Call onComplete callback with full context for breathing sequence
+          // Call onComplete callback
           onComplete(primary);
-        }, 8000); // 8s zoom sequence
-      }, 1000); // 1s stillness
+        }, 3000); // 3s transition
+      }, 1000); // 1s stillness before transition
     }
   }, [reflection, primaryLocked, currentPhase, reflectionId, onComplete]);
 
@@ -785,49 +785,48 @@ export default function CityInterlude({
         <motion.div
           className="absolute bottom-0 left-0 right-0 z-25"
           style={{ height: '50vh' }}
-          animate={
-            currentPhase === 5 && primaryEmotion && zoomStartTime
-              ? {
-                  // Zoom sequence: camera moves toward chosen tower
-                  scale: [1, 1, 1.5, 2, 2.5],
-                  y: [0, 0, '-10%', '-20%', '-30%'],
-                }
-              : {}
-          }
-          transition={{
-            duration: 8,
-            times: [0, 0.15, 0.4, 0.7, 1], // stillness(0-1.5s), recognize(1.5-3.2s), zoom(3.2-5.6s), arrival(5.6-8s)
-            ease: [0.22, 1, 0.36, 1], // easeOutCubic
-          }}
         >
-          {/* Six emotional towers - taller, cinematic */}
+          {/* Six emotional towers - no zoom, just fade/highlight transition */}
           {TOWERS.map((tower, idx) => {
             const isPrimary = primaryEmotion === tower.id;
-            const isZoomPhase = currentPhase === 5;
+            const isTransitionPhase = currentPhase === 5;
             const baseOpacity = getCityPulseBrightness();
             const towerOpacity = isPrimary ? 0.8 : baseOpacity;
             
-            // During zoom: fade out non-primary towers
-            const fadeOutOpacity = isZoomPhase && !isPrimary ? 0.2 : 1;
+            // During transition: fade out non-primary towers, reposition primary to center
+            const fadeOutOpacity = isTransitionPhase && !isPrimary ? 0.1 : 1;
+            const repositionX = isTransitionPhase && isPrimary ? '50%' : `${tower.x}%`;
             
             return (
               <motion.div
                 key={tower.id}
                 className="absolute bottom-0"
                 style={{
-                  left: `${tower.x}%`,
                   width: '80px', // Wider towers
                   height: `${tower.height * 1.8}px`, // Taller (1.8x)
                 }}
-                initial={{ y: 40, opacity: 0 }}
+                initial={{ 
+                  left: `${tower.x}%`,
+                  y: 40, 
+                  opacity: 0 
+                }}
                 animate={{ 
+                  left: repositionX,
+                  transform: isPrimary && isTransitionPhase ? 'translateX(-50%)' : 'translateX(0)',
                   y: 0, 
                   opacity: fadeOutOpacity,
+                  scale: isPrimary && isTransitionPhase ? 1.2 : 1,
                 }}
                 transition={{
-                  duration: 2,
-                  delay: idx * 0.5, // Slower stagger for drama
-                  ease: [0.22, 1, 0.36, 1], // easeOutCubic
+                  initial: {
+                    duration: 2,
+                    delay: idx * 0.5,
+                    ease: [0.22, 1, 0.36, 1],
+                  },
+                  left: { duration: 2, ease: [0.22, 1, 0.36, 1] },
+                  transform: { duration: 2, ease: [0.22, 1, 0.36, 1] },
+                  opacity: { duration: 1.5, ease: 'easeOut' },
+                  scale: { duration: 2, ease: [0.22, 1, 0.36, 1] },
                 }}
               >
                 {/* Tower silhouette with gradient */}
@@ -898,7 +897,7 @@ export default function CityInterlude({
                     }}
                   />
                   
-                  {/* Tower name (visible when primary, enhanced during zoom) */}
+                  {/* Tower name (visible when primary, enhanced during transition) */}
                   {isPrimary && (
                     <motion.div
                       className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap text-sm font-serif italic"
@@ -906,8 +905,8 @@ export default function CityInterlude({
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ 
                         opacity: 1, 
-                        y: 0,
-                        scale: isZoomPhase ? [1, 1.2] : 1, // Grow during zoom
+                y: 0,
+                        scale: isTransitionPhase ? [1, 1.2] : 1, // Grow during transition
                       }}
                       transition={{ 
                         duration: 2, 
@@ -919,8 +918,8 @@ export default function CityInterlude({
                     </motion.div>
                   )}
                   
-                  {/* Halo emergence (Phase 5 zoom, 6-8s) */}
-                  {isPrimary && isZoomPhase && zoomStartTime && (
+                  {/* Halo emergence (Phase 5 transition) */}
+                  {isPrimary && isTransitionPhase && zoomStartTime && (
                     <motion.div
                       className="absolute -top-20 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full pointer-events-none"
                       style={{
@@ -934,7 +933,7 @@ export default function CityInterlude({
                       }}
                       transition={{
                         duration: 2,
-                        delay: 6, // Start at 6s mark (halo emergence)
+                        delay: 0.5, // Start quickly
                         ease: [0.22, 1, 0.36, 1],
                       }}
                     />
