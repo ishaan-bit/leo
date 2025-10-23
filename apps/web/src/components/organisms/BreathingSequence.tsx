@@ -547,6 +547,12 @@ export default function BreathingSequence({
       setLeoBubbleState('text');
     }, GRADIENT_RETURN);
     
+    // S13: Fade out CTA after hold time (clean visual rest state)
+    schedule(() => {
+      setLeoBubbleState('hidden');
+      setBubbleStep('idle');
+    }, FADE_IN + HOLD_TEXT + 800); // Hold CTA briefly, then fade
+    
     return () => {
       // Cleanup all scheduled timeouts if component unmounts
       timeouts.forEach(timeout => clearTimeout(timeout));
@@ -1174,7 +1180,7 @@ export default function BreathingSequence({
                 state={leoBubbleState}
                 type="poem"
                 anchorPosition={leoAnchor}
-                tailDirection="down"
+                tailDirection="down-left" // Diagonal southwest tail
                 maxWidth={Math.min(480, containerRect.width * 0.85)} // Responsive width
                 breathProgress={breathProgress}
               />

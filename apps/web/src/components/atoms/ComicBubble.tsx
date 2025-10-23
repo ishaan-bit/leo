@@ -10,7 +10,7 @@ interface ComicBubbleProps {
   content: string;
   state: BubbleState;
   anchorPosition: { x: number; y: number }; // Position of anchor point (Leo or window)
-  tailDirection: 'down' | 'up' | 'left' | 'right'; // Direction tail points
+  tailDirection: 'down' | 'down-left' | 'up' | 'left' | 'right'; // Direction tail points
   type: BubbleType; // poem (serif) or tip (sans)
   maxWidth?: number;
   breathProgress?: number; // 0-1 for pulse sync
@@ -42,11 +42,12 @@ export default function ComicBubble({
     letterSpacing: state === 'ellipsis' ? '0.2em' : '0.3px',
     maxWidth: '60ch',
   } : {
-    fontFamily: '"Inter", "SF Pro Text", "Roboto", sans-serif',
-    fontSize: state === 'ellipsis' ? '1.5rem' : '0.9rem', // Smaller for tips
-    lineHeight: state === 'ellipsis' ? '1' : '1.4',
-    letterSpacing: state === 'ellipsis' ? '0.2em' : '0.02em',
-    maxWidth: '42ch',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif',
+    fontSize: state === 'ellipsis' ? '1.5rem' : '0.875rem', // Clean sans for tips
+    lineHeight: state === 'ellipsis' ? '1' : '1.45',
+    letterSpacing: state === 'ellipsis' ? '0.2em' : '-0.01em', // Tighter tracking
+    maxWidth: '40ch',
+    fontWeight: 500, // Medium weight
   };
   
   // Visual styling based on type
@@ -67,6 +68,8 @@ export default function ComicBubble({
     switch (tailDirection) {
       case 'down':
         return 'M 20 0 L 30 20 L 40 0 Z'; // Points down
+      case 'down-left':
+        return 'M 25 0 L 5 25 L 40 5 Z'; // Points diagonally down-left (southwest)
       case 'up':
         return 'M 20 20 L 30 0 L 40 20 Z'; // Points up
       case 'left':
@@ -82,6 +85,8 @@ export default function ComicBubble({
     switch (tailDirection) {
       case 'down':
         return { bottom: '-18px', left: '50%', transform: 'translateX(-50%)' };
+      case 'down-left':
+        return { bottom: '-20px', left: '60%', transform: 'translateX(-50%)' }; // Offset left for diagonal
       case 'up':
         return { top: '-18px', left: '50%', transform: 'translateX(-50%)' };
       case 'left':
@@ -104,6 +109,8 @@ export default function ComicBubble({
             // Center bubble on anchor point with tail pointing correctly
             transform: tailDirection === 'down' 
               ? 'translate(-50%, -100%)' // Center horizontally, place above anchor
+              : tailDirection === 'down-left'
+              ? 'translate(-55%, -100%)' // Slight offset for diagonal tail
               : tailDirection === 'up'
               ? 'translate(-50%, 0)' // Center horizontally, place below anchor
               : tailDirection === 'left'
@@ -187,7 +194,7 @@ export default function ComicBubble({
                 animate={{ opacity: state === 'ellipsis' ? 0.7 : 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.6, ease: EASING }}
-                className={`text-center ${type === 'poem' ? 'italic' : ''}`}
+                className={`text-center ${type === 'poem' ? 'italic' : 'not-italic'}`}
                 style={{
                   fontFamily: typography.fontFamily,
                   fontSize: typography.fontSize,
@@ -196,7 +203,7 @@ export default function ComicBubble({
                   maxWidth: typography.maxWidth,
                   color: visualStyle.textColor,
                   minHeight: '1.5em', // Prevent layout shift
-                  fontWeight: type === 'poem' ? 400 : 500, // Slightly bolder tips
+                  fontWeight: type === 'poem' ? 400 : (typography as any).fontWeight || 500,
                 }}
                 aria-live="polite"
               >
