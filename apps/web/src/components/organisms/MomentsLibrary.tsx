@@ -34,64 +34,15 @@ type SortBy = 'newest' | 'oldest';
 
 const EASING = [0.65, 0, 0.35, 1] as const;
 
-// Tower configuration with zone-specific styling
-// Heights in viewport units (vh) - min 60vh, max 80vh
-// Zone mappings: Vire=joy, Ashmere=sadness, Vera=fear, Haven=trust, Sable=anger, Vanta=disgust
+// Tower configuration - SAME AS BREATHING INTERLUDE
+// Using exact colors, names, positions from BreathingSequence
 const TOWER_CONFIGS = [
-  { 
-    id: 'joy' as PrimaryEmotion, 
-    name: 'Vire',
-    x: 12, 
-    heightVh: 65, // 0.65 ratio
-    color: '#FFD58A', // Warm golden
-    style: 'smooth-crown', // Smooth crown top
-    auraIntensity: 1.2 // Extra warm glow
-  },
-  { 
-    id: 'sadness' as PrimaryEmotion, 
-    name: 'Ashmere',
-    x: 25, 
-    heightVh: 80, // 0.8 ratio - tallest, narrow
-    color: '#B4A6FF', // Soft purple
-    style: 'narrow-tall', // Narrow tall
-    auraIntensity: 0.8 // Calm fade
-  },
-  { 
-    id: 'fear' as PrimaryEmotion, 
-    name: 'Vera',
-    x: 40, 
-    heightVh: 75, // 0.75 ratio
-    color: '#9FE3E3', // Aqua translucent
-    style: 'angular-bevel', // Angular bevel
-    auraIntensity: 0.7 // Translucent glass effect
-  },
-  { 
-    id: 'trust' as PrimaryEmotion, 
-    name: 'Haven',
-    x: 55, 
-    heightVh: 60, // 0.6 ratio
-    color: '#EED2FF', // Soft lavender
-    style: 'dome-top', // Dome top
-    auraIntensity: 1.0 // Halo ring
-  },
-  { 
-    id: 'anger' as PrimaryEmotion, 
-    name: 'Sable',
-    x: 70, 
-    heightVh: 70, // 0.7 ratio
-    color: '#FFB28F', // Warm terracotta
-    style: 'stepped', // Stepped
-    auraIntensity: 0.9 // Faint ember flicker
-  },
-  { 
-    id: 'disgust' as PrimaryEmotion, 
-    name: 'Vanta',
-    x: 85, 
-    heightVh: 78, // 0.78 ratio
-    color: '#6C78FF', // Deep blue
-    style: 'solid-prism', // Solid prism
-    auraIntensity: 1.1 // Slow pulsing aura
-  },
+  { id: 'joy' as PrimaryEmotion, name: 'Haven', color: '#FFD700', x: 15, height: 180 },
+  { id: 'trust' as PrimaryEmotion, name: 'Vire', color: '#FF6B35', x: 25, height: 220 },
+  { id: 'fear' as PrimaryEmotion, name: 'Vera', color: '#6A9FB5', x: 40, height: 160 },
+  { id: 'sadness' as PrimaryEmotion, name: 'Ashmere', color: '#7D8597', x: 55, height: 200 },
+  { id: 'anger' as PrimaryEmotion, name: 'Sable', color: '#C1121F', x: 70, height: 190 },
+  { id: 'disgust' as PrimaryEmotion, name: 'Vanta', color: '#5A189A', x: 85, height: 170 },
 ];
 
 export default function MomentsLibrary({
@@ -407,12 +358,11 @@ export default function MomentsLibrary({
           return (
             <motion.div
               key={tower.id}
-              className="absolute bottom-0 cursor-pointer"
+              className="absolute bottom-0"
               style={{
                 left: `${tower.x}%`,
-                width: '100px',
-                height: `${tower.heightVh}vh`,
-                transform: 'translateX(-50%)', // Center on X position
+                width: '80px',
+                height: `${tower.height * 1.8}px`,
               }}
               initial={{ opacity: isCurrent ? 1 : 0, scale: 0.9 }}
               animate={{
@@ -429,146 +379,78 @@ export default function MomentsLibrary({
               role="button"
               aria-label={`${zone?.name || tower.id} tower, ${momentCount} moments`}
             >
-              {/* Tower aura glow */}
-              <motion.div
-                className="absolute inset-0 rounded-lg pointer-events-none"
-                style={{
-                  background: `radial-gradient(circle, ${tower.color}${Math.round(tower.auraIntensity * 204).toString(16).padStart(2, '0')} 0%, ${tower.color}66 50%, transparent 100%)`,
-                  filter: `blur(${30 * tower.auraIntensity}px)`,
-                }}
-                animate={{
-                  opacity: isHovered ? tower.auraIntensity : (tower.auraIntensity * 0.6),
-                  scale: [1, 1.1, 1],
-                }}
-                transition={{
-                  opacity: { duration: 0.3 },
-                  scale: { duration: 3 + (tower.auraIntensity * 0.5), repeat: Infinity, ease: 'easeInOut' },
-                }}
-              />
-
-              {/* Tower body with opacity gradient: dark base → light top */}
+              {/* Tower body - SAME STYLE AS INTERLUDE */}
               <div
-                className="w-full h-full relative overflow-hidden"
+                className="w-full h-full relative"
                 style={{
-                  background: `linear-gradient(180deg, ${tower.color}80 0%, ${tower.color}50 50%, ${tower.color}30 100%)`,
-                  border: `1px solid ${tower.color}60`,
-                  borderRadius: tower.style === 'smooth-crown' ? '8px 8px 0 0'
-                    : tower.style === 'dome-top' ? '50% 50% 0 0 / 20% 20% 0 0'
-                    : tower.style === 'angular-bevel' ? '0 0 0 0'
-                    : '2px 2px 0 0',
-                  boxShadow: `inset 0 -40px 60px ${tower.color}20`,
+                  background: `linear-gradient(180deg, ${tower.color}50 0%, ${tower.color}25 60%, ${tower.color}15 100%)`,
+                  border: `1px solid ${tower.color}40`,
+                  borderRadius: '2px 2px 0 0',
                 }}
               >
-                {/* Windows - representing actual moments with zone-colored glow */}
-                {/* REDESIGN: Larger, more visible windows stacked vertically like floors */}
-                <div className="absolute inset-4 flex flex-col gap-3 justify-end">
-                  {momentsByZone[tower.id]?.slice(0, 12).map((moment, i) => {
-                    const windowDelay = i * 0.15;
-                    const breathCycleDuration = 6; // 6s breathing cycle
-                    
-                    // Calculate recency (newer = brighter)
-                    const momentAge = Date.now() - new Date(moment.timestamp).getTime();
-                    const daysSinceReflection = momentAge / (1000 * 60 * 60 * 24);
-                    const recencyBrightness = Math.max(0.4, 1 - (daysSinceReflection / 30)); // Dim over 30 days
-                    
-                    return (
-                      <motion.div
-                        key={`window-${tower.id}-${moment.id}`}
-                        className="rounded-md cursor-pointer relative group"
-                        style={{
-                          width: '100%',
-                          height: '24px', // 2x bigger - more visible
-                          boxShadow: `0 0 12px ${tower.color}90`,
-                          border: `1.5px solid ${tower.color}60`,
-                        }}
-                        animate={{
-                          backgroundColor: [
-                            `${tower.color}${Math.round(50 * recencyBrightness).toString(16).padStart(2, '0')}`,
-                            `${tower.color}${Math.round(95 * recencyBrightness).toString(16).padStart(2, '0')}`,
-                            `${tower.color}${Math.round(50 * recencyBrightness).toString(16).padStart(2, '0')}`,
-                          ],
-                          opacity: [0.5 * recencyBrightness, 0.9 * recencyBrightness, 0.5 * recencyBrightness],
-                          boxShadow: [
-                            `0 0 8px ${tower.color}50`,
-                            `0 0 20px ${tower.color}CC`,
-                            `0 0 8px ${tower.color}50`,
-                          ],
-                        }}
-                        transition={{
-                          duration: breathCycleDuration,
-                          repeat: Infinity,
-                          delay: windowDelay,
-                          ease: 'easeInOut',
-                        }}
-                        whileHover={{
-                          scale: 1.15,
-                          opacity: 1,
-                          zIndex: 10,
-                          boxShadow: `0 0 30px ${tower.color}FF`,
-                        }}
-                        onClick={() => setSelectedMoment(moment)}
-                      >
-                        {/* Window tooltip on hover */}
-                        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20">
-                          <div className="bg-white/95 backdrop-blur-sm px-3 py-2 rounded-lg shadow-lg text-xs text-gray-800 max-w-xs">
-                            <div className="font-medium mb-1">
-                              {moment.text.slice(0, 60)}{moment.text.length > 60 ? '...' : ''}
-                            </div>
-                            <div className="text-gray-500">
-                              {new Date(moment.timestamp).toLocaleDateString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                year: 'numeric',
-                              })}
-                            </div>
+                {/* Windows - warm lit windows representing moments */}
+                <div className="absolute inset-4 grid grid-cols-4 gap-2">
+                  {momentsByZone[tower.id]?.slice(0, 24).map((moment, i) => (
+                    <motion.div
+                      key={`window-${tower.id}-${moment.id}`}
+                      className="rounded-[1px] cursor-pointer relative group"
+                      animate={{
+                        backgroundColor: [
+                          `rgba(248, 216, 181, 0.15)`,
+                          `rgba(255, 230, 200, 0.5)`,
+                          `rgba(248, 216, 181, 0.15)`,
+                        ],
+                      }}
+                      transition={{
+                        duration: 2 + Math.random() * 2,
+                        repeat: Infinity,
+                        delay: i * 0.1,
+                      }}
+                      whileHover={{
+                        scale: 1.3,
+                        backgroundColor: `rgba(255, 230, 200, 0.9)`,
+                        boxShadow: `0 0 20px rgba(255, 230, 200, 0.8)`,
+                      }}
+                      onClick={() => setSelectedMoment(moment)}
+                    >
+                      {/* Window tooltip on hover */}
+                      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20">
+                        <div className="bg-white/95 backdrop-blur-sm px-3 py-2 rounded-lg shadow-lg text-xs text-gray-800 max-w-xs">
+                          <div className="font-medium mb-1">
+                            {moment.text.slice(0, 60)}{moment.text.length > 60 ? '...' : ''}
+                          </div>
+                          <div className="text-gray-500">
+                            {new Date(moment.timestamp).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                            })}
                           </div>
                         </div>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-
-                {/* Tower label - using custom tower names */}
-                <AnimatePresence>
-                  {phase === 'library' && isVisible && (
-                    <motion.div
-                      className="absolute -bottom-10 left-0 right-0 text-center pointer-events-none"
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.6, delay: 0.5 }}
-                    >
-                      <div
-                        className="text-xs uppercase tracking-wider"
-                        style={{
-                          color: tower.color,
-                          fontFamily: '"Inter", -apple-system, sans-serif',
-                          fontVariant: 'small-caps',
-                          fontWeight: 600,
-                          textShadow: `0 0 12px ${tower.color}60`,
-                        }}
-                      >
-                        {tower.name}
                       </div>
                     </motion.div>
-                  )}
-                </AnimatePresence>
+                  ))}
+                </div>
 
-                {/* Tooltip on hover */}
+                {/* Building name - SAME STYLE AS INTERLUDE: large serif italic with glow */}
                 <AnimatePresence>
-                  {isHovered && phase === 'library' && (
+                  {phase === 'library' && isVisible && hasMoments && (
                     <motion.div
-                      className="absolute -top-12 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow-lg pointer-events-none whitespace-nowrap"
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 5 }}
-                      transition={{ duration: 0.25 }}
+                      className="absolute -top-20 left-1/2 -translate-x-1/2 whitespace-nowrap font-serif italic text-4xl font-bold z-30 pointer-events-none"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: isHovered ? 1 : 0.7 }}
+                      transition={{ duration: 0.6, delay: 0.5 }}
+                      style={{
+                        color: tower.color,
+                        textShadow: `
+                          0 0 40px ${tower.color},
+                          0 0 80px ${tower.color},
+                          0 0 120px ${tower.color},
+                          0 2px 12px rgba(0,0,0,0.3)
+                        `,
+                      }}
                     >
-                      <div className="text-sm text-gray-800">
-                        {momentCount > 0
-                          ? `${momentCount} moment${momentCount !== 1 ? 's' : ''} in ${zone?.name}`
-                          : 'No moments here yet'}
-                      </div>
+                      {tower.name}
                     </motion.div>
                   )}
                 </AnimatePresence>
