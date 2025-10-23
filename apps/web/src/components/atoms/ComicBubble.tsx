@@ -31,22 +31,35 @@ export default function ComicBubble({
   className = '',
   style = {},
 }: ComicBubbleProps) {
-  // Pulse scale synced to breath (subtle 1-2%)
-  const pulseScale = 1 + (Math.sin(breathProgress * Math.PI * 2) * 0.01);
+  // Pulse scale synced to breath (subtle 1-2% for poems, 1.5% for tips)
+  const pulseScale = 1 + (Math.sin(breathProgress * Math.PI * 2) * (type === 'poem' ? 0.01 : 0.015));
   
   // Typography based on type
   const typography = type === 'poem' ? {
     fontFamily: '"EB Garamond", "Georgia", serif',
-    fontSize: state === 'ellipsis' ? '1.75rem' : '1.25rem',
+    fontSize: state === 'ellipsis' ? '1.75rem' : '1.3rem', // Larger for poems
     lineHeight: state === 'ellipsis' ? '1' : '1.5',
     letterSpacing: state === 'ellipsis' ? '0.2em' : '0.3px',
     maxWidth: '60ch',
   } : {
     fontFamily: '"Inter", "SF Pro Text", "Roboto", sans-serif',
-    fontSize: state === 'ellipsis' ? '1.5rem' : '1rem',
-    lineHeight: state === 'ellipsis' ? '1' : '1.3',
-    letterSpacing: state === 'ellipsis' ? '0.2em' : 'normal',
+    fontSize: state === 'ellipsis' ? '1.5rem' : '0.9rem', // Smaller for tips
+    lineHeight: state === 'ellipsis' ? '1' : '1.4',
+    letterSpacing: state === 'ellipsis' ? '0.2em' : '0.02em',
     maxWidth: '42ch',
+  };
+  
+  // Visual styling based on type
+  const visualStyle = type === 'poem' ? {
+    background: 'linear-gradient(135deg, #FFFFFF 0%, #FFF9FB 100%)', // Warm white for poems
+    border: '2px solid rgba(156, 31, 95, 0.15)', // Soft pink border
+    boxShadow: '0 8px 32px rgba(156, 31, 95, 0.12), 0 2px 8px rgba(0,0,0,0.08)',
+    textColor: '#2D2D2D',
+  } : {
+    background: 'linear-gradient(135deg, #FFF5E6 0%, #FFE8CC 100%)', // Warm amber for tips
+    border: '2px solid rgba(248, 216, 181, 0.4)', // Golden border
+    boxShadow: '0 6px 24px rgba(248, 216, 181, 0.3), 0 2px 6px rgba(0,0,0,0.06)',
+    textColor: '#3A3A3A',
   };
   
   // Tail SVG paths for different directions
@@ -99,39 +112,70 @@ export default function ComicBubble({
             zIndex: 51,
             ...style,
           }}
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={{ opacity: 0, scale: 0.9, y: 10 }}
           animate={{
             opacity: 1,
             scale: pulseScale,
+            y: 0,
           }}
-          exit={{ opacity: 0, scale: 0.9 }}
+          exit={{ opacity: 0, scale: 0.95, y: -5 }}
           transition={{
             opacity: { duration: 0.8, ease: EASING },
             scale: { duration: 0.3, ease: 'easeInOut' },
+            y: { duration: 0.6, ease: EASING },
           }}
         >
-          {/* Bubble container */}
+          {/* Subtle glow for poem bubbles */}
+          {type === 'poem' && (
+            <motion.div
+              className="absolute inset-0 rounded-2xl pointer-events-none"
+              style={{
+                background: 'radial-gradient(circle at 50% 50%, rgba(156, 31, 95, 0.08) 0%, transparent 70%)',
+                filter: 'blur(16px)',
+                zIndex: -1,
+              }}
+              animate={{
+                opacity: [0.6, 1, 0.6],
+                scale: [0.95, 1.05, 0.95],
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            />
+          )}
+          
+
+          {/* Bubble container with type-specific styling */}
           <div
-            className="relative bg-white rounded-2xl shadow-2xl px-6 py-4"
+            className="relative rounded-2xl px-6 py-4"
             style={{
               maxWidth: `${maxWidth}px`,
-              border: '2px solid rgba(0,0,0,0.1)',
+              background: visualStyle.background,
+              border: visualStyle.border,
+              boxShadow: visualStyle.boxShadow,
             }}
           >
-            {/* Tail */}
+            {/* Tail with matching gradient */}
             <svg
               className="absolute"
               style={getTailPosition()}
               width="40"
               height="20"
               viewBox="0 0 40 20"
-              fill="white"
             >
+              <defs>
+                <linearGradient id={`tailGradient-${type}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor={type === 'poem' ? '#FFFFFF' : '#FFF5E6'} />
+                  <stop offset="100%" stopColor={type === 'poem' ? '#FFF9FB' : '#FFE8CC'} />
+                </linearGradient>
+              </defs>
               <path
                 d={getTailPath()}
-                stroke="rgba(0,0,0,0.1)"
+                stroke={type === 'poem' ? 'rgba(156, 31, 95, 0.15)' : 'rgba(248, 216, 181, 0.4)'}
                 strokeWidth="2"
-                fill="white"
+                fill={`url(#tailGradient-${type})`}
               />
             </svg>
 
@@ -150,8 +194,9 @@ export default function ComicBubble({
                   lineHeight: typography.lineHeight,
                   letterSpacing: typography.letterSpacing,
                   maxWidth: typography.maxWidth,
-                  color: '#2D2D2D',
+                  color: visualStyle.textColor,
                   minHeight: '1.5em', // Prevent layout shift
+                  fontWeight: type === 'poem' ? 400 : 500, // Slightly bolder tips
                 }}
                 aria-live="polite"
               >

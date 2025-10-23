@@ -1065,12 +1065,13 @@ export default function BreathingSequence({
         
         if (!containerRect) return null;
         
-        // Leo bubble: centered horizontally above Leo's animated container
-        // Convert from viewport coords to container-relative coords
-        const leoAnchor = leoRect ? {
-          x: leoRect.left + leoRect.width / 2 - containerRect.left,
-          y: leoRect.top - containerRect.top - 20, // 20px above Leo
-        } : null;
+        // Leo bubble: Use center-based positioning since Leo is at left: 50%, top: 35%
+        // This matches Leo's actual CSS positioning rather than relying on getBoundingClientRect
+        // which can be affected by transforms
+        const leoAnchor = {
+          x: containerRect.width / 2, // Match left: 50%
+          y: containerRect.height * 0.35 - 120, // Match top: 35%, offset up by ~120px to clear Leo
+        };
         
         // Building/Tips bubble: top-left corner of building container
         // This ensures it's anchored to the visible building regardless of screen size
@@ -1089,6 +1090,10 @@ export default function BreathingSequence({
             buildingAnchor,
             leoBubbleState,
             windowBubbleState,
+            calculation: {
+              leoX: `${containerRect.width} / 2 = ${containerRect.width / 2}`,
+              leoY: `${containerRect.height} * 0.35 - 120 = ${containerRect.height * 0.35 - 120}`,
+            },
           });
         }
         
