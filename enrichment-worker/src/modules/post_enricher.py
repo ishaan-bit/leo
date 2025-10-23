@@ -120,6 +120,9 @@ class PostEnricher:
             # Validate schema
             self._validate_schema(parsed['post_enrichment'])
             
+            # Normalize poems to ensure comma-separated format
+            parsed['post_enrichment']['poems'] = self._normalize_poems(parsed['post_enrichment']['poems'])
+            
             # Merge into hybrid result
             hybrid_result['post_enrichment'] = parsed['post_enrichment']
             hybrid_result['status'] = 'complete'
@@ -172,6 +175,74 @@ class PostEnricher:
         print(f"⚠️  Failed to parse JSON from: {content[:200]}...")
         return None
     
+    def _normalize_poems(self, poems: list) -> list:
+        """
+        Normalize poems to ensure comma-separated two-line format.
+        
+        Handles cases where Ollama returns poems as:
+        - ["line1", "line2", "line3", "line4"] → ["line1, line2", "line3, line4"]
+        - ["single line poem"] → ["single line poem, "] (with trailing comma for consistency)
+        
+        Args:
+            poems: Raw poems array from Ollama
+        
+        Returns:
+            Normalized poems array with exactly 2 items, each in "line1, line2" format
+        """
+        print(f"   📝 Normalizing poems (input length: {len(poems)})")
+        
+        normalized = []
+        
+        # Case 1: Already has commas (correct format)
+        if len(poems) >= 2 and ',' in poems[0] and ',' in poems[1]:
+            print(f"      ✅ Poems already in correct format")
+            return [poems[0], poems[1]]
+        
+        # Case 2: 4 separate lines (Ollama interpreted as 4 separate poems)
+        if len(poems) >= 4:
+            poem1 = f"{poems[0]}, {poems[1]}"
+            poem2 = f"{poems[2]}, {poems[3]}"
+            print(f"      🔧 Merged 4 lines into 2 poems")
+            print(f"         Poem1: {poem1}")
+            print(f"         Poem2: {poem2}")
+            return [poem1, poem2]
+        
+        # Case 3: 3 lines (odd case - use first 2 for poem1, last for poem2 with ellipsis)
+        if len(poems) == 3:
+            poem1 = f"{poems[0]}, {poems[1]}"
+            poem2 = f"{poems[2]}, ..."
+            print(f"      🔧 Merged 3 lines (2+1 split)")
+            return [poem1, poem2]
+        
+        # Case 4: 2 lines without commas (add commas to indicate line breaks)
+        if len(poems) == 2:
+            # Check if each is short enough to be a single line
+            if len(poems[0]) < 50 and len(poems[1]) < 50:
+                poem1 = f"{poems[0]}, {poems[1]}"
+                poem2 = "breathing in, breathing out"  # Generic fallback
+                print(f"      🔧 Combined 2 short lines into 1 poem, added fallback poem2")
+                return [poem1, poem2]
+            else:
+                # Treat as two separate single-line poems
+                poem1 = f"{poems[0]}, "
+                poem2 = f"{poems[1]}, "
+                print(f"      🔧 Kept as 2 separate poems, added trailing commas")
+                return [poem1, poem2]
+        
+        # Case 5: Only 1 poem (add generic second poem)
+        if len(poems) == 1:
+            poem1 = poems[0] if ',' in poems[0] else f"{poems[0]}, "
+            poem2 = "something shifted today, you felt it"
+            print(f"      🔧 Only 1 poem provided, added fallback poem2")
+            return [poem1, poem2]
+        
+        # Case 6: Empty or invalid (use fallback)
+        print(f"      ⚠️  Invalid poem format, using fallback")
+        return [
+            "something shifted today, quiet but real",
+            "you noticed it, that counts for something"
+        ]
+    
     def _validate_schema(self, post_enrichment: Dict):
         """
         Validate post_enrichment schema.
@@ -217,8 +288,8 @@ class PostEnricher:
         
         return {
             "poems": [
-                "Something shifted today, quiet but real",
-                "You noticed it—that counts for something"
+                "something shifted today, quiet but real",
+                "you noticed it, that counts for something"
             ],
             "tips": [
                 "Take a short walk, let your mind wander",

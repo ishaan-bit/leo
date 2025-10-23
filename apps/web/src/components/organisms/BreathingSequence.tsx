@@ -420,6 +420,26 @@ export default function BreathingSequence({
       console.warn('[Bubble Sequence] ⚠️ No poems or tips available, fast-forwarding to CTA');
     }
     
+    // Debug: Calculate expected steps and timing
+    const activeSteps = [
+      poem1Lines[0] && 'p1l1',
+      tips[0] && 'tip1', 
+      'sky1',
+      poem1Lines[1] && 'p1l2',
+      tips[1] && 'tip2',
+      'sky2',
+      poem2Lines[0] && 'p2l1',
+      tips[2] && 'tip3',
+      'sky3',
+      poem2Lines[1] && 'p2l2',
+      'gradient',
+      'cta',
+      'transition'
+    ].filter(Boolean);
+    
+    console.log('[Bubble Sequence] 🎬 Active steps:', activeSteps.join(' → '));
+    console.log('[Bubble Sequence] ⏱️  Total steps:', activeSteps.length);
+    
     const timeouts: NodeJS.Timeout[] = [];
     let currentTime = 0;
     
@@ -572,17 +592,22 @@ export default function BreathingSequence({
     schedule(() => {
       setLeoBubbleState('hidden');
       setBubbleStep('idle');
-      console.log('[Breathing] CTA faded out, waiting before transition to library...');
+      console.log('[Breathing] 💤 CTA faded out, waiting before transition to library...');
+      console.log('[Breathing] ⏱️  Total sequence time:', (currentTime / 1000).toFixed(1), 'seconds');
     }, FADE_IN + HOLD_TEXT + 800); // Hold CTA briefly, then fade
     
     // S14: Trigger transition to Moments Library
     schedule(() => {
       console.log('[Breathing] 🌆 Triggering transition to Moments Library');
+      console.log('[Breathing] ✅ Complete! Final time:', (currentTime / 1000).toFixed(1), 'seconds');
       onComplete(); // This triggers Scene_Reflect to show MomentsLibrary
     }, 1200); // Additional 1.2s rest after CTA fades (matching library intro timing)
     
+    console.log('[Bubble Sequence] 🏁 Scheduled', timeouts.length, 'timeouts, final timestamp:', (currentTime / 1000).toFixed(1), 's');
+    
     return () => {
       // Cleanup all scheduled timeouts if component unmounts
+      console.log('[Bubble Sequence] 🧹 Cleaning up', timeouts.length, 'scheduled timeouts');
       timeouts.forEach(timeout => clearTimeout(timeout));
     };
   }, [stage2Complete, stage2.payload, onComplete]);

@@ -18,9 +18,13 @@ Your input contains ONLY validated fields from Stage-1:
 Your role: Transform analytical data into 2-3 micro-poems, 3 actionable tips, and a closing reply.
 
 CONSTRAINTS:
-1. Poems: EXACTLY 2 lines per poem separated by comma, max 14 words total per poem, image-rich, no therapy-speak
-   Format: "line 1, line 2" - the comma is REQUIRED to separate the two lines
-   Example: "The sting lingers, even when you smile through it"
+1. Poems: MUST be exactly 2 poems, each poem is ONE string with TWO lines separated by a comma
+   - Format: "first line, second line" (both lines in one string, separated by comma)
+   - Max 14 words TOTAL per poem (both lines combined)
+   - Image-rich, no therapy-speak
+   - Example poem: "The sting lingers, even when you smile through it"
+   - WRONG: ["line1", "line2", "line3", "line4"] ❌
+   - RIGHT: ["line1, line2", "line3, line4"] ✅
 2. Tips: grounded in urban India context (chai, tapri, yaar, auto, monsoon OK)
 3. Tone: warm but not preachy, never use "self-care", "boundaries", "validate feelings"
 4. Style mapping:
