@@ -84,11 +84,18 @@ export default function ComicBubble({
         <motion.div
           className={`pointer-events-none ${className}`}
           style={{
-            position: 'absolute',
-            left: anchorPosition.x,
-            top: anchorPosition.y,
-            zIndex: 50,
-            ...style,
+            position: 'fixed', // Fixed positioning relative to viewport
+            // Position bubble relative to anchor with tail direction
+            left: tailDirection === 'left' ? anchorPosition.x : anchorPosition.x,
+            top: tailDirection === 'down' ? anchorPosition.y : anchorPosition.y,
+            // Offset to center bubble on anchor
+            transform: tailDirection === 'down' 
+              ? 'translate(-50%, -100%)' // Center horizontally, place above anchor
+              : tailDirection === 'left'
+              ? 'translate(0, -50%)' // Place to right, center vertically
+              : 'translate(-50%, -50%)',
+            zIndex: 51,
+            ...style, // Allow override but rarely needed now
           }}
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{

@@ -69,6 +69,9 @@ export default function BreathingSequence({
   const [leoReacting, setLeoReacting] = useState(false); // For poem line reactions
   const [windowGlowing, setWindowGlowing] = useState(false); // For tip window glow
   
+  // DEBUG mode for bubble positioning overlays
+  const DEBUG_BUBBLES = typeof window !== 'undefined' && window.location.search.includes('debug=bubbles');
+  
   // Stage 2 state
   const [stage2, setStage2] = useState<Stage2State>({
     phase: 'idle',
@@ -83,6 +86,8 @@ export default function BreathingSequence({
   const wordPool = useRef<string[]>([]);
   const animationFrameRef = useRef<number>();
   const startTimeRef = useRef<number>(Date.now());
+  const leoContainerRef = useRef<HTMLDivElement>(null);
+  const windowRef = useRef<HTMLDivElement>(null);
   
   const breatheParams = computeBreatheParams(primary, secondary);
   const { cycle, color, audio } = breatheParams;
@@ -608,6 +613,7 @@ export default function BreathingSequence({
 
       {/* Leo - centered, breathing */}
       <motion.div
+        ref={leoContainerRef}
         id="leoContainer"
         className="absolute z-20 left-1/2 top-[35%]"
         style={{ x: '-50%', y: '-50%' }}
@@ -839,6 +845,7 @@ export default function BreathingSequence({
       <AnimatePresence>
         {stage2.window && stage2.phase !== 'idle' && (
           <motion.div
+            ref={windowRef}
             className="absolute z-40 pointer-events-none"
             style={{
               left: `${stage2.window.x}%`,
@@ -1050,65 +1057,151 @@ export default function BreathingSequence({
 
       {/* Comic Bubbles - Post-Stage 2 Sequence */}
       {stage2Complete && stage2.payload && (() => {
-        console.log('[Bubble Render] Rendering bubbles:', {
-          bubbleStep,
-          leoBubbleState,
-          windowBubbleState,
-          poems: stage2.payload.poems,
-          tips: stage2.payload.tips
-        });
-        return true;
-      })() && (
-        <>
-          {/* Leo Bubble (Poems) */}
-          <ComicBubble
-            content={
-              bubbleStep === 'leo_p1l1' ? (stage2.payload.poems[0]?.split?.(',')?.[0]?.trim() || stage2.payload.poems[0] || '')
-              : bubbleStep === 'leo_p1l2' ? (stage2.payload.poems[0]?.split?.(',')?.[1]?.trim() || '')
-              : bubbleStep === 'leo_p2l1' ? (stage2.payload.poems[1]?.split?.(',')?.[0]?.trim() || stage2.payload.poems[1] || '')
-              : bubbleStep === 'leo_p2l2' ? (stage2.payload.poems[1]?.split?.(',')?.[1]?.trim() || '')
-              : bubbleStep === 'cta' ? `If anything came to mind, write it down and feed it to ${pigName}.`
-              : ''
-            }
-            state={leoBubbleState}
-            type="poem"
-            anchorPosition={{ x: 50, y: 20 }} // Anchor to Leo
-            tailDirection="down"
-            maxWidth={480}
-            breathProgress={breathProgress}
-            style={{ 
-              left: '50%', 
-              top: 'max(18vh, calc(35% - 140px))', // Above Leo, with collision guard
-              transform: 'translateX(-50%)',
-              zIndex: 51, // Above Leo
-            }}
-          />
+        // Compute anchor positions from actual DOM elements
+        const leoRect = leoContainerRef.current?.getBoundingClientRect();
+        const windowRect = windowRef.current?.getBoundingClientRect();
+        
+        // Leo bubble: centered horizontally above Leo
+        const leoAnchor = leoRect ? {
+          x: leoRect.left + leoRect.width / 2,
+          y: leoRect.top - 20, // 20px above Leo's top edge
+        } : null;
+        
+        // Window bubble: to the right of the window
+        const windowAnchor = windowRect ? {
+          x: windowRect.right + 24, // 24px to the right of window
+          y: windowRect.top + windowRect.height / 2, // Vertically centered on window
+        } : null;
+        
+        if (DEBUG_BUBBLES) {
+          console.log('[Bubble Positions]', {
+            bubbleStep,
+            leoRect: leoRect ? { x: leoRect.left, y: leoRect.top, width: leoRect.width, height: leoRect.height } : null,
+            windowRect: windowRect ? { x: windowRect.left, y: windowRect.top, width: windowRect.width, height: windowRect.height } : null,
+            leoAnchor,
+            windowAnchor,
+            leoBubbleState,
+            windowBubbleState,
+          });
+        }
+        
+        return { leoAnchor, windowAnchor };
+      })() && (() => {
+        const { leoAnchor, windowAnchor } = (() => {
+          const leoRect = leoContainerRef.current?.getBoundingClientRect();
+          const windowRect = windowRef.current?.getBoundingClientRect();
+          return {
+            leoAnchor: leoRect ? {
+              x: leoRect.left + leoRect.width / 2,
+              y: leoRect.top - 20,
+            } : { x: 0, y: 0 },
+            windowAnchor: windowRect ? {
+              x: windowRect.right + 24,
+              y: windowRect.top + windowRect.height / 2,
+            } : { x: 0, y: 0 },
+          };
+        })();
+        
+        return (
+          <>
+            {/* DEBUG: Visual anchor overlays */}
+            {DEBUG_BUBBLES && (
+              <>
+                {/* Leo anchor point */}
+                {leoAnchor && (
+                  <div
+                    className="fixed w-4 h-4 bg-red-500 rounded-full border-2 border-white pointer-events-none"
+                    style={{
+                      left: leoAnchor.x - 8,
+                      top: leoAnchor.y - 8,
+                      zIndex: 100,
+                    }}
+                  />
+                )}
+                {/* Window anchor point */}
+                {windowAnchor && (
+                  <div
+                    className="fixed w-4 h-4 bg-blue-500 rounded-full border-2 border-white pointer-events-none"
+                    style={{
+                      left: windowAnchor.x - 8,
+                      top: windowAnchor.y - 8,
+                      zIndex: 100,
+                    }}
+                  />
+                )}
+                {/* Leo container outline */}
+                {leoContainerRef.current && (() => {
+                  const rect = leoContainerRef.current.getBoundingClientRect();
+                  return (
+                    <div
+                      className="fixed border-2 border-red-500 pointer-events-none"
+                      style={{
+                        left: rect.left,
+                        top: rect.top,
+                        width: rect.width,
+                        height: rect.height,
+                        zIndex: 99,
+                      }}
+                    />
+                  );
+                })()}
+                {/* Window outline */}
+                {windowRef.current && (() => {
+                  const rect = windowRef.current.getBoundingClientRect();
+                  return (
+                    <div
+                      className="fixed border-2 border-blue-500 pointer-events-none"
+                      style={{
+                        left: rect.left,
+                        top: rect.top,
+                        width: rect.width,
+                        height: rect.height,
+                        zIndex: 99,
+                      }}
+                    />
+                  );
+                })()}
+              </>
+            )}
 
-          {/* Window Bubble (Tips) */}
-          <ComicBubble
-            content={
-              bubbleStep === 'tip1' ? (stage2.payload.tips[0] || '')
-              : bubbleStep === 'tip2' ? (stage2.payload.tips[1] || '')
-              : bubbleStep === 'tip3' ? (stage2.payload.tips[2] || '')
-              : ''
-            }
-            state={windowBubbleState}
-            type="tip"
-            anchorPosition={{ 
-              x: 35 + 8, // Primary tower X + offset to rightmost window
-              y: 30, // Top floor
-            }}
-            tailDirection="left"
-            maxWidth={340}
-            breathProgress={breathProgress}
-            style={{
-              left: `calc(${35 + 8}% + 24px)`, // Offset from building with padding
-              top: '28vh',
-              zIndex: 51, // Above buildings
-            }}
-          />
-        </>
-      )}
+            {/* Leo Bubble (Poems) */}
+            <ComicBubble
+              content={
+                bubbleStep === 'leo_p1l1' ? (stage2.payload.poems[0]?.split?.(',')?.[0]?.trim() || stage2.payload.poems[0] || '')
+                : bubbleStep === 'leo_p1l2' ? (stage2.payload.poems[0]?.split?.(',')?.[1]?.trim() || '')
+                : bubbleStep === 'leo_p2l1' ? (stage2.payload.poems[1]?.split?.(',')?.[0]?.trim() || stage2.payload.poems[1] || '')
+                : bubbleStep === 'leo_p2l2' ? (stage2.payload.poems[1]?.split?.(',')?.[1]?.trim() || '')
+                : bubbleStep === 'cta' ? `If anything came to mind, write it down and feed it to ${pigName}.`
+                : ''
+              }
+              state={leoBubbleState}
+              type="poem"
+              anchorPosition={leoAnchor}
+              tailDirection="down"
+              maxWidth={480}
+              breathProgress={breathProgress}
+              style={{}}
+            />
+
+            {/* Window Bubble (Tips) */}
+            <ComicBubble
+              content={
+                bubbleStep === 'tip1' ? (stage2.payload.tips[0] || '')
+                : bubbleStep === 'tip2' ? (stage2.payload.tips[1] || '')
+                : bubbleStep === 'tip3' ? (stage2.payload.tips[2] || '')
+                : ''
+              }
+              state={windowBubbleState}
+              type="tip"
+              anchorPosition={windowAnchor}
+              tailDirection="left"
+              maxWidth={340}
+              breathProgress={breathProgress}
+              style={{}}
+            />
+          </>
+        );
+      })()}
     </div>
   );
 }
