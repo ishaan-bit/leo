@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { type PrimaryEmotion, computeBreatheParams, FALLBACK_WORDS } from '@/lib/breathe-config';
 import type { Stage2State, PostEnrichmentPayload, Stage2Phase, WindowState } from '@/lib/stage2-types';
+import ComicBubble from '../atoms/ComicBubble';
 
 interface BreathingSequenceProps {
   reflectionId: string;
@@ -51,6 +52,20 @@ export default function BreathingSequence({
   const [words, setWords] = useState<Array<{ id: string; text: string; angle: number }>>([]);
   const [isReady, setIsReady] = useState(false);
   const [stage2Complete, setStage2Complete] = useState(false);
+  
+  // Bubble sequence state (post-Stage 2)
+  type BubbleSequenceStep = 
+    | 'idle' 
+    | 'leo_p1l1' | 'tip1' | 'sky1' 
+    | 'leo_p1l2' | 'tip2' | 'sky2'
+    | 'leo_p2l1' | 'tip3' | 'sky3'
+    | 'leo_p2l2' | 'gradientReturn' 
+    | 'cta';
+  
+  const [bubbleStep, setBubbleStep] = useState<BubbleSequenceStep>('idle');
+  const [leoBubbleState, setLeoBubbleState] = useState<'hidden' | 'text' | 'ellipsis'>('hidden');
+  const [windowBubbleState, setWindowBubbleState] = useState<'hidden' | 'text' | 'ellipsis'>('hidden');
+  const [skyLightnessLevel, setSkyLightnessLevel] = useState(0); // 0-3
   
   // Stage 2 state
   const [stage2, setStage2] = useState<Stage2State>({
@@ -294,23 +309,182 @@ export default function BreathingSequence({
     return () => clearInterval(interval);
   }, [isReady, stage2Complete]);
 
+  // Bubble sequence orchestration (post-Stage 2 completion)
+  useEffect(() => {
+    if (!stage2Complete || !stage2.payload) return;
+    
+    const FADE_IN = 800;
+    const HOLD_TEXT = 2200;
+    const FADE_TO_ELLIPSIS = 600;
+    const GAP_BETWEEN_BUBBLES = 400;
+    const SKY_STEP = 2000;
+    const GRADIENT_RETURN = 2500;
+    
+    const poems = stage2.payload.poems || ['', ''];
+    const tips = stage2.payload.tips || [];
+    
+    // Split poems into lines (assuming format "line1 / line2" or array)
+    const poem1 = Array.isArray(poems[0]) ? poems[0] : (poems[0]?.split(' / ') || ['', '']);
+    const poem2 = Array.isArray(poems[1]) ? poems[1] : (poems[1]?.split(' / ') || ['', '']);
+    
+    const timeouts: NodeJS.Timeout[] = [];
+    let currentTime = 0;
+    
+    const schedule = (callback: () => void, delay: number) => {
+      currentTime += delay;
+      const timeout = setTimeout(callback, currentTime);
+      timeouts.push(timeout);
+      return timeout;
+    };
+    
+    // S1: Leo p1.l1
+    if (poem1[0]) {
+      schedule(() => {
+        setBubbleStep('leo_p1l1');
+        setLeoBubbleState('text');
+      }, 0);
+      schedule(() => setLeoBubbleState('ellipsis'), FADE_IN + HOLD_TEXT);
+    }
+    
+    // S2: Tip1
+    if (tips[0]) {
+      schedule(() => {
+        setBubbleStep('tip1');
+        setWindowBubbleState('text');
+      }, FADE_TO_ELLIPSIS + GAP_BETWEEN_BUBBLES);
+      schedule(() => setWindowBubbleState('ellipsis'), FADE_IN + HOLD_TEXT);
+    }
+    
+    // S3: Sky1
+    schedule(() => {
+      setBubbleStep('sky1');
+      setSkyLightnessLevel(1);
+      setLeoBubbleState('hidden');
+      setWindowBubbleState('hidden');
+    }, FADE_TO_ELLIPSIS + GAP_BETWEEN_BUBBLES);
+    
+    // S4: Leo p1.l2
+    if (poem1[1]) {
+      schedule(() => {
+        setBubbleStep('leo_p1l2');
+        setLeoBubbleState('text');
+      }, SKY_STEP);
+      schedule(() => setLeoBubbleState('ellipsis'), FADE_IN + HOLD_TEXT);
+    }
+    
+    // S5: Tip2
+    if (tips[1]) {
+      schedule(() => {
+        setBubbleStep('tip2');
+        setWindowBubbleState('text');
+      }, FADE_TO_ELLIPSIS + GAP_BETWEEN_BUBBLES);
+      schedule(() => setWindowBubbleState('ellipsis'), FADE_IN + HOLD_TEXT);
+    }
+    
+    // S6: Sky2
+    schedule(() => {
+      setBubbleStep('sky2');
+      setSkyLightnessLevel(2);
+      setLeoBubbleState('hidden');
+      setWindowBubbleState('hidden');
+    }, FADE_TO_ELLIPSIS + GAP_BETWEEN_BUBBLES);
+    
+    // S7: Leo p2.l1
+    if (poem2[0]) {
+      schedule(() => {
+        setBubbleStep('leo_p2l1');
+        setLeoBubbleState('text');
+      }, SKY_STEP);
+      schedule(() => setLeoBubbleState('ellipsis'), FADE_IN + HOLD_TEXT);
+    }
+    
+    // S8: Tip3
+    if (tips[2]) {
+      schedule(() => {
+        setBubbleStep('tip3');
+        setWindowBubbleState('text');
+      }, FADE_TO_ELLIPSIS + GAP_BETWEEN_BUBBLES);
+      schedule(() => {
+        setWindowBubbleState('hidden'); // Final tip fades out completely
+      }, FADE_IN + HOLD_TEXT);
+    }
+    
+    // S9: Sky3
+    schedule(() => {
+      setBubbleStep('sky3');
+      setSkyLightnessLevel(3);
+      setLeoBubbleState('hidden');
+    }, FADE_TO_ELLIPSIS + GAP_BETWEEN_BUBBLES);
+    
+    // S10: Leo p2.l2
+    if (poem2[1]) {
+      schedule(() => {
+        setBubbleStep('leo_p2l2');
+        setLeoBubbleState('text');
+      }, SKY_STEP);
+      schedule(() => setLeoBubbleState('ellipsis'), FADE_IN + HOLD_TEXT);
+    }
+    
+    // S11: Gradient return
+    schedule(() => {
+      setBubbleStep('gradientReturn');
+      setSkyLightnessLevel(4); // Trigger full pink gradient
+      setLeoBubbleState('hidden');
+    }, FADE_TO_ELLIPSIS);
+    
+    // S12: CTA
+    schedule(() => {
+      setBubbleStep('cta');
+      setLeoBubbleState('text');
+    }, GRADIENT_RETURN);
+    
+    return () => {
+      // Cleanup all scheduled timeouts if component unmounts
+      timeouts.forEach(timeout => clearTimeout(timeout));
+    };
+  }, [stage2Complete, stage2.payload]);
+
   // Breathing helpers
   const isInhaling = breathProgress < 0.5;
   const skyBrightness = isInhaling ? 1.2 : 0.8;
   const leoScale = isInhaling ? 1.15 : 0.92;
   const starOpacity = isInhaling ? 0.9 : 0.3;
 
+  // Sky gradient based on lightness level (0 = night, 4 = pink gradient)
+  const getSkyGradient = () => {
+    switch (skyLightnessLevel) {
+      case 0: // Night
+        return isInhaling
+          ? 'linear-gradient(to bottom, #1A1734, #3B3367, #1A1734)'
+          : 'linear-gradient(to bottom, #0A0714, #2B2357, #0A0714)';
+      case 1: // Slightly lighter
+        return isInhaling
+          ? 'linear-gradient(to bottom, #2A2744, #4B4377, #2A2744)'
+          : 'linear-gradient(to bottom, #1A1724, #3B3367, #1A1724)';
+      case 2: // More light
+        return isInhaling
+          ? 'linear-gradient(to bottom, #3A3754, #5B5387, #3A3754)'
+          : 'linear-gradient(to bottom, #2A2734, #4B4377, #2A2734)';
+      case 3: // Pre-dawn
+        return isInhaling
+          ? 'linear-gradient(to bottom, #4A4764, #6B6397, #4A4764)'
+          : 'linear-gradient(to bottom, #3A3744, #5B5387, #3A3744)';
+      case 4: // Pink gradient (interlude)
+        return 'linear-gradient(to bottom, #FFF5F7, #FFE5E9, #FFF0F3)';
+      default:
+        return getSkyGradient();
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
-      {/* Sky background */}
+      {/* Sky background with progressive lightening */}
       <motion.div
         className="absolute inset-0"
         animate={{
-          background: isInhaling
-            ? 'linear-gradient(to bottom, #1A1734, #3B3367, #1A1734)'
-            : 'linear-gradient(to bottom, #0A0714, #2B2357, #0A0714)',
+          background: getSkyGradient(),
         }}
-        transition={{ duration: activeCycle.in, ease: EASING }}
+        transition={{ duration: skyLightnessLevel >= 1 ? 2 : activeCycle.in, ease: EASING }}
       />
       
       {/* Stars */}
@@ -741,6 +915,55 @@ export default function BreathingSequence({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Comic Bubbles - Post-Stage 2 Sequence */}
+      {stage2Complete && stage2.payload && (
+        <>
+          {/* Leo Bubble */}
+          <ComicBubble
+            content={
+              bubbleStep === 'leo_p1l1' ? (stage2.payload.poems[0]?.split?.(' / ')?.[0] || stage2.payload.poems[0] || '')
+              : bubbleStep === 'leo_p1l2' ? (stage2.payload.poems[0]?.split?.(' / ')?.[1] || '')
+              : bubbleStep === 'leo_p2l1' ? (stage2.payload.poems[1]?.split?.(' / ')?.[0] || stage2.payload.poems[1] || '')
+              : bubbleStep === 'leo_p2l2' ? (stage2.payload.poems[1]?.split?.(' / ')?.[1] || '')
+              : bubbleStep === 'cta' ? `If anything came to mind, write it down and feed it to ${pigName}.`
+              : ''
+            }
+            state={leoBubbleState}
+            anchorPosition={{ x: 50, y: 25 }} // Between auth bar and Leo (% units)
+            tailDirection="down"
+            maxWidth={360}
+            breathProgress={breathProgress}
+            style={{ 
+              left: '50%', 
+              top: '25vh',
+              transform: 'translateX(-50%)',
+            }}
+          />
+
+          {/* Window Bubble */}
+          <ComicBubble
+            content={
+              bubbleStep === 'tip1' ? (stage2.payload.tips[0] || '')
+              : bubbleStep === 'tip2' ? (stage2.payload.tips[1] || '')
+              : bubbleStep === 'tip3' ? (stage2.payload.tips[2] || '')
+              : ''
+            }
+            state={windowBubbleState}
+            anchorPosition={{ 
+              x: 35 + 5, // Primary tower X + offset to top-right window
+              y: 30, // Top portion of building
+            }}
+            tailDirection="left"
+            maxWidth={320}
+            breathProgress={breathProgress}
+            style={{
+              left: `${35 + 8}%`, // Offset from building
+              top: '28vh',
+            }}
+          />
+        </>
+      )}
     </div>
   );
 }
