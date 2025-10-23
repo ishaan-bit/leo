@@ -87,7 +87,8 @@ export default function BreathingSequence({
   const animationFrameRef = useRef<number>();
   const startTimeRef = useRef<number>(Date.now());
   const leoContainerRef = useRef<HTMLDivElement>(null);
-  const windowRef = useRef<HTMLDivElement>(null);
+  const buildingContainerRef = useRef<HTMLDivElement>(null);
+  const breathingContainerRef = useRef<HTMLDivElement>(null);
   
   const breatheParams = computeBreatheParams(primary, secondary);
   const { cycle, color, audio } = breatheParams;
@@ -585,7 +586,7 @@ export default function BreathingSequence({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden">
+    <div ref={breathingContainerRef} className="fixed inset-0 z-50 overflow-hidden">
       {/* Sky background with progressive lightening */}
       <motion.div
         className="absolute inset-0"
@@ -680,6 +681,7 @@ export default function BreathingSequence({
 
       {/* City skyline with towers - primary repositioned to center-left */}
       <motion.div
+        ref={buildingContainerRef}
         className="absolute bottom-0 left-0 right-0 z-25"
         style={{ height: '50vh' }}
         initial={{ scale: 2.5, y: '-30%' }}
@@ -845,7 +847,6 @@ export default function BreathingSequence({
       <AnimatePresence>
         {stage2.window && stage2.phase !== 'idle' && (
           <motion.div
-            ref={windowRef}
             className="absolute z-40 pointer-events-none"
             style={{
               left: `${stage2.window.x}%`,
@@ -1057,152 +1058,145 @@ export default function BreathingSequence({
 
       {/* Comic Bubbles - Post-Stage 2 Sequence */}
       {stage2Complete && stage2.payload && (() => {
-        // Compute anchor positions from actual DOM elements
+        // Get container and element rects for absolute positioning
+        const containerRect = breathingContainerRef.current?.getBoundingClientRect();
         const leoRect = leoContainerRef.current?.getBoundingClientRect();
-        const windowRect = windowRef.current?.getBoundingClientRect();
+        const buildingRect = buildingContainerRef.current?.getBoundingClientRect();
         
-        // Leo bubble: centered horizontally above Leo
+        if (!containerRect) return null;
+        
+        // Leo bubble: centered horizontally above Leo's animated container
+        // Convert from viewport coords to container-relative coords
         const leoAnchor = leoRect ? {
-          x: leoRect.left + leoRect.width / 2,
-          y: leoRect.top - 20, // 20px above Leo's top edge
+          x: leoRect.left + leoRect.width / 2 - containerRect.left,
+          y: leoRect.top - containerRect.top - 20, // 20px above Leo
         } : null;
         
-        // Window bubble: to the right of the window
-        const windowAnchor = windowRect ? {
-          x: windowRect.right + 24, // 24px to the right of window
-          y: windowRect.top + windowRect.height / 2, // Vertically centered on window
+        // Building/Tips bubble: top-left corner of building container
+        // This ensures it's anchored to the visible building regardless of screen size
+        const buildingAnchor = buildingRect ? {
+          x: buildingRect.left - containerRect.left + 60, // 60px from left edge of building
+          y: buildingRect.top - containerRect.top + 40, // 40px from top of building
         } : null;
         
         if (DEBUG_BUBBLES) {
-          console.log('[Bubble Positions]', {
+          console.log('[Bubble Positions - Absolute]', {
             bubbleStep,
+            containerRect: { x: containerRect.left, y: containerRect.top, width: containerRect.width, height: containerRect.height },
             leoRect: leoRect ? { x: leoRect.left, y: leoRect.top, width: leoRect.width, height: leoRect.height } : null,
-            windowRect: windowRect ? { x: windowRect.left, y: windowRect.top, width: windowRect.width, height: windowRect.height } : null,
+            buildingRect: buildingRect ? { x: buildingRect.left, y: buildingRect.top, width: buildingRect.width, height: buildingRect.height } : null,
             leoAnchor,
-            windowAnchor,
+            buildingAnchor,
             leoBubbleState,
             windowBubbleState,
           });
         }
-        
-        return { leoAnchor, windowAnchor };
-      })() && (() => {
-        const { leoAnchor, windowAnchor } = (() => {
-          const leoRect = leoContainerRef.current?.getBoundingClientRect();
-          const windowRect = windowRef.current?.getBoundingClientRect();
-          return {
-            leoAnchor: leoRect ? {
-              x: leoRect.left + leoRect.width / 2,
-              y: leoRect.top - 20,
-            } : { x: 0, y: 0 },
-            windowAnchor: windowRect ? {
-              x: windowRect.right + 24,
-              y: windowRect.top + windowRect.height / 2,
-            } : { x: 0, y: 0 },
-          };
-        })();
         
         return (
           <>
             {/* DEBUG: Visual anchor overlays */}
             {DEBUG_BUBBLES && (
               <>
-                {/* Leo anchor point */}
+                {/* Leo anchor point - RED DOT */}
                 {leoAnchor && (
                   <div
-                    className="fixed w-4 h-4 bg-red-500 rounded-full border-2 border-white pointer-events-none"
+                    className="absolute w-4 h-4 bg-red-500 rounded-full border-2 border-white pointer-events-none shadow-lg"
                     style={{
                       left: leoAnchor.x - 8,
                       top: leoAnchor.y - 8,
                       zIndex: 100,
                     }}
+                    title="Leo Anchor"
                   />
                 )}
-                {/* Window anchor point */}
-                {windowAnchor && (
+                
+                {/* Building anchor point - BLUE DOT */}
+                {buildingAnchor && (
                   <div
-                    className="fixed w-4 h-4 bg-blue-500 rounded-full border-2 border-white pointer-events-none"
+                    className="absolute w-4 h-4 bg-blue-500 rounded-full border-2 border-white pointer-events-none shadow-lg"
                     style={{
-                      left: windowAnchor.x - 8,
-                      top: windowAnchor.y - 8,
+                      left: buildingAnchor.x - 8,
+                      top: buildingAnchor.y - 8,
                       zIndex: 100,
                     }}
+                    title="Building Anchor"
                   />
                 )}
-                {/* Leo container outline */}
-                {leoContainerRef.current && (() => {
-                  const rect = leoContainerRef.current.getBoundingClientRect();
-                  return (
-                    <div
-                      className="fixed border-2 border-red-500 pointer-events-none"
-                      style={{
-                        left: rect.left,
-                        top: rect.top,
-                        width: rect.width,
-                        height: rect.height,
-                        zIndex: 99,
-                      }}
-                    />
-                  );
-                })()}
-                {/* Window outline */}
-                {windowRef.current && (() => {
-                  const rect = windowRef.current.getBoundingClientRect();
-                  return (
-                    <div
-                      className="fixed border-2 border-blue-500 pointer-events-none"
-                      style={{
-                        left: rect.left,
-                        top: rect.top,
-                        width: rect.width,
-                        height: rect.height,
-                        zIndex: 99,
-                      }}
-                    />
-                  );
-                })()}
+                
+                {/* Leo container outline - RED */}
+                {leoRect && (
+                  <div
+                    className="absolute border-2 border-red-500 pointer-events-none bg-red-500/10"
+                    style={{
+                      left: leoRect.left - containerRect.left,
+                      top: leoRect.top - containerRect.top,
+                      width: leoRect.width,
+                      height: leoRect.height,
+                      zIndex: 99,
+                    }}
+                    title="Leo Container"
+                  />
+                )}
+                
+                {/* Building container outline - BLUE */}
+                {buildingRect && (
+                  <div
+                    className="absolute border-2 border-blue-500 pointer-events-none bg-blue-500/10"
+                    style={{
+                      left: buildingRect.left - containerRect.left,
+                      top: buildingRect.top - containerRect.top,
+                      width: buildingRect.width,
+                      height: buildingRect.height,
+                      zIndex: 99,
+                    }}
+                    title="Building Container"
+                  />
+                )}
               </>
             )}
 
-            {/* Leo Bubble (Poems) */}
-            <ComicBubble
-              content={
-                bubbleStep === 'leo_p1l1' ? (stage2.payload.poems[0]?.split?.(',')?.[0]?.trim() || stage2.payload.poems[0] || '')
-                : bubbleStep === 'leo_p1l2' ? (stage2.payload.poems[0]?.split?.(',')?.[1]?.trim() || '')
-                : bubbleStep === 'leo_p2l1' ? (stage2.payload.poems[1]?.split?.(',')?.[0]?.trim() || stage2.payload.poems[1] || '')
-                : bubbleStep === 'leo_p2l2' ? (stage2.payload.poems[1]?.split?.(',')?.[1]?.trim() || '')
-                : bubbleStep === 'cta' ? `If anything came to mind, write it down and feed it to ${pigName}.`
-                : ''
-              }
-              state={leoBubbleState}
-              type="poem"
-              anchorPosition={leoAnchor}
-              tailDirection="down"
-              maxWidth={480}
-              breathProgress={breathProgress}
-              style={{}}
-            />
+            {/* Leo Bubble (Poems) - Anchored to Leo's head */}
+            {leoAnchor && (
+              <ComicBubble
+                content={
+                  bubbleStep === 'leo_p1l1' ? (stage2.payload.poems[0]?.split?.(',')?.[0]?.trim() || stage2.payload.poems[0] || '')
+                  : bubbleStep === 'leo_p1l2' ? (stage2.payload.poems[0]?.split?.(',')?.[1]?.trim() || '')
+                  : bubbleStep === 'leo_p2l1' ? (stage2.payload.poems[1]?.split?.(',')?.[0]?.trim() || stage2.payload.poems[1] || '')
+                  : bubbleStep === 'leo_p2l2' ? (stage2.payload.poems[1]?.split?.(',')?.[1]?.trim() || '')
+                  : bubbleStep === 'cta' ? `If anything came to mind, write it down and feed it to ${pigName}.`
+                  : ''
+                }
+                state={leoBubbleState}
+                type="poem"
+                anchorPosition={leoAnchor}
+                tailDirection="down"
+                maxWidth={Math.min(480, containerRect.width * 0.85)} // Responsive width
+                breathProgress={breathProgress}
+              />
+            )}
 
-            {/* Window Bubble (Tips) */}
-            <ComicBubble
-              content={
-                bubbleStep === 'tip1' ? (stage2.payload.tips[0] || '')
-                : bubbleStep === 'tip2' ? (stage2.payload.tips[1] || '')
-                : bubbleStep === 'tip3' ? (stage2.payload.tips[2] || '')
-                : ''
-              }
-              state={windowBubbleState}
-              type="tip"
-              anchorPosition={windowAnchor}
-              tailDirection="left"
-              maxWidth={340}
-              breathProgress={breathProgress}
-              style={{}}
-            />
+            {/* Building/Tips Bubble - Anchored to top-left of building */}
+            {buildingAnchor && (
+              <ComicBubble
+                content={
+                  bubbleStep === 'tip1' ? (stage2.payload.tips[0] || '')
+                  : bubbleStep === 'tip2' ? (stage2.payload.tips[1] || '')
+                  : bubbleStep === 'tip3' ? (stage2.payload.tips[2] || '')
+                  : ''
+                }
+                state={windowBubbleState}
+                type="tip"
+                anchorPosition={buildingAnchor}
+                tailDirection="down" // Point down to building
+                maxWidth={Math.min(340, containerRect.width * 0.75)} // Responsive width
+                breathProgress={breathProgress}
+              />
+            )}
           </>
         );
       })()}
     </div>
   );
+
 }
 
