@@ -378,12 +378,12 @@ export default function BreathingSequence({
     console.log('[Bubble Sequence] Poems:', poems);
     console.log('[Bubble Sequence] Tips:', tips);
     
-    // Split poems into lines (assuming format "line1 / line2" or array)
-    const poem1 = Array.isArray(poems[0]) ? poems[0] : (poems[0]?.split(' / ') || ['', '']);
-    const poem2 = Array.isArray(poems[1]) ? poems[1] : (poems[1]?.split(' / ') || ['', '']);
+    // Split poems by comma into line 1 and line 2
+    const poem1Lines = poems[0] ? poems[0].split(',').map(l => l.trim()) : ['', ''];
+    const poem2Lines = poems[1] ? poems[1].split(',').map(l => l.trim()) : ['', ''];
     
-    console.log('[Bubble Sequence] Poem1:', poem1);
-    console.log('[Bubble Sequence] Poem2:', poem2);
+    console.log('[Bubble Sequence] Poem1 lines:', poem1Lines);
+    console.log('[Bubble Sequence] Poem2 lines:', poem2Lines);
     
     const timeouts: NodeJS.Timeout[] = [];
     let currentTime = 0;
@@ -396,8 +396,8 @@ export default function BreathingSequence({
     };
     
     // S1: Leo p1.l1
-    if (poem1[0]) {
-      console.log('[Bubble Sequence] Scheduling Leo p1.l1:', poem1[0]);
+    if (poem1Lines[0]) {
+      console.log('[Bubble Sequence] Scheduling Leo p1.l1:', poem1Lines[0]);
       schedule(() => {
         console.log('[Bubble Sequence] Showing Leo p1.l1');
         setBubbleStep('leo_p1l1');
@@ -429,7 +429,7 @@ export default function BreathingSequence({
     }, FADE_TO_ELLIPSIS + GAP_BETWEEN_BUBBLES);
     
     // S4: Leo p1.l2
-    if (poem1[1]) {
+    if (poem1Lines[1]) {
       schedule(() => {
         setBubbleStep('leo_p1l2');
         setLeoBubbleState('text');
@@ -455,7 +455,7 @@ export default function BreathingSequence({
     }, FADE_TO_ELLIPSIS + GAP_BETWEEN_BUBBLES);
     
     // S7: Leo p2.l1
-    if (poem2[0]) {
+    if (poem2Lines[0]) {
       schedule(() => {
         setBubbleStep('leo_p2l1');
         setLeoBubbleState('text');
@@ -482,7 +482,7 @@ export default function BreathingSequence({
     }, FADE_TO_ELLIPSIS + GAP_BETWEEN_BUBBLES);
     
     // S10: Leo p2.l2
-    if (poem2[1]) {
+    if (poem2Lines[1]) {
       schedule(() => {
         setBubbleStep('leo_p2l2');
         setLeoBubbleState('text');
@@ -996,10 +996,10 @@ export default function BreathingSequence({
           {/* Leo Bubble */}
           <ComicBubble
             content={
-              bubbleStep === 'leo_p1l1' ? (stage2.payload.poems[0]?.split?.(' / ')?.[0] || stage2.payload.poems[0] || '')
-              : bubbleStep === 'leo_p1l2' ? (stage2.payload.poems[0]?.split?.(' / ')?.[1] || '')
-              : bubbleStep === 'leo_p2l1' ? (stage2.payload.poems[1]?.split?.(' / ')?.[0] || stage2.payload.poems[1] || '')
-              : bubbleStep === 'leo_p2l2' ? (stage2.payload.poems[1]?.split?.(' / ')?.[1] || '')
+              bubbleStep === 'leo_p1l1' ? (stage2.payload.poems[0]?.split?.(',')?.[0]?.trim() || stage2.payload.poems[0] || '')
+              : bubbleStep === 'leo_p1l2' ? (stage2.payload.poems[0]?.split?.(',')?.[1]?.trim() || '')
+              : bubbleStep === 'leo_p2l1' ? (stage2.payload.poems[1]?.split?.(',')?.[0]?.trim() || stage2.payload.poems[1] || '')
+              : bubbleStep === 'leo_p2l2' ? (stage2.payload.poems[1]?.split?.(',')?.[1]?.trim() || '')
               : bubbleStep === 'cta' ? `If anything came to mind, write it down and feed it to ${pigName}.`
               : ''
             }
