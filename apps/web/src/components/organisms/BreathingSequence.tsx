@@ -54,12 +54,13 @@ export default function BreathingSequence({
   const [stage2Complete, setStage2Complete] = useState(false);
   
   // Bubble sequence state (post-Stage 2)
+  // NEW: 3-poem flow with simplified steps
   type BubbleSequenceStep = 
     | 'idle' 
-    | 'leo_p1l1' | 'tip1' | 'sky1' 
-    | 'leo_p1l2' | 'tip2' | 'sky2'
-    | 'leo_p2l1' | 'tip3' | 'sky3'
-    | 'leo_p2l2' | 'gradientReturn' 
+    | 'leo_poem1' | 'tip1' 
+    | 'leo_poem2' | 'tip2'
+    | 'leo_poem3' | 'tip3'
+    | 'sky' | 'gradientReturn' 
     | 'cta';
   
   const [bubbleStep, setBubbleStep] = useState<BubbleSequenceStep>('idle');
@@ -402,46 +403,31 @@ export default function BreathingSequence({
     console.log('[Bubble Sequence] Poems:', poems);
     console.log('[Bubble Sequence] Tips:', tips);
     
-    // Split poems by comma into line 1 and line 2, with fallback handling
-    const parsePoem = (poem: string): [string, string] => {
-      if (!poem) return ['', ''];
-      
-      // Check if poem contains a comma
-      if (poem.includes(',')) {
-        const lines = poem.split(',').map(l => l.trim());
-        return [lines[0] || '', lines[1] || ''];
-      }
-      
-      // Fallback: if no comma, use entire poem as line 1, blank line 2
-      // This prevents the sequence from getting stuck
-      console.warn('[Bubble Sequence] ⚠️ Poem missing comma separator, using fallback:', poem);
-      return [poem.trim(), ''];
-    };
+    // NEW: Handle 3 standalone poems (no comma splitting needed)
+    const poem1 = poems[0] || '';
+    const poem2 = poems[1] || '';
+    const poem3 = poems[2] || '';
     
-    const poem1Lines = parsePoem(poems[0]);
-    const poem2Lines = parsePoem(poems[1]);
-    
-    console.log('[Bubble Sequence] Poem1 lines:', poem1Lines);
-    console.log('[Bubble Sequence] Poem2 lines:', poem2Lines);
+    console.log('[Bubble Sequence] Poem1:', poem1);
+    console.log('[Bubble Sequence] Poem2:', poem2);
+    console.log('[Bubble Sequence] Poem3:', poem3);
     
     // Validate we have at least some content to show
-    const hasContent = poem1Lines[0] || poem2Lines[0] || tips.length > 0;
+    const hasContent = poem1 || poem2 || poem3 || tips.length > 0;
     if (!hasContent) {
       console.warn('[Bubble Sequence] ⚠️ No poems or tips available, fast-forwarding to CTA');
     }
     
     // Debug: Calculate expected steps and timing
+    // NEW FLOW: poem1 → tip1 → poem2 → tip2 → poem3 → tip3 → sky → gradient → CTA
     const activeSteps = [
-      poem1Lines[0] && 'p1l1',
-      tips[0] && 'tip1', 
-      'sky1',
-      poem1Lines[1] && 'p1l2',
+      poem1 && 'poem1',
+      tips[0] && 'tip1',
+      poem2 && 'poem2',
       tips[1] && 'tip2',
-      'sky2',
-      poem2Lines[0] && 'p2l1',
+      poem3 && 'poem3',
       tips[2] && 'tip3',
-      'sky3',
-      poem2Lines[1] && 'p2l2',
+      'sky',
       'gradient',
       'cta',
       'transition'
@@ -462,36 +448,35 @@ export default function BreathingSequence({
     };
     
     // S1: Leo p1.l1 - First poem line appears
-    if (poem1Lines[0]) {
-      console.log('[Bubble Sequence] 📜 Poem 1 Line 1:', poem1Lines[0]);
+    // NEW FLOW: poem1 → tip1 → poem2 → tip2 → poem3 → tip3 → sky → gradient → CTA
+    
+    // S1: Poem 1 - First poem from Leo
+    if (poem1) {
+      console.log('[Bubble Sequence] 📜 Poem 1:', poem1);
       schedule(() => {
-        console.log('[Bubble Sequence] ▶️  Step 1: Leo p1.l1 - Fade in');
-        setBubbleStep('leo_p1l1');
+        console.log('[Bubble Sequence] ▶️  Step 1: Poem1 - Fade in');
+        setBubbleStep('leo_poem1');
         setLeoBubbleState('text');
-      }, 0, 'p1.l1-fadeIn');
+      }, 0, 'poem1-fadeIn');
       
-      // Trigger Leo reaction after bubble fades in
       schedule(() => {
-        console.log('[Bubble Sequence] 🎭 Leo reacting to poem 1 line 1');
+        console.log('[Bubble Sequence] 🎭 Leo reacting to poem 1');
         setLeoReacting(true);
         setTimeout(() => setLeoReacting(false), 700);
-      }, FADE_IN + 100, 'p1.l1-reaction');
+      }, FADE_IN + 100, 'poem1-reaction');
       
-      // Fade to ellipsis
       schedule(() => {
-        console.log('[Bubble Sequence] ⏸️  Step 1: Leo p1.l1 → ellipsis');
+        console.log('[Bubble Sequence] ⏸️  Step 1: Poem1 → ellipsis');
         setLeoBubbleState('ellipsis');
-      }, HOLD_TEXT, 'p1.l1-ellipsis');
+      }, HOLD_TEXT, 'poem1-ellipsis');
       
       schedule(() => {
-        console.log('[Bubble Sequence] 👻 Step 1: Leo p1.l1 → hidden');
+        console.log('[Bubble Sequence] 👻 Step 1: Poem1 → hidden');
         setLeoBubbleState('hidden');
-      }, FADE_TO_ELLIPSIS, 'p1.l1-hide');
-    } else {
-      console.log('[Bubble Sequence] ⚠️  Skipping poem 1 line 1 - no content');
+      }, FADE_TO_ELLIPSIS, 'poem1-hide');
     }
     
-    // S2: Tip1 - First tip appears from window
+    // S2: Tip1 - First tip from window
     if (tips[0]) {
       console.log('[Bubble Sequence] 💡 Tip 1:', tips[0]);
       schedule(() => {
@@ -511,182 +496,130 @@ export default function BreathingSequence({
         console.log('[Bubble Sequence] 👻 Step 2: Tip1 → hidden');
         setWindowBubbleState('hidden');
       }, FADE_TO_ELLIPSIS, 'tip1-hide');
-    } else {
-      console.log('[Bubble Sequence] ⚠️  Skipping tip 1 - no content');
     }
     
-    // S3: Sky1 - First sky brightening
-    schedule(() => {
-      console.log('[Bubble Sequence] 🌅 Step 3: Sky brightening (level 1)');
-      setBubbleStep('sky1');
-      setSkyLightnessLevel(1);
-    }, GAP_BETWEEN_BUBBLES, 'sky1');
-    
-    // S4: Leo p1.l2 - Second line of first poem
-    if (poem1Lines[1]) {
-      console.log('[Bubble Sequence] 📜 Poem 1 Line 2:', poem1Lines[1]);
+    // S3: Poem 2 - Second poem from Leo
+    if (poem2) {
+      console.log('[Bubble Sequence] 📜 Poem 2:', poem2);
       schedule(() => {
-        console.log('[Bubble Sequence] ▶️  Step 4: Leo p1.l2 - Fade in');
-        setBubbleStep('leo_p1l2');
+        console.log('[Bubble Sequence] ▶️  Step 3: Poem2 - Fade in');
+        setBubbleStep('leo_poem2');
         setLeoBubbleState('text');
-      }, SKY_STEP, 'p1.l2-fadeIn');
+      }, GAP_BETWEEN_BUBBLES, 'poem2-fadeIn');
       
       schedule(() => {
-        console.log('[Bubble Sequence] 🎭 Leo reacting to poem 1 line 2');
+        console.log('[Bubble Sequence] 🎭 Leo reacting to poem 2');
         setLeoReacting(true);
         setTimeout(() => setLeoReacting(false), 700);
-      }, FADE_IN + 100, 'p1.l2-reaction');
+      }, FADE_IN + 100, 'poem2-reaction');
       
       schedule(() => {
-        console.log('[Bubble Sequence] ⏸️  Step 4: Leo p1.l2 → ellipsis');
+        console.log('[Bubble Sequence] ⏸️  Step 3: Poem2 → ellipsis');
         setLeoBubbleState('ellipsis');
-      }, HOLD_TEXT, 'p1.l2-ellipsis');
+      }, HOLD_TEXT, 'poem2-ellipsis');
       
       schedule(() => {
-        console.log('[Bubble Sequence] 👻 Step 4: Leo p1.l2 → hidden');
+        console.log('[Bubble Sequence] 👻 Step 3: Poem2 → hidden');
         setLeoBubbleState('hidden');
-      }, FADE_TO_ELLIPSIS, 'p1.l2-hide');
-    } else {
-      console.log('[Bubble Sequence] ⚠️  Skipping poem 1 line 2 - no content');
+      }, FADE_TO_ELLIPSIS, 'poem2-hide');
     }
     
-    // S5: Tip2 - Second tip
+    // S4: Tip2 - Second tip from window
     if (tips[1]) {
       console.log('[Bubble Sequence] 💡 Tip 2:', tips[1]);
       schedule(() => {
-        console.log('[Bubble Sequence] ▶️  Step 5: Tip2 - Fade in');
+        console.log('[Bubble Sequence] ▶️  Step 4: Tip2 - Fade in');
         setBubbleStep('tip2');
         setWindowBubbleState('text');
         setWindowGlowing(true);
       }, GAP_BETWEEN_BUBBLES, 'tip2-fadeIn');
       
       schedule(() => {
-        console.log('[Bubble Sequence] ⏸️  Step 5: Tip2 → ellipsis');
+        console.log('[Bubble Sequence] ⏸️  Step 4: Tip2 → ellipsis');
         setWindowBubbleState('ellipsis');
         setWindowGlowing(false);
       }, FADE_IN + HOLD_TEXT, 'tip2-ellipsis');
       
       schedule(() => {
-        console.log('[Bubble Sequence] 👻 Step 5: Tip2 → hidden');
+        console.log('[Bubble Sequence] 👻 Step 4: Tip2 → hidden');
         setWindowBubbleState('hidden');
       }, FADE_TO_ELLIPSIS, 'tip2-hide');
-    } else {
-      console.log('[Bubble Sequence] ⚠️  Skipping tip 2 - no content');
     }
     
-    // S6: Sky2 - Second sky brightening
-    schedule(() => {
-      console.log('[Bubble Sequence] 🌅 Step 6: Sky brightening (level 2)');
-      setBubbleStep('sky2');
-      setSkyLightnessLevel(2);
-    }, GAP_BETWEEN_BUBBLES, 'sky2');
-    
-    // S7: Leo p2.l1 - First line of second poem
-    if (poem2Lines[0]) {
-      console.log('[Bubble Sequence] 📜 Poem 2 Line 1:', poem2Lines[0]);
+    // S5: Poem 3 - Third poem from Leo
+    if (poem3) {
+      console.log('[Bubble Sequence] 📜 Poem 3:', poem3);
       schedule(() => {
-        console.log('[Bubble Sequence] ▶️  Step 7: Leo p2.l1 - Fade in');
-        setBubbleStep('leo_p2l1');
+        console.log('[Bubble Sequence] ▶️  Step 5: Poem3 - Fade in');
+        setBubbleStep('leo_poem3');
         setLeoBubbleState('text');
-      }, SKY_STEP, 'p2.l1-fadeIn');
+      }, GAP_BETWEEN_BUBBLES, 'poem3-fadeIn');
       
       schedule(() => {
-        console.log('[Bubble Sequence] 🎭 Leo reacting to poem 2 line 1');
+        console.log('[Bubble Sequence] 🎭 Leo reacting to poem 3');
         setLeoReacting(true);
         setTimeout(() => setLeoReacting(false), 700);
-      }, FADE_IN + 100, 'p2.l1-reaction');
+      }, FADE_IN + 100, 'poem3-reaction');
       
       schedule(() => {
-        console.log('[Bubble Sequence] ⏸️  Step 7: Leo p2.l1 → ellipsis');
+        console.log('[Bubble Sequence] ⏸️  Step 5: Poem3 → ellipsis');
         setLeoBubbleState('ellipsis');
-      }, HOLD_TEXT, 'p2.l1-ellipsis');
+      }, HOLD_TEXT, 'poem3-ellipsis');
       
       schedule(() => {
-        console.log('[Bubble Sequence] 👻 Step 7: Leo p2.l1 → hidden');
+        console.log('[Bubble Sequence] 👻 Step 5: Poem3 → hidden');
         setLeoBubbleState('hidden');
-      }, FADE_TO_ELLIPSIS, 'p2.l1-hide');
-    } else {
-      console.log('[Bubble Sequence] ⚠️  Skipping poem 2 line 1 - no content');
+      }, FADE_TO_ELLIPSIS, 'poem3-hide');
     }
     
-    // S8: Tip3 - Third and final tip
+    // S6: Tip3 - Third and final tip from window
     if (tips[2]) {
       console.log('[Bubble Sequence] 💡 Tip 3:', tips[2]);
       schedule(() => {
-        console.log('[Bubble Sequence] ▶️  Step 8: Tip3 - Fade in');
+        console.log('[Bubble Sequence] ▶️  Step 6: Tip3 - Fade in');
         setBubbleStep('tip3');
         setWindowBubbleState('text');
         setWindowGlowing(true);
       }, GAP_BETWEEN_BUBBLES, 'tip3-fadeIn');
       
       schedule(() => {
-        console.log('[Bubble Sequence] 👻 Step 8: Tip3 → hidden (final tip fades completely)');
+        console.log('[Bubble Sequence] 👻 Step 6: Tip3 → hidden (final tip fades completely)');
         setWindowBubbleState('hidden');
         setWindowGlowing(false);
       }, FADE_IN + HOLD_TEXT + FADE_TO_ELLIPSIS, 'tip3-hide');
-    } else {
-      console.log('[Bubble Sequence] ⚠️  Skipping tip 3 - no content');
     }
     
-    // S9: Sky3 - Third sky brightening
+    // S7: Sky brightening - Progressive lightening
     schedule(() => {
-      console.log('[Bubble Sequence] 🌅 Step 9: Sky brightening (level 3)');
-      setBubbleStep('sky3');
+      console.log('[Bubble Sequence] 🌅 Step 7: Sky brightening');
+      setBubbleStep('sky');
       setSkyLightnessLevel(3);
-    }, GAP_BETWEEN_BUBBLES, 'sky3');
+    }, GAP_BETWEEN_BUBBLES, 'sky');
     
-    // S10: Leo p2.l2 - Final poem line
-    if (poem2Lines[1]) {
-      console.log('[Bubble Sequence] 📜 Poem 2 Line 2:', poem2Lines[1]);
-      schedule(() => {
-        console.log('[Bubble Sequence] ▶️  Step 10: Leo p2.l2 - Fade in');
-        setBubbleStep('leo_p2l2');
-        setLeoBubbleState('text');
-      }, SKY_STEP, 'p2.l2-fadeIn');
-      
-      schedule(() => {
-        console.log('[Bubble Sequence] 🎭 Leo reacting to poem 2 line 2');
-        setLeoReacting(true);
-        setTimeout(() => setLeoReacting(false), 700);
-      }, FADE_IN + 100, 'p2.l2-reaction');
-      
-      schedule(() => {
-        console.log('[Bubble Sequence] ⏸️  Step 10: Leo p2.l2 → ellipsis');
-        setLeoBubbleState('ellipsis');
-      }, HOLD_TEXT, 'p2.l2-ellipsis');
-      
-      schedule(() => {
-        console.log('[Bubble Sequence] 👻 Step 10: Leo p2.l2 → hidden');
-        setLeoBubbleState('hidden');
-      }, FADE_TO_ELLIPSIS, 'p2.l2-hide');
-    } else {
-      console.log('[Bubble Sequence] ⚠️  Skipping poem 2 line 2 - no content');
-    }
-    
-    // S11: Gradient return - Sky transitions to dawn gradient
+    // S8: Gradient return - Sky transitions to dawn gradient
     schedule(() => {
-      console.log('[Bubble Sequence] 🌄 Step 11: Gradient return - Full dawn');
+      console.log('[Bubble Sequence] 🌄 Step 8: Gradient return - Full dawn');
       setBubbleStep('gradientReturn');
       setSkyLightnessLevel(4);
-    }, GAP_BETWEEN_BUBBLES, 'gradient');
+    }, SKY_STEP, 'gradient');
     
-    // S12: CTA - Final call to action
+    // S9: CTA - Final call to action
     schedule(() => {
-      console.log('[Bubble Sequence] 📢 Step 12: CTA appears');
+      console.log('[Bubble Sequence] 📢 Step 9: CTA appears');
       setBubbleStep('cta');
       setLeoBubbleState('text');
     }, GRADIENT_RETURN, 'cta-fadeIn');
     
-    // S13: Fade out CTA
+    // S10: Fade out CTA
     schedule(() => {
-      console.log('[Bubble Sequence] 💤 Step 13: CTA fading out');
+      console.log('[Bubble Sequence] 💤 Step 10: CTA fading out');
       setLeoBubbleState('hidden');
       setBubbleStep('idle');
     }, FADE_IN + HOLD_TEXT + 800, 'cta-hide');
     
-    // S14: Trigger transition to Moments Library
+    // S11: Trigger transition to Moments Library
     schedule(() => {
-      console.log('[Bubble Sequence] 🌆 Step 14: Transition to Moments Library');
+      console.log('[Bubble Sequence] 🌆 Step 11: Transition to Moments Library');
       console.log('[Bubble Sequence] ✅ COMPLETE! Total sequence time:', (currentTime / 1000).toFixed(1), 'seconds');
       onComplete();
     }, 1200, 'transition');
@@ -694,7 +627,7 @@ export default function BreathingSequence({
     console.log('[Bubble Sequence] 🏁 Orchestration scheduled:', {
       totalSteps: timeouts.length,
       finalTimestamp: `${(currentTime / 1000).toFixed(1)}s`,
-      poems: { p1l1: !!poem1Lines[0], p1l2: !!poem1Lines[1], p2l1: !!poem2Lines[0], p2l2: !!poem2Lines[1] },
+      poems: { poem1: !!poem1, poem2: !!poem2, poem3: !!poem3 },
       tips: { tip1: !!tips[0], tip2: !!tips[1], tip3: !!tips[2] },
     });
     
@@ -1318,10 +1251,9 @@ export default function BreathingSequence({
             {leoAnchor && (
               <ComicBubble
                 content={
-                  bubbleStep === 'leo_p1l1' ? (stage2.payload.poems[0]?.split?.(',')?.[0]?.trim() || stage2.payload.poems[0] || 'Breathing...')
-                  : bubbleStep === 'leo_p1l2' ? (stage2.payload.poems[0]?.split?.(',')?.[1]?.trim() || stage2.payload.poems[0] || '')
-                  : bubbleStep === 'leo_p2l1' ? (stage2.payload.poems[1]?.split?.(',')?.[0]?.trim() || stage2.payload.poems[1] || 'Just breathe...')
-                  : bubbleStep === 'leo_p2l2' ? (stage2.payload.poems[1]?.split?.(',')?.[1]?.trim() || stage2.payload.poems[1] || '')
+                  bubbleStep === 'leo_poem1' ? (stage2.payload.poems[0] || 'Breathing...')
+                  : bubbleStep === 'leo_poem2' ? (stage2.payload.poems[1] || 'Just breathe...')
+                  : bubbleStep === 'leo_poem3' ? (stage2.payload.poems[2] || '')
                   : bubbleStep === 'cta' ? `If anything came to mind, write it down and feed it to ${pigName}.`
                   : ''
                 }

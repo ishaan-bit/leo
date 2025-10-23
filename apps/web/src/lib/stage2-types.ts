@@ -4,10 +4,10 @@
  */
 
 export interface PostEnrichmentPayload {
-  /** 2-line poems: [opening, closing] */
-  poems: [string, string];
+  /** 3 standalone poems (no comma splitting) */
+  poems: [string, string, string];
   
-  /** 1-3 guidance tips */
+  /** 3 guidance tips */
   tips: string[];
   
   /** Final outro phrase */
@@ -21,9 +21,10 @@ export type Stage2Phase =
   | 'idle'           // Not started, normal breathing
   | 'continuity'     // Phase 0: handoff, fade in intro text
   | 'poem1'          // Phase 1: ignite window, show poems[0]
-  | 'tips'           // Phase 2: display tips sequence
-  | 'poem2'          // Phase 3: show poems[1], release glow
-  | 'closing'        // Phase 4: resting pulse, closing cue
+  | 'poem2'          // Phase 2: show poems[1]
+  | 'poem3'          // Phase 3: show poems[2]
+  | 'tips'           // Phase 4: display tips sequence
+  | 'closing'        // Phase 5: resting pulse, closing cue
   | 'complete';      // Done
 
 export interface WindowState {

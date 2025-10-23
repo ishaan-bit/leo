@@ -19,25 +19,51 @@ export async function GET(
       );
     }
 
-    // Fetch all reflections for this pig
-    // Pattern: reflection:pig_id:reflection_id or reflections:enriched:reflection_id
-    const reflectionKeys = await kv.keys(`reflection:${pigId}:*`);
-    const enrichedKeys = await kv.keys(`reflections:enriched:refl_*`);
+    console.log('[API /pig/moments] 📡 Fetching moments for pigId:', pigId);
+
+    // Fetch reflection IDs from sorted set (newest first)
+    const pigKey = `pig_reflections:${pigId}`;
+    console.log('[API /pig/moments] 🔍 Querying key:', pigKey);
     
-    const allKeys = [...new Set([...reflectionKeys, ...enrichedKeys])];
+    const reflectionIds = await kv.zrange(pigKey, 0, -1, { rev: true });
+    console.log('[API /pig/moments] 📋 Found reflection IDs:', reflectionIds);
     
+    if (!reflectionIds || reflectionIds.length === 0) {
+      console.log('[API /pig/moments] 🏜️ No reflections found for this pig');
+      return NextResponse.json({
+        success: true,
+        moments: [],
+        count: 0,
+      });
+    }
+
     const moments = [];
     
-    for (const key of allKeys) {
-      const reflection = await kv.get(key);
-      
-      if (reflection && typeof reflection === 'object') {
-        const data = reflection as any;
+    // Fetch each reflection
+    for (const rid of reflectionIds) {
+      try {
+        const reflectionKey = `reflection:${rid}`;
+        console.log('[API /pig/moments] 🔑 Fetching:', reflectionKey);
         
-        // Skip if not for this pig
-        if (data.pig_id && data.pig_id !== pigId) {
+        const reflectionData = await kv.get(reflectionKey);
+        
+        if (!reflectionData) {
+          console.warn('[API /pig/moments] ⚠️ Reflection not found:', reflectionKey);
           continue;
         }
+        
+        // Parse if it's a string
+        const data = typeof reflectionData === 'string' 
+          ? JSON.parse(reflectionData) 
+          : reflectionData;
+        
+        console.log('[API /pig/moments] ✅ Loaded reflection:', {
+          rid: data.rid,
+          hasPost: !!data.post_enrichment,
+          hasFinal: !!data.final,
+          primaryEmotion: data.final?.wheel?.primary,
+          text: data.normalized_text?.slice(0, 50),
+        });
         
         // Extract primary zone from final.wheel.primary (e.g., "Scared" → map to fear)
         const primaryEmotion = data.final?.wheel?.primary || 'Peaceful';
@@ -71,7 +97,7 @@ export async function GET(
         
         // Extract moment data
         const moment = {
-          id: data.rid || key.split(':').pop() || key,
+          id: data.rid || String(rid),
           text: data.normalized_text || data.raw_text || '',
           zone,
           primaryEmotion,
@@ -88,9 +114,21 @@ export async function GET(
         };
         
         moments.push(moment);
+        
+      } catch (error) {
+        console.error('[API /pig/moments] ❌ Error processing reflection:', rid, error);
+        continue;
       }
     }
     
+    console.log('[API /pig/moments] 📊 Processed moments:', {
+      total: moments.length,
+      byZone: moments.reduce((acc: Record<string, number>, m: any) => {
+        acc[m.zone] = (acc[m.zone] || 0) + 1;
+        return acc;
+      }, {}),
+    });
+
     // Sort by timestamp descending (newest first)
     moments.sort((a, b) => 
       new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
@@ -103,7 +141,7 @@ export async function GET(
     });
     
   } catch (error) {
-    console.error('[API /pig/moments] Error:', error);
+    console.error('[API /pig/moments] ❌ Fatal error:', error);
     return NextResponse.json(
       { error: 'Failed to fetch moments', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
