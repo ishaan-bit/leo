@@ -311,7 +311,20 @@ export default function BreathingSequence({
 
   // Bubble sequence orchestration (post-Stage 2 completion)
   useEffect(() => {
-    if (!stage2Complete || !stage2.payload) return;
+    console.log('[Bubble Sequence] Effect triggered:', { 
+      stage2Complete, 
+      hasPayload: !!stage2.payload,
+      payload: stage2.payload,
+      poems: stage2.payload?.poems,
+      tips: stage2.payload?.tips
+    });
+    
+    if (!stage2Complete || !stage2.payload) {
+      console.log('[Bubble Sequence] Not starting - missing conditions');
+      return;
+    }
+    
+    console.log('[Bubble Sequence] Starting orchestration!');
     
     const FADE_IN = 800;
     const HOLD_TEXT = 2200;
@@ -323,9 +336,15 @@ export default function BreathingSequence({
     const poems = stage2.payload.poems || ['', ''];
     const tips = stage2.payload.tips || [];
     
+    console.log('[Bubble Sequence] Poems:', poems);
+    console.log('[Bubble Sequence] Tips:', tips);
+    
     // Split poems into lines (assuming format "line1 / line2" or array)
     const poem1 = Array.isArray(poems[0]) ? poems[0] : (poems[0]?.split(' / ') || ['', '']);
     const poem2 = Array.isArray(poems[1]) ? poems[1] : (poems[1]?.split(' / ') || ['', '']);
+    
+    console.log('[Bubble Sequence] Poem1:', poem1);
+    console.log('[Bubble Sequence] Poem2:', poem2);
     
     const timeouts: NodeJS.Timeout[] = [];
     let currentTime = 0;
@@ -339,11 +358,18 @@ export default function BreathingSequence({
     
     // S1: Leo p1.l1
     if (poem1[0]) {
+      console.log('[Bubble Sequence] Scheduling Leo p1.l1:', poem1[0]);
       schedule(() => {
+        console.log('[Bubble Sequence] Showing Leo p1.l1');
         setBubbleStep('leo_p1l1');
         setLeoBubbleState('text');
       }, 0);
-      schedule(() => setLeoBubbleState('ellipsis'), FADE_IN + HOLD_TEXT);
+      schedule(() => {
+        console.log('[Bubble Sequence] Leo p1.l1 → ellipsis');
+        setLeoBubbleState('ellipsis');
+      }, FADE_IN + HOLD_TEXT);
+    } else {
+      console.log('[Bubble Sequence] Skipping Leo p1.l1 - no content');
     }
     
     // S2: Tip1
@@ -917,7 +943,16 @@ export default function BreathingSequence({
       </AnimatePresence>
 
       {/* Comic Bubbles - Post-Stage 2 Sequence */}
-      {stage2Complete && stage2.payload && (
+      {stage2Complete && stage2.payload && (() => {
+        console.log('[Bubble Render] Rendering bubbles:', {
+          bubbleStep,
+          leoBubbleState,
+          windowBubbleState,
+          poems: stage2.payload.poems,
+          tips: stage2.payload.tips
+        });
+        return true;
+      })() && (
         <>
           {/* Leo Bubble */}
           <ComicBubble
