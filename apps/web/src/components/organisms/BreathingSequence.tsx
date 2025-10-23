@@ -66,6 +66,8 @@ export default function BreathingSequence({
   const [leoBubbleState, setLeoBubbleState] = useState<'hidden' | 'text' | 'ellipsis'>('hidden');
   const [windowBubbleState, setWindowBubbleState] = useState<'hidden' | 'text' | 'ellipsis'>('hidden');
   const [skyLightnessLevel, setSkyLightnessLevel] = useState(0); // 0-3
+  const [leoReacting, setLeoReacting] = useState(false); // For poem line reactions
+  const [windowGlowing, setWindowGlowing] = useState(false); // For tip window glow
   
   // Stage 2 state
   const [stage2, setStage2] = useState<Stage2State>({
@@ -409,6 +411,11 @@ export default function BreathingSequence({
         setBubbleStep('leo_p1l1');
         setLeoBubbleState('text');
       }, 0);
+      // Trigger Leo reaction after bubble fades in
+      schedule(() => {
+        setLeoReacting(true);
+        setTimeout(() => setLeoReacting(false), 700); // 350ms in + 350ms out
+      }, FADE_IN + 100);
       schedule(() => {
         console.log('[Bubble Sequence] Leo p1.l1 → ellipsis');
         setLeoBubbleState('ellipsis');
@@ -422,8 +429,12 @@ export default function BreathingSequence({
       schedule(() => {
         setBubbleStep('tip1');
         setWindowBubbleState('text');
+        setWindowGlowing(true); // Start window glow
       }, FADE_TO_ELLIPSIS + GAP_BETWEEN_BUBBLES);
-      schedule(() => setWindowBubbleState('ellipsis'), FADE_IN + HOLD_TEXT);
+      schedule(() => {
+        setWindowBubbleState('ellipsis');
+        setWindowGlowing(false); // Ease out glow
+      }, FADE_IN + HOLD_TEXT);
     }
     
     // S3: Sky1
@@ -440,6 +451,11 @@ export default function BreathingSequence({
         setBubbleStep('leo_p1l2');
         setLeoBubbleState('text');
       }, SKY_STEP);
+      // Trigger Leo reaction
+      schedule(() => {
+        setLeoReacting(true);
+        setTimeout(() => setLeoReacting(false), 700);
+      }, SKY_STEP + FADE_IN + 100);
       schedule(() => setLeoBubbleState('ellipsis'), FADE_IN + HOLD_TEXT);
     }
     
@@ -448,8 +464,12 @@ export default function BreathingSequence({
       schedule(() => {
         setBubbleStep('tip2');
         setWindowBubbleState('text');
+        setWindowGlowing(true);
       }, FADE_TO_ELLIPSIS + GAP_BETWEEN_BUBBLES);
-      schedule(() => setWindowBubbleState('ellipsis'), FADE_IN + HOLD_TEXT);
+      schedule(() => {
+        setWindowBubbleState('ellipsis');
+        setWindowGlowing(false);
+      }, FADE_IN + HOLD_TEXT);
     }
     
     // S6: Sky2
@@ -466,6 +486,11 @@ export default function BreathingSequence({
         setBubbleStep('leo_p2l1');
         setLeoBubbleState('text');
       }, SKY_STEP);
+      // Trigger Leo reaction
+      schedule(() => {
+        setLeoReacting(true);
+        setTimeout(() => setLeoReacting(false), 700);
+      }, SKY_STEP + FADE_IN + 100);
       schedule(() => setLeoBubbleState('ellipsis'), FADE_IN + HOLD_TEXT);
     }
     
@@ -474,9 +499,11 @@ export default function BreathingSequence({
       schedule(() => {
         setBubbleStep('tip3');
         setWindowBubbleState('text');
+        setWindowGlowing(true);
       }, FADE_TO_ELLIPSIS + GAP_BETWEEN_BUBBLES);
       schedule(() => {
         setWindowBubbleState('hidden'); // Final tip fades out completely
+        setWindowGlowing(false);
       }, FADE_IN + HOLD_TEXT);
     }
     
@@ -493,6 +520,11 @@ export default function BreathingSequence({
         setBubbleStep('leo_p2l2');
         setLeoBubbleState('text');
       }, SKY_STEP);
+      // Trigger Leo reaction
+      schedule(() => {
+        setLeoReacting(true);
+        setTimeout(() => setLeoReacting(false), 700);
+      }, SKY_STEP + FADE_IN + 100);
       schedule(() => setLeoBubbleState('ellipsis'), FADE_IN + HOLD_TEXT);
     }
     
@@ -576,12 +608,22 @@ export default function BreathingSequence({
 
       {/* Leo - centered, breathing */}
       <motion.div
+        id="leoContainer"
         className="absolute z-20 left-1/2 top-[35%]"
         style={{ x: '-50%', y: '-50%' }}
       >
         <motion.div
-          animate={{ scale: leoScale }}
-          transition={{ duration: activeCycle.in, ease: EASING }}
+          animate={{ 
+            scale: leoScale,
+            // Reaction animation: head tilt + subtle ear wiggle
+            rotateZ: leoReacting ? [-1, 1.5, -1, 0] : 0,
+          }}
+          transition={{ 
+            scale: { duration: activeCycle.in, ease: EASING },
+            rotateZ: leoReacting 
+              ? { duration: 0.7, times: [0, 0.33, 0.66, 1], ease: 'easeInOut' }
+              : { duration: 0.3, ease: 'easeOut' }
+          }}
         >
           <Image src="/images/leo.svg" alt="Leo" width={200} height={200} priority />
         </motion.div>
@@ -813,16 +855,27 @@ export default function BreathingSequence({
             transition={{ duration: 1, ease: EASING }}
           >
             {/* Window glow */}
-            <div
+            <motion.div
               className="absolute inset-0 rounded-lg"
               style={{
                 background: `radial-gradient(circle, ${zoneColor}CC 0%, ${zoneColor}66 50%, transparent 100%)`,
                 filter: 'blur(20px)',
               }}
+              animate={{
+                // Enhanced glow during tips
+                scale: windowGlowing ? [1, 1.3, 1.25] : 1,
+                opacity: windowGlowing ? [0.8, 1.2, 1] : 0.8,
+              }}
+              transition={{
+                duration: windowGlowing ? 1.5 : 0.6,
+                repeat: windowGlowing ? Infinity : 0,
+                repeatType: 'mirror',
+                ease: 'easeInOut',
+              }}
             />
             
             {/* Window pane */}
-            <div
+            <motion.div
               className="absolute inset-0 rounded-lg border-2 flex items-center justify-center p-4 overflow-hidden"
               style={{
                 backgroundColor: `${zoneColor}33`,
@@ -831,6 +884,14 @@ export default function BreathingSequence({
                   0 0 40px ${zoneColor}99,
                   inset 0 0 20px ${zoneColor}33
                 `,
+              }}
+              animate={{
+                // Brightness boost during tips
+                filter: windowGlowing ? 'brightness(1.3)' : 'brightness(1)',
+              }}
+              transition={{
+                duration: 0.6,
+                ease: 'easeInOut',
               }}
             >
               {/* Text content based on phase */}
@@ -901,7 +962,7 @@ export default function BreathingSequence({
                   </motion.div>
                 )}
               </AnimatePresence>
-            </div>
+            </motion.div>
 
             {/* Upward glow during poem2 exhale */}
             {stage2.phase === 'poem2' && !isInhaling && (
@@ -999,7 +1060,7 @@ export default function BreathingSequence({
         return true;
       })() && (
         <>
-          {/* Leo Bubble */}
+          {/* Leo Bubble (Poems) */}
           <ComicBubble
             content={
               bubbleStep === 'leo_p1l1' ? (stage2.payload.poems[0]?.split?.(',')?.[0]?.trim() || stage2.payload.poems[0] || '')
@@ -1010,18 +1071,20 @@ export default function BreathingSequence({
               : ''
             }
             state={leoBubbleState}
-            anchorPosition={{ x: 50, y: 25 }} // Between auth bar and Leo (% units)
+            type="poem"
+            anchorPosition={{ x: 50, y: 20 }} // Anchor to Leo
             tailDirection="down"
-            maxWidth={360}
+            maxWidth={480}
             breathProgress={breathProgress}
             style={{ 
               left: '50%', 
-              top: '25vh',
+              top: 'max(18vh, calc(35% - 140px))', // Above Leo, with collision guard
               transform: 'translateX(-50%)',
+              zIndex: 51, // Above Leo
             }}
           />
 
-          {/* Window Bubble */}
+          {/* Window Bubble (Tips) */}
           <ComicBubble
             content={
               bubbleStep === 'tip1' ? (stage2.payload.tips[0] || '')
@@ -1030,16 +1093,18 @@ export default function BreathingSequence({
               : ''
             }
             state={windowBubbleState}
+            type="tip"
             anchorPosition={{ 
-              x: 35 + 5, // Primary tower X + offset to top-right window
-              y: 30, // Top portion of building
+              x: 35 + 8, // Primary tower X + offset to rightmost window
+              y: 30, // Top floor
             }}
             tailDirection="left"
-            maxWidth={320}
+            maxWidth={340}
             breathProgress={breathProgress}
             style={{
-              left: `${35 + 8}%`, // Offset from building
+              left: `calc(${35 + 8}% + 24px)`, // Offset from building with padding
               top: '28vh',
+              zIndex: 51, // Above buildings
             }}
           />
         </>

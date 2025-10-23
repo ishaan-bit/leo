@@ -4,12 +4,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { type CSSProperties } from 'react';
 
 type BubbleState = 'hidden' | 'text' | 'ellipsis';
+type BubbleType = 'poem' | 'tip';
 
 interface ComicBubbleProps {
   content: string;
   state: BubbleState;
   anchorPosition: { x: number; y: number }; // Position of anchor point (Leo or window)
   tailDirection: 'down' | 'up' | 'left' | 'right'; // Direction tail points
+  type: BubbleType; // poem (serif) or tip (sans)
   maxWidth?: number;
   breathProgress?: number; // 0-1 for pulse sync
   className?: string;
@@ -23,6 +25,7 @@ export default function ComicBubble({
   state,
   anchorPosition,
   tailDirection = 'down',
+  type,
   maxWidth = 320,
   breathProgress = 0.5,
   className = '',
@@ -30,6 +33,21 @@ export default function ComicBubble({
 }: ComicBubbleProps) {
   // Pulse scale synced to breath (subtle 1-2%)
   const pulseScale = 1 + (Math.sin(breathProgress * Math.PI * 2) * 0.01);
+  
+  // Typography based on type
+  const typography = type === 'poem' ? {
+    fontFamily: '"EB Garamond", "Georgia", serif',
+    fontSize: state === 'ellipsis' ? '1.75rem' : '1.25rem',
+    lineHeight: state === 'ellipsis' ? '1' : '1.5',
+    letterSpacing: state === 'ellipsis' ? '0.2em' : '0.3px',
+    maxWidth: '60ch',
+  } : {
+    fontFamily: '"Inter", "SF Pro Text", "Roboto", sans-serif',
+    fontSize: state === 'ellipsis' ? '1.5rem' : '1rem',
+    lineHeight: state === 'ellipsis' ? '1' : '1.3',
+    letterSpacing: state === 'ellipsis' ? '0.2em' : 'normal',
+    maxWidth: '42ch',
+  };
   
   // Tail SVG paths for different directions
   const getTailPath = () => {
@@ -116,11 +134,15 @@ export default function ComicBubble({
                 animate={{ opacity: state === 'ellipsis' ? 0.7 : 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.6, ease: EASING }}
-                className="text-center font-serif italic leading-relaxed"
+                className={`text-center ${type === 'poem' ? 'italic' : ''}`}
                 style={{
-                  fontSize: state === 'ellipsis' ? '1.5rem' : '1.125rem',
+                  fontFamily: typography.fontFamily,
+                  fontSize: typography.fontSize,
+                  lineHeight: typography.lineHeight,
+                  letterSpacing: typography.letterSpacing,
+                  maxWidth: typography.maxWidth,
                   color: '#2D2D2D',
-                  letterSpacing: state === 'ellipsis' ? '0.2em' : '0.02em',
+                  minHeight: '1.5em', // Prevent layout shift
                 }}
                 aria-live="polite"
               >
