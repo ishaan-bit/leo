@@ -265,12 +265,12 @@ export default function BreathingSequence({
     };
   }, [isReady, cycleDuration, cycleCount, stage2Complete, stage2, onComplete]);
 
-  // Add floating words periodically - STOP AFTER CYCLE 10
+  // Add floating words periodically - fade out when Stage 2 completes
   useEffect(() => {
     if (!isReady || wordPool.current.length === 0) return;
     
-    // Stop showing floating words after cycle 10
-    if (cycleCount >= 10) {
+    // Stop and clear all words when Stage 2 completes
+    if (stage2Complete) {
       setWords([]); // Clear all existing words
       return;
     }
@@ -292,7 +292,7 @@ export default function BreathingSequence({
     
     const interval = setInterval(addWord, 5000);
     return () => clearInterval(interval);
-  }, [isReady, cycleCount]);
+  }, [isReady, stage2Complete]);
 
   // Breathing helpers
   const isInhaling = breathProgress < 0.5;
@@ -342,8 +342,8 @@ export default function BreathingSequence({
         </motion.div>
       </motion.div>
 
-      {/* Breathing prompt - positioned below Leo to avoid building name overlap */}
-      {/* Hide when Stage 2 complete, show inhale/exhale or transition message */}
+      {/* Breathing prompt - positioned below Leo */}
+      {/* Fade out smoothly when Stage 2 completes */}
       <AnimatePresence>
         {!stage2Complete && (
           <motion.div
@@ -361,86 +361,29 @@ export default function BreathingSequence({
               ease: EASING,
               times: [0, 0.5, 1],
             }}
-            exit={{ opacity: 0, transition: { duration: 1 } }}
-          >
-            {cycleCount < 10 ? (
-              // Normal breathing cues (cycles 0-9)
-              <div
-                className="text-4xl font-sans tracking-widest lowercase font-light"
-                style={{
-                  color: 'rgba(255, 255, 255, 0.9)',
-                  textShadow: `
-                    0 0 20px rgba(255, 255, 255, 0.8),
-                    0 0 40px rgba(255, 255, 255, 0.6),
-                    0 2px 8px rgba(0,0,0,0.4)
-                  `,
-                  letterSpacing: '0.35em',
-                }}
-              >
-                {isInhaling ? 'inhale' : 'exhale'}
-              </div>
-            ) : (
-              // Transition message (cycle 10+, Stage 2 not complete)
-              <div
-                className="text-2xl font-serif italic tracking-wide"
-                style={{
-                  color: 'rgba(255, 255, 255, 0.85)',
-                  textShadow: `
-                    0 0 20px rgba(255, 255, 255, 0.6),
-                    0 0 40px rgba(255, 255, 255, 0.4),
-                    0 2px 8px rgba(0,0,0,0.4)
-                  `,
-                  letterSpacing: '0.1em',
-                  fontFamily: "'DM Serif Text', serif",
-                }}
-              >
-                your moment begins to take shape
-              </div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Stage 2 Complete: Show Poem 1 Line 1 (centered, pulsing with breath) */}
-      <AnimatePresence>
-        {stage2Complete && stage2.payload && (
-          <motion.div
-            className="absolute left-1/2 top-1/2 z-40 pointer-events-none"
-            style={{
-              x: '-50%',
-              y: '-50%',
-            }}
-            initial={{ opacity: 0 }}
-            animate={{ 
-              opacity: isInhaling ? [0.6, 1, 1] : [1, 0.6, 0.6],
-              scale: isInhaling ? [0.98, 1.05, 1.05] : [1.05, 0.95, 0.95],
-            }}
-            transition={{ 
-              duration: activeCycle.in,
-              ease: EASING,
-              times: [0, 0.5, 1],
-            }}
-            exit={{ opacity: 0, transition: { duration: 1.5 } }}
+            exit={{ opacity: 0, transition: { duration: 1.5, ease: 'easeOut' } }}
           >
             <div
-              className="text-3xl md:text-4xl font-serif italic text-center px-8 max-w-4xl"
+              className="text-4xl font-sans tracking-widest lowercase font-light"
               style={{
-                color: 'rgba(255, 255, 255, 0.95)',
+                color: 'rgba(255, 255, 255, 0.9)',
                 textShadow: `
-                  0 0 30px rgba(255, 255, 255, 0.8),
-                  0 0 60px rgba(255, 255, 255, 0.5),
-                  0 4px 12px rgba(0,0,0,0.5)
+                  0 0 20px rgba(255, 255, 255, 0.8),
+                  0 0 40px rgba(255, 255, 255, 0.6),
+                  0 2px 8px rgba(0,0,0,0.4)
                 `,
-                letterSpacing: '0.05em',
-                fontFamily: "'DM Serif Text', serif",
-                lineHeight: '1.6',
+                letterSpacing: '0.35em',
               }}
             >
-              {stage2.payload.poems[0]}
+              {isInhaling ? 'inhale' : 'exhale'}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Stage 2 Complete: No poem displayed - clean visual hold state */}
+      {/* Sky, building, Leo, and ambient pulse continue */}
+      {/* All text has faded out above */}
 
       {/* City skyline with towers - primary repositioned to center-left */}
       <motion.div
@@ -504,15 +447,14 @@ export default function BreathingSequence({
                   ))}
                 </div>
 
-                {/* Building name - higher position to avoid inhale/exhale overlap */}
-                {/* Hide when Stage 2 completes */}
+                {/* Building name - fade out when Stage 2 completes */}
                 <AnimatePresence>
                   {isPrimary && !stage2Complete && (
                     <motion.div
                       className="absolute -top-32 left-1/2 -translate-x-1/2 whitespace-nowrap font-serif italic text-6xl font-bold z-30"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      exit={{ opacity: 0, transition: { duration: 1 } }}
+                      exit={{ opacity: 0, transition: { duration: 2, ease: 'easeOut' } }}
                       transition={{ duration: 1, delay: 2.5 }}
                       style={{
                         color: tower.color,
@@ -548,7 +490,7 @@ export default function BreathingSequence({
         })}
       </motion.div>
 
-      {/* Floating words - safe zones to avoid UI overlap */}
+      {/* Floating words - fade out when Stage 2 completes */}
       <AnimatePresence>
         {words.map(word => {
           // Safe zones: avoid top 15% (auth bar), center 30-45% vertical (Leo + prompts)
@@ -560,19 +502,19 @@ export default function BreathingSequence({
           let x, y;
           
           if (normalizedAngle < Math.PI / 2) {
-            // Top-right quadrant ΓåÆ place in upper-right safe zone
+            // Top-right quadrant → place in upper-right safe zone
             x = 65 + Math.random() * 20; // 65-85%
             y = 18 + Math.random() * 10; // 18-28% (below auth bar, above Leo)
           } else if (normalizedAngle < Math.PI) {
-            // Bottom-right quadrant ΓåÆ place in lower-right safe zone
+            // Bottom-right quadrant → place in lower-right safe zone
             x = 65 + Math.random() * 20; // 65-85%
             y = 50 + Math.random() * 15; // 50-65% (below Leo, above towers)
           } else if (normalizedAngle < Math.PI * 1.5) {
-            // Bottom-left quadrant ΓåÆ place in lower-left safe zone
+            // Bottom-left quadrant → place in lower-left safe zone
             x = 10 + Math.random() * 20; // 10-30%
             y = 50 + Math.random() * 15; // 50-65% (below Leo, above towers)
           } else {
-            // Top-left quadrant ΓåÆ place in upper-left safe zone
+            // Top-left quadrant → place in upper-left safe zone
             x = 10 + Math.random() * 20; // 10-30%
             y = 18 + Math.random() * 10; // 18-28% (below auth bar, above Leo)
           }
@@ -584,7 +526,7 @@ export default function BreathingSequence({
               style={{ left: `${x}%`, top: `${y}%` }}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1.05, y: -20 }}
-              exit={{ opacity: 0, scale: 0.9 }}
+              exit={{ opacity: 0, scale: 0.9, transition: { duration: 1.5, ease: 'easeOut' } }}
               transition={{ duration: 6, ease: EASING }}
             >
               <span
@@ -605,14 +547,6 @@ export default function BreathingSequence({
           );
         })}
       </AnimatePresence>
-
-      {/* Cycle counter */}
-      {cycleCount > 0 && (
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/30 text-sm font-mono">
-          cycle {cycleCount} {stage2Complete && cycleCount >= MIN_CYCLES && '┬╖ ready'}
-          {stage2.phase !== 'idle' && ` ┬╖ stage2: ${stage2.phase}`}
-        </div>
-      )}
 
       {/* Stage 2: Illuminated Window */}
       <AnimatePresence>
