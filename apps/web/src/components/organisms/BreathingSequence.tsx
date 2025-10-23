@@ -319,9 +319,48 @@ export default function BreathingSequence({
       tips: stage2.payload?.tips
     });
     
-    if (!stage2Complete || !stage2.payload) {
-      console.log('[Bubble Sequence] Not starting - missing conditions');
+    if (!stage2Complete) {
+      console.log('[Bubble Sequence] Not starting - stage2 not complete');
       return;
+    }
+    
+    // If no payload yet, try to fetch the reflection to get post_enrichment
+    if (!stage2.payload) {
+      console.log('[Bubble Sequence] No payload yet, fetching reflection data...');
+      
+      const fetchReflectionData = async () => {
+        try {
+          const response = await fetch(`/api/reflect/${reflectionId}`);
+          if (!response.ok) throw new Error('Failed to fetch reflection');
+          
+          const reflection = await response.json();
+          console.log('[Bubble Sequence] Fetched reflection:', reflection.final?.post_enrichment);
+          
+          if (reflection.final?.post_enrichment) {
+            const postEnrichment = reflection.final.post_enrichment;
+            
+            // Update stage2 with the payload we just got
+            setStage2(prev => ({
+              ...prev,
+              payload: {
+                poems: postEnrichment.poems || ['...', '...'],
+                tips: postEnrichment.tips || [],
+                closing_line: postEnrichment.closing_line || '',
+                tip_moods: postEnrichment.tip_moods || [],
+              },
+            }));
+            
+            console.log('[Bubble Sequence] Payload set from fresh fetch!');
+          } else {
+            console.log('[Bubble Sequence] No post_enrichment in reflection yet - waiting...');
+          }
+        } catch (error) {
+          console.error('[Bubble Sequence] Error fetching reflection:', error);
+        }
+      };
+      
+      fetchReflectionData();
+      return; // Exit this effect run, will re-run when stage2.payload updates
     }
     
     console.log('[Bubble Sequence] Starting orchestration!');
