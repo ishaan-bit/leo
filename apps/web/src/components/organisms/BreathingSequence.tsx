@@ -174,9 +174,9 @@ export default function BreathingSequence({
         
         const reflection = await response.json();
         
-        // Check for post_enrichment payload
-        if (reflection.final?.post_enrichment && !stage2.started) {
-          const postEnrichment = reflection.final.post_enrichment;
+        // Check for post_enrichment payload (at top level or under final for backwards compat)
+        const postEnrichment = reflection.post_enrichment || reflection.final?.post_enrichment;
+        if (postEnrichment && !stage2.started) {
           
           console.log('[Stage2] Post-enrichment received:', postEnrichment);
           
