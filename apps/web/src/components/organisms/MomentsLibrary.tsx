@@ -460,36 +460,38 @@ export default function MomentsLibrary({
                 }}
               >
                 {/* Windows - representing actual moments with zone-colored glow */}
-                <div className="absolute inset-4 grid grid-cols-4 gap-2">
-                  {momentsByZone[tower.id]?.slice(0, 24).map((moment, i) => {
+                {/* REDESIGN: Larger, more visible windows stacked vertically like floors */}
+                <div className="absolute inset-4 flex flex-col gap-3 justify-end">
+                  {momentsByZone[tower.id]?.slice(0, 12).map((moment, i) => {
                     const windowDelay = i * 0.15;
                     const breathCycleDuration = 6; // 6s breathing cycle
                     
                     // Calculate recency (newer = brighter)
                     const momentAge = Date.now() - new Date(moment.timestamp).getTime();
                     const daysSinceReflection = momentAge / (1000 * 60 * 60 * 24);
-                    const recencyBrightness = Math.max(0.3, 1 - (daysSinceReflection / 30)); // Dim over 30 days
+                    const recencyBrightness = Math.max(0.4, 1 - (daysSinceReflection / 30)); // Dim over 30 days
                     
                     return (
                       <motion.div
                         key={`window-${tower.id}-${moment.id}`}
-                        className="rounded-sm cursor-pointer relative group"
+                        className="rounded-md cursor-pointer relative group"
                         style={{
                           width: '100%',
-                          height: '12px',
-                          boxShadow: `0 0 8px ${tower.color}80`,
+                          height: '24px', // 2x bigger - more visible
+                          boxShadow: `0 0 12px ${tower.color}90`,
+                          border: `1.5px solid ${tower.color}60`,
                         }}
                         animate={{
                           backgroundColor: [
-                            `${tower.color}${Math.round(40 * recencyBrightness).toString(16).padStart(2, '0')}`,
-                            `${tower.color}${Math.round(90 * recencyBrightness).toString(16).padStart(2, '0')}`,
-                            `${tower.color}${Math.round(40 * recencyBrightness).toString(16).padStart(2, '0')}`,
+                            `${tower.color}${Math.round(50 * recencyBrightness).toString(16).padStart(2, '0')}`,
+                            `${tower.color}${Math.round(95 * recencyBrightness).toString(16).padStart(2, '0')}`,
+                            `${tower.color}${Math.round(50 * recencyBrightness).toString(16).padStart(2, '0')}`,
                           ],
-                          opacity: [0.3 * recencyBrightness, 0.7 * recencyBrightness, 0.3 * recencyBrightness],
+                          opacity: [0.5 * recencyBrightness, 0.9 * recencyBrightness, 0.5 * recencyBrightness],
                           boxShadow: [
-                            `0 0 4px ${tower.color}40`,
-                            `0 0 12px ${tower.color}80`,
-                            `0 0 4px ${tower.color}40`,
+                            `0 0 8px ${tower.color}50`,
+                            `0 0 20px ${tower.color}CC`,
+                            `0 0 8px ${tower.color}50`,
                           ],
                         }}
                         transition={{
@@ -499,10 +501,10 @@ export default function MomentsLibrary({
                           ease: 'easeInOut',
                         }}
                         whileHover={{
-                          scale: 1.3,
+                          scale: 1.15,
                           opacity: 1,
                           zIndex: 10,
-                          boxShadow: `0 0 20px ${tower.color}`,
+                          boxShadow: `0 0 30px ${tower.color}FF`,
                         }}
                         onClick={() => setSelectedMoment(moment)}
                       >

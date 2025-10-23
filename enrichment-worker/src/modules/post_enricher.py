@@ -120,8 +120,14 @@ class PostEnricher:
             # Validate schema
             self._validate_schema(parsed['post_enrichment'])
             
-            # Normalize poems to ensure comma-separated format
-            parsed['post_enrichment']['poems'] = self._normalize_poems(parsed['post_enrichment']['poems'])
+            # Validate we have exactly 3 poems
+            poems = parsed['post_enrichment']['poems']
+            if len(poems) != 3:
+                print(f"⚠️  Expected 3 poems, got {len(poems)}, padding with fallback")
+                while len(poems) < 3:
+                    poems.append("...")
+                poems = poems[:3]  # Trim if more than 3
+                parsed['post_enrichment']['poems'] = poems
             
             # Merge into hybrid result
             hybrid_result['post_enrichment'] = parsed['post_enrichment']
@@ -187,103 +193,8 @@ class PostEnricher:
         """
         words = poem.split()
         
-        # If 6+ words, split at midpoint
-        if len(words) >= 6:
-            mid = len(words) // 2
-            return f"{' '.join(words[:mid])}, {' '.join(words[mid:])}"
-        
-        # If short, add ellipsis or breathing prompt
-        return f"{poem}, ..."
-    
-    def _normalize_poems(self, poems: list) -> list:
-        """
-        Normalize poems to ensure comma-separated two-line format.
-        
-        Handles cases where Ollama returns poems as:
-        - ["line1", "line2", "line3", "line4"] → ["line1, line2", "line3, line4"]
-        - ["single line poem"] → ["single line poem, "] (with trailing comma for consistency)
-        
-        Args:
-            poems: Raw poems array from Ollama
-        
-        Returns:
-            Normalized poems array with exactly 2 items, each in "line1, line2" format
-        """
-        print(f"   📝 Normalizing poems (input length: {len(poems)})")
-        
-        normalized = []
-        
-        # Case 1: Both poems already have commas (correct format)
-        if len(poems) >= 2 and ',' in poems[0] and ',' in poems[1]:
-            print(f"      ✅ Both poems already in correct format")
-            return [poems[0], poems[1]]
-        
-        # Case 1.5: Mixed - one has comma, one doesn't (fix individually)
-        if len(poems) == 2 and (',' in poems[0] or ',' in poems[1]):
-            print(f"      🔧 Mixed format detected, normalizing individually")
-            poem1 = poems[0] if ',' in poems[0] else self._split_single_poem(poems[0])
-            poem2 = poems[1] if ',' in poems[1] else self._split_single_poem(poems[1])
-            print(f"         Poem1: {poem1}")
-            print(f"         Poem2: {poem2}")
-            return [poem1, poem2]
-        
-        # Case 2: 4 separate lines (Ollama interpreted as 4 separate poems)
-        if len(poems) >= 4:
-            poem1 = f"{poems[0]}, {poems[1]}"
-            poem2 = f"{poems[2]}, {poems[3]}"
-            print(f"      🔧 Merged 4 lines into 2 poems")
-            print(f"         Poem1: {poem1}")
-            print(f"         Poem2: {poem2}")
-            return [poem1, poem2]
-        
-        # Case 3: 3 lines (odd case - use first 2 for poem1, last for poem2 with ellipsis)
-        if len(poems) == 3:
-            poem1 = f"{poems[0]}, {poems[1]}"
-            poem2 = f"{poems[2]}, ..."
-            print(f"      🔧 Merged 3 lines (2+1 split)")
-            return [poem1, poem2]
-        
-        # Case 4: 2 lines without commas
-        if len(poems) == 2:
-            # Try to split each poem intelligently if it's long enough
-            poem1_words = poems[0].split()
-            poem2_words = poems[1].split()
-            
-            # If each poem is 6+ words, split at midpoint for better flow
-            if len(poem1_words) >= 6:
-                mid1 = len(poem1_words) // 2
-                poem1 = f"{' '.join(poem1_words[:mid1])}, {' '.join(poem1_words[mid1:])}"
-                print(f"      🔧 Split poem1 at midpoint ({mid1} words)")
-            else:
-                # Too short to split, add ellipsis as line 2
-                poem1 = f"{poems[0]}, ..."
-                print(f"      🔧 Poem1 too short to split, added ellipsis")
-            
-            if len(poem2_words) >= 6:
-                mid2 = len(poem2_words) // 2
-                poem2 = f"{' '.join(poem2_words[:mid2])}, {' '.join(poem2_words[mid2:])}"
-                print(f"      🔧 Split poem2 at midpoint ({mid2} words)")
-            else:
-                poem2 = f"{poems[1]}, ..."
-                print(f"      🔧 Poem2 too short to split, added ellipsis")
-            
-            print(f"         Poem1: {poem1}")
-            print(f"         Poem2: {poem2}")
-            return [poem1, poem2]
-        
-        # Case 5: Only 1 poem (add generic second poem)
-        if len(poems) == 1:
-            poem1 = poems[0] if ',' in poems[0] else f"{poems[0]}, "
-            poem2 = "something shifted today, you felt it"
-            print(f"      🔧 Only 1 poem provided, added fallback poem2")
-            return [poem1, poem2]
-        
-        # Case 6: Empty or invalid (use fallback)
-        print(f"      ⚠️  Invalid poem format, using fallback")
-        return [
-            "something shifted today, quiet but real",
-            "you noticed it, that counts for something"
-        ]
+        # REMOVED: _split_single_poem and _normalize_poems
+        # Now expecting 3 separate poems directly from Ollama (no comma splitting)
     
     def _validate_schema(self, post_enrichment: Dict):
         """

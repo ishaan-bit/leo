@@ -183,7 +183,7 @@ export default function BreathingSequence({
           setStage2(prev => ({
             ...prev,
             payload: {
-              poems: postEnrichment.poems || ['...', '...'],
+              poems: postEnrichment.poems || ['...', '...', '...'],
               tips: postEnrichment.tips || [],
               closing_line: postEnrichment.closing_line || '',
               tip_moods: postEnrichment.tip_moods || [],
@@ -199,12 +199,16 @@ export default function BreathingSequence({
             phase: 'continuity', // Start Stage 2
             started: true,
           }));
+          
+          // IMMEDIATELY trigger bubble sequence - no waiting for breath cycles
+          console.log('[Breathing] ✅ Triggering bubble sequence immediately');
+          setStage2Complete(true);
         }
         
-        // Check for overall completion status
+        // Check for overall completion status (backup trigger only if stage2 not started yet)
         const status = reflection.status || reflection.final?.status;
-        if (status === 'complete') {
-          console.log('[Breathing] Stage-2 complete, cycle:', cycleCount);
+        if (status === 'complete' && !stage2Complete && !stage2.started) {
+          console.log('[Breathing] Stage-2 complete (backup trigger), cycle:', cycleCount);
           setStage2Complete(true);
         }
       } catch (error) {
