@@ -392,12 +392,33 @@ export default function BreathingSequence({
     console.log('[Bubble Sequence] Poems:', poems);
     console.log('[Bubble Sequence] Tips:', tips);
     
-    // Split poems by comma into line 1 and line 2
-    const poem1Lines = poems[0] ? poems[0].split(',').map(l => l.trim()) : ['', ''];
-    const poem2Lines = poems[1] ? poems[1].split(',').map(l => l.trim()) : ['', ''];
+    // Split poems by comma into line 1 and line 2, with fallback handling
+    const parsePoem = (poem: string): [string, string] => {
+      if (!poem) return ['', ''];
+      
+      // Check if poem contains a comma
+      if (poem.includes(',')) {
+        const lines = poem.split(',').map(l => l.trim());
+        return [lines[0] || '', lines[1] || ''];
+      }
+      
+      // Fallback: if no comma, use entire poem as line 1, blank line 2
+      // This prevents the sequence from getting stuck
+      console.warn('[Bubble Sequence] ⚠️ Poem missing comma separator, using fallback:', poem);
+      return [poem.trim(), ''];
+    };
+    
+    const poem1Lines = parsePoem(poems[0]);
+    const poem2Lines = parsePoem(poems[1]);
     
     console.log('[Bubble Sequence] Poem1 lines:', poem1Lines);
     console.log('[Bubble Sequence] Poem2 lines:', poem2Lines);
+    
+    // Validate we have at least some content to show
+    const hasContent = poem1Lines[0] || poem2Lines[0] || tips.length > 0;
+    if (!hasContent) {
+      console.warn('[Bubble Sequence] ⚠️ No poems or tips available, fast-forwarding to CTA');
+    }
     
     const timeouts: NodeJS.Timeout[] = [];
     let currentTime = 0;
@@ -1177,10 +1198,10 @@ export default function BreathingSequence({
             {leoAnchor && (
               <ComicBubble
                 content={
-                  bubbleStep === 'leo_p1l1' ? (stage2.payload.poems[0]?.split?.(',')?.[0]?.trim() || stage2.payload.poems[0] || '')
-                  : bubbleStep === 'leo_p1l2' ? (stage2.payload.poems[0]?.split?.(',')?.[1]?.trim() || '')
-                  : bubbleStep === 'leo_p2l1' ? (stage2.payload.poems[1]?.split?.(',')?.[0]?.trim() || stage2.payload.poems[1] || '')
-                  : bubbleStep === 'leo_p2l2' ? (stage2.payload.poems[1]?.split?.(',')?.[1]?.trim() || '')
+                  bubbleStep === 'leo_p1l1' ? (stage2.payload.poems[0]?.split?.(',')?.[0]?.trim() || stage2.payload.poems[0] || 'Breathing...')
+                  : bubbleStep === 'leo_p1l2' ? (stage2.payload.poems[0]?.split?.(',')?.[1]?.trim() || stage2.payload.poems[0] || '')
+                  : bubbleStep === 'leo_p2l1' ? (stage2.payload.poems[1]?.split?.(',')?.[0]?.trim() || stage2.payload.poems[1] || 'Just breathe...')
+                  : bubbleStep === 'leo_p2l2' ? (stage2.payload.poems[1]?.split?.(',')?.[1]?.trim() || stage2.payload.poems[1] || '')
                   : bubbleStep === 'cta' ? `If anything came to mind, write it down and feed it to ${pigName}.`
                   : ''
                 }
