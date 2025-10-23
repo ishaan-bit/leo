@@ -25,14 +25,64 @@ type SortBy = 'newest' | 'oldest';
 
 const EASING = [0.65, 0, 0.35, 1] as const;
 
-// Tower configuration matching breathing sequence
+// Tower configuration with zone-specific styling
+// Heights in viewport units (vh) - min 60vh, max 80vh
+// Zone mappings: Vire=joy, Ashmere=sadness, Vera=fear, Haven=trust, Sable=anger, Vanta=disgust
 const TOWER_CONFIGS = [
-  { id: 'joy' as PrimaryEmotion, x: 15, height: 180, color: '#F8D8B5' },
-  { id: 'trust' as PrimaryEmotion, x: 28, height: 220, color: '#D4C5F9' },
-  { id: 'fear' as PrimaryEmotion, x: 41, height: 160, color: '#B8C5D6' },
-  { id: 'surprise' as PrimaryEmotion, x: 54, height: 200, color: '#F4C2C2' },
-  { id: 'sadness' as PrimaryEmotion, x: 67, height: 140, color: '#C8D5E0' },
-  { id: 'disgust' as PrimaryEmotion, x: 80, height: 240, color: '#A8B5C0' },
+  { 
+    id: 'joy' as PrimaryEmotion, 
+    name: 'Vire',
+    x: 12, 
+    heightVh: 65, // 0.65 ratio
+    color: '#FFD58A', // Warm golden
+    style: 'smooth-crown', // Smooth crown top
+    auraIntensity: 1.2 // Extra warm glow
+  },
+  { 
+    id: 'sadness' as PrimaryEmotion, 
+    name: 'Ashmere',
+    x: 25, 
+    heightVh: 80, // 0.8 ratio - tallest, narrow
+    color: '#B4A6FF', // Soft purple
+    style: 'narrow-tall', // Narrow tall
+    auraIntensity: 0.8 // Calm fade
+  },
+  { 
+    id: 'fear' as PrimaryEmotion, 
+    name: 'Vera',
+    x: 40, 
+    heightVh: 75, // 0.75 ratio
+    color: '#9FE3E3', // Aqua translucent
+    style: 'angular-bevel', // Angular bevel
+    auraIntensity: 0.7 // Translucent glass effect
+  },
+  { 
+    id: 'trust' as PrimaryEmotion, 
+    name: 'Haven',
+    x: 55, 
+    heightVh: 60, // 0.6 ratio
+    color: '#EED2FF', // Soft lavender
+    style: 'dome-top', // Dome top
+    auraIntensity: 1.0 // Halo ring
+  },
+  { 
+    id: 'anger' as PrimaryEmotion, 
+    name: 'Sable',
+    x: 70, 
+    heightVh: 70, // 0.7 ratio
+    color: '#FFB28F', // Warm terracotta
+    style: 'stepped', // Stepped
+    auraIntensity: 0.9 // Faint ember flicker
+  },
+  { 
+    id: 'disgust' as PrimaryEmotion, 
+    name: 'Vanta',
+    x: 85, 
+    heightVh: 78, // 0.78 ratio
+    color: '#6C78FF', // Deep blue
+    style: 'solid-prism', // Solid prism
+    auraIntensity: 1.1 // Slow pulsing aura
+  },
 ];
 
 export default function MomentsLibrary({
@@ -143,65 +193,116 @@ export default function MomentsLibrary({
 
   return (
     <div ref={containerRef} className="fixed inset-0 z-50 overflow-hidden">
-      {/* Sky background - same pink gradient */}
+      {/* Sky background - warm lavender to peach dawn gradient */}
       <motion.div
         className="absolute inset-0"
         style={{
-          background: 'linear-gradient(to bottom, #2D1B3D, #4A2B5C, #8B5A8D, #D4A5C4, #FFE5F0)',
+          background: 'linear-gradient(to bottom, #5E4B7E 0%, #8B6A9E 25%, #CFA8E0 50%, #E8C5D9 75%, #FAD2D6 100%)',
         }}
         animate={{
-          scale: phase === 'skyline' ? 0.92 : 1,
+          filter: [
+            'brightness(1) blur(0px)',
+            'brightness(1.03) blur(1px)',
+            'brightness(1) blur(0px)',
+          ],
         }}
-        transition={{ duration: 1.5, ease: EASING }}
+        transition={{ 
+          duration: 5, 
+          repeat: Infinity,
+          ease: 'easeInOut'
+        }}
       />
       
-      {/* Stars with parallax */}
+      {/* Atmospheric haze at skyline base */}
+      <motion.div
+        className="absolute bottom-0 left-0 right-0 pointer-events-none"
+        style={{
+          height: '30vh',
+          background: 'linear-gradient(to top, rgba(250, 210, 214, 0.4) 0%, rgba(207, 168, 224, 0.2) 50%, transparent 100%)',
+          filter: 'blur(20px)',
+        }}
+        animate={{
+          opacity: [0.6, 0.8, 0.6],
+        }}
+        transition={{
+          duration: 5,
+          repeat: Infinity,
+          ease: 'easeInOut',
+        }}
+      />
+      
+      {/* Stars with parallax and random twinkling */}
       <div className="absolute inset-0 pointer-events-none">
-        {Array.from({ length: 100 }).map((_, i) => (
-          <motion.div
-            key={`star-${i}`}
-            className="absolute w-[2px] h-[2px] bg-white rounded-full"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 70}%`,
-            }}
-            animate={{
-              opacity: [0.3, 0.8, 0.3],
-              scale: [1, 1.2, 1],
-            }}
-            transition={{
-              duration: 2 + Math.random() * 2,
-              repeat: Infinity,
-              delay: Math.random() * 2,
-            }}
-          />
-        ))}
+        {Array.from({ length: 150 }).map((_, i) => {
+          const size = Math.random() > 0.7 ? 2 : 1;
+          const twinkleDuration = 2 + Math.random() * 3;
+          const twinleDelay = Math.random() * 4;
+          
+          return (
+            <motion.div
+              key={`star-${i}`}
+              className="absolute bg-white rounded-full"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 60}%`, // Keep in upper 60% of screen
+                width: `${size}px`,
+                height: `${size}px`,
+              }}
+              animate={{
+                opacity: [0.6, 0.8, 0.6],
+                scale: [1, 1.2, 1],
+              }}
+              transition={{
+                duration: twinkleDuration,
+                repeat: Infinity,
+                delay: twinleDelay,
+                ease: 'easeInOut',
+              }}
+            />
+          );
+        })}
       </div>
 
-      {/* Leo - floating in corner during library phase */}
+      {/* Leo - floating below title, centered relative to skyline */}
       <motion.div
         ref={leoRef}
         className="absolute z-40"
-        initial={{ left: '50%', top: '35%', x: '-50%', y: '-50%', scale: 1 }}
+        initial={{ left: '50%', top: '40%', x: '-50%', y: '-50%', scale: 1 }}
         animate={
           phase === 'library'
-            ? { left: '12%', top: '15%', x: '0%', y: '0%', scale: 0.85 }
-            : { left: '50%', top: '35%', x: '-50%', y: '-50%', scale: 1 }
+            ? { left: '50%', top: '16%', x: '-50%', y: '0%', scale: 0.7 }
+            : { left: '50%', top: '40%', x: '-50%', y: '-50%', scale: 1 }
         }
-        transition={{ duration: 1, ease: EASING }}
+        transition={{ duration: 1.2, ease: EASING }}
       >
         <motion.div
           animate={{
-            y: [0, -8, 0],
-            rotate: [0, 2, 0, -2, 0],
+            y: [0, -5, 0, -3, 0],
+            rotate: [0, 1, 0, -1, 0],
           }}
           transition={{
             duration: 4,
             repeat: Infinity,
             ease: 'easeInOut',
+            times: [0, 0.25, 0.5, 0.75, 1],
           }}
         >
-          <Image src="/images/leo.svg" alt="Leo" width={170} height={170} priority />
+          <motion.div
+            animate={{
+              filter: [
+                'drop-shadow(0 0 20px rgba(255, 210, 220, 0.3))',
+                'drop-shadow(0 0 30px rgba(255, 210, 220, 0.5))',
+                'drop-shadow(0 0 20px rgba(255, 210, 220, 0.3))',
+              ],
+            }}
+            transition={{
+              duration: 5,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          >
+            <Image src="/images/leo.svg" alt="Leo" width={160} height={160} priority />
+          </motion.div>
         </motion.div>
       </motion.div>
 
@@ -227,8 +328,9 @@ export default function MomentsLibrary({
               className="absolute bottom-0 cursor-pointer"
               style={{
                 left: `${tower.x}%`,
-                width: '80px',
-                height: `${tower.height * 1.8}px`,
+                width: '100px',
+                height: `${tower.heightVh}vh`,
+                transform: 'translateX(-50%)', // Center on X position
               }}
               initial={{ opacity: isCurrent ? 1 : 0, scale: 0.9 }}
               animate={{
@@ -249,55 +351,76 @@ export default function MomentsLibrary({
               <motion.div
                 className="absolute inset-0 rounded-lg pointer-events-none"
                 style={{
-                  background: `radial-gradient(circle, ${zone?.color}CC 0%, ${zone?.color}66 50%, transparent 100%)`,
-                  filter: 'blur(30px)',
+                  background: `radial-gradient(circle, ${tower.color}${Math.round(tower.auraIntensity * 204).toString(16).padStart(2, '0')} 0%, ${tower.color}66 50%, transparent 100%)`,
+                  filter: `blur(${30 * tower.auraIntensity}px)`,
                 }}
                 animate={{
-                  opacity: isHovered ? 1 : 0.6,
+                  opacity: isHovered ? tower.auraIntensity : (tower.auraIntensity * 0.6),
                   scale: [1, 1.1, 1],
                 }}
                 transition={{
                   opacity: { duration: 0.3 },
-                  scale: { duration: 3, repeat: Infinity, ease: 'easeInOut' },
+                  scale: { duration: 3 + (tower.auraIntensity * 0.5), repeat: Infinity, ease: 'easeInOut' },
                 }}
               />
 
-              {/* Tower body */}
+              {/* Tower body with opacity gradient: dark base → light top */}
               <div
-                className="w-full h-full relative"
+                className="w-full h-full relative overflow-hidden"
                 style={{
-                  background: `linear-gradient(180deg, ${tower.color}50 0%, ${tower.color}25 60%, ${tower.color}15 100%)`,
-                  border: `1px solid ${tower.color}40`,
-                  borderRadius: '2px 2px 0 0',
+                  background: `linear-gradient(180deg, ${tower.color}80 0%, ${tower.color}50 50%, ${tower.color}30 100%)`,
+                  border: `1px solid ${tower.color}60`,
+                  borderRadius: tower.style === 'smooth-crown' ? '8px 8px 0 0'
+                    : tower.style === 'dome-top' ? '50% 50% 0 0 / 20% 20% 0 0'
+                    : tower.style === 'angular-bevel' ? '0 0 0 0'
+                    : '2px 2px 0 0',
+                  boxShadow: `inset 0 -40px 60px ${tower.color}20`,
                 }}
               >
-                {/* Windows - representing moments */}
+                {/* Windows - representing moments with zone-colored glow */}
                 <div className="absolute inset-4 grid grid-cols-4 gap-2">
-                  {Array.from({ length: Math.min(momentCount, 24) }).map((_, i) => (
-                    <motion.div
-                      key={`window-${tower.id}-${i}`}
-                      className="rounded-[1px]"
-                      animate={{
-                        backgroundColor: [
-                          `rgba(248, 216, 181, ${isVisible ? 0.15 : 0.05})`,
-                          `rgba(255, 230, 200, ${isVisible ? 0.5 : 0.1})`,
-                          `rgba(248, 216, 181, ${isVisible ? 0.15 : 0.05})`,
-                        ],
-                      }}
-                      transition={{
-                        duration: 2 + Math.random() * 2,
-                        repeat: Infinity,
-                        delay: i * 0.1,
-                      }}
-                    />
-                  ))}
+                  {Array.from({ length: Math.min(momentCount, 24) }).map((_, i) => {
+                    const windowDelay = i * 0.15;
+                    const breathCycleDuration = 6; // 6s breathing cycle
+                    
+                    return (
+                      <motion.div
+                        key={`window-${tower.id}-${i}`}
+                        className="rounded-sm"
+                        style={{
+                          width: '100%',
+                          height: '12px',
+                          boxShadow: `0 0 8px ${tower.color}80`,
+                        }}
+                        animate={{
+                          backgroundColor: [
+                            `${tower.color}40`,
+                            `${tower.color}90`,
+                            `${tower.color}40`,
+                          ],
+                          opacity: [0.3, 0.6, 0.3],
+                          boxShadow: [
+                            `0 0 4px ${tower.color}40`,
+                            `0 0 12px ${tower.color}80`,
+                            `0 0 4px ${tower.color}40`,
+                          ],
+                        }}
+                        transition={{
+                          duration: breathCycleDuration,
+                          repeat: Infinity,
+                          delay: windowDelay,
+                          ease: 'easeInOut',
+                        }}
+                      />
+                    );
+                  })}
                 </div>
 
-                {/* Tower label */}
+                {/* Tower label - using custom tower names */}
                 <AnimatePresence>
                   {phase === 'library' && isVisible && (
                     <motion.div
-                      className="absolute -bottom-8 left-0 right-0 text-center pointer-events-none"
+                      className="absolute -bottom-10 left-0 right-0 text-center pointer-events-none"
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0 }}
@@ -306,13 +429,14 @@ export default function MomentsLibrary({
                       <div
                         className="text-xs uppercase tracking-wider"
                         style={{
-                          color: zone?.color,
+                          color: tower.color,
+                          fontFamily: '"Inter", -apple-system, sans-serif',
                           fontVariant: 'small-caps',
-                          fontWeight: 500,
-                          textShadow: `0 0 8px ${zone?.color}40`,
+                          fontWeight: 600,
+                          textShadow: `0 0 12px ${tower.color}60`,
                         }}
                       >
-                        {zone?.name}
+                        {tower.name}
                       </div>
                     </motion.div>
                   )}
@@ -366,64 +490,76 @@ export default function MomentsLibrary({
       <AnimatePresence>
         {phase === 'library' && (
           <>
-            {/* Title */}
+            {/* Title - EB Garamond, centered below Leo */}
             <motion.div
-              className="absolute top-24 left-0 right-0 z-30 text-center pointer-events-none"
+              className="absolute top-28 left-0 right-0 z-30 text-center pointer-events-none"
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.6, delay: 0.6, ease: EASING }}
             >
               <h1
-                className="text-4xl md:text-5xl mb-2 italic"
+                className="text-5xl md:text-6xl mb-3"
                 style={{
                   fontFamily: '"EB Garamond", "Georgia", serif',
-                  color: '#FFF9FB',
-                  textShadow: '0 2px 12px rgba(156, 31, 95, 0.3)',
+                  fontWeight: 500,
+                  color: '#3A263F',
+                  textShadow: '0 2px 20px rgba(58, 38, 63, 0.2)',
+                  letterSpacing: '0.02em',
                 }}
               >
                 Your Moments
               </h1>
               <p
-                className="text-sm md:text-base"
+                className="text-base md:text-lg"
                 style={{
-                  fontFamily: '-apple-system, sans-serif',
-                  color: '#FFE5F0',
+                  fontFamily: '"Inter", -apple-system, sans-serif',
+                  color: '#5A4962',
                   fontWeight: 400,
-                  letterSpacing: '0.02em',
+                  letterSpacing: '0.03em',
                 }}
               >
                 Each window holds a breath you once shared.
               </p>
             </motion.div>
 
-            {/* Controls */}
+            {/* Controls - moved up, styled with Inter SemiBold */}
             <motion.div
-              className="absolute top-48 left-1/2 -translate-x-1/2 z-30 flex gap-4 pointer-events-auto"
+              className="absolute top-56 left-1/2 -translate-x-1/2 z-30 flex gap-4 pointer-events-auto"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.6, delay: 0.8 }}
             >
               {/* Group By */}
-              <div className="bg-white/10 backdrop-blur-md rounded-full px-4 py-2 flex gap-2 items-center">
-                <span className="text-xs text-white/70 uppercase tracking-wide">Group by</span>
+              <div className="bg-white/15 backdrop-blur-md rounded-full px-5 py-2.5 flex gap-3 items-center shadow-lg">
+                <span 
+                  className="text-xs uppercase tracking-wider"
+                  style={{
+                    fontFamily: '"Inter", -apple-system, sans-serif',
+                    fontWeight: 600,
+                    color: 'rgba(255, 255, 255, 0.7)',
+                    letterSpacing: '0.08em',
+                  }}
+                >
+                  Group by
+                </span>
                 <button
                   onClick={() => setGroupBy('zones')}
-                  className={`px-3 py-1 rounded-full text-xs transition-all ${
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
                     groupBy === 'zones'
                       ? 'bg-white/30 text-white'
-                      : 'text-white/60 hover:text-white/80'
+                      : 'text-white/60 hover:text-white/80 hover:bg-white/10'
                   }`}
                 >
                   Zones
                 </button>
                 <button
                   onClick={() => setGroupBy('all')}
-                  className={`px-3 py-1 rounded-full text-xs transition-all ${
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
                     groupBy === 'all'
                       ? 'bg-white/30 text-white'
-                      : 'text-white/60 hover:text-white/80'
+                      : 'text-white/60 hover:text-white/80 hover:bg-white/10'
                   }`}
                 >
                   All
@@ -431,31 +567,55 @@ export default function MomentsLibrary({
               </div>
 
               {/* Sort By */}
-              <div className="bg-white/10 backdrop-blur-md rounded-full px-4 py-2 flex gap-2 items-center">
-                <span className="text-xs text-white/70 uppercase tracking-wide">Sort by</span>
+              <div className="bg-white/15 backdrop-blur-md rounded-full px-5 py-2.5 flex gap-3 items-center shadow-lg">
+                <span 
+                  className="text-xs uppercase tracking-wider"
+                  style={{
+                    fontFamily: '"Inter", -apple-system, sans-serif',
+                    fontWeight: 600,
+                    color: 'rgba(255, 255, 255, 0.7)',
+                    letterSpacing: '0.08em',
+                  }}
+                >
+                  Sort by
+                </span>
                 <button
                   onClick={() => setSortBy(sortBy === 'newest' ? 'oldest' : 'newest')}
-                  className="px-3 py-1 rounded-full text-xs bg-white/20 text-white hover:bg-white/30 transition-all"
+                  className="px-3 py-1.5 rounded-full text-xs font-semibold bg-white/20 text-white hover:bg-white/30 transition-all"
                 >
                   {sortBy === 'newest' ? 'Newest ↓' : 'Oldest ↑'}
                 </button>
               </div>
             </motion.div>
 
-            {/* New Breath Button */}
+            {/* New Breath Button - gradient pink→purple with sparkle and glow */}
             <motion.button
-              className="absolute bottom-8 left-1/2 -translate-x-1/2 z-40 pointer-events-auto"
+              className="absolute bottom-10 left-1/2 -translate-x-1/2 z-40 pointer-events-auto"
               onClick={onNewReflection}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ 
+                scale: 1.05,
+                filter: 'brightness(1.1) drop-shadow(0 0 20px rgba(224, 123, 224, 0.6))',
+              }}
               whileTap={{ scale: 0.95 }}
               transition={{ duration: 0.6, delay: 1 }}
+              style={{
+                background: 'linear-gradient(135deg, #E07BE0 0%, #B57BE0 50%, #8A64F9 100%)',
+                boxShadow: '0 8px 32px rgba(138, 100, 249, 0.3)',
+              }}
             >
-              <div className="bg-gradient-to-br from-pink-400 to-purple-500 px-6 py-3 rounded-full shadow-2xl">
-                <span className="text-white font-medium text-sm tracking-wide">
-                  ✨ Take a New Breath
+              <div className="px-8 py-3.5 rounded-full flex items-center gap-2">
+                <span className="text-xl">✨</span>
+                <span 
+                  className="text-white text-sm tracking-wide"
+                  style={{
+                    fontFamily: '"Inter", -apple-system, sans-serif',
+                    fontWeight: 600,
+                  }}
+                >
+                  Take a New Breath
                 </span>
               </div>
             </motion.button>
