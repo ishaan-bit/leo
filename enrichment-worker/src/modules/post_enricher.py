@@ -175,6 +175,26 @@ class PostEnricher:
         print(f"⚠️  Failed to parse JSON from: {content[:200]}...")
         return None
     
+    def _split_single_poem(self, poem: str) -> str:
+        """
+        Split a single-line poem into two lines at a natural break point.
+        
+        Args:
+            poem: Single line poem without comma
+        
+        Returns:
+            Poem with comma separator added
+        """
+        words = poem.split()
+        
+        # If 6+ words, split at midpoint
+        if len(words) >= 6:
+            mid = len(words) // 2
+            return f"{' '.join(words[:mid])}, {' '.join(words[mid:])}"
+        
+        # If short, add ellipsis or breathing prompt
+        return f"{poem}, ..."
+    
     def _normalize_poems(self, poems: list) -> list:
         """
         Normalize poems to ensure comma-separated two-line format.
@@ -193,10 +213,19 @@ class PostEnricher:
         
         normalized = []
         
-        # Case 1: Already has commas (correct format)
+        # Case 1: Both poems already have commas (correct format)
         if len(poems) >= 2 and ',' in poems[0] and ',' in poems[1]:
-            print(f"      ✅ Poems already in correct format")
+            print(f"      ✅ Both poems already in correct format")
             return [poems[0], poems[1]]
+        
+        # Case 1.5: Mixed - one has comma, one doesn't (fix individually)
+        if len(poems) == 2 and (',' in poems[0] or ',' in poems[1]):
+            print(f"      🔧 Mixed format detected, normalizing individually")
+            poem1 = poems[0] if ',' in poems[0] else self._split_single_poem(poems[0])
+            poem2 = poems[1] if ',' in poems[1] else self._split_single_poem(poems[1])
+            print(f"         Poem1: {poem1}")
+            print(f"         Poem2: {poem2}")
+            return [poem1, poem2]
         
         # Case 2: 4 separate lines (Ollama interpreted as 4 separate poems)
         if len(poems) >= 4:
@@ -214,20 +243,33 @@ class PostEnricher:
             print(f"      🔧 Merged 3 lines (2+1 split)")
             return [poem1, poem2]
         
-        # Case 4: 2 lines without commas (add commas to indicate line breaks)
+        # Case 4: 2 lines without commas
         if len(poems) == 2:
-            # Check if each is short enough to be a single line
-            if len(poems[0]) < 50 and len(poems[1]) < 50:
-                poem1 = f"{poems[0]}, {poems[1]}"
-                poem2 = "breathing in, breathing out"  # Generic fallback
-                print(f"      🔧 Combined 2 short lines into 1 poem, added fallback poem2")
-                return [poem1, poem2]
+            # Try to split each poem intelligently if it's long enough
+            poem1_words = poems[0].split()
+            poem2_words = poems[1].split()
+            
+            # If each poem is 6+ words, split at midpoint for better flow
+            if len(poem1_words) >= 6:
+                mid1 = len(poem1_words) // 2
+                poem1 = f"{' '.join(poem1_words[:mid1])}, {' '.join(poem1_words[mid1:])}"
+                print(f"      🔧 Split poem1 at midpoint ({mid1} words)")
             else:
-                # Treat as two separate single-line poems
-                poem1 = f"{poems[0]}, "
-                poem2 = f"{poems[1]}, "
-                print(f"      🔧 Kept as 2 separate poems, added trailing commas")
-                return [poem1, poem2]
+                # Too short to split, add ellipsis as line 2
+                poem1 = f"{poems[0]}, ..."
+                print(f"      🔧 Poem1 too short to split, added ellipsis")
+            
+            if len(poem2_words) >= 6:
+                mid2 = len(poem2_words) // 2
+                poem2 = f"{' '.join(poem2_words[:mid2])}, {' '.join(poem2_words[mid2:])}"
+                print(f"      🔧 Split poem2 at midpoint ({mid2} words)")
+            else:
+                poem2 = f"{poems[1]}, ..."
+                print(f"      🔧 Poem2 too short to split, added ellipsis")
+            
+            print(f"         Poem1: {poem1}")
+            print(f"         Poem2: {poem2}")
+            return [poem1, poem2]
         
         # Case 5: Only 1 poem (add generic second poem)
         if len(poems) == 1:
