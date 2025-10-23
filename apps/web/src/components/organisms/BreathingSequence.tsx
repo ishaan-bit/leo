@@ -334,10 +334,16 @@ export default function BreathingSequence({
           if (!response.ok) throw new Error('Failed to fetch reflection');
           
           const reflection = await response.json();
-          console.log('[Bubble Sequence] Fetched reflection:', reflection.final?.post_enrichment);
+          console.log('[Bubble Sequence] Full reflection response:', reflection);
+          console.log('[Bubble Sequence] reflection.final:', reflection.final);
+          console.log('[Bubble Sequence] reflection.post_enrichment:', reflection.post_enrichment);
+          console.log('[Bubble Sequence] reflection.final?.post_enrichment:', reflection.final?.post_enrichment);
           
-          if (reflection.final?.post_enrichment) {
-            const postEnrichment = reflection.final.post_enrichment;
+          // Check if post_enrichment is at root level or in final
+          const postEnrichment = reflection.post_enrichment || reflection.final?.post_enrichment;
+          
+          if (postEnrichment) {
+            console.log('[Bubble Sequence] Found post_enrichment:', postEnrichment);
             
             // Update stage2 with the payload we just got
             setStage2(prev => ({
