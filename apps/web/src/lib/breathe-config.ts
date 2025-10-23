@@ -35,15 +35,16 @@ export interface SecondaryModifier {
 
 // Base presets by primary emotion (matched to Building Zones)
 // Cycles slowed down 1.5x for more contemplative breathing
+// MAPPING: joyful→Vera, powerful→Ashmere, peaceful→Haven, sad→Vanta, scared→Vire, mad→Sable
 export const PRIMARY_PRESETS: Record<PrimaryEmotion, PrimaryPreset> = {
   joyful: {
-    color: '#FFD479', // Warm amber-gold (Haven)
+    color: '#FFD479', // Warm amber-gold (Vera)
     audio: '/audio/breathe/low_whoosh_joy.mp3',
     cycle: { in: 4.5, h1: 0.8, out: 4.5, h2: 0.8 }, // Light & quick (was 3/0.5/3/0.5)
     light: { mode: 'bloom', intensity: [0.4, 1.0] },
   },
   sad: {
-    color: '#637DFF', // Indigo-blue (Ashmere)
+    color: '#637DFF', // Indigo-blue (Vanta)
     audio: '/audio/breathe/hum_rain_sad.mp3',
     cycle: { in: 9, h1: 1.5, out: 9, h2: 1.5 }, // Slow & heavy (was 6/1/6/1)
     light: { mode: 'sink', intensity: [0.25, 0.8] },
@@ -55,19 +56,19 @@ export const PRIMARY_PRESETS: Record<PrimaryEmotion, PrimaryPreset> = {
     light: { mode: 'strobe', intensity: [0.5, 1.0], strobe: true },
   },
   scared: {
-    color: '#A770FF', // Purple-grey (Vanta)
+    color: '#A770FF', // Purple-grey (Vire)
     audio: '/audio/breathe/tremolo_fear.mp3',
     cycle: { in: 3, h1: 0.8, out: 6, h2: 0.8 }, // Uneven, trembling (was 2/0.5/4/0.5)
     light: { mode: 'jitter', intensity: [0.35, 0.95], jitter: true },
   },
   peaceful: {
-    color: '#4FFFE3', // Soft teal (Vera)
+    color: '#4FFFE3', // Soft teal (Haven)
     audio: '/audio/breathe/ocean_peace.mp3',
     cycle: { in: 6, h1: 1.5, out: 6, h2: 1.5 }, // Balanced (was 4/1/4/1)
     light: { mode: 'drift', intensity: [0.3, 0.9] },
   },
   powerful: {
-    color: '#FF77C4', // Electric white-gold (Vire)
+    color: '#FF77C4', // Electric white-gold (Ashmere)
     audio: '/audio/breathe/resonant_power.mp3',
     cycle: { in: 7.5, h1: 1.5, out: 7.5, h2: 1.5 }, // Expanding (was 5/1/5/1)
     light: { mode: 'surge', intensity: [0.45, 1.0] },

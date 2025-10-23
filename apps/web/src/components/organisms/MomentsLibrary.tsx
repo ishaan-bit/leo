@@ -29,20 +29,18 @@ interface MomentsLibraryProps {
   onNewReflection: () => void;
 }
 
-type GroupBy = 'zones' | 'all';
-type SortBy = 'newest' | 'oldest';
-
 const EASING = [0.65, 0, 0.35, 1] as const;
 
 // Tower configuration - SAME AS BREATHING INTERLUDE
 // Using exact colors, names, positions from BreathingSequence
+// MAPPING: joyful→Vera, powerful→Ashmere, peaceful→Haven, sad→Vanta, scared→Vire, mad→Sable
 const TOWER_CONFIGS = [
-  { id: 'joy' as PrimaryEmotion, name: 'Haven', color: '#FFD700', x: 15, height: 180 },
-  { id: 'trust' as PrimaryEmotion, name: 'Vire', color: '#FF6B35', x: 25, height: 220 },
-  { id: 'fear' as PrimaryEmotion, name: 'Vera', color: '#6A9FB5', x: 40, height: 160 },
-  { id: 'sadness' as PrimaryEmotion, name: 'Ashmere', color: '#7D8597', x: 55, height: 200 },
-  { id: 'anger' as PrimaryEmotion, name: 'Sable', color: '#C1121F', x: 70, height: 190 },
-  { id: 'disgust' as PrimaryEmotion, name: 'Vanta', color: '#5A189A', x: 85, height: 170 },
+  { id: 'joyful' as PrimaryEmotion, name: 'Vera', color: '#FFD700', x: 15, height: 180 },
+  { id: 'powerful' as PrimaryEmotion, name: 'Ashmere', color: '#FF6B35', x: 25, height: 220 },
+  { id: 'peaceful' as PrimaryEmotion, name: 'Haven', color: '#6A9FB5', x: 40, height: 160 },
+  { id: 'sad' as PrimaryEmotion, name: 'Vanta', color: '#7D8597', x: 55, height: 200 },
+  { id: 'scared' as PrimaryEmotion, name: 'Vire', color: '#5A189A', x: 70, height: 190 },
+  { id: 'mad' as PrimaryEmotion, name: 'Sable', color: '#C1121F', x: 85, height: 170 },
 ];
 
 export default function MomentsLibrary({
@@ -52,8 +50,6 @@ export default function MomentsLibrary({
   onNewReflection,
 }: MomentsLibraryProps) {
   const [phase, setPhase] = useState<'intro' | 'skyline' | 'library'>('intro');
-  const [groupBy, setGroupBy] = useState<GroupBy>('zones');
-  const [sortBy, setSortBy] = useState<SortBy>('newest');
   const [moments, setMoments] = useState<Moment[]>([]);
   const [selectedMoment, setSelectedMoment] = useState<Moment | null>(null);
   const [hoveredTower, setHoveredTower] = useState<PrimaryEmotion | null>(null);
@@ -161,21 +157,12 @@ export default function MomentsLibrary({
     sequence();
   }, [phase, currentPrimary]);
 
-  // Group moments by zone
+  // Group moments by zone (always grouped by zones now)
   const momentsByZone = moments.reduce((acc, moment) => {
     if (!acc[moment.zone]) acc[moment.zone] = [];
     acc[moment.zone].push(moment);
     return acc;
   }, {} as Record<PrimaryEmotion, Moment[]>);
-
-  // Sort moments
-  const sortMoments = (momentsToSort: Moment[]) => {
-    return [...momentsToSort].sort((a, b) => {
-      const dateA = new Date(a.timestamp).getTime();
-      const dateB = new Date(b.timestamp).getTime();
-      return sortBy === 'newest' ? dateB - dateA : dateA - dateB;
-    });
-  };
 
   // Get moment count for a tower
   const getMomentCount = (zone: PrimaryEmotion) => {
@@ -188,7 +175,13 @@ export default function MomentsLibrary({
   };
 
   return (
-    <div ref={containerRef} className="fixed inset-0 z-50 overflow-hidden">
+    <motion.div 
+      ref={containerRef} 
+      className="fixed inset-0 z-50 overflow-hidden"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.8, ease: 'easeOut' }}
+    >
       {/* Sky background - warm lavender to peach dawn gradient */}
       <motion.div
         className="absolute inset-0"
@@ -296,14 +289,14 @@ export default function MomentsLibrary({
         })}
       </div>
 
-      {/* Leo - floating below title, centered relative to skyline */}
+      {/* Leo - floating below title, positioned between header and building labels */}
       <motion.div
         ref={leoRef}
         className="absolute z-40"
         initial={{ left: '50%', top: '40%', x: '-50%', y: '-50%', scale: 1 }}
         animate={
           phase === 'library'
-            ? { left: '50%', top: '16%', x: '-50%', y: '0%', scale: 0.7 }
+            ? { left: '50%', top: '20%', x: '-50%', y: '0%', scale: 0.7 }
             : { left: '50%', top: '40%', x: '-50%', y: '-50%', scale: 1 }
         }
         transition={{ duration: 1.2, ease: EASING }}
@@ -480,20 +473,19 @@ export default function MomentsLibrary({
         })}
       </motion.div>
 
-      {/* Title & Controls */}
+      {/* Title - centered, elegant entry */}
       <AnimatePresence>
         {phase === 'library' && (
           <>
-            {/* Title - EB Garamond, centered below Leo */}
             <motion.div
-              className="absolute top-28 left-0 right-0 z-30 text-center pointer-events-none"
+              className="absolute top-12 left-0 right-0 z-30 text-center pointer-events-none"
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.6, delay: 0.6, ease: EASING }}
+              transition={{ duration: 0.8, delay: 0.4, ease: EASING }}
             >
               <h1
-                className="text-5xl md:text-6xl mb-3"
+                className="text-5xl md:text-7xl mb-3"
                 style={{
                   fontFamily: '"EB Garamond", "Georgia", serif',
                   fontWeight: 500,
@@ -502,7 +494,7 @@ export default function MomentsLibrary({
                   letterSpacing: '0.02em',
                 }}
               >
-                Your Moments
+                Living City of Moments
               </h1>
               <p
                 className="text-base md:text-lg"
@@ -517,101 +509,67 @@ export default function MomentsLibrary({
               </p>
             </motion.div>
 
-            {/* Controls - moved up, styled with Inter SemiBold */}
-            <motion.div
-              className="absolute top-56 left-1/2 -translate-x-1/2 z-30 flex gap-4 pointer-events-auto"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.6, delay: 0.8 }}
-            >
-              {/* Group By */}
-              <div className="bg-white/15 backdrop-blur-md rounded-full px-5 py-2.5 flex gap-3 items-center shadow-lg">
-                <span 
-                  className="text-xs uppercase tracking-wider"
-                  style={{
-                    fontFamily: '"Inter", -apple-system, sans-serif',
-                    fontWeight: 600,
-                    color: 'rgba(255, 255, 255, 0.7)',
-                    letterSpacing: '0.08em',
-                  }}
-                >
-                  Group by
-                </span>
-                <button
-                  onClick={() => setGroupBy('zones')}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                    groupBy === 'zones'
-                      ? 'bg-white/30 text-white'
-                      : 'text-white/60 hover:text-white/80 hover:bg-white/10'
-                  }`}
-                >
-                  Zones
-                </button>
-                <button
-                  onClick={() => setGroupBy('all')}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                    groupBy === 'all'
-                      ? 'bg-white/30 text-white'
-                      : 'text-white/60 hover:text-white/80 hover:bg-white/10'
-                  }`}
-                >
-                  All
-                </button>
-              </div>
-
-              {/* Sort By */}
-              <div className="bg-white/15 backdrop-blur-md rounded-full px-5 py-2.5 flex gap-3 items-center shadow-lg">
-                <span 
-                  className="text-xs uppercase tracking-wider"
-                  style={{
-                    fontFamily: '"Inter", -apple-system, sans-serif',
-                    fontWeight: 600,
-                    color: 'rgba(255, 255, 255, 0.7)',
-                    letterSpacing: '0.08em',
-                  }}
-                >
-                  Sort by
-                </span>
-                <button
-                  onClick={() => setSortBy(sortBy === 'newest' ? 'oldest' : 'newest')}
-                  className="px-3 py-1.5 rounded-full text-xs font-semibold bg-white/20 text-white hover:bg-white/30 transition-all"
-                >
-                  {sortBy === 'newest' ? 'Newest ↓' : 'Oldest ↑'}
-                </button>
-              </div>
-            </motion.div>
-
-            {/* New Breath Button - gradient pink→purple with sparkle and glow */}
+            {/* Share a New Moment Button - centered at bottom with soft gradient and glow */}
             <motion.button
-              className="absolute bottom-10 left-1/2 -translate-x-1/2 z-40 pointer-events-auto"
+              className="absolute bottom-12 left-1/2 -translate-x-1/2 z-40 pointer-events-auto rounded-2xl overflow-hidden"
               onClick={onNewReflection}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              whileHover={{ 
-                scale: 1.05,
-                filter: 'brightness(1.1) drop-shadow(0 0 20px rgba(224, 123, 224, 0.6))',
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ 
+                opacity: 1, 
+                y: 0,
               }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ duration: 0.6, delay: 1 }}
+              exit={{ opacity: 0, y: 20 }}
+              whileHover={{ 
+                scale: 1.06,
+                boxShadow: '0 12px 48px rgba(181, 123, 224, 0.5)',
+              }}
+              whileTap={{ scale: 0.96 }}
+              transition={{ duration: 0.7, delay: 1.2, ease: EASING }}
               style={{
-                background: 'linear-gradient(135deg, #E07BE0 0%, #B57BE0 50%, #8A64F9 100%)',
-                boxShadow: '0 8px 32px rgba(138, 100, 249, 0.3)',
+                background: 'linear-gradient(135deg, #C8A8E0 0%, #E8B3D9 50%, #F5C5D6 100%)',
+                boxShadow: '0 8px 32px rgba(181, 123, 224, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.3)',
               }}
             >
-              <div className="px-8 py-3.5 rounded-full flex items-center gap-2">
-                <span className="text-xl">✨</span>
-                <span 
-                  className="text-white text-sm tracking-wide"
-                  style={{
-                    fontFamily: '"Inter", -apple-system, sans-serif',
-                    fontWeight: 600,
+              <motion.div 
+                className="px-10 py-4 flex items-center gap-2.5"
+                animate={{
+                  filter: [
+                    'drop-shadow(0 0 8px rgba(255, 255, 255, 0.3))',
+                    'drop-shadow(0 0 16px rgba(255, 255, 255, 0.5))',
+                    'drop-shadow(0 0 8px rgba(255, 255, 255, 0.3))',
+                  ],
+                }}
+                transition={{
+                  duration: 2.5,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
+              >
+                <motion.span 
+                  className="text-xl"
+                  animate={{
+                    scale: [1, 1.2, 1],
+                    rotate: [0, 10, -10, 0],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
                   }}
                 >
-                  Take a New Breath
+                  ✨
+                </motion.span>
+                <span 
+                  className="text-white text-base tracking-wide"
+                  style={{
+                    fontFamily: '"Inter", -apple-system, sans-serif',
+                    fontWeight: 500,
+                    textShadow: '0 1px 3px rgba(0, 0, 0, 0.15)',
+                  }}
+                >
+                  Share a New Moment
                 </span>
-              </div>
+              </motion.div>
             </motion.button>
           </>
         )}
@@ -819,6 +777,6 @@ export default function MomentsLibrary({
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 }

@@ -25,13 +25,14 @@ export interface StageState {
 }
 
 // Tower mapping: Willcox primary → City tower
+// MAPPING: joyful→Vera, powerful→Ashmere, peaceful→Haven, sad→Vanta, scared→Vire, mad→Sable
 const TOWER_MAP: Record<WillcoxPrimary, TowerMapping> = {
   joyful: { id: 'joyful', name: 'Vera', color: '#FFD700' },
-  sad: { id: 'sad', name: 'Ashmere', color: '#7D8597' },
-  mad: { id: 'mad', name: 'Vire', color: '#C1121F' },
-  scared: { id: 'scared', name: 'Sable', color: '#5A189A' },
-  powerful: { id: 'powerful', name: 'Vanta', color: '#FF6B35' },
+  powerful: { id: 'powerful', name: 'Ashmere', color: '#FF6B35' },
   peaceful: { id: 'peaceful', name: 'Haven', color: '#6A9FB5' },
+  sad: { id: 'sad', name: 'Vanta', color: '#7D8597' },
+  scared: { id: 'scared', name: 'Vire', color: '#5A189A' },
+  mad: { id: 'mad', name: 'Sable', color: '#C1121F' },
 };
 
 export class StageOrchestrator {

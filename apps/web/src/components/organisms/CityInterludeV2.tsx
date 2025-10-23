@@ -24,13 +24,14 @@ interface CityInterludeV2Props {
 const PULSING_DURATION = 12000; // 12s of pulsating towers before zoom can trigger
 const ZOOM_DURATION = 8000;     // 8s cinematic zoom sequence
 
+// MAPPING: joyful→Vera, powerful→Ashmere, peaceful→Haven, sad→Vanta, scared→Vire, mad→Sable
 const TOWERS: Array<{id: WillcoxPrimary; name: string; color: string; x: number; height: number}> = [
   { id: 'joyful', name: 'Vera', color: '#FFD700', x: 15, height: 200 },
-  { id: 'powerful', name: 'Vanta', color: '#FF6B35', x: 28, height: 240 },
+  { id: 'powerful', name: 'Ashmere', color: '#FF6B35', x: 28, height: 240 },
   { id: 'peaceful', name: 'Haven', color: '#6A9FB5', x: 44, height: 180 },
-  { id: 'sad', name: 'Ashmere', color: '#7D8597', x: 56, height: 220 },
-  { id: 'mad', name: 'Vire', color: '#C1121F', x: 70, height: 210 },
-  { id: 'scared', name: 'Sable', color: '#5A189A', x: 85, height: 190 },
+  { id: 'sad', name: 'Vanta', color: '#7D8597', x: 56, height: 220 },
+  { id: 'scared', name: 'Vire', color: '#5A189A', x: 70, height: 210 },
+  { id: 'mad', name: 'Sable', color: '#C1121F', x: 85, height: 190 },
 ];
 
 export default function CityInterludeV2({

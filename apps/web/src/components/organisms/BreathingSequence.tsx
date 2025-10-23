@@ -20,13 +20,14 @@ interface BreathingSequenceProps {
 
 // Emotional towers - repositioned for breathing sequence
 // Primary tower positioned at 35% (center-left) for visibility
+// MAPPING: joyful→Vera, powerful→Ashmere, peaceful→Haven, sad→Vanta, scared→Vire, mad→Sable
 const TOWERS = [
-  { id: 'joyful', name: 'Haven', color: '#FFD700', x: 15, height: 180 },
-  { id: 'powerful', name: 'Vire', color: '#FF6B35', x: 25, height: 220 },
-  { id: 'peaceful', name: 'Vera', color: '#6A9FB5', x: 40, height: 160 },
-  { id: 'sad', name: 'Ashmere', color: '#7D8597', x: 55, height: 200 },
-  { id: 'mad', name: 'Sable', color: '#C1121F', x: 70, height: 190 },
-  { id: 'scared', name: 'Vanta', color: '#5A189A', x: 85, height: 170 },
+  { id: 'joyful', name: 'Vera', color: '#FFD700', x: 15, height: 180 },
+  { id: 'powerful', name: 'Ashmere', color: '#FF6B35', x: 25, height: 220 },
+  { id: 'peaceful', name: 'Haven', color: '#6A9FB5', x: 40, height: 160 },
+  { id: 'sad', name: 'Vanta', color: '#7D8597', x: 55, height: 200 },
+  { id: 'scared', name: 'Vire', color: '#5A189A', x: 70, height: 190 },
+  { id: 'mad', name: 'Sable', color: '#C1121F', x: 85, height: 170 },
 ];
 
 // Get repositioned X for primary tower (center-left at 35%)

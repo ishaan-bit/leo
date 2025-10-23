@@ -33,7 +33,7 @@ export const ZONE_MAP: Record<PrimaryEmotion, Zone> = {
   },
   sad: {
     id: 'sad',
-    name: 'Ashmere',             // Changed from Vanta
+    name: 'Vanta',
     color: '#7D8597',           // Steel gray
     hue: '#B0C4DE',            // Pale steel-blue sky tint
     description: 'The tower of quiet sorrow',
@@ -47,21 +47,21 @@ export const ZONE_MAP: Record<PrimaryEmotion, Zone> = {
   },
   powerful: {
     id: 'powerful',
-    name: 'Vanta',               // Changed from Ashmere
+    name: 'Ashmere',
     color: '#FF6B35',           // Orange
     hue: '#008B8B',            // Deep teal/azure sky tint
     description: 'The tower of fierce strength',
   },
-  scared: {                      // Changed from "fearful"
+  scared: {
     id: 'scared',
-    name: 'Sable',               // Changed from Vire
+    name: 'Vire',
     color: '#5A189A',           // Purple
     hue: '#4B0082',            // Indigo-violet sky tint
     description: 'The tower of trembling shadows',
   },
-  mad: {                         // Changed from "angry"
+  mad: {
     id: 'mad',
-    name: 'Vire',                // Changed from Sable
+    name: 'Sable',
     color: '#C1121F',           // Red
     hue: '#8B0000',            // Ember-red sky tint
     description: 'The tower of burning resolve',

@@ -68,32 +68,33 @@ export async function GET(
         // Extract primary zone from final.wheel.primary (e.g., "Scared" → map to fear)
         const primaryEmotion = data.final?.wheel?.primary || 'Peaceful';
         
-        // Map Gloria Willcox emotion to zone
+        // Map Gloria Willcox emotion to PrimaryEmotion type
+        // MAPPING: Joyful→joyful, Powerful→powerful, Peaceful→peaceful, Sad→sad, Scared→scared, Mad→mad
         const zoneMapping: Record<string, string> = {
-          'Joyful': 'joy',
-          'Playful': 'joy',
-          'Content': 'joy',
-          'Peaceful': 'trust',
-          'Trusting': 'trust',
-          'Powerful': 'trust',
-          'Scared': 'fear',
-          'Anxious': 'fear',
-          'Rejected': 'fear',
-          'Sad': 'sadness',
-          'Lonely': 'sadness',
-          'Depressed': 'sadness',
-          'Mad': 'anger',
-          'Angry': 'anger',
-          'Hurt': 'anger',
-          'Disgusted': 'disgust',
-          'Disapproving': 'disgust',
-          'Awful': 'disgust',
-          'Surprised': 'surprise',
-          'Startled': 'surprise',
-          'Confused': 'surprise',
+          'Joyful': 'joyful',
+          'Playful': 'joyful',
+          'Content': 'joyful',
+          'Peaceful': 'peaceful',
+          'Trusting': 'peaceful',
+          'Powerful': 'powerful',
+          'Scared': 'scared',
+          'Anxious': 'scared',
+          'Rejected': 'scared',
+          'Sad': 'sad',
+          'Lonely': 'sad',
+          'Depressed': 'sad',
+          'Mad': 'mad',
+          'Angry': 'mad',
+          'Hurt': 'mad',
+          'Disgusted': 'mad',
+          'Disapproving': 'mad',
+          'Awful': 'mad',
+          'Surprised': 'peaceful',
+          'Startled': 'peaceful',
+          'Confused': 'peaceful',
         };
         
-        const zone = zoneMapping[primaryEmotion] || 'trust';
+        const zone = zoneMapping[primaryEmotion] || 'peaceful';
         
         // Extract moment data
         const moment = {
