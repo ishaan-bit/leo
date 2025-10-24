@@ -52,7 +52,7 @@ class PostEnricher:
         ollama_base_url: str = "http://localhost:11434",
         ollama_model: str = "phi3:latest",
         temperature: float = 0.8,
-        timeout: int = 240  # 4 minutes for creative generation (increased from 120s)
+        timeout: int = 360  # 6 minutes for CPU inference (no GPU acceleration available)
     ):
         """
         Args:
@@ -110,7 +110,9 @@ class PostEnricher:
                     "temperature": self.temperature,
                     "top_p": 0.9,
                     "repeat_penalty": 1.05,
-                    "num_predict": 1024  # Limit response length to speed up generation
+                    "num_predict": 600,  # Reduced from 1024 - target ~500 tokens for poems+tips+closing
+                    "num_ctx": 4096,  # Explicit context window
+                    "num_thread": 8  # Use all CPU cores for faster inference
                 },
                 "keep_alive": "30m",  # Keep model loaded for 30 minutes
                 "messages": [
@@ -341,14 +343,16 @@ Return ONLY the closing line, nothing else."""
                     "temperature": 0.75,
                     "top_p": 0.9,
                     "num_predict": 60,
+                    "num_thread": 8,  # Use all CPU cores
                     "stop": ["\n\n", "Note:", "Explanation:"]
-                }
+                },
+                "keep_alive": "30m"  # Keep model loaded
             }
             
             response = requests.post(
                 f"{self.ollama_base_url}/api/generate",
                 json=payload,
-                timeout=30
+                timeout=120  # Increased from 30s - CPU inference needs more time
             )
             
             if response.status_code != 200:

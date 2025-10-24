@@ -41,7 +41,7 @@ post_enricher = PostEnricher(
     ollama_base_url=os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434'),
     ollama_model=os.getenv('OLLAMA_MODEL', 'phi3:latest'),
     temperature=float(os.getenv('STAGE2_TEMPERATURE', '0.8')),
-    timeout=int(os.getenv('STAGE2_TIMEOUT', '240'))  # Increased from 120s to 240s (4 min)
+    timeout=int(os.getenv('STAGE2_TIMEOUT', '360'))  # 6 minutes for CPU inference (no GPU)
 )
 
 
