@@ -7,9 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuth, getSid, buildOwnerId } from '@/lib/auth-helpers';
-
-const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL!;
-const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN!;
+import { kv } from '@/lib/kv';
 
 export async function GET(request: NextRequest) {
   try {
@@ -33,26 +31,8 @@ export async function GET(request: NextRequest) {
     
     console.log(`🌙 Fetching micro-dream for owner: ${ownerId} (clear=${clearAfterRead})`);
     
-    // Fetch micro-dream from Upstash
-    const response = await fetch(UPSTASH_URL, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${UPSTASH_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(['GET', microDreamKey]),
-    });
-
-    if (!response.ok) {
-      console.error('❌ Upstash error:', response.status, await response.text());
-      return NextResponse.json(
-        { error: 'Failed to fetch from Upstash' },
-        { status: 500 }
-      );
-    }
-
-    const data = await response.json();
-    const microDreamJson = data.result;
+    // Fetch micro-dream from KV
+    const microDreamJson = await kv.get<string>(microDreamKey);
     
     if (!microDreamJson) {
       console.log('   No micro-dream found');
@@ -64,14 +44,7 @@ export async function GET(request: NextRequest) {
     
     // Clear micro-dream if requested (after displaying)
     if (clearAfterRead) {
-      await fetch(UPSTASH_URL, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${UPSTASH_TOKEN}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(['DEL', microDreamKey]),
-      });
+      await kv.del(microDreamKey);
       console.log('   Cleared micro-dream after display');
     }
     
