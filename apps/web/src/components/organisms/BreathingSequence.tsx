@@ -594,8 +594,8 @@ export default function BreathingSequence({
       // Cleanup all scheduled timeouts if component unmounts
       console.log('[Bubble Sequence] ?? Cleaning up', timeouts.length, 'scheduled timeouts');
       timeouts.forEach(timeout => clearTimeout(timeout));
-      // Reset the ref if we unmount mid-orchestration
-      orchestrationStartedRef.current = false;
+      // DON'T reset orchestrationStartedRef here - it should stay true once started
+      // to prevent re-triggering the sequence when state updates cause re-renders
     };
   }, [stage2Complete, onComplete]); // Removed stage2.payload from deps - it's an object reference that changes on every setStage2()
 
