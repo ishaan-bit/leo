@@ -71,7 +71,7 @@ class HybridScorer:
         'Joyful': {
             'optimistic': ['hopeful', 'inspired', 'open', 'encouraged', 'confident', 'motivated'],
             'proud': ['successful', 'confident', 'accomplished', 'worthy', 'fulfilled', 'valued'],
-            'content': ['pleased', 'satisfied', 'fulfilled', 'happy', 'comfortable', 'peaceful'],
+            'content': ['pleased', 'satisfied', 'fulfilled', 'happy', 'comfortable', 'joyful'],
             'playful': ['aroused', 'energetic', 'free', 'amused', 'spontaneous', 'silly'],
             'interested': ['curious', 'engaged', 'fascinated', 'intrigued', 'absorbed', 'inquisitive'],
             'accepted': ['respected', 'valued', 'included', 'appreciated', 'acknowledged', 'welcomed']
