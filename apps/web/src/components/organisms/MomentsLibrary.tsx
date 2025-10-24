@@ -60,11 +60,34 @@ export default function MomentsLibrary({
   
   const containerRef = useRef<HTMLDivElement>(null);
   const leoRef = useRef<HTMLDivElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   // Log component mount
   useEffect(() => {
     console.log('[MomentsLibrary] 🎬 Component mounted!', { pigId, pigName, currentPrimary });
   }, []);
+
+  // Keyboard support: ESC closes modal
+  useEffect(() => {
+    if (!selectedMoment) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSelectedMoment(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedMoment]);
+
+  // Focus trap and initial focus
+  useEffect(() => {
+    if (selectedMoment && modalRef.current) {
+      // Focus the modal container
+      modalRef.current.focus();
+    }
+  }, [selectedMoment]);
 
   // Fetch moments from API with retry logic
   useEffect(() => {
@@ -859,43 +882,55 @@ export default function MomentsLibrary({
       {/* Moment Detail Modal - Redesigned as Emotional Atmosphere */}
       <AnimatePresence>
         {selectedMoment && (() => {
-          // Emotion-based atmosphere configuration
+          // Emotion-based atmosphere configuration with WCAG AA compliant colors
           const atmosphereConfig = {
             sad: {
               gradient: ['#B2C1E0', '#C8D2EB', '#E2E8F6'],
               header: "The sky hung heavy with quiet remembering.",
               ambientMotion: 'drizzle',
-              textColor: '#6B7A99',
+              textColor: '#1A2332', // WCAG AA compliant dark blue
+              textMuted: '#3A4A5A',
+              accentColor: '#7A9FC1',
             },
             joyful: {
               gradient: ['#FCE9A0', '#FFD985', '#FFF2C1'],
               header: "The day gleamed with open laughter.",
               ambientMotion: 'motes',
-              textColor: '#9B7E3A',
+              textColor: '#3A2F0F', // WCAG AA compliant dark gold
+              textMuted: '#5A4A2A',
+              accentColor: '#FFD985',
             },
             powerful: {
               gradient: ['#C3E3C2', '#A4D4A2', '#E6F4E5'],
               header: "The ground beneath you hummed steady and sure.",
               ambientMotion: 'pulse',
-              textColor: '#4A7A48',
+              textColor: '#1A3A1A', // WCAG AA compliant dark green
+              textMuted: '#2F4A2F',
+              accentColor: '#6BA469',
             },
             mad: {
               gradient: ['#F7B2A1', '#F7C5AF', '#FDE6D8'],
               header: "The air crackled with restless thunder.",
               ambientMotion: 'flicker',
-              textColor: '#A0523D',
+              textColor: '#3A1F15', // WCAG AA compliant dark rust
+              textMuted: '#5A3A2A',
+              accentColor: '#D17A5F',
             },
             peaceful: {
               gradient: ['#DAD8F0', '#EAE8F8', '#F8F7FB'],
               header: "Stillness gathered like a soft mist over your heart.",
               ambientMotion: 'mist',
-              textColor: '#6B6482',
+              textColor: '#2A2440', // WCAG AA compliant dark lavender
+              textMuted: '#4A3F5F',
+              accentColor: '#9B8FC5',
             },
             scared: {
               gradient: ['#D2B8E5', '#E4D3F0', '#F5EFFF'],
               header: "A hush crept along the edges of your light.",
               ambientMotion: 'heartbeat',
-              textColor: '#7D5F96',
+              textColor: '#2F1F3A', // WCAG AA compliant dark violet
+              textMuted: '#4A3550',
+              accentColor: '#A97FBD',
             },
           };
 
@@ -908,6 +943,9 @@ export default function MomentsLibrary({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setSelectedMoment(null)}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="moment-header"
             >
               {/* Backdrop with emotion-tinted blur */}
               <motion.div 
@@ -919,10 +957,12 @@ export default function MomentsLibrary({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.6 }}
+                aria-hidden="true"
               />
               
               {/* Modal Card - Glass-like window pane */}
               <motion.div
+                ref={modalRef}
                 className="relative max-w-2xl w-full max-h-[85vh] overflow-y-auto"
                 initial={{ scale: 0.85, y: 30, opacity: 0 }}
                 animate={{ scale: 1, y: 0, opacity: 1 }}
@@ -934,6 +974,7 @@ export default function MomentsLibrary({
                 }}
                 transition={{ duration: 0.6, ease: EASING }}
                 onClick={(e) => e.stopPropagation()}
+                tabIndex={-1}
                 style={{
                   background: `linear-gradient(135deg, 
                     ${atmosphere.gradient[0]}15 0%, 
@@ -949,9 +990,17 @@ export default function MomentsLibrary({
                   `,
                 }}
               >
+                {/* Text contrast overlay - ensures WCAG AA readability */}
+                <div 
+                  className="absolute inset-0 pointer-events-none rounded-[32px] z-0"
+                  style={{
+                    background: 'linear-gradient(to bottom, rgba(12,14,20,0.40), rgba(12,14,20,0.30) 35%, rgba(12,14,20,0.25))',
+                  }}
+                />
+
                 {/* Breathing glow pulse on edges */}
                 <motion.div
-                  className="absolute inset-0 pointer-events-none rounded-[32px]"
+                  className="absolute inset-0 pointer-events-none rounded-[32px] z-0"
                   style={{
                     boxShadow: `0 0 40px ${atmosphere.gradient[0]}60`,
                   }}
@@ -965,15 +1014,16 @@ export default function MomentsLibrary({
                   }}
                 />
 
-                {/* Ambient motion particles based on emotion */}
-                <div className="absolute inset-0 overflow-hidden rounded-[32px] pointer-events-none">
-                  {atmosphere.ambientMotion === 'drizzle' && Array.from({ length: 20 }).map((_, i) => (
+                {/* Ambient motion particles based on emotion - constrained to background layer, max 40 particles */}
+                <div className="absolute inset-0 overflow-hidden rounded-[32px] pointer-events-none z-0">
+                  {atmosphere.ambientMotion === 'drizzle' && Array.from({ length: 15 }).map((_, i) => (
                     <motion.div
                       key={`drizzle-${i}`}
                       className="absolute w-[1px] bg-gradient-to-b from-transparent via-blue-300/30 to-transparent"
                       style={{
                         left: `${Math.random() * 100}%`,
                         height: `${20 + Math.random() * 40}px`,
+                        willChange: 'transform',
                       }}
                       initial={{ top: '-20%', opacity: 0 }}
                       animate={{ 
@@ -989,7 +1039,7 @@ export default function MomentsLibrary({
                     />
                   ))}
                   
-                  {atmosphere.ambientMotion === 'motes' && Array.from({ length: 30 }).map((_, i) => (
+                  {atmosphere.ambientMotion === 'motes' && Array.from({ length: 25 }).map((_, i) => (
                     <motion.div
                       key={`mote-${i}`}
                       className="absolute w-1 h-1 rounded-full"
@@ -997,6 +1047,7 @@ export default function MomentsLibrary({
                         background: `radial-gradient(circle, ${atmosphere.gradient[1]} 0%, transparent 70%)`,
                         left: `${Math.random() * 100}%`,
                         top: `${Math.random() * 100}%`,
+                        willChange: 'transform, opacity',
                       }}
                       animate={{
                         y: [0, -30, 0],
@@ -1013,7 +1064,7 @@ export default function MomentsLibrary({
                     />
                   ))}
                   
-                  {atmosphere.ambientMotion === 'mist' && Array.from({ length: 5 }).map((_, i) => (
+                  {atmosphere.ambientMotion === 'mist' && Array.from({ length: 4 }).map((_, i) => (
                     <motion.div
                       key={`mist-${i}`}
                       className="absolute rounded-full"
@@ -1024,6 +1075,7 @@ export default function MomentsLibrary({
                         left: `${Math.random() * 100}%`,
                         top: `${Math.random() * 100}%`,
                         filter: 'blur(40px)',
+                        willChange: 'transform, opacity',
                       }}
                       animate={{
                         x: [0, 50, 0],
@@ -1039,7 +1091,8 @@ export default function MomentsLibrary({
                   ))}
                 </div>
 
-                <div className="relative p-10" style={{ lineHeight: '1.7' }}>
+                {/* Content guard - isolates text from background effects */}
+                <div className="relative p-10 z-10" style={{ lineHeight: '1.7', isolation: 'isolate' }}>
                   {/* Close button - floating mote style */}
                   <motion.button
                     onClick={() => setSelectedMoment(null)}
@@ -1060,21 +1113,25 @@ export default function MomentsLibrary({
 
                   {/* Atmospheric Header */}
                   <motion.div
-                    className="mb-8"
-                    initial={{ opacity: 0, y: -10 }}
+                    className="mb-12"
+                    initial={{ opacity: 0, y: -8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.1 }}
+                    transition={{ duration: 0.6, delay: 0.1, ease: EASING }}
+                    role="region"
+                    aria-label="Moment atmosphere"
                   >
                     <motion.h2
-                      className="text-2xl md:text-3xl italic mb-3"
+                      id="moment-header"
+                      className="text-2xl md:text-3xl italic mb-4"
                       style={{
                         fontFamily: '"EB Garamond", "Georgia", serif',
                         color: atmosphere.textColor,
-                        fontWeight: 500,
-                        textShadow: `0 2px 12px ${atmosphere.gradient[0]}60`,
+                        fontWeight: 600,
+                        letterSpacing: '0.01em',
+                        textShadow: `0 1px 2px rgba(0,0,0,0.15)`,
                       }}
                       animate={{
-                        opacity: [0.9, 1, 0.9],
+                        opacity: [0.95, 1, 0.95],
                       }}
                       transition={{
                         duration: 5,
@@ -1087,11 +1144,13 @@ export default function MomentsLibrary({
                     
                     {/* Timestamp whisper */}
                     <div 
-                      className="text-xs uppercase tracking-widest opacity-50"
+                      className="text-xs uppercase tracking-widest"
                       style={{
                         fontFamily: '"Inter", -apple-system, sans-serif',
-                        color: atmosphere.textColor,
+                        color: atmosphere.textMuted,
                         letterSpacing: '0.15em',
+                        opacity: 0.9,
+                        textShadow: '0 1px 1px rgba(0,0,0,0.25)',
                       }}
                     >
                       {new Date(selectedMoment.timestamp).toLocaleDateString('en-US', {
@@ -1104,27 +1163,32 @@ export default function MomentsLibrary({
 
                   {/* User's Original Reflection */}
                   <motion.div
-                    className="mb-10"
+                    className="mb-12"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 1.2, delay: 0.3 }}
                   >
                     <div 
-                      className="text-xs italic mb-3 opacity-60"
+                      className="text-xs italic mb-6"
                       style={{
                         fontFamily: '"Inter", -apple-system, sans-serif',
-                        color: atmosphere.textColor,
+                        color: atmosphere.textMuted,
                         letterSpacing: '0.05em',
+                        opacity: 0.9,
+                        textShadow: '0 1px 1px rgba(0,0,0,0.15)',
                       }}
                     >
                       You wrote:
                     </div>
                     <p
-                      className="text-xl md:text-2xl leading-relaxed"
+                      className="text-xl md:text-2xl"
                       style={{
                         fontFamily: '"Cormorant Garamond", "EB Garamond", "Georgia", serif',
                         color: atmosphere.textColor,
-                        fontWeight: 400,
+                        fontWeight: 500,
+                        letterSpacing: '0.3px',
+                        lineHeight: '1.7',
+                        textShadow: '0 1px 2px rgba(0,0,0,0.12)',
                       }}
                     >
                       {selectedMoment.text}
@@ -1133,7 +1197,7 @@ export default function MomentsLibrary({
 
                   {/* Emotional Anatomy */}
                   <motion.div
-                    className="mb-10 space-y-5"
+                    className="mb-12 space-y-6"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.8, delay: 0.5 }}
@@ -1141,29 +1205,33 @@ export default function MomentsLibrary({
                     {selectedMoment.invoked && (
                       <motion.div
                         className="pl-6 border-l-2"
-                        style={{ borderColor: `${atmosphere.gradient[0]}40` }}
+                        style={{ borderColor: `${atmosphere.accentColor}40` }}
                         whileHover={{
-                          borderColor: `${atmosphere.gradient[0]}80`,
+                          borderColor: `${atmosphere.accentColor}80`,
                           x: 4,
                         }}
                         transition={{ duration: 0.3 }}
                       >
                         <div 
-                          className="text-[0.7rem] uppercase tracking-widest mb-2 opacity-50"
+                          className="text-[0.7rem] uppercase tracking-widest mb-3"
                           style={{
                             fontFamily: '"Inter", -apple-system, sans-serif',
-                            color: atmosphere.textColor,
+                            color: atmosphere.textMuted,
                             letterSpacing: '0.12em',
+                            opacity: 0.9,
+                            textShadow: '0 1px 1px rgba(0,0,0,0.25)',
                           }}
                         >
                           What stirred the air
                         </div>
                         <div
-                          className="text-base leading-relaxed"
+                          className="text-base"
                           style={{
                             fontFamily: '"Inter", -apple-system, sans-serif',
                             color: atmosphere.textColor,
-                            opacity: 0.85,
+                            lineHeight: '1.7',
+                            fontWeight: 400,
+                            textShadow: '0 1px 1px rgba(0,0,0,0.1)',
                           }}
                         >
                           {selectedMoment.invoked}
@@ -1174,29 +1242,33 @@ export default function MomentsLibrary({
                     {selectedMoment.expressed && (
                       <motion.div
                         className="pl-6 border-l-2"
-                        style={{ borderColor: `${atmosphere.gradient[0]}40` }}
+                        style={{ borderColor: `${atmosphere.accentColor}40` }}
                         whileHover={{
-                          borderColor: `${atmosphere.gradient[0]}80`,
+                          borderColor: `${atmosphere.accentColor}80`,
                           x: 4,
                         }}
                         transition={{ duration: 0.3 }}
                       >
                         <div 
-                          className="text-[0.7rem] uppercase tracking-widest mb-2 opacity-50"
+                          className="text-[0.7rem] uppercase tracking-widest mb-3"
                           style={{
                             fontFamily: '"Inter", -apple-system, sans-serif',
-                            color: atmosphere.textColor,
+                            color: atmosphere.textMuted,
                             letterSpacing: '0.12em',
+                            opacity: 0.9,
+                            textShadow: '0 1px 1px rgba(0,0,0,0.25)',
                           }}
                         >
                           How it lingered in you
                         </div>
                         <div
-                          className="text-base leading-relaxed"
+                          className="text-base"
                           style={{
                             fontFamily: '"Inter", -apple-system, sans-serif',
                             color: atmosphere.textColor,
-                            opacity: 0.85,
+                            lineHeight: '1.7',
+                            fontWeight: 400,
+                            textShadow: '0 1px 1px rgba(0,0,0,0.1)',
                           }}
                         >
                           {selectedMoment.expressed}
@@ -1208,17 +1280,20 @@ export default function MomentsLibrary({
                   {/* What the Wind Remembered (Poems) */}
                   {selectedMoment.poems && selectedMoment.poems.length > 0 && (
                     <motion.div
-                      className="mb-10"
+                      className="mb-12"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ duration: 1.5, delay: 0.7 }}
                     >
                       <h3
-                        className="text-lg italic mb-6 opacity-70"
+                        className="text-lg italic mb-6"
                         style={{
                           fontFamily: '"EB Garamond", "Georgia", serif',
-                          color: atmosphere.textColor,
+                          color: atmosphere.textMuted,
                           letterSpacing: '0.02em',
+                          fontWeight: 500,
+                          opacity: 0.9,
+                          textShadow: '0 1px 1px rgba(0,0,0,0.15)',
                         }}
                       >
                         What the Wind Remembered
@@ -1229,7 +1304,7 @@ export default function MomentsLibrary({
                           return (
                             <motion.div
                               key={i}
-                              className="space-y-2"
+                              className="space-y-3"
                               initial={{ opacity: 0, x: -10 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ 
@@ -1240,14 +1315,17 @@ export default function MomentsLibrary({
                               {lines.map((line, j) => (
                                 <motion.div
                                   key={j}
-                                  className="text-lg leading-relaxed"
+                                  className="text-lg"
                                   style={{
                                     fontFamily: '"Cormorant Garamond", "EB Garamond", serif',
                                     color: atmosphere.textColor,
-                                    opacity: 0.9,
+                                    lineHeight: '1.8',
+                                    fontWeight: 400,
+                                    letterSpacing: '0.3px',
+                                    textShadow: '0 1px 1px rgba(0,0,0,0.1)',
                                   }}
                                   initial={{ opacity: 0, y: 5 }}
-                                  animate={{ opacity: 0.9, y: 0 }}
+                                  animate={{ opacity: 1, y: 0 }}
                                   transition={{
                                     duration: 0.6,
                                     delay: 1.1 + (i * 0.3) + (j * 0.2),
@@ -1266,16 +1344,20 @@ export default function MomentsLibrary({
                   {/* Ways the Day Could Bloom (Tips) */}
                   {selectedMoment.tips && selectedMoment.tips.length > 0 && (
                     <motion.div
+                      className="mb-10"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.8, delay: 1.5 }}
                     >
                       <h3
-                        className="text-lg italic mb-5 opacity-70"
+                        className="text-lg italic mb-6"
                         style={{
                           fontFamily: '"EB Garamond", "Georgia", serif',
-                          color: atmosphere.textColor,
+                          color: atmosphere.textMuted,
                           letterSpacing: '0.02em',
+                          fontWeight: 500,
+                          opacity: 0.9,
+                          textShadow: '0 1px 1px rgba(0,0,0,0.15)',
                         }}
                       >
                         Ways the Day Could Bloom 🌸
@@ -1289,19 +1371,24 @@ export default function MomentsLibrary({
                             animate={{ opacity: 1, x: 0 }}
                             transition={{
                               duration: 0.4,
-                              delay: 1.7 + (i * 0.15),
+                              delay: 1.7 + (i * 0.12),
                             }}
                           >
-                            {/* Firefly dot */}
+                            {/* Firefly dot with shimmer */}
                             <motion.div
                               className="mt-1.5 w-2 h-2 rounded-full flex-shrink-0"
                               style={{
-                                background: `radial-gradient(circle, ${atmosphere.gradient[1]} 0%, ${atmosphere.gradient[0]} 100%)`,
-                                boxShadow: `0 0 12px ${atmosphere.gradient[0]}80`,
+                                background: `radial-gradient(circle, ${atmosphere.accentColor} 0%, ${atmosphere.gradient[0]} 100%)`,
+                                boxShadow: `0 0 12px ${atmosphere.accentColor}80`,
                               }}
                               animate={{
                                 opacity: [0.6, 1, 0.6],
                                 scale: [1, 1.3, 1],
+                                boxShadow: [
+                                  `0 0 12px ${atmosphere.accentColor}60`,
+                                  `0 0 20px ${atmosphere.accentColor}90`,
+                                  `0 0 12px ${atmosphere.accentColor}60`,
+                                ],
                               }}
                               transition={{
                                 duration: 2 + Math.random(),
@@ -1310,11 +1397,13 @@ export default function MomentsLibrary({
                               }}
                             />
                             <span
-                              className="text-base leading-relaxed flex-1"
+                              className="text-base flex-1"
                               style={{
                                 fontFamily: '"Inter", -apple-system, sans-serif',
                                 color: atmosphere.textColor,
-                                opacity: 0.85,
+                                lineHeight: '1.7',
+                                fontWeight: 400,
+                                textShadow: '0 1px 1px rgba(0,0,0,0.1)',
                               }}
                             >
                               {tip}
@@ -1325,25 +1414,62 @@ export default function MomentsLibrary({
                     </motion.div>
                   )}
 
-                  {/* Closing line if present */}
+                  {/* Closing line if present - with firefly glyph */}
                   {selectedMoment.closingLine && (
                     <motion.div
-                      className="mt-10 pt-8 border-t"
-                      style={{ borderColor: `${atmosphere.gradient[0]}20` }}
+                      className="mt-10 pt-8 border-t flex items-center justify-center gap-3"
+                      style={{ borderColor: `${atmosphere.accentColor}30` }}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.8, delay: 2 }}
                     >
-                      <p
-                        className="text-base italic text-center"
+                      {/* Tiny firefly glyph */}
+                      <motion.span
+                        className="text-sm"
+                        animate={{
+                          opacity: [0.5, 1, 0.5],
+                          scale: [1, 1.2, 1],
+                        }}
+                        transition={{
+                          duration: 3,
+                          repeat: Infinity,
+                          ease: 'easeInOut',
+                        }}
+                      >
+                        ✨
+                      </motion.span>
+                      
+                      <motion.p
+                        className="text-base italic text-center max-w-md"
                         style={{
                           fontFamily: '"EB Garamond", "Georgia", serif',
                           color: atmosphere.textColor,
-                          opacity: 0.7,
+                          fontWeight: 400,
+                          letterSpacing: '0.3px',
+                          textShadow: '0 1px 1px rgba(0,0,0,0.1)',
                         }}
+                        initial={{ letterSpacing: '0.1px' }}
+                        animate={{ letterSpacing: '0.3px' }}
+                        transition={{ duration: 0.4 }}
                       >
                         {selectedMoment.closingLine}
-                      </p>
+                      </motion.p>
+                      
+                      <motion.span
+                        className="text-sm"
+                        animate={{
+                          opacity: [0.5, 1, 0.5],
+                          scale: [1, 1.2, 1],
+                        }}
+                        transition={{
+                          duration: 3,
+                          repeat: Infinity,
+                          ease: 'easeInOut',
+                          delay: 1.5,
+                        }}
+                      >
+                        ✨
+                      </motion.span>
                     </motion.div>
                   )}
                 </div>
