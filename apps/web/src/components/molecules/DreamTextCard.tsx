@@ -74,3 +74,5 @@ export function DreamTextCard({ text, primaryColor }: DreamTextCardProps) {
     </motion.div>
   );
 }
+
+export default DreamTextCard;

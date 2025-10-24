@@ -58,12 +58,13 @@ async function buildDreamForUser(userId: string, date: string): Promise<{
     const reflectionsKey = `user:${userId}:refl:idx`;
     const cutoff = Date.now() - (180 * 24 * 60 * 60 * 1000);
     
-    // Get reflection IDs from sorted set
-    const reflectionIds = await redis.zrangebyscore(
+    // Get reflection IDs from sorted set (all within time window)
+    const reflectionIds = await redis.zrange(
       reflectionsKey,
       cutoff,
-      Date.now()
-    );
+      Date.now(),
+      { byScore: true }
+    ) as string[];
 
     if (!reflectionIds || reflectionIds.length === 0) {
       return { success: false, reason: 'no_reflections' };

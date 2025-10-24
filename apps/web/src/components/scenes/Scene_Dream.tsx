@@ -10,7 +10,7 @@ import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-mo
 import type { PendingDream, DreamBeat, BuildingName } from '@/domain/dream/dream.types';
 import { BUILDINGS } from '@/domain/dream/dream.config';
 import { createSeededRandom, DreamSeeds } from '@/domain/dream/seeded-random';
-import { DreamTextCard } from '@/components/molecules/DreamTextCard';
+import DreamTextCard from '@/components/molecules/DreamTextCard';
 
 interface DreamSceneProps {
   dream: PendingDream;
@@ -384,3 +384,5 @@ function WindowsLayer({
     </div>
   );
 }
+
+export default DreamScene;

@@ -9,8 +9,8 @@ import { useEffect, useState, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { PendingDream } from '@/domain/dream/dream.types';
-import { DreamScene } from '@/components/scenes/Scene_Dream';
-import { DreamControls } from '@/components/organisms/DreamControls';
+import DreamScene from '@/components/scenes/Scene_Dream';
+import DreamControls from '@/components/organisms/DreamControls';
 
 function DreamPlayerContent() {
   const router = useRouter();
