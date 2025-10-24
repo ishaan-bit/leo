@@ -181,8 +181,17 @@ export default function PigRitualBlock({ pigId, initialName }: PigRitualBlockPro
       // Wait for user to see the message
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // TESTING MODE: Redirect to dream router landing page
-      // The router will be called on the server to decide dream vs reflect
+      // TESTING MODE: Preserve forceDream param through OAuth via cookie
+      const urlParams = new URLSearchParams(window.location.search);
+      const forceDream = urlParams.get('forceDream');
+      
+      if (forceDream === '1') {
+        // Set cookie to survive OAuth redirect
+        document.cookie = 'fd=1; Path=/; Max-Age=3600; SameSite=Lax';
+        console.log('[PigRitual] force_flag_cookie_bridge: Set fd=1 cookie');
+      }
+      
+      // Redirect to dream-gate (will check cookie + flag)
       await signIn('google', { 
         callbackUrl: `/api/auth/dream-gate?pigId=${pigId}` 
       });

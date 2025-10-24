@@ -1,7 +1,7 @@
 /**
  * Dream Gate - Post-authentication router
- * Called after successful Google sign-in to decide: dream or reflect
- * TESTING MODE: Always checks dream router
+ * PRODUCTION HOTFIX: Force dream playback for test users
+ * Override is at the VERY TOP - bypasses all other logic when force_dream is ON
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -25,198 +25,210 @@ function getKolkataDate(): string {
   return kolkataTime.toISOString().split('T')[0];
 }
 
+/**
+ * Validate pending dream structure
+ */
+function isValidPendingDream(dream: any): dream is PendingDream {
+  return (
+    dream &&
+    typeof dream.scriptId === 'string' &&
+    typeof dream.duration === 'number' &&
+    typeof dream.opening === 'string' &&
+    Array.isArray(dream.beats) &&
+    dream.beats.length >= 1 &&
+    dream.beats.every((b: any) => typeof b.t === 'number' && typeof b.kind === 'string')
+  );
+}
+
 export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const pigId = searchParams.get('pigId') || 'new';
+  
+  console.log('[Dream Gate] ========== ENTRY ==========');
+  console.log('[Dream Gate] PigId:', pigId);
+  console.log('[Dream Gate] URL:', req.url);
+  
   try {
-    const { searchParams } = new URL(req.url);
-    const pigId = searchParams.get('pigId');
-    
-    console.log('[Dream Gate] ========== ENTRY ==========');
-    console.log('[Dream Gate] PigId:', pigId);
-    console.log('[Dream Gate] URL:', req.url);
-    
     // Get authenticated user
     const auth = await getAuth();
     console.log('[Dream Gate] Auth result:', auth ? `Authenticated (${auth.userId})` : 'Not authenticated');
     
     if (!auth) {
-      // Not authenticated, redirect to reflect
       console.log('[Dream Gate] No auth, redirecting to reflect');
-      return NextResponse.redirect(new URL(`/reflect/${pigId || 'new'}`, req.url));
+      return NextResponse.redirect(new URL(`/reflect/${pigId}`, req.url));
     }
 
     const userId = auth.userId;
 
-    // Check if force_dream is enabled (feature flag or query param)
-    const forceDream = await isForceDreamEnabled(userId, searchParams);
+    // ========== FORCE DREAM OVERRIDE (TOP OF FUNCTION) ==========
+    // Check if force_dream is enabled (cookie, query param, or Redis flag)
+    const cookies = req.headers.get('cookie') || '';
+    const forceDreamCheck = await isForceDreamEnabled(userId, searchParams, cookies, pigId);
+    const forceDream = forceDreamCheck.enabled;
+    
     console.log('[Dream Gate] force_dream:', forceDream ? 'ENABLED' : 'disabled');
-    console.log('[Dream Gate] Checking for user:', userId);
+    console.log('[Dream Gate] force_dream source:', forceDreamCheck.source);
+    if (forceDreamCheck.key) {
+      console.log('[Dream Gate] force_dream key:', forceDreamCheck.key);
+    }
 
-    // Check for pending dream
-    const pendingDreamKey = `user:${userId}:pending_dream`;
-    let pendingDreamData = await redis.get<PendingDream>(pendingDreamKey);
-
-    // If no pending dream exists, build one on-the-fly
-    if (!pendingDreamData) {
-      console.log('[Dream Gate] No pending dream, building one...');
+    if (forceDream) {
+      // ========== FORCED MODE: ALWAYS BUILD AND PLAY DREAM ==========
+      console.log('[Dream Gate] FORCE MODE: Bypassing all gates, building dream now');
       
-      // Fetch dream state
-      const dreamStateKey = `user:${userId}:dream_state`;
-      const dreamState = await redis.get<DreamState>(dreamStateKey);
-
-      // Fetch user's reflections (last 180 days)
-      const reflectionsKey = `user:${userId}:refl:idx`;
-      const cutoff = Date.now() - (180 * 24 * 60 * 60 * 1000);
+      const pendingDreamKey = `user:${userId}:pending_dream`;
+      let pendingDreamData: PendingDream | null = null;
+      let builtNow = false;
       
-      const reflectionIds = await redis.zrange(
-        reflectionsKey,
-        cutoff,
-        Date.now(),
-        { byScore: true }
-      ) as string[];
-
-      console.log('[Dream Gate] Reflection IDs found:', reflectionIds?.length || 0);
-      
-      if (!reflectionIds || reflectionIds.length === 0) {
-        console.log('[Dream Gate] No reflections found, routing to reflect');
-        return NextResponse.redirect(new URL(`/reflect/${pigId || 'new'}`, req.url));
-      }
-
-      // Fetch reflection data
-      const reflections: ReflectionData[] = [];
-      for (const rid of reflectionIds) {
-        const reflData = await redis.get<ReflectionData>(`refl:${rid}`);
-        if (reflData) {
-          reflections.push(reflData);
+      // Try to read existing pending dream
+      try {
+        const existing = await redis.get<PendingDream>(pendingDreamKey);
+        
+        if (existing && isValidPendingDream(existing)) {
+          const expiresAt = new Date(existing.expiresAt).getTime();
+          if (Date.now() < expiresAt) {
+            pendingDreamData = existing;
+            console.log('[Dream Gate] Found valid pending dream:', existing.scriptId);
+          } else {
+            console.log('[Dream Gate] Pending dream expired, will rebuild');
+          }
+        } else if (existing) {
+          console.log('[Dream Gate] pending_malformed:', { sid: (existing as any)?.scriptId || 'unknown' });
         }
+      } catch (error) {
+        console.error('[Dream Gate] redis_read_error:', { key: pendingDreamKey, error: String(error) });
       }
-
-      console.log('[Dream Gate] Reflections loaded:', reflections.length);
       
-      if (reflections.length === 0) {
-        console.log('[Dream Gate] No reflection data found');
-        return NextResponse.redirect(new URL(`/reflect/${pigId || 'new'}`, req.url));
-      }
+      // Build dream if none exists or is invalid
+      if (!pendingDreamData) {
+        builtNow = true;
+        console.log('[Dream Gate] Building dream in FORCE MODE...');
+        
+        // Fetch reflections
+        const reflectionsKey = `user:${userId}:refl:idx`;
+        let reflectionIds: string[] = [];
+        
+        try {
+          const cutoff = Date.now() - (180 * 24 * 60 * 60 * 1000);
+          reflectionIds = await redis.zrange(
+            reflectionsKey,
+            cutoff,
+            Date.now(),
+            { byScore: true }
+          ) as string[];
+          
+          console.log('[Dream Gate] Reflection IDs found:', reflectionIds?.length || 0);
+        } catch (error) {
+          console.error('[Dream Gate] redis_read_error:', { key: reflectionsKey, error: String(error) });
+          return NextResponse.redirect(new URL(`/reflect/${pigId}?error=storage`, req.url));
+        }
+        
+        if (!reflectionIds || reflectionIds.length === 0) {
+          console.log('[Dream Gate] No reflections found (user:refl:idx empty)');
+          return NextResponse.redirect(new URL(`/reflect/${pigId}?error=no_reflections`, req.url));
+        }
 
-      // Build dream
-      const date = getKolkataDate();
-      console.log('[Dream Gate] Calling buildDream with', reflections.length, 'reflections');
-      console.log('[Dream Gate] Dream state:', dreamState ? `Exists (lastDreamAt: ${dreamState.lastDreamAt})` : 'null');
-      console.log('[Dream Gate] force_dream mode:', forceDream);
-      
-      pendingDreamData = await buildDream({
-        userId,
-        reflections,
-        dreamState: forceDream ? null : dreamState, // Clear state in test mode
-        date,
-        testMode: forceDream, // Pass testMode flag
-      });
+        // Fetch reflection data
+        const reflections: ReflectionData[] = [];
+        for (const rid of reflectionIds) {
+          try {
+            const reflData = await redis.get<ReflectionData>(`refl:${rid}`);
+            if (reflData && reflData.final?.wheel?.primary) {
+              reflections.push(reflData);
+            }
+          } catch (error) {
+            console.error('[Dream Gate] redis_read_error:', { key: `refl:${rid}`, error: String(error) });
+          }
+        }
 
-      if (pendingDreamData && forceDream) {
+        console.log('[Dream Gate] Valid reflections loaded:', reflections.length);
+        
+        if (reflections.length === 0) {
+          console.log('[Dream Gate] No valid reflection data (missing primary wheels)');
+          return NextResponse.redirect(new URL(`/reflect/${pigId}?error=no_data`, req.url));
+        }
+
+        // Build dream with testMode=true
+        const date = getKolkataDate();
+        const dreamState = null; // Force as first-time to bypass eligibility
+        
+        console.log('[Dream Gate] Calling buildDream:', {
+          reflections: reflections.length,
+          testMode: true,
+          date,
+        });
+        
+        try {
+          pendingDreamData = await buildDream({
+            userId,
+            reflections,
+            dreamState,
+            date,
+            testMode: true, // BYPASS ALL GATES
+          });
+        } catch (error) {
+          console.error('[Dream Gate] buildDream error:', String(error));
+          return NextResponse.redirect(new URL(`/reflect/${pigId}?error=build_failed`, req.url));
+        }
+
+        if (!pendingDreamData) {
+          console.error('[Dream Gate] buildDream returned null (should not happen in testMode)');
+          return NextResponse.redirect(new URL(`/reflect/${pigId}?error=build_null`, req.url));
+        }
+
+        // Validate built dream
+        if (!isValidPendingDream(pendingDreamData)) {
+          console.error('[Dream Gate] Built dream is malformed:', pendingDreamData);
+          return NextResponse.redirect(new URL(`/reflect/${pigId}?error=malformed`, req.url));
+        }
+
+        // Log build details
+        const K = pendingDreamData.beats.filter(b => b.kind === 'moment').length;
+        const primaries = [...new Set(pendingDreamData.beats.filter(b => b.building).map(b => b.building))];
+        
         console.log('[Dream Gate] force_dream_build:', {
           sid: pendingDreamData.scriptId,
-          K: pendingDreamData.beats.filter(b => b.kind === 'moment').length,
+          K,
           candidate_count: reflections.length,
-          primaries_used: [...new Set(pendingDreamData.beats.filter(b => b.building).map(b => b.building))],
-          time_buckets_used: [...new Set(pendingDreamData.beats.filter(b => b.momentId).map(() => 'T0-T4'))], // Simplified
+          primaries_used: primaries,
+          beats_count: pendingDreamData.beats.length,
         });
-      }
 
-      console.log('[Dream Gate] buildDream result:', pendingDreamData ? `Success (${pendingDreamData.scriptId})` : 'Failed (null)');
-      
-      if (!pendingDreamData) {
-        console.log('[Dream Gate] Dream build failed - no valid candidates or malformed data');
-        return NextResponse.redirect(new URL(`/reflect/${pigId || 'new'}`, req.url));
-      }
-
-      console.log('[Dream Gate] Dream beats count:', pendingDreamData.beats?.length || 0);
-      
-      // Store in Redis (TTL 14 days)
-      await redis.set(pendingDreamKey, pendingDreamData, {
-        ex: 14 * 24 * 60 * 60,
-      });
-
-      console.log('[Dream Gate] Built dream:', pendingDreamData.scriptId);
-    }
-
-    // Check if expired
-    const expiresAt = new Date(pendingDreamData.expiresAt).getTime();
-    const now = Date.now();
-    
-    if (now >= expiresAt) {
-      console.log('[Dream Gate] Dream expired, rebuilding...');
-      
-      // Expired, rebuild
-      const dreamStateKey = `user:${userId}:dream_state`;
-      const dreamState = await redis.get<DreamState>(dreamStateKey);
-
-      const reflectionsKey = `user:${userId}:refl:idx`;
-      const cutoff = Date.now() - (180 * 24 * 60 * 60 * 1000);
-      
-      const reflectionIds = await redis.zrange(
-        reflectionsKey,
-        cutoff,
-        Date.now(),
-        { byScore: true }
-      ) as string[];
-
-      const reflections: ReflectionData[] = [];
-      for (const rid of reflectionIds) {
-        const reflData = await redis.get<ReflectionData>(`refl:${rid}`);
-        if (reflData) {
-          reflections.push(reflData);
+        // Store in Redis
+        try {
+          await redis.set(pendingDreamKey, pendingDreamData, {
+            ex: 14 * 24 * 60 * 60, // 14 days
+          });
+          console.log('[Dream Gate] Stored pending dream in Redis');
+        } catch (error) {
+          console.error('[Dream Gate] redis_write_error:', { key: pendingDreamKey, error: String(error) });
+          // Continue anyway - dream is built, can still play
         }
       }
 
-      if (reflections.length === 0) {
-        return NextResponse.redirect(new URL(`/reflect/${pigId || 'new'}`, req.url));
-      }
-
-      const date = getKolkataDate();
-      pendingDreamData = await buildDream({
-        userId,
-        reflections,
-        dreamState,
-        date,
+      // Clear the fd cookie now that we've used it
+      const response = NextResponse.redirect(new URL(`/dream?sid=${pendingDreamData.scriptId}&testMode=1`, req.url));
+      response.cookies.set('fd', '', { maxAge: 0, path: '/' });
+      
+      // Log routing decision
+      console.log('[Dream Gate] force_dream_router:', {
+        entering: true,
+        pending_found: !builtNow,
+        built_now: builtNow,
+        sid: pendingDreamData.scriptId,
+        force_dream: true,
       });
-
-      if (!pendingDreamData) {
-        return NextResponse.redirect(new URL(`/reflect/${pigId || 'new'}`, req.url));
-      }
-
-      await redis.set(pendingDreamKey, pendingDreamData, {
-        ex: 14 * 24 * 60 * 60,
-      });
-
-      console.log('[Dream Gate] Rebuilt expired dream:', pendingDreamData.scriptId);
+      
+      console.log('[Dream Gate] ========== REDIRECTING TO DREAM ==========');
+      return response;
     }
 
-    // Route to dream
-    const pendingExists = !!pendingDreamData;
-    const builtNow = !pendingExists; // If we got here, it was either found or built
-    
-    console.log('[Dream Gate] force_dream_router:', {
-      entering: true,
-      pending_found: pendingExists,
-      built_now: builtNow,
-      sid: pendingDreamData.scriptId,
-      force_dream: forceDream,
-    });
-    
-    console.log('[Dream Gate] Redirecting to dream:', pendingDreamData.scriptId);
-    
-    // Pass forceDream param to dream page for TEST MODE badge
-    const dreamUrl = new URL(`/dream`, req.url);
-    dreamUrl.searchParams.set('sid', pendingDreamData.scriptId);
-    if (forceDream) {
-      dreamUrl.searchParams.set('testMode', '1');
-    }
-    
-    return NextResponse.redirect(dreamUrl);
+    // ========== NORMAL MODE (force_dream disabled) ==========
+    console.log('[Dream Gate] Normal mode: Redirecting to reflect');
+    return NextResponse.redirect(new URL(`/reflect/${pigId}`, req.url));
     
   } catch (error) {
-    console.error('[Dream Gate] Error:', error);
-    const { searchParams } = new URL(req.url);
-    const pigId = searchParams.get('pigId');
-    return NextResponse.redirect(new URL(`/reflect/${pigId || 'new'}`, req.url));
+    console.error('[Dream Gate] Unhandled error:', error);
+    return NextResponse.redirect(new URL(`/reflect/${pigId}?error=unknown`, req.url));
   }
 }
