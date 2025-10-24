@@ -4,7 +4,14 @@ import { kv } from '@vercel/kv';
 /**
  * GET /api/pig/[pigId]/moments
  * Fetch all reflection moments for a given pig/user
+ * 
+ * Cache-Control: no-store to prevent stale data after deletions
  */
+
+// Force dynamic to ensure fresh data
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { pigId: string } }
@@ -143,11 +150,18 @@ export async function GET(
       new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
 
-    return NextResponse.json({
+    // Return with no-store cache headers to prevent stale data
+    const response = NextResponse.json({
       success: true,
       moments,
       count: moments.length,
     });
+    
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    
+    return response;
     
   } catch (error) {
     console.error('[API /pig/moments] ❌ Fatal error:', error);
