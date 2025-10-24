@@ -4,10 +4,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth.config';
+import { getAuth } from '@/lib/auth-helpers';
 import { Redis } from '@upstash/redis';
 import type { DreamState, PendingDream } from '@/domain/dream/dream.types';
+import type { DreamCompleteEvent, DreamSkippedEvent } from '@/domain/dream/dream.types';
 
 const redis = Redis.fromEnv();
 
@@ -16,16 +16,16 @@ export const revalidate = 0;
 
 export async function POST(req: NextRequest) {
   try {
-    // Get session
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    // Get authenticated user
+    const auth = await getAuth();
+    if (!auth) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    const userId = session.user.id;
+    const userId = auth.userId;
     const body = await req.json();
     const { scriptId, skipped, skipTime } = body;
 

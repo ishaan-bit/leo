@@ -3,8 +3,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth.config';
+import { getAuth } from '@/lib/auth-helpers';
 import { Redis } from '@upstash/redis';
 import type { PendingDream } from '@/domain/dream/dream.types';
 
@@ -15,16 +14,16 @@ export const revalidate = 0;
 
 export async function GET(req: NextRequest) {
   try {
-    // Get session
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    // Get authenticated user
+    const auth = await getAuth();
+    if (!auth) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    const userId = session.user.id;
+    const userId = auth.userId;
     const { searchParams } = new URL(req.url);
     const scriptId = searchParams.get('sid');
 
