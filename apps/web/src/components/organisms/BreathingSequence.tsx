@@ -597,7 +597,7 @@ export default function BreathingSequence({
       // DON'T reset orchestrationStartedRef here - it should stay true once started
       // to prevent re-triggering the sequence when state updates cause re-renders
     };
-  }, [stage2Complete, onComplete]); // Removed stage2.payload from deps - it's an object reference that changes on every setStage2()
+  }, [stage2Complete]); // onComplete removed - it's called once at end, doesn't need to trigger re-runs
 
   // Breathing helpers
   const isInhaling = breathProgress < 0.5;
