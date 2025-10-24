@@ -162,9 +162,9 @@ class HybridScorer:
         hf_token: str,
         ollama_base_url: str = "http://localhost:11434",
         ollama_model: str = "phi3:latest",
-        hf_weight: float = 0.4,
-        emb_weight: float = 0.3,
-        ollama_weight: float = 0.3,
+        hf_weight: float = 0.5,
+        emb_weight: float = 0.35,
+        ollama_weight: float = 0.15,
         timeout: int = 30
     ):
         """
@@ -172,9 +172,9 @@ class HybridScorer:
             hf_token: Hugging Face API token
             ollama_base_url: Ollama server URL
             ollama_model: Model name (phi3:latest)
-            hf_weight: Weight for HF zero-shot scores (default 0.4)
-            emb_weight: Weight for embedding similarity (default 0.3)
-            ollama_weight: Weight for Ollama rerank (default 0.3)
+            hf_weight: Weight for HF zero-shot scores (default 0.5)
+            emb_weight: Weight for embedding similarity (default 0.35)
+            ollama_weight: Weight for Ollama rerank (default 0.15)
             timeout: Request timeout in seconds
         """
         self.hf_token = hf_token
@@ -985,25 +985,39 @@ class HybridScorer:
         Returns:
             Dict with primary, secondary, invoked, expressed or None
         """
-        prompt = f"""You are a precise JSON generator. Return ONLY valid JSON, no extra text.
+        prompt = f"""You are a precise emotion classifier. Return ONLY valid JSON, no extra text.
 
-Analyze: "{text}"
+Text: "{text}"
 
-Return JSON in this EXACT format:
+Identify the PRIMARY EMOTION being felt (not the activity). Ask: "What is this person feeling?"
+
+Examples:
+- "felt calm after meditation" → Peaceful (the feeling is calm)
+- "proud I finished the project" → Joyful (the feeling is proud)
+- "worried about tomorrow" → Scared (the feeling is worried)
+- "frustrated by delays" → Mad (the feeling is frustrated)
+
+Return JSON:
 {{
-  "primary": "Joyful",
-  "secondary": "proud",
-  "tertiary": "accomplished",
-  "invoked": ["progress", "motivation"],
-  "expressed": ["proud", "reflective"]
+  "primary": "Peaceful",
+  "secondary": "relaxed",
+  "tertiary": "calm",
+  "invoked": ["relief", "serenity"],
+  "expressed": ["calm", "peaceful"]
 }}
 
 Rules:
 - primary: ONE of [Joyful, Powerful, Peaceful, Sad, Mad, Scared]
-- secondary: secondary emotion or null
-- tertiary: tertiary emotion or null
-- invoked: 1-3 driver words
-- expressed: 1-3 surface emotion words
+- Distinguish: 
+  * Peaceful = calm, relaxed, serene, tranquil, content, meditative
+  * Joyful = happy, proud, accomplished, excited, playful, optimistic
+  * Powerful = confident, strong, creative, loving, capable
+  * Sad = lonely, disappointed, guilty, bored, empty
+  * Mad = angry, frustrated, bitter, critical, hostile
+  * Scared = anxious, worried, insecure, helpless, confused
+- secondary/tertiary: specific emotion labels or null
+- invoked: 1-3 emotional drivers (what caused it)
+- expressed: 1-3 surface emotions (how it shows)
 
 JSON:"""
         
