@@ -70,18 +70,18 @@ class HybridScorer:
     WILLCOX_HIERARCHY = {
         'Joyful': {
             'optimistic': ['hopeful', 'inspired', 'open', 'encouraged', 'confident', 'motivated'],
-            'proud': ['successful', 'confident', 'accomplished', 'worthy', 'fulfilled', 'valued'],
+            'cheerful': ['happy', 'lighthearted', 'sunny', 'bright', 'upbeat', 'buoyant'],
             'content': ['pleased', 'satisfied', 'fulfilled', 'happy', 'comfortable', 'joyful'],
             'playful': ['aroused', 'energetic', 'free', 'amused', 'spontaneous', 'silly'],
             'interested': ['curious', 'engaged', 'fascinated', 'intrigued', 'absorbed', 'inquisitive'],
             'accepted': ['respected', 'valued', 'included', 'appreciated', 'acknowledged', 'welcomed']
         },
         'Powerful': {
+            'proud': ['successful', 'confident', 'accomplished', 'worthy', 'fulfilled', 'valued'],
             'courageous': ['daring', 'bold', 'brave', 'fearless', 'assertive', 'strong'],
             'creative': ['innovative', 'imaginative', 'inspired', 'resourceful', 'inventive', 'original'],
             'confident': ['secure', 'capable', 'competent', 'assured', 'certain', 'self-reliant'],
             'loving': ['affectionate', 'warm', 'compassionate', 'tender', 'caring', 'devoted'],
-            'valued': ['appreciated', 'respected', 'important', 'recognized', 'significant', 'esteemed'],
             'hopeful': ['optimistic', 'encouraged', 'expectant', 'positive', 'trusting', 'faithful']
         },
         'Peaceful': {
@@ -993,7 +993,7 @@ Identify the PRIMARY EMOTION being felt (not the activity). Ask: "What is this p
 
 Examples:
 - "felt calm after meditation" → Peaceful (the feeling is calm)
-- "proud I finished the project" → Joyful (the feeling is proud)
+- "proud I finished the project" → Powerful (the feeling is proud)
 - "worried about tomorrow" → Scared (the feeling is worried)
 - "frustrated by delays" → Mad (the feeling is frustrated)
 
@@ -1010,8 +1010,8 @@ Rules:
 - primary: ONE of [Joyful, Powerful, Peaceful, Sad, Mad, Scared]
 - Distinguish: 
   * Peaceful = calm, relaxed, serene, tranquil, content, meditative
-  * Joyful = happy, proud, accomplished, excited, playful, optimistic
-  * Powerful = confident, strong, creative, loving, capable
+  * Joyful = happy, cheerful, playful, optimistic, interested, accepted
+  * Powerful = proud, accomplished, confident, strong, creative, loving, capable
   * Sad = lonely, disappointed, guilty, bored, empty
   * Mad = angry, frustrated, bitter, critical, hostile
   * Scared = anxious, worried, insecure, helpless, confused

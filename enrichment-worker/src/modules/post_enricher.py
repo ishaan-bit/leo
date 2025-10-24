@@ -324,7 +324,7 @@ RULES:
 
 EXAMPLES (for inspiration, do not copy):
 - Sad/ashamed/humiliated + hurt → "wounds speak their own language at night. See you tomorrow."
-- Joyful/proud/confident + achievement → "pocket that light for harder days. See you tomorrow."
+- Powerful/proud/confident + achievement → "pocket that light for harder days. See you tomorrow."
 - Mad/frustrated/annoyed + disappointment → "your shoulders can drop now. See you tomorrow."
 - Scared/anxious/worried + uncertainty → "not every knot untangles in one night. See you tomorrow."
 
