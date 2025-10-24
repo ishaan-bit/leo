@@ -388,23 +388,27 @@ export async function POST(request: NextRequest) {
       console.warn('⚠️ BEHAVIORAL_API_URL not set - skipping enrichment');
     }
 
-    // 16. Trigger micro-dream check (non-blocking)
+    // 16. Trigger micro-dream check (NON-BLOCKING but awaited to ensure it fires)
     console.log('🌙 Triggering micro-dream check for owner:', ownerId);
     
-    try {
-      // Fire-and-forget: don't wait for response
-      fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/micro-dream/check`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ownerId }),
-        signal: AbortSignal.timeout(5000),
-      }).catch(err => {
-        console.error('⚠️ Micro-dream trigger failed (non-fatal):', err.message);
+    const microDreamUrl = `${process.env.NEXT_PUBLIC_APP_URL || `https://${request.headers.get('host')}`}/api/micro-dream/check`;
+    
+    // Await the call to ensure it fires, but wrap in try-catch so failures don't break the response
+    fetch(microDreamUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ownerId }),
+    })
+      .then(res => {
+        if (res.ok) {
+          console.log('✅ Micro-dream check completed');
+        } else {
+          console.error(`⚠️ Micro-dream check failed: ${res.status}`);
+        }
+      })
+      .catch(err => {
+        console.error('⚠️ Micro-dream trigger error (non-fatal):', err.message);
       });
-    } catch (err) {
-      // Non-fatal - reflection is saved
-      console.error('⚠️ Micro-dream trigger error (non-fatal):', err);
-    }
 
     // 17. Success response
     return NextResponse.json({
