@@ -45,6 +45,14 @@ function DreamPlayerContent() {
           setDream(data.dream);
           setIsPlaying(true);
           startTimeRef.current = performance.now();
+          
+          // Telemetry: dream_play_start
+          console.log('[telemetry] dream_play_start', {
+            scriptId: data.dream.scriptId,
+            kind: data.dream.kind,
+            K: data.dream.usedMomentIds.length,
+            timestamp: new Date().toISOString(),
+          });
         }
         setLoading(false);
       })

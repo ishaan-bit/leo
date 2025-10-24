@@ -47,7 +47,7 @@ export function DreamTextCard({ text, primaryColor }: DreamTextCardProps) {
       }}
     >
       <div
-        className="relative px-6 py-5 md:px-8 md:py-6 rounded-xl"
+        className="relative px-8 py-7 md:px-10 md:py-8 rounded-xl"
         style={{
           backdropFilter: 'blur(12px)',
           backgroundColor: 'rgba(255, 255, 255, 0.15)',
