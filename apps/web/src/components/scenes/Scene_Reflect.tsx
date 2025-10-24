@@ -48,6 +48,10 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   const [showGuestNudge, setShowGuestNudge] = useState(false);
   const [guestNudgeMinimized, setGuestNudgeMinimized] = useState(false);
   
+  // Micro-dream state
+  const [microDream, setMicroDream] = useState<{ lines: string[]; fades: string[] } | null>(null);
+  const [showMicroDream, setShowMicroDream] = useState(false);
+  
   // Scene state
   const [currentAffect, setCurrentAffect] = useState<AffectVector>({
     arousal: 0.5,
@@ -94,6 +98,38 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     return () => {
       audioSystemRef.current.stop();
     };
+  }, []);
+
+  // Fetch micro-dream on mount (if available for this signin)
+  useEffect(() => {
+    console.log('🌙 Scene_Reflect mounted - checking for micro-dream...');
+    
+    async function fetchMicroDream() {
+      try {
+        console.log('🌙 Fetching /api/micro-dream/get...');
+        const response = await fetch('/api/micro-dream/get');
+        console.log('🌙 Response status:', response.status);
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('🌙 Response data:', data);
+          
+          if (data.microDream) {
+            console.log('🌙 Micro-dream received:', data.microDream.lines);
+            setMicroDream(data.microDream);
+            setShowMicroDream(true);
+          } else {
+            console.log('🌙 No micro-dream available for this signin');
+          }
+        } else {
+          console.error('🌙 Micro-dream fetch failed:', response.status, await response.text());
+        }
+      } catch (error) {
+        console.error('🌙 Error fetching micro-dream:', error);
+      }
+    }
+
+    fetchMicroDream();
   }, []);
 
   // Set up time-based theme
@@ -546,6 +582,56 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
 
   return (
     <div className={`min-h-screen bg-gradient-to-br ${backgroundTone} relative overflow-hidden transition-colors duration-1000`}>
+      {/* Micro-dream overlay (shows before reflection interface) */}
+      <AnimatePresence>
+        {showMicroDream && microDream && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-purple-900/95 to-pink-900/95 backdrop-blur-sm"
+            onClick={async () => {
+              // Clear micro-dream from Upstash and hide overlay
+              await fetch('/api/micro-dream/get?clear=true');
+              setShowMicroDream(false);
+            }}
+          >
+            <div className="max-w-2xl px-8 text-center space-y-8">
+              {/* Micro-dream lines */}
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.5, duration: 0.8 }}
+                className="space-y-6"
+              >
+                {microDream.lines.map((line, idx) => (
+                  <motion.p
+                    key={idx}
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.8 + idx * 0.4, duration: 0.8 }}
+                    className="text-2xl md:text-3xl font-serif text-pink-100 leading-relaxed"
+                  >
+                    {line}
+                  </motion.p>
+                ))}
+              </motion.div>
+              
+              {/* Tap to continue hint */}
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.6 }}
+                transition={{ delay: 2.5, duration: 0.6 }}
+                className="text-sm text-pink-200/60 italic"
+              >
+                tap anywhere to continue
+              </motion.p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Breathing background gradient overlay */}
       <motion.div
         className="absolute inset-0 pointer-events-none"
