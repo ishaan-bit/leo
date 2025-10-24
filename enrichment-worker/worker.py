@@ -170,37 +170,50 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
                 
                 # 7. Check if micro-dream should be generated (after post-enrichment complete)
                 try:
-                    owner_id = reflection_data.get('owner_id')
-                    if owner_id:
-                        print(f"🌙 Checking micro-dream trigger for owner: {owner_id}")
+                    # Fetch the full reflection from Upstash to get owner_id
+                    reflection_key = f'reflection:{rid}'
+                    reflection_json = redis_client.redis.get(reflection_key)
+                    
+                    if not reflection_json:
+                        print(f"⚠️  Could not fetch reflection:{rid} for micro-dream check")
+                    else:
+                        import json as json_lib
+                        full_reflection = json_lib.loads(reflection_json)
+                        owner_id = full_reflection.get('owner_id')
                         
-                        # Import micro-dream agent
-                        import sys
-                        import os
-                        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-                        from micro_dream_agent import MicroDreamAgent, UpstashClient, OllamaClient
-                        
-                        # Initialize clients
-                        upstash_client_md = UpstashClient(
-                            os.getenv('UPSTASH_REDIS_REST_URL'),
-                            os.getenv('UPSTASH_REDIS_REST_TOKEN')
-                        )
-                        ollama_client_md = OllamaClient()
-                        
-                        # Run micro-dream agent
-                        agent = MicroDreamAgent(upstash_client_md, ollama_client_md)
-                        
-                        # Check if should generate (pattern: signin #4, 6, 8, 11, 13...)
-                        # For now, always try to generate after every 3rd, 5th, 7th... reflection
-                        result = agent.run(owner_id, force_dream=False, skip_ollama=True)
-                        
-                        if result and result.get('should_display'):
-                            print(f"✅ Micro-dream generated and stored for next signin")
+                        if owner_id:
+                            print(f"🌙 Checking micro-dream trigger for owner: {owner_id}")
+                            
+                            # Import micro-dream agent
+                            import sys
+                            import os
+                            sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+                            from micro_dream_agent import MicroDreamAgent, UpstashClient, OllamaClient
+                            
+                            # Initialize clients
+                            upstash_client_md = UpstashClient(
+                                os.getenv('UPSTASH_REDIS_REST_URL'),
+                                os.getenv('UPSTASH_REDIS_REST_TOKEN')
+                            )
+                            ollama_client_md = OllamaClient()
+                            
+                            # Run micro-dream agent
+                            agent = MicroDreamAgent(upstash_client_md, ollama_client_md)
+                            
+                            # Check if should generate (pattern: signin #4, 6, 8, 11, 13...)
+                            result = agent.run(owner_id, force_dream=False, skip_ollama=True)
+                            
+                            if result and result.get('should_display'):
+                                print(f"✅ Micro-dream generated and stored for next signin")
+                            else:
+                                print(f"   Not eligible for display yet (signin #{result['signin_count'] if result else 'unknown'})")
                         else:
-                            print(f"   Not eligible for display yet (signin #{result['signin_count'] if result else 'unknown'})")
+                            print(f"⚠️  No owner_id found in reflection:{rid}")
                     
                 except Exception as micro_err:
                     print(f"⚠️  Micro-dream generation failed (non-fatal): {micro_err}")
+                    import traceback
+                    traceback.print_exc()
                     # Non-fatal - enrichment is already complete
                 
             else:
