@@ -45,12 +45,13 @@ class UpstashClient:
     
     def set(self, key: str, value: str, ex: Optional[int] = None) -> bool:
         """SET key value with optional expiry (seconds)."""
-        payload = [key, value]
+        # Upstash REST API format: POST / with ["SET", key, value, "EX", ttl]
+        payload = ["SET", key, value]
         if ex:
-            payload.extend(['EX', ex])
+            payload.extend(["EX", str(ex)])
         
         resp = requests.post(
-            f'{self.url}/set',
+            self.url,
             headers=self.headers,
             json=payload,
             timeout=10
@@ -83,10 +84,11 @@ class UpstashClient:
         if not keys:
             return []
         
+        # Upstash REST API format: POST / with ["MGET", key1, key2, ...]
         resp = requests.post(
-            f'{self.url}/mget',
+            self.url,
             headers=self.headers,
-            json=keys,
+            json=["MGET"] + keys,
             timeout=15
         )
         resp.raise_for_status()
@@ -143,15 +145,17 @@ class MicroDreamAgent:
     
     def fetch_reflections(self, sid: str) -> List[Dict]:
         """Fetch all reflections for session, sorted by timestamp."""
-        # Try pattern: reflections:enriched:*
-        keys = self.upstash.keys(f'reflections:enriched:*')
+        # Try multiple key patterns
+        keys = self.upstash.keys('reflection:*')  # Current format: reflection:refl_xxx
         
         if not keys:
-            # Fallback: try moments:{sid} list or refl:* pattern
-            keys = self.upstash.keys('refl:*')
+            keys = self.upstash.keys(f'reflections:enriched:*')  # Old enriched format
         
         if not keys:
-            print(f"[✗] No reflection keys found for sid={sid}")
+            keys = self.upstash.keys('refl:*')  # Legacy fallback
+        
+        if not keys:
+            print(f"[X] No reflection keys found")
             return []
         
         # Fetch all reflection JSONs
@@ -164,6 +168,10 @@ class MicroDreamAgent:
             
             try:
                 data = json.loads(val)
+                
+                # Filter by session ID
+                if data.get('sid') != sid:
+                    continue
                 
                 # Validate structure
                 if 'timestamp' not in data or 'final' not in data:
