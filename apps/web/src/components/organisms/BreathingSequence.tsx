@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -20,7 +20,7 @@ interface BreathingSequenceProps {
 
 // Emotional towers - repositioned for breathing sequence
 // Primary tower positioned at 35% (center-left) for visibility
-// MAPPING: joyful→Vera, powerful→Ashmere, peaceful→Haven, sad→Vanta, scared→Vire, mad→Sable
+// MAPPING: joyful?Vera, powerful?Ashmere, peaceful?Haven, sad?Vanta, scared?Vire, mad?Sable
 // COLORS MATCH Living City tower configs for visual continuity
 const TOWERS = [
   { id: 'joyful', name: 'Vera', color: '#FFD700', x: 15, height: 180 },      // Gold - Joy
@@ -97,10 +97,8 @@ export default function BreathingSequence({
   const breatheParams = computeBreatheParams(primary, secondary);
   const { cycle, color, audio } = breatheParams;
   
-  // Slow down to resting pulse (6s) during closing phase
-  const activeCycle = stage2.phase === 'closing' 
-    ? { in: 3, out: 3 } // 6s resting pulse
-    : cycle;
+  // Use normal breathing cycle (orchestrator handles its own timing)
+  const activeCycle = cycle;
   const cycleDuration = (activeCycle.in + activeCycle.out) * 1000; // ms
   const primaryTower = TOWERS.find(t => t.id === primary) || TOWERS[0];
 
@@ -198,12 +196,12 @@ export default function BreathingSequence({
               opacity: 0,
               glow: 0,
             },
-            phase: 'continuity', // Start Stage 2
+            phase: 'idle', // Stage 2 orchestrator handles bubble sequence
             started: true,
           }));
           
           // IMMEDIATELY trigger bubble sequence - no waiting for breath cycles
-          console.log('[Breathing] ✅ Triggering bubble sequence immediately');
+          console.log('[Breathing] ? Triggering bubble sequence immediately');
           setStage2Complete(true);
         }
         
@@ -237,51 +235,6 @@ export default function BreathingSequence({
       if (currentCycle > cycleCount) {
         setCycleCount(currentCycle);
         console.log('[Breathing] Cycle', currentCycle, 'complete');
-        
-        // Stage 2 phase progression (each phase lasts 1 breath cycle)
-        if (stage2.started && stage2.payload) {
-          const stage2Cycle = stage2.stage2CycleCount;
-          
-          // Phase 0 (cycle 0): Continuity handoff
-          if (stage2.phase === 'continuity' && stage2Cycle >= 1) {
-            console.log('[Stage2] ΓåÆ Poem 1 (ignite window)');
-            setStage2(prev => ({ ...prev, phase: 'poem1', stage2CycleCount: stage2Cycle + 1 }));
-          }
-          // Phase 1 (cycle 1): Poem 1
-          else if (stage2.phase === 'poem1' && stage2Cycle >= 2) {
-            console.log('[Stage2] ΓåÆ Tips sequence');
-            setStage2(prev => ({ ...prev, phase: 'tips', stage2CycleCount: stage2Cycle + 1 }));
-          }
-          // Phase 2 (cycles 2-N): Tips (1 cycle per tip)
-          else if (stage2.phase === 'tips') {
-            const tipIndex = stage2.currentTipIndex;
-            const totalTips = stage2.payload.tips.length;
-            
-            if (tipIndex < totalTips - 1) {
-              console.log(`[Stage2] ΓåÆ Tip ${tipIndex + 2}/${totalTips}`);
-              setStage2(prev => ({ 
-                ...prev, 
-                currentTipIndex: tipIndex + 1,
-                stage2CycleCount: stage2Cycle + 1 
-              }));
-            } else {
-              console.log('[Stage2] ΓåÆ Poem 2 (release)');
-              setStage2(prev => ({ ...prev, phase: 'poem2', stage2CycleCount: stage2Cycle + 1 }));
-            }
-          }
-          // Phase 3 (cycle after tips): Poem 2
-          else if (stage2.phase === 'poem2' && stage2Cycle >= 3 + stage2.payload.tips.length) {
-            console.log('[Stage2] ΓåÆ Closing cue');
-            setStage2(prev => ({ ...prev, phase: 'closing', stage2CycleCount: stage2Cycle + 1 }));
-          }
-          // Phase 4 (cycle after poem2): Closing
-          else if (stage2.phase === 'closing' && stage2Cycle >= 5 + stage2.payload.tips.length) {
-            console.log('[Stage2] Γ£à Complete');
-            setStage2(prev => ({ ...prev, phase: 'complete' }));
-          } else {
-            setStage2(prev => ({ ...prev, stage2CycleCount: stage2Cycle + 1 }));
-          }
-        }
       }
       
       animationFrameRef.current = requestAnimationFrame(animate);
@@ -343,7 +296,7 @@ export default function BreathingSequence({
     
     // Guard: Prevent duplicate orchestration runs
     if (orchestrationStartedRef.current) {
-      console.log('[Bubble Sequence] ✅ Orchestration already running, skipping duplicate effect');
+      console.log('[Bubble Sequence] ? Orchestration already running, skipping duplicate effect');
       return;
     }
     
@@ -394,7 +347,7 @@ export default function BreathingSequence({
     
     // Mark orchestration as started to prevent duplicate runs
     orchestrationStartedRef.current = true;
-    console.log('[Bubble Sequence] 🎬 Starting orchestration!');
+    console.log('[Bubble Sequence] ?? Starting orchestration!');
     
     const FADE_IN = 800;
     const HOLD_TEXT = 2200;
@@ -421,11 +374,11 @@ export default function BreathingSequence({
     // Validate we have at least some content to show
     const hasContent = poem1 || poem2 || poem3 || tips.length > 0;
     if (!hasContent) {
-      console.warn('[Bubble Sequence] ⚠️ No poems or tips available, fast-forwarding to CTA');
+      console.warn('[Bubble Sequence] ?? No poems or tips available, fast-forwarding to CTA');
     }
     
     // Debug: Calculate expected steps and timing
-    // NEW FLOW: poem1 → tip1 → poem2 → tip2 → poem3 → tip3 → sky → gradient → CTA
+    // NEW FLOW: poem1 ? tip1 ? poem2 ? tip2 ? poem3 ? tip3 ? sky ? gradient ? CTA
     const activeSteps = [
       poem1 && 'poem1',
       tips[0] && 'tip1',
@@ -439,157 +392,157 @@ export default function BreathingSequence({
       'transition'
     ].filter(Boolean);
     
-    console.log('[Bubble Sequence] 🎬 Active steps:', activeSteps.join(' → '));
-    console.log('[Bubble Sequence] ⏱️  Total steps:', activeSteps.length);
+    console.log('[Bubble Sequence] ?? Active steps:', activeSteps.join(' ? '));
+    console.log('[Bubble Sequence] ??  Total steps:', activeSteps.length);
     
     const timeouts: NodeJS.Timeout[] = [];
     let currentTime = 0;
     
     const schedule = (callback: () => void, delay: number, stepName: string) => {
       currentTime += delay;
-      console.log(`[Bubble Sequence] ⏱️  Scheduling ${stepName} at ${(currentTime / 1000).toFixed(1)}s (+${delay}ms)`);
+      console.log(`[Bubble Sequence] ??  Scheduling ${stepName} at ${(currentTime / 1000).toFixed(1)}s (+${delay}ms)`);
       const timeout = setTimeout(callback, currentTime);
       timeouts.push(timeout);
       return timeout;
     };
     
     // S1: Leo p1.l1 - First poem line appears
-    // NEW FLOW: poem1 → tip1 → poem2 → tip2 → poem3 → tip3 → sky → gradient → CTA
+    // NEW FLOW: poem1 ? tip1 ? poem2 ? tip2 ? poem3 ? tip3 ? sky ? gradient ? CTA
     
     // S1: Poem 1 - First poem from Leo
     if (poem1) {
-      console.log('[Bubble Sequence] 📜 Poem 1:', poem1);
+      console.log('[Bubble Sequence] ?? Poem 1:', poem1);
       schedule(() => {
-        console.log('[Bubble Sequence] ▶️  Step 1: Poem1 - Fade in');
+        console.log('[Bubble Sequence] ??  Step 1: Poem1 - Fade in');
         setBubbleStep('leo_poem1');
         setLeoBubbleState('text');
       }, 0, 'poem1-fadeIn');
       
       schedule(() => {
-        console.log('[Bubble Sequence] 🎭 Leo reacting to poem 1');
+        console.log('[Bubble Sequence] ?? Leo reacting to poem 1');
         setLeoReacting(true);
         setTimeout(() => setLeoReacting(false), 700);
       }, FADE_IN + 100, 'poem1-reaction');
       
       schedule(() => {
-        console.log('[Bubble Sequence] ⏸️  Step 1: Poem1 → ellipsis');
+        console.log('[Bubble Sequence] ??  Step 1: Poem1 ? ellipsis');
         setLeoBubbleState('ellipsis');
       }, HOLD_TEXT, 'poem1-ellipsis');
       
       schedule(() => {
-        console.log('[Bubble Sequence] 👻 Step 1: Poem1 → hidden');
+        console.log('[Bubble Sequence] ?? Step 1: Poem1 ? hidden');
         setLeoBubbleState('hidden');
       }, FADE_TO_ELLIPSIS, 'poem1-hide');
     }
     
     // S2: Tip1 - First tip from window
     if (tips[0]) {
-      console.log('[Bubble Sequence] 💡 Tip 1:', tips[0]);
+      console.log('[Bubble Sequence] ?? Tip 1:', tips[0]);
       schedule(() => {
-        console.log('[Bubble Sequence] ▶️  Step 2: Tip1 - Fade in');
+        console.log('[Bubble Sequence] ??  Step 2: Tip1 - Fade in');
         setBubbleStep('tip1');
         setWindowBubbleState('text');
         setWindowGlowing(true);
       }, GAP_BETWEEN_BUBBLES, 'tip1-fadeIn');
       
       schedule(() => {
-        console.log('[Bubble Sequence] ⏸️  Step 2: Tip1 → ellipsis');
+        console.log('[Bubble Sequence] ??  Step 2: Tip1 ? ellipsis');
         setWindowBubbleState('ellipsis');
         setWindowGlowing(false);
       }, FADE_IN + HOLD_TEXT, 'tip1-ellipsis');
       
       schedule(() => {
-        console.log('[Bubble Sequence] 👻 Step 2: Tip1 → hidden');
+        console.log('[Bubble Sequence] ?? Step 2: Tip1 ? hidden');
         setWindowBubbleState('hidden');
       }, FADE_TO_ELLIPSIS, 'tip1-hide');
     }
     
     // S3: Poem 2 - Second poem from Leo
     if (poem2) {
-      console.log('[Bubble Sequence] 📜 Poem 2:', poem2);
+      console.log('[Bubble Sequence] ?? Poem 2:', poem2);
       schedule(() => {
-        console.log('[Bubble Sequence] ▶️  Step 3: Poem2 - Fade in');
+        console.log('[Bubble Sequence] ??  Step 3: Poem2 - Fade in');
         setBubbleStep('leo_poem2');
         setLeoBubbleState('text');
       }, GAP_BETWEEN_BUBBLES, 'poem2-fadeIn');
       
       schedule(() => {
-        console.log('[Bubble Sequence] 🎭 Leo reacting to poem 2');
+        console.log('[Bubble Sequence] ?? Leo reacting to poem 2');
         setLeoReacting(true);
         setTimeout(() => setLeoReacting(false), 700);
       }, FADE_IN + 100, 'poem2-reaction');
       
       schedule(() => {
-        console.log('[Bubble Sequence] ⏸️  Step 3: Poem2 → ellipsis');
+        console.log('[Bubble Sequence] ??  Step 3: Poem2 ? ellipsis');
         setLeoBubbleState('ellipsis');
       }, HOLD_TEXT, 'poem2-ellipsis');
       
       schedule(() => {
-        console.log('[Bubble Sequence] 👻 Step 3: Poem2 → hidden');
+        console.log('[Bubble Sequence] ?? Step 3: Poem2 ? hidden');
         setLeoBubbleState('hidden');
       }, FADE_TO_ELLIPSIS, 'poem2-hide');
     }
     
     // S4: Tip2 - Second tip from window
     if (tips[1]) {
-      console.log('[Bubble Sequence] 💡 Tip 2:', tips[1]);
+      console.log('[Bubble Sequence] ?? Tip 2:', tips[1]);
       schedule(() => {
-        console.log('[Bubble Sequence] ▶️  Step 4: Tip2 - Fade in');
+        console.log('[Bubble Sequence] ??  Step 4: Tip2 - Fade in');
         setBubbleStep('tip2');
         setWindowBubbleState('text');
         setWindowGlowing(true);
       }, GAP_BETWEEN_BUBBLES, 'tip2-fadeIn');
       
       schedule(() => {
-        console.log('[Bubble Sequence] ⏸️  Step 4: Tip2 → ellipsis');
+        console.log('[Bubble Sequence] ??  Step 4: Tip2 ? ellipsis');
         setWindowBubbleState('ellipsis');
         setWindowGlowing(false);
       }, FADE_IN + HOLD_TEXT, 'tip2-ellipsis');
       
       schedule(() => {
-        console.log('[Bubble Sequence] 👻 Step 4: Tip2 → hidden');
+        console.log('[Bubble Sequence] ?? Step 4: Tip2 ? hidden');
         setWindowBubbleState('hidden');
       }, FADE_TO_ELLIPSIS, 'tip2-hide');
     }
     
     // S5: Poem 3 - Third poem from Leo
     if (poem3) {
-      console.log('[Bubble Sequence] 📜 Poem 3:', poem3);
+      console.log('[Bubble Sequence] ?? Poem 3:', poem3);
       schedule(() => {
-        console.log('[Bubble Sequence] ▶️  Step 5: Poem3 - Fade in');
+        console.log('[Bubble Sequence] ??  Step 5: Poem3 - Fade in');
         setBubbleStep('leo_poem3');
         setLeoBubbleState('text');
       }, GAP_BETWEEN_BUBBLES, 'poem3-fadeIn');
       
       schedule(() => {
-        console.log('[Bubble Sequence] 🎭 Leo reacting to poem 3');
+        console.log('[Bubble Sequence] ?? Leo reacting to poem 3');
         setLeoReacting(true);
         setTimeout(() => setLeoReacting(false), 700);
       }, FADE_IN + 100, 'poem3-reaction');
       
       schedule(() => {
-        console.log('[Bubble Sequence] ⏸️  Step 5: Poem3 → ellipsis');
+        console.log('[Bubble Sequence] ??  Step 5: Poem3 ? ellipsis');
         setLeoBubbleState('ellipsis');
       }, HOLD_TEXT, 'poem3-ellipsis');
       
       schedule(() => {
-        console.log('[Bubble Sequence] 👻 Step 5: Poem3 → hidden');
+        console.log('[Bubble Sequence] ?? Step 5: Poem3 ? hidden');
         setLeoBubbleState('hidden');
       }, FADE_TO_ELLIPSIS, 'poem3-hide');
     }
     
     // S6: Tip3 - Third and final tip from window
     if (tips[2]) {
-      console.log('[Bubble Sequence] 💡 Tip 3:', tips[2]);
+      console.log('[Bubble Sequence] ?? Tip 3:', tips[2]);
       schedule(() => {
-        console.log('[Bubble Sequence] ▶️  Step 6: Tip3 - Fade in');
+        console.log('[Bubble Sequence] ??  Step 6: Tip3 - Fade in');
         setBubbleStep('tip3');
         setWindowBubbleState('text');
         setWindowGlowing(true);
       }, GAP_BETWEEN_BUBBLES, 'tip3-fadeIn');
       
       schedule(() => {
-        console.log('[Bubble Sequence] 👻 Step 6: Tip3 → hidden (final tip fades completely)');
+        console.log('[Bubble Sequence] ?? Step 6: Tip3 ? hidden (final tip fades completely)');
         setWindowBubbleState('hidden');
         setWindowGlowing(false);
       }, FADE_IN + HOLD_TEXT + FADE_TO_ELLIPSIS, 'tip3-hide');
@@ -597,40 +550,40 @@ export default function BreathingSequence({
     
     // S7: Sky brightening - Progressive lightening
     schedule(() => {
-      console.log('[Bubble Sequence] 🌅 Step 7: Sky brightening');
+      console.log('[Bubble Sequence] ?? Step 7: Sky brightening');
       setBubbleStep('sky');
       setSkyLightnessLevel(3);
     }, GAP_BETWEEN_BUBBLES, 'sky');
     
     // S8: Gradient return - Sky transitions to dawn gradient
     schedule(() => {
-      console.log('[Bubble Sequence] 🌄 Step 8: Gradient return - Full dawn');
+      console.log('[Bubble Sequence] ?? Step 8: Gradient return - Full dawn');
       setBubbleStep('gradientReturn');
       setSkyLightnessLevel(4);
     }, SKY_STEP, 'gradient');
     
     // S9: CTA - Final call to action
     schedule(() => {
-      console.log('[Bubble Sequence] 📢 Step 9: CTA appears');
+      console.log('[Bubble Sequence] ?? Step 9: CTA appears');
       setBubbleStep('cta');
       setLeoBubbleState('text');
     }, GRADIENT_RETURN, 'cta-fadeIn');
     
     // S10: Fade out CTA
     schedule(() => {
-      console.log('[Bubble Sequence] 💤 Step 10: CTA fading out');
+      console.log('[Bubble Sequence] ?? Step 10: CTA fading out');
       setLeoBubbleState('hidden');
       setBubbleStep('idle');
     }, FADE_IN + HOLD_TEXT + 800, 'cta-hide');
     
     // S11: Trigger transition to Moments Library
     schedule(() => {
-      console.log('[Bubble Sequence] 🌆 Step 11: Transition to Moments Library');
-      console.log('[Bubble Sequence] ✅ COMPLETE! Total sequence time:', (currentTime / 1000).toFixed(1), 'seconds');
+      console.log('[Bubble Sequence] ?? Step 11: Transition to Moments Library');
+      console.log('[Bubble Sequence] ? COMPLETE! Total sequence time:', (currentTime / 1000).toFixed(1), 'seconds');
       onComplete();
     }, 1200, 'transition');
     
-    console.log('[Bubble Sequence] 🏁 Orchestration scheduled:', {
+    console.log('[Bubble Sequence] ?? Orchestration scheduled:', {
       totalSteps: timeouts.length,
       finalTimestamp: `${(currentTime / 1000).toFixed(1)}s`,
       poems: { poem1: !!poem1, poem2: !!poem2, poem3: !!poem3 },
@@ -639,7 +592,7 @@ export default function BreathingSequence({
     
     return () => {
       // Cleanup all scheduled timeouts if component unmounts
-      console.log('[Bubble Sequence] 🧹 Cleaning up', timeouts.length, 'scheduled timeouts');
+      console.log('[Bubble Sequence] ?? Cleaning up', timeouts.length, 'scheduled timeouts');
       timeouts.forEach(timeout => clearTimeout(timeout));
       // Reset the ref if we unmount mid-orchestration
       orchestrationStartedRef.current = false;
@@ -890,19 +843,19 @@ export default function BreathingSequence({
           let x, y;
           
           if (normalizedAngle < Math.PI / 2) {
-            // Top-right quadrant → place in upper-right safe zone
+            // Top-right quadrant ? place in upper-right safe zone
             x = 65 + Math.random() * 20; // 65-85%
             y = 18 + Math.random() * 10; // 18-28% (below auth bar, above Leo)
           } else if (normalizedAngle < Math.PI) {
-            // Bottom-right quadrant → place in lower-right safe zone
+            // Bottom-right quadrant ? place in lower-right safe zone
             x = 65 + Math.random() * 20; // 65-85%
             y = 50 + Math.random() * 15; // 50-65% (below Leo, above towers)
           } else if (normalizedAngle < Math.PI * 1.5) {
-            // Bottom-left quadrant → place in lower-left safe zone
+            // Bottom-left quadrant ? place in lower-left safe zone
             x = 10 + Math.random() * 20; // 10-30%
             y = 50 + Math.random() * 15; // 50-65% (below Leo, above towers)
           } else {
-            // Top-left quadrant → place in upper-left safe zone
+            // Top-left quadrant ? place in upper-left safe zone
             x = 10 + Math.random() * 20; // 10-30%
             y = 18 + Math.random() * 10; // 18-28% (below auth bar, above Leo)
           }
@@ -934,219 +887,6 @@ export default function BreathingSequence({
             </motion.div>
           );
         })}
-      </AnimatePresence>
-
-      {/* Stage 2: Illuminated Window */}
-      <AnimatePresence>
-        {stage2.window && stage2.phase !== 'idle' && (
-          <motion.div
-            className="absolute z-40 pointer-events-none"
-            style={{
-              left: `${stage2.window.x}%`,
-              bottom: `${stage2.window.y}%`,
-              width: '160px',
-              height: '120px',
-            }}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{
-              opacity: stage2.phase === 'continuity' ? 0 : 1,
-              scale: stage2.phase === 'poem1' && isInhaling ? [0.8, 1.2, 1] : 1,
-            }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ duration: 1, ease: EASING }}
-          >
-            {/* Window glow */}
-            <motion.div
-              className="absolute inset-0 rounded-lg"
-              style={{
-                background: `radial-gradient(circle, ${zoneColor}CC 0%, ${zoneColor}66 50%, transparent 100%)`,
-                filter: 'blur(20px)',
-              }}
-              animate={{
-                // Enhanced glow during tips
-                scale: windowGlowing ? [1, 1.3, 1.25] : 1,
-                opacity: windowGlowing ? [0.8, 1.2, 1] : 0.8,
-              }}
-              transition={{
-                duration: windowGlowing ? 1.5 : 0.6,
-                repeat: windowGlowing ? Infinity : 0,
-                repeatType: 'mirror',
-                ease: 'easeInOut',
-              }}
-            />
-            
-            {/* Window pane */}
-            <motion.div
-              className="absolute inset-0 rounded-lg border-2 flex items-center justify-center p-4 overflow-hidden"
-              style={{
-                backgroundColor: `${zoneColor}33`,
-                borderColor: `${zoneColor}99`,
-                boxShadow: `
-                  0 0 40px ${zoneColor}99,
-                  inset 0 0 20px ${zoneColor}33
-                `,
-              }}
-              animate={{
-                // Brightness boost during tips
-                filter: windowGlowing ? 'brightness(1.3)' : 'brightness(1)',
-              }}
-              transition={{
-                duration: 0.6,
-                ease: 'easeInOut',
-              }}
-            >
-              {/* Text content based on phase */}
-              <AnimatePresence mode="wait">
-                {/* Phase 1: Poem 1 */}
-                {stage2.phase === 'poem1' && stage2.payload && (
-                  <motion.div
-                    key="poem1"
-                    className="text-center text-white text-xs font-serif italic leading-relaxed"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{
-                      opacity: isInhaling ? 1 : [1, 0.3],
-                      y: isInhaling ? 0 : [0, -30],
-                    }}
-                    exit={{ opacity: 0, y: -40 }}
-                    transition={{ duration: activeCycle.in, ease: EASING }}
-                  >
-                    {stage2.payload.poems[0]}
-                  </motion.div>
-                )}
-
-                {/* Phase 2: Tips (current tip) */}
-                {stage2.phase === 'tips' && stage2.payload && (
-                  <motion.div
-                    key={`tip-${stage2.currentTipIndex}`}
-                    className="text-center text-white text-xs font-sans leading-relaxed"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{
-                      opacity: 1,
-                      scale: 1,
-                      // Micro-animations based on tip mood
-                      y: stage2.payload.tip_moods?.[stage2.currentTipIndex] === 'peaceful'
-                        ? [0, -2, 0] // Rain ripple
-                        : 0,
-                      x: stage2.payload.tip_moods?.[stage2.currentTipIndex] === 'celebratory'
-                        ? [0, 2, -2, 0] // Rhythmic wave
-                        : 0,
-                    }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{
-                      duration: stage2.payload.tip_moods?.[stage2.currentTipIndex] === 'pride'
-                        ? 0.3 // Flash pulse
-                        : 2,
-                      repeat: stage2.payload.tip_moods?.[stage2.currentTipIndex] === 'peaceful'
-                        ? Infinity
-                        : 0,
-                      ease: EASING,
-                    }}
-                  >
-                    {stage2.payload.tips[stage2.currentTipIndex]}
-                  </motion.div>
-                )}
-
-                {/* Phase 3: Poem 2 */}
-                {stage2.phase === 'poem2' && stage2.payload && (
-                  <motion.div
-                    key="poem2"
-                    className="text-center text-white text-xs font-serif italic leading-relaxed"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{
-                      opacity: 1,
-                      y: 0,
-                    }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: activeCycle.in, ease: EASING }}
-                  >
-                    {stage2.payload.poems[1]}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-
-            {/* Upward glow during poem2 exhale */}
-            {stage2.phase === 'poem2' && !isInhaling && (
-              <motion.div
-                className="absolute -top-32 left-1/2 -translate-x-1/2 w-32 h-32"
-                style={{
-                  background: `radial-gradient(circle, ${zoneColor}66 0%, transparent 70%)`,
-                  filter: 'blur(30px)',
-                }}
-                initial={{ opacity: 0, y: 0 }}
-                animate={{ opacity: [0, 0.8, 0], y: -60 }}
-                transition={{ duration: activeCycle.out, ease: EASING }}
-              />
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Stage 2: Phase 0 - Continuity text */}
-      <AnimatePresence>
-        {stage2.phase === 'continuity' && !isInhaling && (
-          <motion.div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-none"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: [0, 1, 1], y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: activeCycle.out, ease: EASING, times: [0, 0.3, 1] }}
-          >
-            <p className="text-white/80 text-2xl font-serif italic text-center max-w-md">
-              Your moment begins to take shape...
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Stage 2: Phase 4 - Closing cue */}
-      <AnimatePresence>
-        {stage2.phase === 'closing' && stage2.payload && (
-          <motion.div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-none flex flex-col items-center gap-6"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 2, ease: EASING }}
-          >
-            {/* Sticky note icon */}
-            <motion.div
-              className="text-6xl"
-              animate={{
-                y: [0, -10, 0],
-                rotate: [-5, 5, -5],
-              }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
-            >
-              ≡ƒô¥
-            </motion.div>
-
-            {/* Closing text */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-8 py-6 max-w-lg text-center">
-              <p className="text-white text-lg font-serif italic leading-relaxed mb-2">
-                If anything came to mind, write it down and feed it to {pigName}.
-              </p>
-              {stage2.payload.closing_line && (
-                <p className="text-white/70 text-sm font-sans mt-4">
-                  {stage2.payload.closing_line}
-                </p>
-              )}
-            </div>
-
-            {/* Leo turns slightly */}
-            <motion.div
-              className="absolute -top-64 left-0"
-              animate={{ rotate: [0, 15, 0] }}
-              transition={{ duration: 4, ease: 'easeInOut' }}
-            >
-              <Image src="/images/leo.svg" alt="Leo" width={120} height={120} />
-            </motion.div>
-          </motion.div>
-        )}
       </AnimatePresence>
 
       {/* Comic Bubbles - Post-Stage 2 Sequence */}
@@ -1296,4 +1036,5 @@ export default function BreathingSequence({
   );
 
 }
+
 
