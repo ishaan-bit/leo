@@ -1,22 +1,16 @@
 #!/usr/bin/env python3
 """
-Micro-Dream Agent — Production Version
-Generates 2-line micro-dreams from Upstash reflections with sign-in display gating.
+Micro-Dream Agent — Mock Mode
+Demonstrates all logic with 6 sample reflections (no Upstash required).
 
-Environment:
-  UPSTASH_REDIS_REST_URL
-  UPSTASH_REDIS_REST_TOKEN
-  SID (session ID)
-  FORCE_DREAM=1 (optional, bypass gating)
-
-Output:
-  - Writes micro_dream:{sid} to Upstash (7-day TTL)
-  - Prints terminal preview with fade sequence + metrics
-  - Updates signin_count and dream_gap_cursor
+Features:
+  - 6 reflections spanning Oct 20-24 (Peaceful -> Scared -> Mad -> Peaceful)
+  - Tests 3-5 moment selection algorithm
+  - Ollama refinement (can be skipped with SKIP_OLLAMA=1)
+  - Sign-in display gating simulation
+  - Terminal preview output
 """
 
-import os
-import sys
 import json
 import requests
 from datetime import datetime, timedelta
@@ -24,73 +18,69 @@ from typing import Dict, List, Optional, Tuple
 from collections import Counter
 
 
-class UpstashClient:
-    """REST API client for Vercel Upstash Redis."""
-    
-    def __init__(self, url: str, token: str):
-        self.url = url.rstrip('/')
-        self.token = token
-        self.headers = {'Authorization': f'Bearer {token}'}
-    
-    def get(self, key: str) -> Optional[str]:
-        """GET key value."""
-        resp = requests.post(
-            f'{self.url}/get/{key}',
-            headers=self.headers,
-            timeout=10
-        )
-        resp.raise_for_status()
-        result = resp.json().get('result')
-        return result
-    
-    def set(self, key: str, value: str, ex: Optional[int] = None) -> bool:
-        """SET key value with optional expiry (seconds)."""
-        payload = [key, value]
-        if ex:
-            payload.extend(['EX', ex])
-        
-        resp = requests.post(
-            f'{self.url}/set',
-            headers=self.headers,
-            json=payload,
-            timeout=10
-        )
-        resp.raise_for_status()
-        return resp.json().get('result') == 'OK'
-    
-    def incr(self, key: str) -> int:
-        """INCR key, returns new value."""
-        resp = requests.post(
-            f'{self.url}/incr/{key}',
-            headers=self.headers,
-            timeout=10
-        )
-        resp.raise_for_status()
-        return resp.json().get('result', 0)
-    
-    def keys(self, pattern: str) -> List[str]:
-        """KEYS pattern."""
-        resp = requests.post(
-            f'{self.url}/keys/{pattern}',
-            headers=self.headers,
-            timeout=10
-        )
-        resp.raise_for_status()
-        return resp.json().get('result', [])
-    
-    def mget(self, keys: List[str]) -> List[Optional[str]]:
-        """MGET multiple keys."""
-        if not keys:
-            return []
-        
-        resp = requests.post(
-            f'{self.url}/mget',
-            headers=self.headers,
-            json=keys,
-            timeout=15
-        )
-        resp.raise_for_status()
-        return resp.json().get('result', [])
+# SAMPLE REFLECTIONS (6 total, sorted by timestamp)
+SAMPLE_REFLECTIONS = [
+    {
+        'rid': 'refl_001_peaceful',
+        'sid': 'sess_mock',
+        'timestamp': '2025-10-20T08:30:00Z',
+        'valence': 0.6,
+        'arousal': 0.3,
+        'primary': 'peaceful',
+        'closing_line': 'Let the calm keep watch.',
+        'text': 'Woke up feeling rested and calm. Morning coffee tasted good.'
+    },
+    {
+        'rid': 'refl_002_scared',
+        'sid': 'sess_mock',
+        'timestamp': '2025-10-21T14:45:00Z',
+        'valence': -0.2,
+        'arousal': 0.7,
+        'primary': 'scared',
+        'closing_line': "Breathe; you're not alone.",
+        'text': 'Big presentation today. Hands shaking beforehand, worried about messing up.'
+    },
+    {
+        'rid': 'refl_003_scared',
+        'sid': 'sess_mock',
+        'timestamp': '2025-10-22T09:15:00Z',
+        'valence': 0.1,
+        'arousal': 0.5,
+        'primary': 'scared',
+        'closing_line': 'The fear passed; you held steady.',
+        'text': "Presentation went okay. Still anxious but relieved it's over."
+    },
+    {
+        'rid': 'refl_004_mad',
+        'sid': 'sess_mock',
+        'timestamp': '2025-10-24T11:00:00Z',
+        'valence': -0.3,
+        'arousal': 0.8,
+        'primary': 'mad',
+        'closing_line': 'Name it, reshape it.',
+        'text': 'Teammate took credit for my work. So frustrated and angry.'
+    },
+    {
+        'rid': 'refl_005_peaceful',
+        'sid': 'sess_mock',
+        'timestamp': '2025-10-24T18:30:00Z',
+        'valence': 0.4,
+        'arousal': 0.4,
+        'primary': 'peaceful',
+        'closing_line': 'This calm is yours. Keep it close.',
+        'text': 'Talked to manager about it. Feeling heard and calmer now.'
+    },
+    {
+        'rid': 'refl_006_peaceful',
+        'sid': 'sess_mock',
+        'timestamp': '2025-10-24T21:00:00Z',
+        'valence': 0.5,
+        'arousal': 0.3,
+        'primary': 'peaceful',
+        'closing_line': 'Let the calm keep watch.',
+        'text': 'Evening walk by the park. Sky was pretty. Feeling settled.'
+    }
+]
 
 
 class OllamaClient:
@@ -130,74 +120,19 @@ class OllamaClient:
             return refined
         
         except Exception as e:
-            print(f"[⚠] Ollama refinement failed: {e}, using raw line")
+            print(f"[!] Ollama refinement failed: {e}, using raw line")
             return text
 
 
-class MicroDreamAgent:
-    """Main agent for micro-dream generation and sign-in gating."""
+class MicroDreamAgentMock:
+    """Mock agent for micro-dream generation (no Upstash)."""
     
-    def __init__(self, upstash: UpstashClient, ollama: OllamaClient):
-        self.upstash = upstash
+    def __init__(self, ollama: OllamaClient, reflections: List[Dict]):
         self.ollama = ollama
-    
-    def fetch_reflections(self, sid: str) -> List[Dict]:
-        """Fetch all reflections for session, sorted by timestamp."""
-        # Try pattern: reflections:enriched:*
-        keys = self.upstash.keys(f'reflections:enriched:*')
-        
-        if not keys:
-            # Fallback: try moments:{sid} list or refl:* pattern
-            keys = self.upstash.keys('refl:*')
-        
-        if not keys:
-            print(f"[✗] No reflection keys found for sid={sid}")
-            return []
-        
-        # Fetch all reflection JSONs
-        values = self.upstash.mget(keys)
-        
-        reflections = []
-        for key, val in zip(keys, values):
-            if not val:
-                continue
-            
-            try:
-                data = json.loads(val)
-                
-                # Validate structure
-                if 'timestamp' not in data or 'final' not in data:
-                    continue
-                
-                final = data.get('final', {})
-                valence = final.get('valence', 0.0)
-                arousal = final.get('arousal', 0.0)
-                primary = final.get('wheel', {}).get('primary', 'peaceful').lower()
-                
-                # Extract closing line
-                closing_line = ''
-                post = data.get('post_enrichment', {})
-                if post.get('closing_line'):
-                    closing_line = post['closing_line'].replace('See you tomorrow.', '').strip()
-                
-                reflections.append({
-                    'rid': data.get('rid', key.split(':')[-1]),
-                    'sid': data.get('sid', sid),
-                    'timestamp': data['timestamp'],
-                    'valence': valence,
-                    'arousal': arousal,
-                    'primary': primary,
-                    'closing_line': closing_line,
-                    'text': data.get('normalized_text', '')
-                })
-            
-            except json.JSONDecodeError:
-                continue
-        
-        # Sort by timestamp ascending
-        reflections.sort(key=lambda r: r['timestamp'])
-        
-        return reflections
+        self.reflections = reflections
+        # Simulate sign-in state
+        self.signin_count = 0
+        self.gap_cursor = 0
     
     def select_moments(self, reflections: List[Dict]) -> Tuple[List[Dict], str]:
         """
@@ -225,7 +160,7 @@ class MicroDreamAgent:
             old_pool = reflections[:max(1, n // 4)]
             old = max(old_pool, key=lambda r: abs(r['valence'] - valence_mean))
             
-            # Fade order: old → recent[-2] → recent[-1]
+            # Fade order: old -> recent[-2] -> recent[-1]
             selected = [old] + recent
             policy = "3=2R+1O"
         
@@ -252,8 +187,7 @@ class MicroDreamAgent:
             old_pool = reflections[:max(1, n // 4)]
             old = max(old_pool, key=lambda r: abs(r['valence'] - valence_mean))
             
-            # Fade order: old → mid → recent[-3] → recent[-2] → recent[-1]
-            # But we only use 5 max, so: old → mid → recent (3 most recent)
+            # Fade order: old -> mid -> recent (3 most recent)
             selected = [old, mid] + recent
             policy = "5+=3R+1M+1O"
         
@@ -392,131 +326,79 @@ class MicroDreamAgent:
         
         return refined1, refined2
     
-    def compute_next_signin_display(self, signin_count: int, gap_cursor: int) -> int:
+    def simulate_signin_gating(self, current_count: int = 0) -> Tuple[bool, int, int]:
         """
-        Compute next eligible sign-in for display.
-        Pattern: skip 1, skip 2, repeat → play on #3, 5, 8, 10, 13, 15...
-        """
-        gaps = [1, 2]
-        current_gap = gaps[gap_cursor % 2]
-        
-        # Next display = current + gap + 1
-        return signin_count + current_gap + 1
-    
-    def check_should_display(self, sid: str, force: bool = False) -> Tuple[bool, int, int]:
-        """
-        Check if micro-dream should display on this sign-in.
+        Simulate sign-in display gating.
         Returns: (should_display, signin_count, next_eligible)
         
-        Pattern: First at #4 (after 3 moments), then #5, 7, 10, 12, 15, 17, 20, 22, 25...
-        Gaps: +1, +2, +3, +2, +3, +2, +3, +2, +3...
+        Pattern: skip 1, skip 2, repeat -> play on #3, 5, 8, 10, 13, 15...
+        Timeline: 
+          #1 (skip) -> #2 (skip) -> #3 (PLAY) -> 
+          #4 (skip) -> #5 (PLAY) -> 
+          #6 (skip) -> #7 (skip) -> #8 (PLAY) -> etc.
         """
-        if force:
-            return True, 0, 0
+        # Use provided count or increment internal
+        signin_count = current_count if current_count > 0 else (self.signin_count + 1)
+        self.signin_count = signin_count
         
-        # Increment signin counter
-        signin_count = self.upstash.incr(f'signin_count:{sid}')
-        
-        # Get gap cursor (defaults to 0)
-        gap_cursor_str = self.upstash.get(f'dream_gap_cursor:{sid}')
-        gap_cursor = int(gap_cursor_str) if gap_cursor_str else 0
-        
-        # Build play sequence: start at 4, then pattern of +1, +2, +3, +2, +3, +2, +3...
-        # #4 (first after 3 moments), #5 (+1), #7 (+2), #10 (+3), #12 (+2), #15 (+3), #17 (+2), #20 (+3)...
+        # Build play sequence: start at 3, then pattern of +2, +3, +2, +3...
+        # #3 (skip 1+1), #5 (+2), #8 (+3), #10 (+2), #13 (+3), #15 (+2)...
         plays = []
-        pos = 4  # First play at signin #4 (after user has 3 moments)
-        gap_pattern = [1, 2, 3]  # After #4: +1 → #5, +2 → #7, +3 → #10, +2 → #12, +3 → #15...
+        pos = 3  # First play at signin #3
+        gap_pattern = [2, 3]  # After first play: +2, +3, +2, +3...
         gap_idx = 0
         
         plays.append(pos)
         while pos < signin_count + 20:
-            # Cycle through [1, 2, 3, 2, 3, 2, 3...]
-            if gap_idx == 0:
-                gap = 1  # First gap after #4
-            else:
-                # Alternate between 2 and 3 after first +1
-                gap = 2 if (gap_idx % 2 == 1) else 3
-            
-            pos += gap
+            pos += gap_pattern[gap_idx % 2]
             plays.append(pos)
             gap_idx += 1
             
-            if len(plays) > 50:  # Safety limit
+            if len(plays) > 50:
                 break
         
         should_display = signin_count in plays
-        
-        if should_display:
-            # Update gap cursor for next cycle
-            new_cursor = gap_cursor + 1
-            self.upstash.set(f'dream_gap_cursor:{sid}', str(new_cursor))
-        
-        # Find next eligible
         next_eligible = min([p for p in plays if p > signin_count], default=signin_count + 2)
         
         return should_display, signin_count, next_eligible
     
-    def write_micro_dream(self, sid: str, lines: List[str], fades: List[str], 
-                          metrics: Dict, policy: str) -> bool:
-        """Write micro_dream:{sid} to Upstash with 7-day TTL."""
-        payload = {
-            'sid': sid,
-            'algo': 'micro-v1',
-            'createdAt': datetime.utcnow().isoformat() + 'Z',
-            'lines': lines,
-            'fades': fades,
-            'dominant_primary': metrics['dominant_primary'],
-            'valence_mean': metrics['valence_mean'],
-            'arousal_mean': metrics['arousal_mean'],
-            'source_policy': policy
-        }
-        
-        # 7 days = 604800 seconds
-        ttl = 7 * 24 * 60 * 60
-        
-        return self.upstash.set(
-            f'micro_dream:{sid}',
-            json.dumps(payload),
-            ex=ttl
-        )
-    
-    def run(self, sid: str, force_dream: bool = False, skip_ollama: bool = False) -> Optional[Dict]:
+    def run(self, skip_ollama: bool = False, signin_count: int = 0) -> Optional[Dict]:
         """
         Main execution flow.
         
         Returns dict with terminal output data, or None if insufficient reflections.
         """
-        print(f"[•] Fetching reflections for sid={sid}...")
-        reflections = self.fetch_reflections(sid)
+        reflections = self.reflections
+        
+        print(f"[OK] Loaded {len(reflections)} sample reflections")
         
         if len(reflections) < 3:
-            print(f"[✗] Not enough moments for micro-dream. Found {len(reflections)}, need ≥3.")
+            print(f"[X] Not enough moments for micro-dream. Found {len(reflections)}, need >=3.")
             return None
         
-        print(f"[✓] Loaded {len(reflections)} reflections")
-        
         # Select moments
-        print(f"[•] Selecting fade moments...")
         moments, policy = self.select_moments(reflections)
         
         if not moments:
-            print("[✗] Moment selection failed")
+            print("[X] Moment selection failed")
             return None
         
-        print(f"[✓] Selected {len(moments)} moments using policy: {policy}")
+        print(f"[OK] Selected {len(moments)} moments using policy: {policy}")
         
         # Aggregate metrics
         metrics = self.aggregate_metrics(moments)
-        print(f"[✓] Aggregated: {metrics['dominant_primary']} | valence={metrics['valence_mean']:+.2f} | Δ={metrics['delta_valence']:+.2f}")
+        print(f"[OK] Aggregated: {metrics['dominant_primary']} | valence={metrics['valence_mean']:+.2f} | delta={metrics['delta_valence']:+.2f}")
         
         # Generate raw lines
-        print(f"[•] Generating lines...")
         line1_raw = self.generate_line1_tone(metrics)
         line2_raw = self.generate_line2_direction(metrics)
         
+        print(f"\n[RAW] Line 1: {line1_raw}")
+        print(f"[RAW] Line 2: {line2_raw}")
+        
         # Refine with Ollama (unless skipped)
         if not skip_ollama:
-            print(f"[•] Refining with Ollama (phi3)...")
+            print(f"\n[*] Refining with Ollama (phi3)...")
             line1, line2 = self.refine_with_ollama(line1_raw, line2_raw, metrics)
         else:
             line1, line2 = line1_raw, line2_raw
@@ -524,61 +406,45 @@ class MicroDreamAgent:
         lines = [line1, line2]
         fades = [m['rid'] for m in moments]
         
-        # Write to Upstash
-        print(f"[•] Writing micro_dream:{sid} to Upstash...")
-        success = self.write_micro_dream(sid, lines, fades, metrics, policy)
-        
-        if success:
-            print(f"[✓] Micro-dream saved (7-day TTL)")
-        else:
-            print(f"[⚠] Failed to write to Upstash")
-        
-        # Check sign-in gating
-        should_display, signin_count, next_eligible = self.check_should_display(sid, force_dream)
+        # Simulate sign-in gating
+        should_display, signin_count_new, next_eligible = self.simulate_signin_gating(signin_count)
         
         return {
             'lines': lines,
+            'lines_raw': [line1_raw, line2_raw],
             'fades': fades,
             'metrics': metrics,
             'policy': policy,
             'should_display': should_display,
-            'signin_count': signin_count,
+            'signin_count': signin_count_new,
             'next_eligible': next_eligible
         }
 
 
 def main():
-    """Main entry point."""
-    # Load environment
-    upstash_url = os.getenv('UPSTASH_REDIS_REST_URL')
-    upstash_token = os.getenv('UPSTASH_REDIS_REST_TOKEN')
-    sid = os.getenv('SID', 'sess_default')
-    force_dream = os.getenv('FORCE_DREAM', '0') == '1'
-    skip_ollama = os.getenv('SKIP_OLLAMA', '0') == '1'
+    """Main entry point for mock mode."""
+    import os
     
-    if not upstash_url or not upstash_token:
-        print("[✗] Missing UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN")
-        sys.exit(1)
+    skip_ollama = os.getenv('SKIP_OLLAMA', '0') == '1'
+    signin_count = int(os.getenv('SIGNIN_COUNT', '0'))
     
     print(f"\n{'='*60}")
-    print(f"MICRO-DREAM AGENT — Production Mode")
+    print(f"MICRO-DREAM AGENT — Mock Mode")
     print(f"{'='*60}")
-    print(f"Session: {sid}")
-    print(f"Upstash: {upstash_url[:40]}...")
-    print(f"Force display: {force_dream}")
+    print(f"Sample reflections: {len(SAMPLE_REFLECTIONS)}")
     print(f"Skip Ollama: {skip_ollama}")
+    print(f"Simulated sign-in count: {signin_count}")
     print(f"{'='*60}\n")
     
-    # Initialize clients
-    upstash = UpstashClient(upstash_url, upstash_token)
+    # Initialize
     ollama = OllamaClient()
+    agent = MicroDreamAgentMock(ollama, SAMPLE_REFLECTIONS)
     
-    # Run agent
-    agent = MicroDreamAgent(upstash, ollama)
-    result = agent.run(sid, force_dream=force_dream, skip_ollama=skip_ollama)
+    # Run
+    result = agent.run(skip_ollama=skip_ollama, signin_count=signin_count)
     
     if not result:
-        sys.exit(1)
+        return
     
     # Terminal output
     print(f"\n{'='*60}")
@@ -586,14 +452,14 @@ def main():
     print(f"{'='*60}")
     print(f"1) {result['lines'][0]}")
     print(f"2) {result['lines'][1]}")
-    print(f"\nFADES: {' → '.join(result['fades'])}")
+    print(f"\nFADES: {' -> '.join(result['fades'])}")
     print(f"dominant: {result['metrics']['dominant_primary']} | " 
           f"valence: {result['metrics']['valence_mean']:+.2f} | "
           f"arousal: {result['metrics']['arousal_mean']:.2f} | "
-          f"Δvalence: {result['metrics']['delta_valence']:+.2f}")
+          f"deltavalence: {result['metrics']['delta_valence']:+.2f}")
     
     if result['should_display']:
-        print(f"\n[✓] DISPLAY ON THIS SIGN-IN (#{result['signin_count']})")
+        print(f"\n[OK] DISPLAY ON THIS SIGN-IN (#{result['signin_count']})")
     else:
         print(f"\nNext display eligible sign-in: #{result['next_eligible']} (current: #{result['signin_count']})")
     

@@ -218,12 +218,28 @@ class PostEnricher:
         except json.JSONDecodeError:
             pass
         
-        # Try extracting JSON block
+        # Try extracting JSON block (find complete object with balanced braces)
         try:
-            # Find first { to last }
-            match = re.search(r'\{[\s\S]*\}', content)
-            if match:
-                return json.loads(match.group(0))
+            # Find first { and count braces to find matching }
+            start = content.find('{')
+            if start != -1:
+                brace_count = 0
+                for i in range(start, len(content)):
+                    if content[i] == '{':
+                        brace_count += 1
+                    elif content[i] == '}':
+                        brace_count -= 1
+                        if brace_count == 0:
+                            # Found matching closing brace
+                            json_str = content[start:i+1]
+                            return json.loads(json_str)
+        except Exception as e:
+            print(f"⚠️  JSON extraction failed: {e}")
+        
+        # Try stripping whitespace and trying again
+        try:
+            stripped = content.strip()
+            return json.loads(stripped)
         except:
             pass
         
@@ -384,7 +400,7 @@ Return ONLY the closing line, nothing else."""
             reliable: Reliable fields dict
         
         Returns:
-            Minimal valid post_enrichment
+            Minimal valid post_enrichment with exactly 3 poems
         """
         primary = reliable['wheel']['primary'] or 'Peaceful'
         invoked_0 = reliable['invoked'][0] if reliable['invoked'] else 'reflection'
@@ -393,7 +409,8 @@ Return ONLY the closing line, nothing else."""
         return {
             "poems": [
                 "something shifted today, quiet but real",
-                "you noticed it, that counts for something"
+                "you noticed it, that counts for something",
+                "hold this moment, even if it's small"
             ],
             "tips": [
                 "Take a short walk, let your mind wander",
@@ -404,6 +421,6 @@ Return ONLY the closing line, nothing else."""
                 "voice": "grounded",
                 "tempo": "mid"
             },
-            "closing_line": f"{reliable['normalized_text']} See you tomorrow.",
+            "closing_line": "you showed up for yourself today. See you tomorrow.",
             "tags": [f"#{primary}", f"#{invoked_0}", f"#{expressed_0}"]
         }
