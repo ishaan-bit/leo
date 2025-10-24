@@ -81,6 +81,20 @@ export default function MomentsLibrary({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedMoment]);
 
+  // Scroll to top when modal opens (fix for content pushed off-screen bug)
+  useEffect(() => {
+    if (selectedMoment && modalRef.current) {
+      // Immediate scroll to top
+      modalRef.current.scrollTop = 0;
+      // Also scroll after a short delay to ensure DOM is rendered
+      setTimeout(() => {
+        if (modalRef.current) {
+          modalRef.current.scrollTop = 0;
+        }
+      }, 50);
+    }
+  }, [selectedMoment]);
+
   // Focus trap and initial focus
   useEffect(() => {
     if (selectedMoment && modalRef.current) {
@@ -980,6 +994,12 @@ export default function MomentsLibrary({
                 }}
                 transition={{ duration: 0.6, ease: EASING }}
                 onClick={(e) => e.stopPropagation()}
+                onAnimationComplete={() => {
+                  // Scroll to top when modal opens (fix for content pushed off-screen)
+                  if (modalRef.current) {
+                    modalRef.current.scrollTop = 0;
+                  }
+                }}
                 tabIndex={-1}
                 style={{
                   backdropFilter: 'blur(12px) saturate(120%) brightness(1.05)',

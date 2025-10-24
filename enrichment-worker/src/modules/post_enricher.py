@@ -257,8 +257,8 @@ class PostEnricher:
         tips = post_enrichment['tips']
         tags = post_enrichment['tags']
         
-        if not isinstance(poems, list) or len(poems) < 2:
-            raise ValueError("poems must be list with ≥2 items")
+        if not isinstance(poems, list) or len(poems) != 3:
+            raise ValueError("poems must be list with exactly 3 items")
         
         if not isinstance(tips, list) or len(tips) != 3:
             raise ValueError("tips must be list with exactly 3 items")
@@ -301,9 +301,11 @@ class PostEnricher:
 DATA:
 - primary: {reliable['wheel']['primary']}
 - secondary: {reliable['wheel']['secondary'] or ''}
-- expressed: {reliable['expressed'][:3] if reliable['expressed'] else []}
+- tertiary: {reliable['wheel']['tertiary'] or ''}
 - invoked: {reliable['invoked'][:3] if reliable['invoked'] else []}
-- reflection_text: \"\"\"{user_text}\"\"\"
+- expressed: {reliable['expressed'][:3] if reliable['expressed'] else []}
+- valence: {reliable.get('valence', 0.5):.2f} (0=negative, 1=positive)
+- arousal: {reliable.get('arousal', 0.5):.2f} (0=calm, 1=energized)
 
 EXISTING POEMS (DO NOT REPEAT THESE):
 {chr(10).join(f'- "{p}"' for p in poems)}
@@ -311,13 +313,20 @@ EXISTING POEMS (DO NOT REPEAT THESE):
 AVOID THESE WORDS: {', '.join(penalize_words[:10])}
 
 RULES:
-- NEVER copy, paraphrase, or summarize the reflection text
+- NEVER copy, paraphrase, or summarize the user's reflection
 - NEVER use "you felt" / "you experienced" / "you expressed"
-- ONE sentence, 8-22 words, ending with "See you tomorrow."
-- Use the emotion and drivers metaphorically, not literally
+- ONE sentence, 8-18 words, ending with "See you tomorrow."
+- Use the wheel emotions (primary/secondary/tertiary) and drivers (invoked/expressed) metaphorically
 - Address the feeling as a presence ("it", "tonight", "this moment")
 - Warm, witnessing tone—not advice or analysis
 - Always lowercase except "See"
+- Respond TO the emotion, not ABOUT it
+
+EXAMPLES (for inspiration, do not copy):
+- Sad/ashamed/humiliated + hurt → "wounds speak their own language at night. See you tomorrow."
+- Joyful/proud/confident + achievement → "pocket that light for harder days. See you tomorrow."
+- Mad/frustrated/annoyed + disappointment → "your shoulders can drop now. See you tomorrow."
+- Scared/anxious/worried + uncertainty → "not every knot untangles in one night. See you tomorrow."
 
 Return ONLY the closing line, nothing else."""
 
