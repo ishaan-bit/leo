@@ -29,10 +29,17 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const pigId = searchParams.get('pigId');
     
+    console.log('[Dream Gate] ========== ENTRY ==========');
+    console.log('[Dream Gate] PigId:', pigId);
+    console.log('[Dream Gate] URL:', req.url);
+    
     // Get authenticated user
     const auth = await getAuth();
+    console.log('[Dream Gate] Auth result:', auth ? `Authenticated (${auth.userId})` : 'Not authenticated');
+    
     if (!auth) {
       // Not authenticated, redirect to reflect
+      console.log('[Dream Gate] No auth, redirecting to reflect');
       return NextResponse.redirect(new URL(`/reflect/${pigId || 'new'}`, req.url));
     }
 
@@ -63,6 +70,8 @@ export async function GET(req: NextRequest) {
         { byScore: true }
       ) as string[];
 
+      console.log('[Dream Gate] Reflection IDs found:', reflectionIds?.length || 0);
+      
       if (!reflectionIds || reflectionIds.length === 0) {
         console.log('[Dream Gate] No reflections found, routing to reflect');
         return NextResponse.redirect(new URL(`/reflect/${pigId || 'new'}`, req.url));
@@ -77,6 +86,8 @@ export async function GET(req: NextRequest) {
         }
       }
 
+      console.log('[Dream Gate] Reflections loaded:', reflections.length);
+      
       if (reflections.length === 0) {
         console.log('[Dream Gate] No reflection data found');
         return NextResponse.redirect(new URL(`/reflect/${pigId || 'new'}`, req.url));
@@ -84,6 +95,9 @@ export async function GET(req: NextRequest) {
 
       // Build dream
       const date = getKolkataDate();
+      console.log('[Dream Gate] Calling buildDream with', reflections.length, 'reflections');
+      console.log('[Dream Gate] Dream state:', dreamState ? `Exists (lastDreamAt: ${dreamState.lastDreamAt})` : 'null');
+      
       pendingDreamData = await buildDream({
         userId,
         reflections,
@@ -91,11 +105,32 @@ export async function GET(req: NextRequest) {
         date,
       });
 
+      console.log('[Dream Gate] buildDream result:', pendingDreamData ? `Success (${pendingDreamData.scriptId})` : 'Failed (null)');
+      
       if (!pendingDreamData) {
-        console.log('[Dream Gate] Dream build failed (ineligible or sporadic gate)');
-        return NextResponse.redirect(new URL(`/reflect/${pigId || 'new'}`, req.url));
+        console.log('[Dream Gate] TESTING MODE: Dream build failed, likely due to:');
+        console.log('[Dream Gate]   - Eligibility gate (needs 7+ days since last dream)');
+        console.log('[Dream Gate]   - Sporadic gate (65% seeded chance)');
+        console.log('[Dream Gate]   - Forcing last_dream_at to null to bypass eligibility...');
+        
+        // TESTING MODE: Force bypass eligibility by clearing last dream time
+        pendingDreamData = await buildDream({
+          userId,
+          reflections,
+          dreamState: null, // Force as if first time
+          date,
+        });
+        
+        console.log('[Dream Gate] Retry with null state:', pendingDreamData ? 'Success!' : 'Still failed (sporadic gate?)');
+        
+        if (!pendingDreamData) {
+          console.log('[Dream Gate] Still failed - probably sporadic gate (65% chance). User might need to sign in again.');
+          return NextResponse.redirect(new URL(`/reflect/${pigId || 'new'}`, req.url));
+        }
       }
 
+      console.log('[Dream Gate] Dream beats count:', pendingDreamData.beats?.length || 0);
+      
       // Store in Redis (TTL 14 days)
       await redis.set(pendingDreamKey, pendingDreamData, {
         ex: 14 * 24 * 60 * 60,

@@ -79,19 +79,25 @@ export async function buildDream(params: {
 }): Promise<PendingDream | null> {
   const { userId, reflections, dreamState, date } = params;
   
-  // 1. Check eligibility
-  const eligibility = checkEligibility(dreamState);
-  if (!eligibility.eligible || !eligibility.kind) {
-    return null;
-  }
+  // TESTING MODE: Always force weekly, bypass eligibility and sporadic gates
+  const TESTING_MODE = true;
+  const kind: DreamKind = 'weekly';
   
-  const kind = eligibility.kind;
-  
-  // 2. Sporadic build gate (65% chance)
-  const sporadicSeed = DreamSeeds.buildSporadicity(userId, date, kind);
-  const rng = createSeededRandom(sporadicSeed);
-  if (!rng.chance(0.65)) {
-    return null; // sporadic_no
+  if (!TESTING_MODE) {
+    // 1. Check eligibility
+    const eligibility = checkEligibility(dreamState);
+    if (!eligibility.eligible || !eligibility.kind) {
+      return null;
+    }
+    
+    const kind = eligibility.kind;
+    
+    // 2. Sporadic build gate (65% chance)
+    const sporadicSeed = DreamSeeds.buildSporadicity(userId, date, kind);
+    const rng = createSeededRandom(sporadicSeed);
+    if (!rng.chance(0.65)) {
+      return null; // sporadic_no
+    }
   }
   
   // 3. Build candidate pool
@@ -129,7 +135,8 @@ export async function buildDream(params: {
   const scriptId = generateScriptId();
   
   // 7. Synthesize copy (opening + lines per core)
-  const opening = getOpeningLine(eligibility.daysSince);
+  const daysSince = TESTING_MODE ? 8 : checkEligibility(dreamState).daysSince;
+  const opening = getOpeningLine(daysSince);
   
   const selectedCores = selectedCandidates.map((candidate) => {
     const reflection = candidate.reflection;
