@@ -7,7 +7,7 @@ Calls Ollama to generate creative user-facing content from hybrid enrichment.
 import requests
 import json
 import re
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 import sys
 import os
 
@@ -16,6 +16,30 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from prompts.stage2_prompt import STAGE2_SYSTEM_PROMPT
 from utils.reliable_fields import pick_reliable_fields
+
+
+def cosine_similarity(text1: str, text2: str) -> float:
+    """
+    Simple word-overlap based similarity (0-1).
+    For production, use sentence-transformers embeddings.
+    
+    Args:
+        text1: First text
+        text2: Second text
+    
+    Returns:
+        Similarity score 0-1
+    """
+    words1 = set(text1.lower().split())
+    words2 = set(text2.lower().split())
+    
+    if not words1 or not words2:
+        return 0.0
+    
+    intersection = words1 & words2
+    union = words1 | words2
+    
+    return len(intersection) / len(union) if union else 0.0
 
 
 class PostEnricher:
@@ -129,6 +153,27 @@ class PostEnricher:
                 poems = poems[:3]  # Trim if more than 3
                 parsed['post_enrichment']['poems'] = poems
             
+            # Dedup check: ensure closing_line is different from poems
+            closing_line = parsed['post_enrichment']['closing_line']
+            closing_text = closing_line.replace("See you tomorrow.", "").strip().lower()
+            
+            max_similarity = 0.0
+            for poem in poems:
+                sim = cosine_similarity(closing_text, poem)
+                max_similarity = max(max_similarity, sim)
+            
+            if max_similarity > 0.75:
+                print(f"⚠️  Closing line too similar to poems (sim={max_similarity:.2f}), regenerating...")
+                # Regenerate closing line with penalty
+                new_closing = self._regenerate_closing_line(
+                    reliable,
+                    poems,
+                    reliable.get('normalized_text', '')
+                )
+                if new_closing:
+                    parsed['post_enrichment']['closing_line'] = new_closing
+                    print(f"   ✓ Regenerated: {new_closing}")
+            
             # Merge into hybrid result
             hybrid_result['post_enrichment'] = parsed['post_enrichment']
             hybrid_result['status'] = 'complete'
@@ -224,6 +269,97 @@ class PostEnricher:
         closing = post_enrichment['closing_line']
         if not closing.endswith("See you tomorrow."):
             raise ValueError("closing_line must end with 'See you tomorrow.'")
+    
+    def _regenerate_closing_line(
+        self,
+        reliable: Dict,
+        poems: List[str],
+        user_text: str
+    ) -> Optional[str]:
+        """
+        Regenerate closing line with guardrails against poem repetition.
+        
+        Args:
+            reliable: Reliable fields dict
+            poems: List of existing poems
+            user_text: User's original reflection text
+        
+        Returns:
+            New closing line or None if failed
+        """
+        # Extract poem tokens to penalize
+        poem_words = set()
+        for poem in poems:
+            poem_words.update(poem.lower().split())
+        
+        # Remove common words
+        common_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'is', 'was', 'are', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'should', 'could', 'may', 'might', 'must', 'can', 'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them', 'my', 'your', 'his', 'its', 'our', 'their'}
+        penalize_words = list(poem_words - common_words)[:20]  # Top 20 non-common words
+        
+        prompt = f"""You are the City's soft voice. Generate a SINGLE, ORIGINAL closing line for this moment.
+
+DATA:
+- primary: {reliable['wheel']['primary']}
+- secondary: {reliable['wheel']['secondary'] or ''}
+- expressed: {reliable['expressed'][:3] if reliable['expressed'] else []}
+- invoked: {reliable['invoked'][:3] if reliable['invoked'] else []}
+- reflection_text: \"\"\"{user_text}\"\"\"
+
+EXISTING POEMS (DO NOT REPEAT THESE):
+{chr(10).join(f'- "{p}"' for p in poems)}
+
+AVOID THESE WORDS: {', '.join(penalize_words[:10])}
+
+RULES:
+- NEVER copy, paraphrase, or summarize the reflection text
+- NEVER use "you felt" / "you experienced" / "you expressed"
+- ONE sentence, 8-22 words, ending with "See you tomorrow."
+- Use the emotion and drivers metaphorically, not literally
+- Address the feeling as a presence ("it", "tonight", "this moment")
+- Warm, witnessing tone—not advice or analysis
+- Always lowercase except "See"
+
+Return ONLY the closing line, nothing else."""
+
+        try:
+            payload = {
+                "model": self.ollama_model,
+                "prompt": prompt,
+                "stream": False,
+                "options": {
+                    "temperature": 0.75,
+                    "top_p": 0.9,
+                    "num_predict": 60,
+                    "stop": ["\n\n", "Note:", "Explanation:"]
+                }
+            }
+            
+            response = requests.post(
+                f"{self.ollama_base_url}/api/generate",
+                json=payload,
+                timeout=30
+            )
+            
+            if response.status_code != 200:
+                return None
+            
+            result = response.json()
+            new_line = result.get('response', '').strip()
+            
+            # Validate format
+            if not new_line.endswith("See you tomorrow."):
+                new_line = new_line.rstrip('.') + ". See you tomorrow."
+            
+            # Check length
+            words = new_line.replace("See you tomorrow.", "").strip().split()
+            if len(words) < 8:
+                return None
+            
+            return new_line
+            
+        except Exception as e:
+            print(f"⚠️  Failed to regenerate closing line: {e}")
+            return None
     
     def _fallback_response(self, reliable: Dict) -> Dict:
         """
