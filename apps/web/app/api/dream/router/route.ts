@@ -40,10 +40,17 @@ export async function GET(req: NextRequest) {
 
       pendingDreamData = {
         scriptId,
-        kind: 'daily',
-        usedMomentIds: [], // Will be populated when fetched
+        kind: 'weekly',
+        generatedAt: now.toISOString(),
         expiresAt: expiresAt.toISOString(),
-        createdAt: now.toISOString(),
+        duration: 18,
+        palette: {
+          primary: 'peaceful' as const,
+        },
+        audioKey: 'Lydian' as const,
+        opening: 'Your moments await...',
+        beats: [],
+        usedMomentIds: [], // Will be populated when fetched
       };
 
       // Store in Redis
@@ -66,10 +73,17 @@ export async function GET(req: NextRequest) {
 
       pendingDreamData = {
         scriptId,
-        kind: 'daily',
-        usedMomentIds: [],
+        kind: 'weekly',
+        generatedAt: nowDate.toISOString(),
         expiresAt: expiresAtNew.toISOString(),
-        createdAt: nowDate.toISOString(),
+        duration: 18,
+        palette: {
+          primary: 'peaceful' as const,
+        },
+        audioKey: 'Lydian' as const,
+        opening: 'Your moments await...',
+        beats: [],
+        usedMomentIds: [],
       };
 
       await redis.set(pendingDreamKey, pendingDreamData, {
