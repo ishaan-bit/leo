@@ -9,6 +9,7 @@ import { getAuth } from '@/lib/auth-helpers';
 import { Redis } from '@upstash/redis';
 import type { PendingDream, DreamState, ReflectionData } from '@/domain/dream/dream.types';
 import { buildDream } from '@/domain/dream/dream-builder';
+import { isForceDreamEnabled } from '@/lib/feature-flags';
 
 const redis = Redis.fromEnv();
 
@@ -45,6 +46,9 @@ export async function GET(req: NextRequest) {
 
     const userId = auth.userId;
 
+    // Check if force_dream is enabled (feature flag or query param)
+    const forceDream = await isForceDreamEnabled(userId, searchParams);
+    console.log('[Dream Gate] force_dream:', forceDream ? 'ENABLED' : 'disabled');
     console.log('[Dream Gate] Checking for user:', userId);
 
     // Check for pending dream
@@ -97,36 +101,31 @@ export async function GET(req: NextRequest) {
       const date = getKolkataDate();
       console.log('[Dream Gate] Calling buildDream with', reflections.length, 'reflections');
       console.log('[Dream Gate] Dream state:', dreamState ? `Exists (lastDreamAt: ${dreamState.lastDreamAt})` : 'null');
+      console.log('[Dream Gate] force_dream mode:', forceDream);
       
       pendingDreamData = await buildDream({
         userId,
         reflections,
-        dreamState,
+        dreamState: forceDream ? null : dreamState, // Clear state in test mode
         date,
+        testMode: forceDream, // Pass testMode flag
       });
+
+      if (pendingDreamData && forceDream) {
+        console.log('[Dream Gate] force_dream_build:', {
+          sid: pendingDreamData.scriptId,
+          K: pendingDreamData.beats.filter(b => b.kind === 'moment').length,
+          candidate_count: reflections.length,
+          primaries_used: [...new Set(pendingDreamData.beats.filter(b => b.building).map(b => b.building))],
+          time_buckets_used: [...new Set(pendingDreamData.beats.filter(b => b.momentId).map(() => 'T0-T4'))], // Simplified
+        });
+      }
 
       console.log('[Dream Gate] buildDream result:', pendingDreamData ? `Success (${pendingDreamData.scriptId})` : 'Failed (null)');
       
       if (!pendingDreamData) {
-        console.log('[Dream Gate] TESTING MODE: Dream build failed, likely due to:');
-        console.log('[Dream Gate]   - Eligibility gate (needs 7+ days since last dream)');
-        console.log('[Dream Gate]   - Sporadic gate (65% seeded chance)');
-        console.log('[Dream Gate]   - Forcing last_dream_at to null to bypass eligibility...');
-        
-        // TESTING MODE: Force bypass eligibility by clearing last dream time
-        pendingDreamData = await buildDream({
-          userId,
-          reflections,
-          dreamState: null, // Force as if first time
-          date,
-        });
-        
-        console.log('[Dream Gate] Retry with null state:', pendingDreamData ? 'Success!' : 'Still failed (sporadic gate?)');
-        
-        if (!pendingDreamData) {
-          console.log('[Dream Gate] Still failed - probably sporadic gate (65% chance). User might need to sign in again.');
-          return NextResponse.redirect(new URL(`/reflect/${pigId || 'new'}`, req.url));
-        }
+        console.log('[Dream Gate] Dream build failed - no valid candidates or malformed data');
+        return NextResponse.redirect(new URL(`/reflect/${pigId || 'new'}`, req.url));
       }
 
       console.log('[Dream Gate] Dream beats count:', pendingDreamData.beats?.length || 0);
@@ -191,9 +190,28 @@ export async function GET(req: NextRequest) {
       console.log('[Dream Gate] Rebuilt expired dream:', pendingDreamData.scriptId);
     }
 
-    // TESTING MODE: Always show dream (100% chance)
+    // Route to dream
+    const pendingExists = !!pendingDreamData;
+    const builtNow = !pendingExists; // If we got here, it was either found or built
+    
+    console.log('[Dream Gate] force_dream_router:', {
+      entering: true,
+      pending_found: pendingExists,
+      built_now: builtNow,
+      sid: pendingDreamData.scriptId,
+      force_dream: forceDream,
+    });
+    
     console.log('[Dream Gate] Redirecting to dream:', pendingDreamData.scriptId);
-    return NextResponse.redirect(new URL(`/dream?sid=${pendingDreamData.scriptId}`, req.url));
+    
+    // Pass forceDream param to dream page for TEST MODE badge
+    const dreamUrl = new URL(`/dream`, req.url);
+    dreamUrl.searchParams.set('sid', pendingDreamData.scriptId);
+    if (forceDream) {
+      dreamUrl.searchParams.set('testMode', '1');
+    }
+    
+    return NextResponse.redirect(dreamUrl);
     
   } catch (error) {
     console.error('[Dream Gate] Error:', error);

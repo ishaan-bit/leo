@@ -16,6 +16,7 @@ function DreamPlayerContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const scriptId = searchParams?.get('sid');
+  const testMode = searchParams?.get('testMode') === '1';
   
   const [dream, setDream] = useState<PendingDream | null>(null);
   const [loading, setLoading] = useState(true);
@@ -51,6 +52,7 @@ function DreamPlayerContent() {
             scriptId: data.dream.scriptId,
             kind: data.dream.kind,
             K: data.dream.usedMomentIds.length,
+            test: testMode,
             timestamp: new Date().toISOString(),
           });
         }
@@ -108,6 +110,14 @@ function DreamPlayerContent() {
 
     setIsPlaying(false);
 
+    // Telemetry: dream_complete
+    console.log('[telemetry] dream_complete', {
+      scriptId: dream.scriptId,
+      K: dream.usedMomentIds.length,
+      test: testMode,
+      timestamp: new Date().toISOString(),
+    });
+
     try {
       const res = await fetch('/api/dream/complete', {
         method: 'POST',
@@ -132,6 +142,14 @@ function DreamPlayerContent() {
     if (!dream) return;
 
     setIsPlaying(false);
+
+    // Telemetry: dream_skipped
+    console.log('[telemetry] dream_skipped', {
+      scriptId: dream.scriptId,
+      skipTime: currentTime,
+      test: testMode,
+      timestamp: new Date().toISOString(),
+    });
 
     try {
       const res = await fetch('/api/dream/complete', {
@@ -222,6 +240,13 @@ function DreamPlayerContent() {
         currentTime={currentTime}
         duration={dream.duration}
       />
+
+      {/* TEST MODE Badge */}
+      {testMode && (
+        <div className="fixed top-4 right-4 z-50 px-3 py-2 rounded-lg bg-yellow-500/90 text-black text-xs font-bold shadow-lg backdrop-blur-sm">
+          TEST MODE: force_dream
+        </div>
+      )}
     </>
   );
 }
