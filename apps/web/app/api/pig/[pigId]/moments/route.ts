@@ -38,6 +38,7 @@ export async function GET(
     }
 
     const moments = [];
+    const staleRids: string[] = []; // Track deleted reflections
     
     // Fetch each reflection
     for (const rid of reflectionIds) {
@@ -48,7 +49,8 @@ export async function GET(
         const reflectionData = await kv.get(reflectionKey);
         
         if (!reflectionData) {
-          console.warn('[API /pig/moments] ⚠️ Reflection not found:', reflectionKey);
+          console.warn('[API /pig/moments] ⚠️ Reflection not found (deleted):', reflectionKey);
+          staleRids.push(String(rid)); // Mark for cleanup
           continue;
         }
         
@@ -129,6 +131,12 @@ export async function GET(
         return acc;
       }, {}),
     });
+
+    // Clean up stale sorted set entries
+    if (staleRids.length > 0) {
+      console.log(`[API /pig/moments] 🧹 Cleaning up ${staleRids.length} stale references from sorted set`);
+      await kv.zrem(pigKey, ...staleRids);
+    }
 
     // Sort by timestamp descending (newest first)
     moments.sort((a, b) => 
