@@ -181,9 +181,10 @@ export default function PigRitualBlock({ pigId, initialName }: PigRitualBlockPro
       // Wait for user to see the message
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Redirect to Google OAuth with callback to reflect page
+      // TESTING MODE: Redirect to dream router landing page
+      // The router will be called on the server to decide dream vs reflect
       await signIn('google', { 
-        callbackUrl: `/reflect/${pigId}` 
+        callbackUrl: `/api/auth/dream-gate?pigId=${pigId}` 
       });
     } catch (err) {
       console.error('Error signing in with Google:', err);
