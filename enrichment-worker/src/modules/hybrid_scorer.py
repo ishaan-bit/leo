@@ -165,7 +165,7 @@ class HybridScorer:
         hf_weight: float = 0.5,
         emb_weight: float = 0.35,
         ollama_weight: float = 0.15,
-        timeout: int = 30
+        timeout: int = 60  # Increased from 30s to 60s
     ):
         """
         Args:
@@ -1025,6 +1025,7 @@ JSON:"""
             "model": self.ollama_model,
             "prompt": prompt,
             "stream": False,
+            "keep_alive": "30m",  # Keep model loaded for 30 minutes
             "options": {
                 "temperature": 0.1,
                 "num_predict": 120,

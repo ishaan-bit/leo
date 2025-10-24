@@ -33,7 +33,7 @@ ollama_client = HybridScorer(
     hf_weight=float(os.getenv('HF_WEIGHT', '0.4')),
     emb_weight=float(os.getenv('EMB_WEIGHT', '0.3')),
     ollama_weight=float(os.getenv('OLLAMA_WEIGHT', '0.3')),
-    timeout=int(os.getenv('OLLAMA_TIMEOUT', '30'))
+    timeout=int(os.getenv('OLLAMA_TIMEOUT', '60'))  # Increased from 30s to 60s
 )
 
 # Stage-2 Post-Enricher
@@ -41,7 +41,7 @@ post_enricher = PostEnricher(
     ollama_base_url=os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434'),
     ollama_model=os.getenv('OLLAMA_MODEL', 'phi3:latest'),
     temperature=float(os.getenv('STAGE2_TEMPERATURE', '0.8')),
-    timeout=int(os.getenv('STAGE2_TIMEOUT', '120'))
+    timeout=int(os.getenv('STAGE2_TIMEOUT', '240'))  # Increased from 120s to 240s (4 min)
 )
 
 

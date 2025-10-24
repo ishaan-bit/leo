@@ -52,7 +52,7 @@ class PostEnricher:
         ollama_base_url: str = "http://localhost:11434",
         ollama_model: str = "phi3:latest",
         temperature: float = 0.8,
-        timeout: int = 120  # 2 minutes for creative generation
+        timeout: int = 240  # 4 minutes for creative generation (increased from 120s)
     ):
         """
         Args:
@@ -109,8 +109,10 @@ class PostEnricher:
                 "options": {
                     "temperature": self.temperature,
                     "top_p": 0.9,
-                    "repeat_penalty": 1.05
+                    "repeat_penalty": 1.05,
+                    "num_predict": 1024  # Limit response length to speed up generation
                 },
+                "keep_alive": "30m",  # Keep model loaded for 30 minutes
                 "messages": [
                     {"role": "system", "content": STAGE2_SYSTEM_PROMPT},
                     {"role": "user", "content": json.dumps({"HYBRID_RESULT": reliable})}
