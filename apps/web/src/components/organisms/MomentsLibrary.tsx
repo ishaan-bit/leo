@@ -56,6 +56,7 @@ export default function MomentsLibrary({
   const [visibleTowers, setVisibleTowers] = useState<Set<PrimaryEmotion>>(new Set([currentPrimary]));
   const [isLoading, setIsLoading] = useState(true);
   const [blinkingWindow, setBlinkingWindow] = useState<string | null>(null);
+  const [showIntroBubble, setShowIntroBubble] = useState(false);
   
   const containerRef = useRef<HTMLDivElement>(null);
   const leoRef = useRef<HTMLDivElement>(null);
@@ -158,6 +159,21 @@ export default function MomentsLibrary({
     sequence();
   }, [phase, currentPrimary]);
 
+  // Show intro bubble when library phase loads
+  useEffect(() => {
+    if (phase === 'library' && moments.length > 0) {
+      // Wait 1s for everything to settle, then show bubble
+      const timer = setTimeout(() => {
+        setShowIntroBubble(true);
+        
+        // Auto-hide after 4 seconds
+        setTimeout(() => setShowIntroBubble(false), 4000);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [phase, moments.length]);
+
   // Idle window blink animation - hints at interactivity
   useEffect(() => {
     if (phase !== 'library' || moments.length === 0) return;
@@ -195,6 +211,9 @@ export default function MomentsLibrary({
   const getTowerConfig = (zone: PrimaryEmotion) => {
     return TOWER_CONFIGS.find(t => t.id === zone);
   };
+
+  // Get the newest moment ID across all towers (for brightest glow)
+  const newestMomentId = moments[0]?.id || null;
 
   return (
     <motion.div 
@@ -389,6 +408,41 @@ export default function MomentsLibrary({
         </motion.div>
       </motion.div>
 
+      {/* Intro bubble - "You can glance at today's moment through this window" */}
+      <AnimatePresence>
+        {showIntroBubble && (
+          <motion.div
+            className="absolute top-[15%] left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+            initial={{ opacity: 0, y: -10, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.9 }}
+            transition={{ duration: 0.6, ease: EASING }}
+          >
+            <div
+              className="px-6 py-4 rounded-2xl shadow-2xl max-w-sm text-center"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 250, 245, 0.98) 100%)',
+                backdropFilter: 'blur(20px)',
+                border: '2px solid rgba(156, 31, 95, 0.15)',
+                boxShadow: '0 12px 40px rgba(156, 31, 95, 0.15), 0 4px 12px rgba(0,0,0,0.1)',
+              }}
+            >
+              <p
+                className="text-base font-medium"
+                style={{
+                  fontFamily: '"EB Garamond", "Georgia", serif',
+                  color: '#2D2D2D',
+                  lineHeight: '1.5',
+                  letterSpacing: '0.3px',
+                }}
+              >
+                You can glance at today's moment through this window
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Skyline - six towers */}
       <motion.div
         className="absolute bottom-0 left-0 right-0 z-25"
@@ -443,7 +497,7 @@ export default function MomentsLibrary({
                   {momentsByZone[tower.id]?.slice(0, 24).map((moment, i) => {
                     const windowKey = `window-${tower.id}-${moment.id}`;
                     const isBlinking = blinkingWindow === windowKey;
-                    const isNewest = i === 0; // First moment in sorted array (newest)
+                    const isNewest = moment.id === newestMomentId; // Only THE newest moment across all towers glows brightest
                     
                     return (
                       <motion.div
@@ -554,13 +608,15 @@ export default function MomentsLibrary({
                                 0 0 50px ${tower.color},
                                 0 0 100px ${tower.color},
                                 0 0 150px ${tower.color},
-                                0 2px 12px rgba(0,0,0,0.3)
+                                0 2px 12px rgba(0,0,0,0.5),
+                                0 0 4px rgba(255,255,255,0.8)
                               `
                             : `
                                 0 0 40px ${tower.color},
                                 0 0 80px ${tower.color},
                                 0 0 120px ${tower.color},
-                                0 2px 12px rgba(0,0,0,0.3)
+                                0 2px 12px rgba(0,0,0,0.5),
+                                0 0 4px rgba(255,255,255,0.8)
                               `,
                         }}
                       >

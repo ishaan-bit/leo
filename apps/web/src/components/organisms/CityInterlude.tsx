@@ -46,12 +46,12 @@ interface CityInterludeProps {
 // Emotional towers mapped to Willcox primaries
 // MAPPING: joyful→Vera, powerful→Ashmere, peaceful→Haven, sad→Vanta, scared→Vire, mad→Sable
 const TOWERS = [
-  { id: 'joyful', name: 'Vera', color: '#FFD700', x: 15, height: 180 },      // Joyful - gold
-  { id: 'powerful', name: 'Ashmere', color: '#FF6B35', x: 25, height: 220 }, // Powerful - orange
-  { id: 'peaceful', name: 'Haven', color: '#6A9FB5', x: 40, height: 160 },   // Peaceful - blue
-  { id: 'sad', name: 'Vanta', color: '#7D8597', x: 55, height: 200 },        // Sad - gray
+  { id: 'joyful', name: 'Vera', color: '#FFD700', x: 8, height: 180 },       // Joyful - gold (closer to left edge)
+  { id: 'powerful', name: 'Ashmere', color: '#FF6B35', x: 22, height: 220 }, // Powerful - orange
+  { id: 'peaceful', name: 'Haven', color: '#6A9FB5', x: 38, height: 160 },   // Peaceful - blue
+  { id: 'sad', name: 'Vanta', color: '#7D8597', x: 54, height: 200 },        // Sad - gray
   { id: 'scared', name: 'Vire', color: '#5A189A', x: 70, height: 190 },      // Scared - purple
-  { id: 'mad', name: 'Sable', color: '#C1121F', x: 85, height: 170 },        // Mad - red
+  { id: 'mad', name: 'Sable', color: '#C1121F', x: 86, height: 170 },        // Mad - red
 ];
 
 const COPY = {
