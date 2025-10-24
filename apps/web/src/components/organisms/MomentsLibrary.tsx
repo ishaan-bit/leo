@@ -982,9 +982,6 @@ export default function MomentsLibrary({
                 onClick={(e) => e.stopPropagation()}
                 tabIndex={-1}
                 style={{
-                  background: `linear-gradient(180deg, 
-                    ${atmosphere.gradient[0]} 0%, 
-                    ${atmosphere.gradient[1]} 100%)`,
                   backdropFilter: 'blur(12px) saturate(120%) brightness(1.05)',
                   borderRadius: '32px',
                   border: `1px solid rgba(255, 255, 255, 0.25)`,
@@ -996,34 +993,49 @@ export default function MomentsLibrary({
                   scrollBehavior: 'smooth',
                 }}
               >
+                {/* Background gradient layer - scrolls with content */}
+                <div 
+                  className="absolute inset-0 pointer-events-none rounded-[32px] z-0"
+                  style={{
+                    background: `linear-gradient(180deg, 
+                      ${atmosphere.gradient[0]} 0%, 
+                      ${atmosphere.gradient[1]} 50%,
+                      ${atmosphere.gradient[0]} 100%)`,
+                    minHeight: '100%',
+                  }}
+                />
+
                 {/* Foreground contrast overlay - ensures text legibility with soft-light blend */}
                 <div 
                   className="absolute inset-0 pointer-events-none rounded-[32px] z-0"
                   style={{
                     background: 'linear-gradient(180deg, rgba(0,0,0,0.08), rgba(255,255,255,0.05) 40%, rgba(0,0,0,0.12))',
                     mixBlendMode: 'soft-light',
+                    minHeight: '100%',
                   }}
                 />
 
                 {/* Subtle vignette mask - focuses attention inward */}
                 <div 
-                  className="absolute inset-0 pointer-events-none rounded-[32px] z-0"
+                  className="absolute top-0 left-0 right-0 h-screen max-h-[90vh] md:max-h-[85vh] pointer-events-none rounded-[32px] z-0"
                   style={{
                     background: 'radial-gradient(circle at 50% 40%, rgba(255,255,255,0.15), rgba(0,0,0,0.3) 90%)',
+                    position: 'sticky',
                   }}
                 />
 
-                {/* Radial lighting layer - origin from top-left (city glow effect) */}
+                {/* Radial lighting layer - origin from top-left (city glow effect) - sticky position */}
                 <div 
-                  className="absolute inset-0 pointer-events-none rounded-[32px] z-0"
+                  className="absolute top-0 left-0 right-0 h-screen max-h-[90vh] md:max-h-[85vh] pointer-events-none rounded-[32px] z-0"
                   style={{
                     background: `radial-gradient(circle at 15% 20%, ${atmosphere.accentGlow} 0%, transparent 60%)`,
                     opacity: 0.6,
+                    position: 'sticky',
                   }}
                 />
 
                 {/* Ambient motion particles based on emotion - constrained to background layer, max 40 particles */}
-                <div className="absolute inset-0 overflow-hidden rounded-[32px] pointer-events-none z-0">
+                <div className="absolute top-0 left-0 right-0 h-screen max-h-[90vh] md:max-h-[85vh] overflow-hidden rounded-[32px] pointer-events-none z-0" style={{ position: 'sticky' }}>
                   {/* Sad: Fine vertical rain streaks */}
                   {atmosphere.ambientMotion === 'drizzle' && Array.from({ length: 15 }).map((_, i) => (
                     <motion.div
