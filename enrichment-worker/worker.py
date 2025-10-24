@@ -167,6 +167,42 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
                 print(f"   → Added: post_enrichment (poems, tips, closing)")
                 print(f"✅ FULL PIPELINE COMPLETE in {total_time}ms")
                 print(f"{'='*60}\n")
+                
+                # 7. Check if micro-dream should be generated (after post-enrichment complete)
+                try:
+                    owner_id = reflection_data.get('owner_id')
+                    if owner_id:
+                        print(f"🌙 Checking micro-dream trigger for owner: {owner_id}")
+                        
+                        # Import micro-dream agent
+                        import sys
+                        import os
+                        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+                        from micro_dream_agent import MicroDreamAgent, UpstashClient, OllamaClient
+                        
+                        # Initialize clients
+                        upstash_client_md = UpstashClient(
+                            os.getenv('UPSTASH_REDIS_REST_URL'),
+                            os.getenv('UPSTASH_REDIS_REST_TOKEN')
+                        )
+                        ollama_client_md = OllamaClient()
+                        
+                        # Run micro-dream agent
+                        agent = MicroDreamAgent(upstash_client_md, ollama_client_md)
+                        
+                        # Check if should generate (pattern: signin #4, 6, 8, 11, 13...)
+                        # For now, always try to generate after every 3rd, 5th, 7th... reflection
+                        result = agent.run(owner_id, force_dream=False, skip_ollama=True)
+                        
+                        if result and result.get('should_display'):
+                            print(f"✅ Micro-dream generated and stored for next signin")
+                        else:
+                            print(f"   Not eligible for display yet (signin #{result['signin_count'] if result else 'unknown'})")
+                    
+                except Exception as micro_err:
+                    print(f"⚠️  Micro-dream generation failed (non-fatal): {micro_err}")
+                    # Non-fatal - enrichment is already complete
+                
             else:
                 print(f"⚠️  Failed to write Stage-2 data, but Stage-1 is saved")
                 
