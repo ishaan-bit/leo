@@ -7,13 +7,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuth } from '@/lib/auth-helpers';
 import { Redis } from '@upstash/redis';
-import type { PendingDream } from '@/domain/dream/dream.types';
+import type { PendingDream, DreamState, ReflectionData } from '@/domain/dream/dream.types';
+import { buildDream } from '@/domain/dream/dream-builder';
 // import { createSeededRandom, DreamSeeds } from '@/domain/dream/seeded-random';
 
 const redis = Redis.fromEnv();
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+
+/**
+ * Get current date in Asia/Kolkata timezone (YYYY-MM-DD)
+ */
+function getKolkataDate(): string {
+  const now = new Date();
+  const kolkataTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+  return kolkataTime.toISOString().split('T')[0];
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -32,33 +42,73 @@ export async function GET(req: NextRequest) {
     const pendingDreamKey = `user:${userId}:pending_dream`;
     let pendingDreamData = await redis.get<PendingDream>(pendingDreamKey);
 
-    // If no pending dream exists, create one on-the-fly
+    // If no pending dream exists, build one on-the-fly
     if (!pendingDreamData) {
-      const scriptId = `dream_${Date.now()}_test`;
-      const now = new Date();
-      const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours
+      console.log('[Dream Router] No pending dream, building one...');
+      
+      // Fetch dream state
+      const dreamStateKey = `user:${userId}:dream_state`;
+      const dreamState = await redis.get<DreamState>(dreamStateKey);
 
-      pendingDreamData = {
-        scriptId,
-        kind: 'weekly',
-        generatedAt: now.toISOString(),
-        expiresAt: expiresAt.toISOString(),
-        duration: 18,
-        palette: {
-          primary: 'peaceful' as const,
-        },
-        audioKey: 'Lydian' as const,
-        opening: 'Your moments await...',
-        beats: [],
-        usedMomentIds: [], // Will be populated when fetched
-      };
+      // Fetch user's reflections (last 180 days)
+      const reflectionsKey = `user:${userId}:refl:idx`;
+      const cutoff = Date.now() - (180 * 24 * 60 * 60 * 1000);
+      
+      const reflectionIds = await redis.zrange(
+        reflectionsKey,
+        cutoff,
+        Date.now(),
+        { byScore: true }
+      ) as string[];
 
-      // Store in Redis
-      await redis.set(pendingDreamKey, pendingDreamData, {
-        ex: 24 * 60 * 60, // 24 hour TTL
+      if (!reflectionIds || reflectionIds.length === 0) {
+        console.log('[Dream Router] No reflections found, routing to reflect');
+        return NextResponse.json({
+          route: '/reflect/new',
+          reason: 'no_reflections',
+        });
+      }
+
+      // Fetch reflection data
+      const reflections: ReflectionData[] = [];
+      for (const rid of reflectionIds) {
+        const reflData = await redis.get<ReflectionData>(`refl:${rid}`);
+        if (reflData) {
+          reflections.push(reflData);
+        }
+      }
+
+      if (reflections.length === 0) {
+        console.log('[Dream Router] No reflection data found');
+        return NextResponse.json({
+          route: '/reflect/new',
+          reason: 'no_data',
+        });
+      }
+
+      // Build dream
+      const date = getKolkataDate();
+      pendingDreamData = await buildDream({
+        userId,
+        reflections,
+        dreamState,
+        date,
       });
 
-      console.log('[Dream Router] Created test dream:', scriptId);
+      if (!pendingDreamData) {
+        console.log('[Dream Router] Dream build failed (ineligible or sporadic gate)');
+        return NextResponse.json({
+          route: '/reflect/new',
+          reason: 'build_failed',
+        });
+      }
+
+      // Store in Redis (TTL 14 days)
+      await redis.set(pendingDreamKey, pendingDreamData, {
+        ex: 14 * 24 * 60 * 60,
+      });
+
+      console.log('[Dream Router] Built dream:', pendingDreamData.scriptId);
     }
 
     // Check if expired
@@ -66,31 +116,57 @@ export async function GET(req: NextRequest) {
     const now = Date.now();
     
     if (now >= expiresAt) {
-      // Expired, create a new one
-      const scriptId = `dream_${Date.now()}_test`;
-      const nowDate = new Date();
-      const expiresAtNew = new Date(nowDate.getTime() + 24 * 60 * 60 * 1000);
+      console.log('[Dream Router] Dream expired, rebuilding...');
+      
+      // Expired, rebuild
+      const dreamStateKey = `user:${userId}:dream_state`;
+      const dreamState = await redis.get<DreamState>(dreamStateKey);
 
-      pendingDreamData = {
-        scriptId,
-        kind: 'weekly',
-        generatedAt: nowDate.toISOString(),
-        expiresAt: expiresAtNew.toISOString(),
-        duration: 18,
-        palette: {
-          primary: 'peaceful' as const,
-        },
-        audioKey: 'Lydian' as const,
-        opening: 'Your moments await...',
-        beats: [],
-        usedMomentIds: [],
-      };
+      const reflectionsKey = `user:${userId}:refl:idx`;
+      const cutoff = Date.now() - (180 * 24 * 60 * 60 * 1000);
+      
+      const reflectionIds = await redis.zrange(
+        reflectionsKey,
+        cutoff,
+        Date.now(),
+        { byScore: true }
+      ) as string[];
 
-      await redis.set(pendingDreamKey, pendingDreamData, {
-        ex: 24 * 60 * 60,
+      const reflections: ReflectionData[] = [];
+      for (const rid of reflectionIds) {
+        const reflData = await redis.get<ReflectionData>(`refl:${rid}`);
+        if (reflData) {
+          reflections.push(reflData);
+        }
+      }
+
+      if (reflections.length === 0) {
+        return NextResponse.json({
+          route: '/reflect/new',
+          reason: 'no_data',
+        });
+      }
+
+      const date = getKolkataDate();
+      pendingDreamData = await buildDream({
+        userId,
+        reflections,
+        dreamState,
+        date,
       });
 
-      console.log('[Dream Router] Refreshed expired dream:', scriptId);
+      if (!pendingDreamData) {
+        return NextResponse.json({
+          route: '/reflect/new',
+          reason: 'build_failed',
+        });
+      }
+
+      await redis.set(pendingDreamKey, pendingDreamData, {
+        ex: 14 * 24 * 60 * 60,
+      });
+
+      console.log('[Dream Router] Rebuilt expired dream:', pendingDreamData.scriptId);
     }
 
     // TESTING MODE: Always show dream (100% chance)
