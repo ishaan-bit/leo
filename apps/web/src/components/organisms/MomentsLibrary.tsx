@@ -856,166 +856,501 @@ export default function MomentsLibrary({
         </motion.div>
       )}
 
-      {/* Moment Detail Modal */}
+      {/* Moment Detail Modal - Redesigned as Emotional Atmosphere */}
       <AnimatePresence>
-        {selectedMoment && (
-          <motion.div
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setSelectedMoment(null)}
-          >
-            {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/40 backdrop-blur-md" />
-            
-            {/* Modal Card */}
+        {selectedMoment && (() => {
+          // Emotion-based atmosphere configuration
+          const atmosphereConfig = {
+            sad: {
+              gradient: ['#B2C1E0', '#C8D2EB', '#E2E8F6'],
+              header: "The sky hung heavy with quiet remembering.",
+              ambientMotion: 'drizzle',
+              textColor: '#6B7A99',
+            },
+            joyful: {
+              gradient: ['#FCE9A0', '#FFD985', '#FFF2C1'],
+              header: "The day gleamed with open laughter.",
+              ambientMotion: 'motes',
+              textColor: '#9B7E3A',
+            },
+            powerful: {
+              gradient: ['#C3E3C2', '#A4D4A2', '#E6F4E5'],
+              header: "The ground beneath you hummed steady and sure.",
+              ambientMotion: 'pulse',
+              textColor: '#4A7A48',
+            },
+            mad: {
+              gradient: ['#F7B2A1', '#F7C5AF', '#FDE6D8'],
+              header: "The air crackled with restless thunder.",
+              ambientMotion: 'flicker',
+              textColor: '#A0523D',
+            },
+            peaceful: {
+              gradient: ['#DAD8F0', '#EAE8F8', '#F8F7FB'],
+              header: "Stillness gathered like a soft mist over your heart.",
+              ambientMotion: 'mist',
+              textColor: '#6B6482',
+            },
+            scared: {
+              gradient: ['#D2B8E5', '#E4D3F0', '#F5EFFF'],
+              header: "A hush crept along the edges of your light.",
+              ambientMotion: 'heartbeat',
+              textColor: '#7D5F96',
+            },
+          };
+
+          const atmosphere = atmosphereConfig[selectedMoment.zone as keyof typeof atmosphereConfig] || atmosphereConfig.peaceful;
+
+          return (
             <motion.div
-              className="relative max-w-2xl w-full max-h-[80vh] overflow-y-auto"
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              transition={{ duration: 0.4, ease: EASING }}
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(250, 240, 245, 0.95) 100%)',
-                backdropFilter: 'blur(20px)',
-                borderRadius: '24px',
-                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
-              }}
+              className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedMoment(null)}
             >
-              <div className="p-8">
-                {/* Close button */}
-                <button
-                  onClick={() => setSelectedMoment(null)}
-                  className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-white/50 hover:bg-white/80 transition-all"
-                  aria-label="Close"
-                >
-                  <span className="text-2xl text-gray-600">×</span>
-                </button>
+              {/* Backdrop with emotion-tinted blur */}
+              <motion.div 
+                className="absolute inset-0"
+                style={{
+                  background: `radial-gradient(circle at center, ${atmosphere.gradient[0]}40 0%, rgba(0,0,0,0.6) 100%)`,
+                  backdropFilter: 'blur(16px)',
+                }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6 }}
+              />
+              
+              {/* Modal Card - Glass-like window pane */}
+              <motion.div
+                className="relative max-w-2xl w-full max-h-[85vh] overflow-y-auto"
+                initial={{ scale: 0.85, y: 30, opacity: 0 }}
+                animate={{ scale: 1, y: 0, opacity: 1 }}
+                exit={{ 
+                  scale: 0.9, 
+                  y: -20, 
+                  opacity: 0,
+                  transition: { duration: 0.4 }
+                }}
+                transition={{ duration: 0.6, ease: EASING }}
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  background: `linear-gradient(135deg, 
+                    ${atmosphere.gradient[0]}15 0%, 
+                    ${atmosphere.gradient[1]}08 50%, 
+                    ${atmosphere.gradient[2]}05 100%)`,
+                  backdropFilter: 'blur(40px)',
+                  borderRadius: '32px',
+                  border: `2px solid ${atmosphere.gradient[0]}40`,
+                  boxShadow: `
+                    0 0 0 1px ${atmosphere.gradient[0]}20,
+                    0 20px 60px rgba(0, 0, 0, 0.3),
+                    inset 0 1px 0 rgba(255,255,255,0.4)
+                  `,
+                }}
+              >
+                {/* Breathing glow pulse on edges */}
+                <motion.div
+                  className="absolute inset-0 pointer-events-none rounded-[32px]"
+                  style={{
+                    boxShadow: `0 0 40px ${atmosphere.gradient[0]}60`,
+                  }}
+                  animate={{
+                    opacity: [0.5, 0.8, 0.5],
+                  }}
+                  transition={{
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
+                />
 
-                {/* Timestamp */}
-                <div className="text-xs uppercase tracking-wider text-gray-500 mb-2">
-                  {new Date(selectedMoment.timestamp).toLocaleDateString('en-US', {
-                    month: 'long',
-                    day: 'numeric',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </div>
-
-                {/* Primary Emotion Badge */}
-                <div className="flex items-center gap-2 mb-6">
-                  <div
-                    className="px-4 py-1.5 rounded-full text-sm font-semibold"
-                    style={{
-                      backgroundColor: `${getTowerConfig(selectedMoment.zone)?.color}40`,
-                      color: getTowerConfig(selectedMoment.zone)?.color,
-                    }}
-                  >
-                    {selectedMoment.primaryEmotion}
-                  </div>
-                  {selectedMoment.secondary && (
-                    <div className="text-sm text-gray-600">
-                      → {selectedMoment.secondary}
-                    </div>
-                  )}
-                </div>
-
-                {/* Reflection Text */}
-                <div className="mb-8">
-                  <h3
-                    className="text-2xl mb-4"
-                    style={{
-                      fontFamily: '"EB Garamond", "Georgia", serif',
-                      color: '#3A263F',
-                      lineHeight: '1.4',
-                    }}
-                  >
-                    {selectedMoment.text}
-                  </h3>
+                {/* Ambient motion particles based on emotion */}
+                <div className="absolute inset-0 overflow-hidden rounded-[32px] pointer-events-none">
+                  {atmosphere.ambientMotion === 'drizzle' && Array.from({ length: 20 }).map((_, i) => (
+                    <motion.div
+                      key={`drizzle-${i}`}
+                      className="absolute w-[1px] bg-gradient-to-b from-transparent via-blue-300/30 to-transparent"
+                      style={{
+                        left: `${Math.random() * 100}%`,
+                        height: `${20 + Math.random() * 40}px`,
+                      }}
+                      initial={{ top: '-20%', opacity: 0 }}
+                      animate={{ 
+                        top: '120%', 
+                        opacity: [0, 0.6, 0],
+                      }}
+                      transition={{
+                        duration: 2 + Math.random() * 2,
+                        repeat: Infinity,
+                        delay: Math.random() * 3,
+                        ease: 'linear',
+                      }}
+                    />
+                  ))}
                   
-                  {/* Invoked/Expressed */}
-                  {selectedMoment.invoked && (
-                    <div className="text-sm text-gray-600 mb-2">
-                      <span className="font-semibold">What triggered it:</span> {selectedMoment.invoked}
-                    </div>
-                  )}
-                  {selectedMoment.expressed && (
-                    <div className="text-sm text-gray-600">
-                      <span className="font-semibold">How it showed:</span> {selectedMoment.expressed}
-                    </div>
-                  )}
+                  {atmosphere.ambientMotion === 'motes' && Array.from({ length: 30 }).map((_, i) => (
+                    <motion.div
+                      key={`mote-${i}`}
+                      className="absolute w-1 h-1 rounded-full"
+                      style={{
+                        background: `radial-gradient(circle, ${atmosphere.gradient[1]} 0%, transparent 70%)`,
+                        left: `${Math.random() * 100}%`,
+                        top: `${Math.random() * 100}%`,
+                      }}
+                      animate={{
+                        y: [0, -30, 0],
+                        x: [0, Math.random() * 20 - 10, 0],
+                        opacity: [0, 0.8, 0],
+                        scale: [0, 1, 0],
+                      }}
+                      transition={{
+                        duration: 4 + Math.random() * 3,
+                        repeat: Infinity,
+                        delay: Math.random() * 4,
+                        ease: 'easeInOut',
+                      }}
+                    />
+                  ))}
+                  
+                  {atmosphere.ambientMotion === 'mist' && Array.from({ length: 5 }).map((_, i) => (
+                    <motion.div
+                      key={`mist-${i}`}
+                      className="absolute rounded-full"
+                      style={{
+                        background: `radial-gradient(circle, ${atmosphere.gradient[0]}20 0%, transparent 70%)`,
+                        width: `${100 + Math.random() * 200}px`,
+                        height: `${100 + Math.random() * 200}px`,
+                        left: `${Math.random() * 100}%`,
+                        top: `${Math.random() * 100}%`,
+                        filter: 'blur(40px)',
+                      }}
+                      animate={{
+                        x: [0, 50, 0],
+                        y: [0, -30, 0],
+                        opacity: [0.2, 0.4, 0.2],
+                      }}
+                      transition={{
+                        duration: 8 + i * 2,
+                        repeat: Infinity,
+                        ease: 'easeInOut',
+                      }}
+                    />
+                  ))}
                 </div>
 
-                {/* Poems */}
-                {selectedMoment.poems && selectedMoment.poems.length > 0 && (
-                  <div className="mb-8">
-                    <h4
-                      className="text-lg mb-4"
+                <div className="relative p-10" style={{ lineHeight: '1.7' }}>
+                  {/* Close button - floating mote style */}
+                  <motion.button
+                    onClick={() => setSelectedMoment(null)}
+                    className="absolute top-6 right-6 w-12 h-12 flex items-center justify-center rounded-full transition-all z-10"
+                    style={{
+                      background: `linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7))`,
+                      boxShadow: `0 4px 16px ${atmosphere.gradient[0]}40`,
+                    }}
+                    whileHover={{ 
+                      scale: 1.1,
+                      boxShadow: `0 6px 24px ${atmosphere.gradient[0]}60`,
+                    }}
+                    whileTap={{ scale: 0.95 }}
+                    aria-label="Close"
+                  >
+                    <span className="text-2xl" style={{ color: atmosphere.textColor }}>×</span>
+                  </motion.button>
+
+                  {/* Atmospheric Header */}
+                  <motion.div
+                    className="mb-8"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.1 }}
+                  >
+                    <motion.h2
+                      className="text-2xl md:text-3xl italic mb-3"
                       style={{
                         fontFamily: '"EB Garamond", "Georgia", serif',
-                        color: '#5A4962',
+                        color: atmosphere.textColor,
+                        fontWeight: 500,
+                        textShadow: `0 2px 12px ${atmosphere.gradient[0]}60`,
+                      }}
+                      animate={{
+                        opacity: [0.9, 1, 0.9],
+                      }}
+                      transition={{
+                        duration: 5,
+                        repeat: Infinity,
+                        ease: 'easeInOut',
                       }}
                     >
-                      Leo's Reflection
-                    </h4>
-                    <div className="space-y-4">
-                      {selectedMoment.poems.map((poem, i) => {
-                        const lines = poem.split(',').map(l => l.trim());
-                        return (
-                          <div
-                            key={i}
-                            className="italic text-gray-700 leading-relaxed"
-                            style={{
-                              fontFamily: '"EB Garamond", "Georgia", serif',
-                              fontSize: '1.1rem',
-                            }}
-                          >
-                            {lines.map((line, j) => (
-                              <div key={j}>{line}</div>
-                            ))}
-                          </div>
-                        );
+                      {atmosphere.header}
+                    </motion.h2>
+                    
+                    {/* Timestamp whisper */}
+                    <div 
+                      className="text-xs uppercase tracking-widest opacity-50"
+                      style={{
+                        fontFamily: '"Inter", -apple-system, sans-serif',
+                        color: atmosphere.textColor,
+                        letterSpacing: '0.15em',
+                      }}
+                    >
+                      {new Date(selectedMoment.timestamp).toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric',
                       })}
                     </div>
-                  </div>
-                )}
+                  </motion.div>
 
-                {/* Tips */}
-                {selectedMoment.tips && selectedMoment.tips.length > 0 && (
-                  <div>
-                    <h4
-                      className="text-lg mb-4"
+                  {/* User's Original Reflection */}
+                  <motion.div
+                    className="mb-10"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 1.2, delay: 0.3 }}
+                  >
+                    <div 
+                      className="text-xs italic mb-3 opacity-60"
                       style={{
-                        fontFamily: '"EB Garamond", "Georgia", serif',
-                        color: '#5A4962',
+                        fontFamily: '"Inter", -apple-system, sans-serif',
+                        color: atmosphere.textColor,
+                        letterSpacing: '0.05em',
                       }}
                     >
-                      Gentle Nudges
-                    </h4>
-                    <ul className="space-y-3">
-                      {selectedMoment.tips.map((tip, i) => (
-                        <li
-                          key={i}
-                          className="flex items-start gap-3 text-gray-700"
+                      You wrote:
+                    </div>
+                    <p
+                      className="text-xl md:text-2xl leading-relaxed"
+                      style={{
+                        fontFamily: '"Cormorant Garamond", "EB Garamond", "Georgia", serif',
+                        color: atmosphere.textColor,
+                        fontWeight: 400,
+                      }}
+                    >
+                      {selectedMoment.text}
+                    </p>
+                  </motion.div>
+
+                  {/* Emotional Anatomy */}
+                  <motion.div
+                    className="mb-10 space-y-5"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.8, delay: 0.5 }}
+                  >
+                    {selectedMoment.invoked && (
+                      <motion.div
+                        className="pl-6 border-l-2"
+                        style={{ borderColor: `${atmosphere.gradient[0]}40` }}
+                        whileHover={{
+                          borderColor: `${atmosphere.gradient[0]}80`,
+                          x: 4,
+                        }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <div 
+                          className="text-[0.7rem] uppercase tracking-widest mb-2 opacity-50"
                           style={{
                             fontFamily: '"Inter", -apple-system, sans-serif',
-                            fontSize: '0.95rem',
+                            color: atmosphere.textColor,
+                            letterSpacing: '0.12em',
                           }}
                         >
-                          <span className="text-pink-400 mt-1">•</span>
-                          <span>{tip}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
+                          What stirred the air
+                        </div>
+                        <div
+                          className="text-base leading-relaxed"
+                          style={{
+                            fontFamily: '"Inter", -apple-system, sans-serif',
+                            color: atmosphere.textColor,
+                            opacity: 0.85,
+                          }}
+                        >
+                          {selectedMoment.invoked}
+                        </div>
+                      </motion.div>
+                    )}
+                    
+                    {selectedMoment.expressed && (
+                      <motion.div
+                        className="pl-6 border-l-2"
+                        style={{ borderColor: `${atmosphere.gradient[0]}40` }}
+                        whileHover={{
+                          borderColor: `${atmosphere.gradient[0]}80`,
+                          x: 4,
+                        }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <div 
+                          className="text-[0.7rem] uppercase tracking-widest mb-2 opacity-50"
+                          style={{
+                            fontFamily: '"Inter", -apple-system, sans-serif',
+                            color: atmosphere.textColor,
+                            letterSpacing: '0.12em',
+                          }}
+                        >
+                          How it lingered in you
+                        </div>
+                        <div
+                          className="text-base leading-relaxed"
+                          style={{
+                            fontFamily: '"Inter", -apple-system, sans-serif',
+                            color: atmosphere.textColor,
+                            opacity: 0.85,
+                          }}
+                        >
+                          {selectedMoment.expressed}
+                        </div>
+                      </motion.div>
+                    )}
+                  </motion.div>
+
+                  {/* What the Wind Remembered (Poems) */}
+                  {selectedMoment.poems && selectedMoment.poems.length > 0 && (
+                    <motion.div
+                      className="mb-10"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 1.5, delay: 0.7 }}
+                    >
+                      <h3
+                        className="text-lg italic mb-6 opacity-70"
+                        style={{
+                          fontFamily: '"EB Garamond", "Georgia", serif',
+                          color: atmosphere.textColor,
+                          letterSpacing: '0.02em',
+                        }}
+                      >
+                        What the Wind Remembered
+                      </h3>
+                      <div className="space-y-6">
+                        {selectedMoment.poems.map((poem, i) => {
+                          const lines = poem.split(',').map(l => l.trim());
+                          return (
+                            <motion.div
+                              key={i}
+                              className="space-y-2"
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ 
+                                duration: 0.8, 
+                                delay: 0.9 + (i * 0.3),
+                              }}
+                            >
+                              {lines.map((line, j) => (
+                                <motion.div
+                                  key={j}
+                                  className="text-lg leading-relaxed"
+                                  style={{
+                                    fontFamily: '"Cormorant Garamond", "EB Garamond", serif',
+                                    color: atmosphere.textColor,
+                                    opacity: 0.9,
+                                  }}
+                                  initial={{ opacity: 0, y: 5 }}
+                                  animate={{ opacity: 0.9, y: 0 }}
+                                  transition={{
+                                    duration: 0.6,
+                                    delay: 1.1 + (i * 0.3) + (j * 0.2),
+                                  }}
+                                >
+                                  {line}
+                                </motion.div>
+                              ))}
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Ways the Day Could Bloom (Tips) */}
+                  {selectedMoment.tips && selectedMoment.tips.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.8, delay: 1.5 }}
+                    >
+                      <h3
+                        className="text-lg italic mb-5 opacity-70"
+                        style={{
+                          fontFamily: '"EB Garamond", "Georgia", serif',
+                          color: atmosphere.textColor,
+                          letterSpacing: '0.02em',
+                        }}
+                      >
+                        Ways the Day Could Bloom 🌸
+                      </h3>
+                      <div className="space-y-4">
+                        {selectedMoment.tips.map((tip, i) => (
+                          <motion.div
+                            key={i}
+                            className="flex items-start gap-4"
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{
+                              duration: 0.4,
+                              delay: 1.7 + (i * 0.15),
+                            }}
+                          >
+                            {/* Firefly dot */}
+                            <motion.div
+                              className="mt-1.5 w-2 h-2 rounded-full flex-shrink-0"
+                              style={{
+                                background: `radial-gradient(circle, ${atmosphere.gradient[1]} 0%, ${atmosphere.gradient[0]} 100%)`,
+                                boxShadow: `0 0 12px ${atmosphere.gradient[0]}80`,
+                              }}
+                              animate={{
+                                opacity: [0.6, 1, 0.6],
+                                scale: [1, 1.3, 1],
+                              }}
+                              transition={{
+                                duration: 2 + Math.random(),
+                                repeat: Infinity,
+                                delay: i * 0.3,
+                              }}
+                            />
+                            <span
+                              className="text-base leading-relaxed flex-1"
+                              style={{
+                                fontFamily: '"Inter", -apple-system, sans-serif',
+                                color: atmosphere.textColor,
+                                opacity: 0.85,
+                              }}
+                            >
+                              {tip}
+                            </span>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Closing line if present */}
+                  {selectedMoment.closingLine && (
+                    <motion.div
+                      className="mt-10 pt-8 border-t"
+                      style={{ borderColor: `${atmosphere.gradient[0]}20` }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.8, delay: 2 }}
+                    >
+                      <p
+                        className="text-base italic text-center"
+                        style={{
+                          fontFamily: '"EB Garamond", "Georgia", serif',
+                          color: atmosphere.textColor,
+                          opacity: 0.7,
+                        }}
+                      >
+                        {selectedMoment.closingLine}
+                      </p>
+                    </motion.div>
+                  )}
+                </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
+          );
+        })()}
       </AnimatePresence>
     </motion.div>
   );
