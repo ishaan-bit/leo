@@ -388,7 +388,25 @@ export async function POST(request: NextRequest) {
       console.warn('⚠️ BEHAVIORAL_API_URL not set - skipping enrichment');
     }
 
-    // 16. Success response
+    // 16. Trigger micro-dream check (non-blocking)
+    console.log('🌙 Triggering micro-dream check for owner:', ownerId);
+    
+    try {
+      // Fire-and-forget: don't wait for response
+      fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/micro-dream/check`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ownerId }),
+        signal: AbortSignal.timeout(5000),
+      }).catch(err => {
+        console.error('⚠️ Micro-dream trigger failed (non-fatal):', err.message);
+      });
+    } catch (err) {
+      // Non-fatal - reflection is saved
+      console.error('⚠️ Micro-dream trigger error (non-fatal):', err);
+    }
+
+    // 17. Success response
     return NextResponse.json({
       ok: true,
       rid,
