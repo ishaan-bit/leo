@@ -416,8 +416,11 @@ class MicroDreamAgent:
         Check if micro-dream should display on this sign-in.
         Returns: (should_display, signin_count, next_eligible)
         
-        Pattern: First at #4 (after 3 moments), then #5, 7, 10, 12, 15, 17, 20, 22, 25...
-        Gaps: +1, +2, +3, +2, +3, +2, +3, +2, +3...
+        Pattern: First at #4 (after 3 moments), then #6, 8, 11, 13, 16, 18, 21, 23, 26...
+        Gaps: +2, +2, +3, +2, +3, +2, +3, +2, +3...
+        
+        Note: Micro-dream uses 5 moments (3 recent, 1 mid, 1 old) when available.
+        With only 3 moments, falls back to 3=2R+1O policy.
         """
         if force:
             return True, 0, 0
@@ -429,21 +432,21 @@ class MicroDreamAgent:
         gap_cursor_str = self.upstash.get(f'dream_gap_cursor:{owner_id}')
         gap_cursor = int(gap_cursor_str) if gap_cursor_str else 0
         
-        # Build play sequence: start at 4, then pattern of +1, +2, +3, +2, +3, +2, +3...
-        # #4 (first after 3 moments), #5 (+1), #7 (+2), #10 (+3), #12 (+2), #15 (+3), #17 (+2), #20 (+3)...
+        # Build play sequence: start at 4, then pattern of +2, +2, +3, +2, +3, +2, +3...
+        # #4 (first after 3 moments), #6 (+2), #8 (+2), #11 (+3), #13 (+2), #16 (+3), #18 (+2), #21 (+3)...
         plays = []
         pos = 4  # First play at signin #4 (after user has 3 moments)
-        gap_pattern = [1, 2, 3]  # After #4: +1 → #5, +2 → #7, +3 → #10, +2 → #12, +3 → #15...
+        gap_pattern = [2, 2, 3]  # Pattern: +2, +2, +3, then repeat [+2, +3, +2, +3...]
         gap_idx = 0
         
         plays.append(pos)
         while pos < signin_count + 20:
-            # Cycle through [1, 2, 3, 2, 3, 2, 3...]
-            if gap_idx == 0:
-                gap = 1  # First gap after #4
+            if gap_idx < 2:
+                # First two gaps are both +2
+                gap = 2
             else:
-                # Alternate between 2 and 3 after first +1
-                gap = 2 if (gap_idx % 2 == 1) else 3
+                # After first two, alternate between 2 and 3
+                gap = 3 if ((gap_idx - 2) % 2 == 0) else 2
             
             pos += gap
             plays.append(pos)
