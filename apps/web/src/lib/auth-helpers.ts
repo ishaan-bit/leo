@@ -57,7 +57,7 @@ export async function getAuth(): Promise<AuthUser | null> {
  * Server-side only (uses cookies())
  */
 export async function getSid(): Promise<string> {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const existingSid = cookieStore.get('leo_sid')?.value;
 
   if (existingSid && existingSid.startsWith('sess_')) {

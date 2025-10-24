@@ -172,7 +172,7 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
                 try:
                     # Fetch the full reflection from Upstash to get owner_id
                     reflection_key = f'reflection:{rid}'
-                    reflection_json = redis_client.redis.get(reflection_key)
+                    reflection_json = redis_client.get(reflection_key)
                     
                     if not reflection_json:
                         print(f"⚠️  Could not fetch reflection:{rid} for micro-dream check")
@@ -200,8 +200,9 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
                             # Run micro-dream agent
                             agent = MicroDreamAgent(upstash_client_md, ollama_client_md)
                             
-                            # Check if should generate (pattern: signin #4, 6, 8, 11, 13...)
-                            result = agent.run(owner_id, force_dream=False, skip_ollama=True)
+                            # Generate micro-dream after moment #3 post-enrichment (will increment signin_count)
+                            # Will display at signin #4, 6, 8, 11, 13... (pattern: +2, +2, +3, +2, +3...)
+                            result = agent.run(owner_id, force_dream=False, skip_ollama=False)
                             
                             if result and result.get('should_display'):
                                 print(f"✅ Micro-dream generated and stored for next signin")
