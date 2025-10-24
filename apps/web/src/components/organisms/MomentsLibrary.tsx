@@ -544,9 +544,9 @@ export default function MomentsLibrary({
                       }}
                       transition={{ duration: 0.6, delay: 0.5 }}
                     >
-                      {/* Tower name - large serif italic with hover glow */}
+                      {/* Tower name - large serif italic with hover glow, centered */}
                       <motion.div
-                        className="font-serif italic text-4xl font-bold pointer-events-none mb-1"
+                        className="font-serif italic text-4xl font-bold pointer-events-none mb-1 text-center w-full"
                         style={{
                           color: tower.color,
                           textShadow: isHovered
@@ -567,7 +567,7 @@ export default function MomentsLibrary({
                         {tower.name}
                       </motion.div>
                       
-                      {/* Zone label - enhanced visibility with background and stronger contrast */}
+                      {/* Zone label - enhanced visibility with background and stronger contrast, centered */}
                       <motion.div
                         className="text-sm font-medium px-3 py-1 rounded-full inline-block"
                         initial={{ opacity: 0 }}

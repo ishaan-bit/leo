@@ -730,9 +730,6 @@ export default function BreathingSequence({
         ref={buildingContainerRef}
         className="absolute bottom-0 left-0 right-0 z-25"
         style={{ height: '50vh' }}
-        initial={{ scale: 2.5, y: '-30%' }}
-        animate={{ scale: 1, y: 0 }}
-        transition={{ duration: 2, ease: [0.22, 1, 0.36, 1] }}
       >
         {TOWERS.map(tower => {
           const isPrimary = tower.id === primary;
