@@ -6,6 +6,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuth, getSid, buildOwnerId } from '@/lib/auth-helpers';
 
+// Force dynamic rendering (required for cookies/session)
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     // Get auth state

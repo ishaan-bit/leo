@@ -9,6 +9,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAuth, getSid, buildOwnerId } from '@/lib/auth-helpers';
 import { kv } from '@/lib/kv';
 
+// Force dynamic rendering (required for cookies/session)
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     console.log('🌙 [1/5] Micro-dream API called');
