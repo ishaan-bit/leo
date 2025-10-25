@@ -72,20 +72,39 @@ export async function POST(request: NextRequest) {
     });
     
     // Call image captioning service
-    console.log('📸 [4/7] Calling image captioning service...');
+    console.log('📸 [4/7] Calling image captioning service...', IMAGE_CAPTIONING_URL);
     const captionFormData = new FormData();
     captionFormData.append('image', imageFile);
     
-    const captionResponse = await fetch(`${IMAGE_CAPTIONING_URL}/caption`, {
-      method: 'POST',
-      body: captionFormData,
-    });
+    let captionResponse;
+    try {
+      captionResponse = await fetch(`${IMAGE_CAPTIONING_URL}/caption`, {
+        method: 'POST',
+        body: captionFormData,
+        signal: AbortSignal.timeout(180000), // 3 min timeout
+      });
+    } catch (fetchError) {
+      console.error('❌ Failed to connect to image-captioning service:', fetchError);
+      const errorMsg = fetchError instanceof Error ? fetchError.message : String(fetchError);
+      
+      if (errorMsg.includes('ECONNREFUSED') || errorMsg.includes('fetch failed')) {
+        return NextResponse.json(
+          { 
+            error: 'Image captioning service not available',
+            details: `Could not connect to ${IMAGE_CAPTIONING_URL}. Is the service running? Run: python image-captioning-service/app.py`,
+          },
+          { status: 503 }
+        );
+      }
+      
+      throw fetchError;
+    }
     
     if (!captionResponse.ok) {
       const errorText = await captionResponse.text();
       console.error('❌ Image captioning failed:', errorText);
       return NextResponse.json(
-        { error: 'Failed to generate narrative from image' },
+        { error: 'Failed to generate narrative from image', details: errorText },
         { status: 500 }
       );
     }
@@ -159,10 +178,23 @@ export async function POST(request: NextRequest) {
     
   } catch (error) {
     console.error('❌ Image upload error:', error);
+    console.error('❌ Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    
+    // Detailed error response
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorDetails = {
+      message: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
+      type: error instanceof Error ? error.constructor.name : typeof error,
+    };
+    
+    console.error('❌ Error details:', JSON.stringify(errorDetails, null, 2));
+    
     return NextResponse.json(
       { 
         error: 'Failed to process image upload',
-        details: error instanceof Error ? error.message : 'Unknown error',
+        details: errorMessage,
+        debug: process.env.NODE_ENV === 'development' ? errorDetails : undefined,
       },
       { status: 500 }
     );
