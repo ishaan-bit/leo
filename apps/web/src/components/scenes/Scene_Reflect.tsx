@@ -12,6 +12,7 @@ import MomentsNavIcon from '../atoms/MomentsNavIcon';
 import CityInterlude from '../organisms/CityInterlude';
 import BreathingSequence from '../organisms/BreathingSequence';
 import MomentsLibrary from '../organisms/MomentsLibrary';
+import MicroDreamCinematic from '../organisms/MicroDreamCinematic';
 import type { ProcessedText } from '@/lib/multilingual/textProcessor';
 import type { TypingMetrics, VoiceMetrics, AffectVector } from '@/lib/behavioral/metrics';
 import { composeAffectFromTyping, composeAffectFromVoice } from '@/lib/behavioral/metrics';
@@ -49,8 +50,9 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   const [guestNudgeMinimized, setGuestNudgeMinimized] = useState(false);
   
   // Micro-dream state
-  const [microDream, setMicroDream] = useState<{ lines: string[]; fades: string[] } | null>(null);
+  const [microDream, setMicroDream] = useState<{ lines: string[]; fades: string[]; dominant_primary?: string; valence_mean?: number; arousal_mean?: number; createdAt?: string; algo?: string } | null>(null);
   const [showMicroDream, setShowMicroDream] = useState(false);
+  const [microDreamChecked, setMicroDreamChecked] = useState(false);
   
   // Scene state
   const [currentAffect, setCurrentAffect] = useState<AffectVector>({
@@ -115,17 +117,20 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
           console.log('🌙 Response data:', data);
           
           if (data.microDream) {
-            console.log('🌙 Micro-dream received:', data.microDream.lines);
+            console.log('🌙 Micro-dream received - showing cinematic experience');
             setMicroDream(data.microDream);
             setShowMicroDream(true);
           } else {
             console.log('🌙 No micro-dream available for this signin');
+            setMicroDreamChecked(true);
           }
         } else {
           console.error('🌙 Micro-dream fetch failed:', response.status, await response.text());
+          setMicroDreamChecked(true);
         }
       } catch (error) {
         console.error('🌙 Error fetching micro-dream:', error);
+        setMicroDreamChecked(true);
       }
     }
 
@@ -580,58 +585,33 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     );
   }
 
+  // Show cinematic micro-dream experience if available
+  if (showMicroDream && microDream) {
+    return (
+      <MicroDreamCinematic
+        dream={microDream}
+        pigName={pigName}
+        onComplete={async () => {
+          // Clear micro-dream from Upstash after showing
+          await fetch('/api/micro-dream/get?clear=true');
+          setShowMicroDream(false);
+          setMicroDreamChecked(true);
+        }}
+      />
+    );
+  }
+
+  // Don't render reflection interface until we've checked for micro-dream
+  if (!microDreamChecked) {
+    return (
+      <div className="min-h-screen bg-pink-50 flex items-center justify-center">
+        <div className="text-pink-800 text-lg font-serif italic animate-pulse">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <div className={`min-h-screen bg-gradient-to-br ${backgroundTone} relative overflow-hidden transition-colors duration-1000`}>
-      {/* Micro-dream overlay (shows before reflection interface) */}
-      <AnimatePresence>
-        {showMicroDream && microDream && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-purple-900/95 to-pink-900/95 backdrop-blur-sm"
-            onClick={async () => {
-              // Clear micro-dream from Upstash and hide overlay
-              await fetch('/api/micro-dream/get?clear=true');
-              setShowMicroDream(false);
-            }}
-          >
-            <div className="max-w-2xl px-8 text-center space-y-8">
-              {/* Micro-dream lines */}
-              <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.5, duration: 0.8 }}
-                className="space-y-6"
-              >
-                {microDream.lines.map((line, idx) => (
-                  <motion.p
-                    key={idx}
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.8 + idx * 0.4, duration: 0.8 }}
-                    className="text-2xl md:text-3xl font-serif text-pink-100 leading-relaxed"
-                  >
-                    {line}
-                  </motion.p>
-                ))}
-              </motion.div>
-              
-              {/* Tap to continue hint */}
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.6 }}
-                transition={{ delay: 2.5, duration: 0.6 }}
-                className="text-sm text-pink-200/60 italic"
-              >
-                tap anywhere to continue
-              </motion.p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Breathing background gradient overlay */}
       <motion.div
         className="absolute inset-0 pointer-events-none"
