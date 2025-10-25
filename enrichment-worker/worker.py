@@ -169,6 +169,7 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
                 print(f"{'='*60}\n")
                 
                 # 7. Check if micro-dream should be generated (after post-enrichment complete)
+                # Note: Guests are excluded - micro-dreams only for signed-in users
                 try:
                     # Fetch the full reflection from Upstash to get owner_id
                     reflection_key = f'reflection:{rid}'
@@ -182,32 +183,36 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
                         owner_id = full_reflection.get('owner_id')
                         
                         if owner_id:
-                            print(f"🌙 Checking micro-dream trigger for owner: {owner_id}")
-                            
-                            # Import micro-dream agent
-                            import sys
-                            import os
-                            sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-                            from micro_dream_agent import MicroDreamAgent, UpstashClient, OllamaClient
-                            
-                            # Initialize clients
-                            upstash_client_md = UpstashClient(
-                                os.getenv('UPSTASH_REDIS_REST_URL'),
-                                os.getenv('UPSTASH_REDIS_REST_TOKEN')
-                            )
-                            ollama_client_md = OllamaClient()
-                            
-                            # Run micro-dream agent
-                            agent = MicroDreamAgent(upstash_client_md, ollama_client_md)
-                            
-                            # Generate micro-dream after moment #3 post-enrichment (will increment signin_count)
-                            # Will display at signin #4, 6, 8, 11, 13... (pattern: +2, +2, +3, +2, +3...)
-                            result = agent.run(owner_id, force_dream=False, skip_ollama=False)
-                            
-                            if result and result.get('should_display'):
-                                print(f"✅ Micro-dream generated and stored for next signin")
+                            # Skip micro-dream generation for guest users
+                            if owner_id.startswith('guest:'):
+                                print(f"🚫 Skipping micro-dream for guest session: {owner_id}")
                             else:
-                                print(f"   Not eligible for display yet (signin #{result['signin_count'] if result else 'unknown'})")
+                                print(f"🌙 Checking micro-dream trigger for owner: {owner_id}")
+                                
+                                # Import micro-dream agent
+                                import sys
+                                import os
+                                sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+                                from micro_dream_agent import MicroDreamAgent, UpstashClient, OllamaClient
+                                
+                                # Initialize clients
+                                upstash_client_md = UpstashClient(
+                                    os.getenv('UPSTASH_REDIS_REST_URL'),
+                                    os.getenv('UPSTASH_REDIS_REST_TOKEN')
+                                )
+                                ollama_client_md = OllamaClient()
+                                
+                                # Run micro-dream agent
+                                agent = MicroDreamAgent(upstash_client_md, ollama_client_md)
+                                
+                                # Generate micro-dream after moment #3 post-enrichment (will increment signin_count)
+                                # Will display at signin #4, 6, 8, 11, 13... (pattern: +2, +2, +3, +2, +3...)
+                                result = agent.run(owner_id, force_dream=False, skip_ollama=False)
+                                
+                                if result and result.get('should_display'):
+                                    print(f"✅ Micro-dream generated and stored for next signin")
+                                else:
+                                    print(f"   Not eligible for display yet (signin #{result['signin_count'] if result else 'unknown'})")
                         else:
                             print(f"⚠️  No owner_id found in reflection:{rid}")
                     

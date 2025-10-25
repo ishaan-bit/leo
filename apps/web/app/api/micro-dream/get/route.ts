@@ -37,6 +37,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Block guest users - micro-dreams only for signed-in users
+    if (ownerId.startsWith('guest:')) {
+      console.log('🚫 Guest user detected - micro-dreams disabled for guest mode');
+      return NextResponse.json({
+        microDream: null,
+        message: 'Guest users not eligible for micro-dreams',
+      });
+    }
+
     const microDreamKey = `micro_dream:${ownerId}`;
     const clearAfterRead = request.nextUrl.searchParams.get('clear') === 'true';
     

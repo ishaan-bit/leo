@@ -6,6 +6,7 @@ import { useSession, signIn } from 'next-auth/react';
 import PinkPig from '../molecules/PinkPig';
 import NotebookInput from '../atoms/NotebookInput';
 import VoiceOrb from '../atoms/VoiceOrb';
+import CameraUpload from '../atoms/CameraUpload';
 import AuthStateIndicator from '../atoms/AuthStateIndicator';
 import SoundToggle from '../atoms/SoundToggle';
 import MomentsNavIcon from '../atoms/MomentsNavIcon';
@@ -28,7 +29,7 @@ interface Scene_ReflectProps {
 }
 
 type SessionVariant = 'first' | 'returning' | 'longGap';
-type InputMode = 'notebook' | 'voice';
+type InputMode = 'notebook' | 'voice' | 'photo';
 
 export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   const { data: session, status } = useSession();
@@ -48,6 +49,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   } | null>(null);
   const [showGuestNudge, setShowGuestNudge] = useState(false);
   const [guestNudgeMinimized, setGuestNudgeMinimized] = useState(false);
+  const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
   
   // Micro-dream state
   const [microDream, setMicroDream] = useState<{ 
@@ -354,6 +356,71 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     }
   };
 
+  // Handle photo upload submission
+  const handlePhotoSubmit = async (file: File) => {
+    console.log('[Scene_Reflect] handlePhotoSubmit called', file.name);
+    setIsSubmitting(true);
+    setScenePhase('completing');
+    setSelectedPhoto(file);
+    
+    // Immediate feedback - show heart animation and pig happiness
+    setHeartPuffs(generateHeartPuff(6));
+    setShowHeartAnimation(true);
+    setPigMood('happy');
+    audioSystemRef.current.playChime();
+    
+    // Show completion dialogue
+    const completionDialogue = dialogueData.completion.success[
+      Math.floor(Math.random() * dialogueData.completion.success.length)
+    ];
+    setDialogue(completionDialogue.replace('{pigName}', pigName));
+    
+    // Clear heart animation after delay
+    setTimeout(() => setShowHeartAnimation(false), 2000);
+    
+    try {
+      // Upload image to get narrative text
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('pigId', pigId);
+      
+      console.log('[Scene_Reflect] Uploading image...');
+      const uploadResponse = await fetch('/api/reflect/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!uploadResponse.ok) {
+        throw new Error(`Upload failed: ${uploadResponse.statusText}`);
+      }
+      
+      const uploadData = await uploadResponse.json();
+      console.log('[Scene_Reflect] Image uploaded, got reflection ID:', uploadData.reflectionId);
+      
+      // Update last visit
+      localStorage.setItem('leo.reflect.lastVisit', Date.now().toString());
+      
+      // Transition to interlude (enrichment happens in background)
+      if (uploadData.reflectionId) {
+        console.log('[Scene_Reflect] Transitioning to CityInterlude (photo)');
+        setTimeout(() => {
+          setCurrentReflectionId(uploadData.reflectionId);
+          setShowInterlude(true);
+          setIsSubmitting(false);
+          setSelectedPhoto(null);
+        }, 1500);
+      } else {
+        throw new Error('No reflection ID returned');
+      }
+    } catch (error) {
+      console.error('[Scene_Reflect] Photo upload error:', error);
+      alert('Failed to process image. Please try again.');
+      setIsSubmitting(false);
+      setSelectedPhoto(null);
+      setPigMood('calm');
+    }
+  };
+
   // Save reflection to backend
   const saveReflection = async (data: any): Promise<string | null> => {
     try {
@@ -410,7 +477,11 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
 
   // Switch input mode
   const toggleInputMode = () => {
-    setInputMode(prev => prev === 'notebook' ? 'voice' : 'notebook');
+    setInputMode(prev => {
+      if (prev === 'notebook') return 'voice';
+      if (prev === 'voice') return 'photo';
+      return 'notebook';
+    });
   };
 
   // Handle interlude completion → transition to breathing
@@ -786,20 +857,34 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
                   disabled={isSubmitting}
                   placeholder={`Dear ${pigName}...`}
                 />
-              ) : (
+              ) : inputMode === 'voice' ? (
                 <VoiceOrb
                   onTranscript={handleVoiceSubmit}
                   disabled={isSubmitting}
                 />
+              ) : (
+                <div className="flex flex-col items-center gap-4">
+                  <p className="text-sm text-gray-600 font-serif italic text-center">
+                    Capture or upload a photo to create your moment
+                  </p>
+                  <CameraUpload
+                    onPhotoSelected={handlePhotoSubmit}
+                    isDisabled={isSubmitting}
+                  />
+                </div>
               )}
               
               {/* Mode toggle */}
-              <div className="flex justify-center mt-4">
+              <div className="flex justify-center mt-4 gap-3">
                 <button
                   onClick={toggleInputMode}
                   className="text-sm text-pink-600 hover:text-pink-800 italic underline"
                 >
-                  {inputMode === 'notebook' ? 'Or speak instead' : 'Or write instead'}
+                  {inputMode === 'notebook' 
+                    ? 'Or speak instead' 
+                    : inputMode === 'voice' 
+                    ? 'Or take a photo' 
+                    : 'Or write instead'}
                 </button>
               </div>
             </motion.div>

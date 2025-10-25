@@ -144,7 +144,17 @@ class MicroDreamAgent:
         self.ollama = ollama
     
     def fetch_reflections(self, owner_id: str) -> List[Dict]:
-        """Fetch all reflections for owner (user or guest), sorted by timestamp."""
+        """
+        Fetch all reflections for owner (user only, not guest), sorted by timestamp.
+        
+        Note: Guest sessions (owner_id starting with 'guest:') are excluded from
+        micro-dream generation to prevent dreamscape triggers in guest mode.
+        """
+        # Skip guest users - they should not contribute to or trigger dreamscapes
+        if owner_id.startswith('guest:'):
+            print(f"[!] Guest session detected - skipping dreamscape (guests ineligible)")
+            return []
+        
         # Try multiple key patterns
         keys = self.upstash.keys('reflection:*')  # Current format: reflection:refl_xxx
         

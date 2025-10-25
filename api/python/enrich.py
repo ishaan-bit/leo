@@ -8,10 +8,16 @@ import os
 import sys
 
 # Add behavioral-backend to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../behavioral-backend/src'))
+backend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../behavioral-backend/src'))
+sys.path.insert(0, backend_path)
 
-from agent_service import ReflectionAnalysisAgent
-from persistence import UpstashStore
+try:
+    from reflection_agent_service import ReflectionAnalysisAgent
+    from upstash_store import UpstashStore
+except ImportError:
+    # Fallback to original import names
+    from agent_service import ReflectionAnalysisAgent
+    from persistence import UpstashStore
 
 
 class handler(BaseHTTPRequestHandler):
