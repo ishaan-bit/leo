@@ -1,1633 +1,401 @@
-'use client';'use client';'use client';
+﻿'use client';
 
-
-
-import { useState, useEffect, useRef } from 'react';
-
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-
-import { useRouter } from 'next/navigation';import { useState, useEffect, useRef } from 'react';import { useState, useEffect } from 'react';
-
+import { useRouter } from 'next/navigation';
 import PinkPig from '../molecules/PinkPig';
 
-import { motion, AnimatePresence } from 'framer-motion';import { motion, AnimatePresence } from 'framer-motion';
+// Timings for 12-15s experience
+const timings = {
+  entrance: { fadeIn: 700, sceneEaseIn: 1300 },
+  lines: { charDelay: 22, charJitter: 5, bloomDuration: 500, l2FadeDelay: 500, ambientStart: 3400, ambientEnd: 12200 },
+  snippet: { fadeIn: 450, hold: 1800, fadeOut: 450, overlap: 150 },
+  exit: { wakingDuration: 1200, morphToPink: 1400, dissolve: 650, irisIn: 150 },
+};
 
-// Dreamscape timing — 14s total
-
-const timings = {import { useRouter } from 'next/navigation';import { useRouter } from 'next/navigation';
-
-  entrance: { skyFadeIn: 1000, pigFadeIn: 1000, pigDelay: 1000 },
-
-  lines: { l1FadeIn: 1000, l1Delay: 2000, l2FadeIn: 1000, l2Delay: 3000, pulseDuration: 6000 },import PinkPig from '../molecules/PinkPig';import PinkPig from '../molecules/PinkPig';
-
-  snippet: { fadeIn: 400, hold: 1700, fadeOut: 400 },
-
-  ambient: { start: 4000, end: 12000 },
-
-  waking: { start: 12000, duration: 1000 },
-
-  transition: { exposureFlash: 800, gradientMorph: 1400, fadeOut: 600 },// Dreamscape timing — 14s total// Timings for 12-15s experience
-
-  complete: 14000,
-
-};const timings = {const timings = {
-
-
-
-type PrimaryEmotion = 'sad' | 'joyful' | 'powerful' | 'mad' | 'peaceful' | 'scared';  entrance: { skyFadeIn: 1000, pigFadeIn: 1000, pigDelay: 1000 },  entrance: { fadeIn: 700, sceneEaseIn: 1300 },
-
-
-
-interface MicroDream {  lines: { l1FadeIn: 1000, l1Delay: 2000, l2FadeIn: 1000, l2Delay: 3000, pulseDuration: 6000 },  lines: { charDelay: 22, charJitter: 5, bloomDuration: 500, l2FadeDelay: 500, ambientStart: 3400, ambientEnd: 12200 },
-
-  lines: string[];
-
-  fades?: string[];  snippet: { fadeIn: 400, hold: 1700, fadeOut: 400 },  snippet: { fadeIn: 450, hold: 1800, fadeOut: 450, overlap: 150 },
-
-  dominant_primary?: PrimaryEmotion;
-
-  valence_mean?: number;  ambient: { start: 4000, end: 12000 },  exit: { wakingDuration: 1200, morphToPink: 1400, dissolve: 650, irisIn: 150 },
-
-  arousal_mean?: number;
-
-  createdAt?: string;  waking: { start: 12000, duration: 1000 },};
-
-  algo?: string;
-
-}  transition: { exposureFlash: 800, gradientMorph: 1400, fadeOut: 600 },
-
-
-
-interface ReflectionSnippet {  complete: 14000,type PrimaryEmotion = 'sad' | 'joyful' | 'powerful' | 'mad' | 'peaceful' | 'scared';
-
-  id: string;
-
-  text: string;};
-
-}
+type PrimaryEmotion = 'sad' | 'joyful' | 'powerful' | 'mad' | 'peaceful' | 'scared';
 
 interface MicroDream {
-
-interface Props {
-
-  dream: MicroDream;type PrimaryEmotion = 'sad' | 'joyful' | 'powerful' | 'mad' | 'peaceful' | 'scared';  lines: string[];
-
-  pigName?: string;
-
-  onComplete?: () => void;  fades?: string[];
-
+  lines: string[];
+  fades?: string[];
+  dominant_primary?: PrimaryEmotion;
+  valence_mean?: number;
+  arousal_mean?: number;
+  createdAt?: string;
+  algo?: string;
 }
 
-interface MicroDream {  dominant_primary?: PrimaryEmotion;
+interface Props {
+  dream: MicroDream;
+  pigName?: string;
+  onComplete?: () => void;
+}
 
-const emotionThemes: Record<PrimaryEmotion, { rgbShift: { r: number; g: number; b: number }; hueRotate: number }> = {
+const emotionThemes: Record<PrimaryEmotion, { hue: number; blueBoost: number; grain: number }> = {
+  scared: { hue: -10, blueBoost: 0.05, grain: 0.05 },
+  joyful: { hue: 8, blueBoost: -0.03, grain: -0.05 },
+  sad: { hue: -12, blueBoost: 0.08, grain: 0 },
+  powerful: { hue: 6, blueBoost: -0.02, grain: 0.03 },
+  mad: { hue: -15, blueBoost: 0.02, grain: 0.08 },
+  peaceful: { hue: 4, blueBoost: -0.05, grain: -0.03 },
+};
 
-  scared: { rgbShift: { r: 0.28, g: 0.22, b: 0.35 }, hueRotate: -8 },  lines: string[];  valence_mean?: number;
-
-  joyful: { rgbShift: { r: 0.25, g: 0.30, b: 0.22 }, hueRotate: 5 },
-
-  sad: { rgbShift: { r: 0.22, g: 0.25, b: 0.32 }, hueRotate: -10 },  fades?: string[];  arousal_mean?: number;
-
-  powerful: { rgbShift: { r: 0.30, g: 0.26, b: 0.25 }, hueRotate: 3 },
-
-  mad: { rgbShift: { r: 0.32, g: 0.20, b: 0.24 }, hueRotate: -12 },  dominant_primary?: PrimaryEmotion;  createdAt?: string;
-
-  peaceful: { rgbShift: { r: 0.24, g: 0.28, b: 0.30 }, hueRotate: 6 },
-
-};  valence_mean?: number;  algo?: string;
-
-
-
-export default function MicroDreamCinematic({ dream, pigName = 'Your Pig', onComplete }: Props) {  arousal_mean?: number;}
-
+export default function MicroDreamCinematic({ dream, pigName = 'Your Pig', onComplete }: Props) {
   const router = useRouter();
-
-  const [phase, setPhase] = useState<'entering' | 'ambient' | 'waking' | 'transitioning' | 'exiting'>('entering');  createdAt?: string;
-
-  const [showLine1, setShowLine1] = useState(false);
-
-  const [showLine2, setShowLine2] = useState(false);  algo?: string;interface Props {
-
-  const [snippets, setSnippets] = useState<ReflectionSnippet[]>([]);
-
-  const [currentSnippetIndex, setCurrentSnippetIndex] = useState(0);}  dream: MicroDream;
-
-  const [rgbPulse, setRgbPulse] = useState(1.0);
-
-  const [showExposureFlash, setShowExposureFlash] = useState(false);  pigName?: string;
-
-  const [skyMorph, setSkyMorph] = useState(0); // 0 = night, 1 = pink
-
-  const startTimeRef = useRef<number>(Date.now());interface ReflectionSnippet {  onComplete?: () => void;
-
-
-
-  const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;  id: string;}
-
+  const [phase, setPhase] = useState<'entering' | 'ambient' | 'waking' | 'exiting'>('entering');
+  const [line1Text, setLine1Text] = useState('');
+  const [showLine2, setShowLine2] = useState(false);
+  const [snippets, setSnippets] = useState<Array<{ id: string; text: string }>>([]);
+  const [currentSnippetIndex, setCurrentSnippetIndex] = useState(0);
+  const [rgbIntensity, setRgbIntensity] = useState(0.25);
+  const [showPinkMorph, setShowPinkMorph] = useState(false);
+  
+  const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const line1 = dream.lines[0] || 'A quiet pause found me.';
-
-  const line2 = dream.lines[1] || 'Take a gentle breath.';  text: string;
-
+  const line2 = dream.lines[1] || 'Take a gentle breath.';
   const theme = dream.dominant_primary ? emotionThemes[dream.dominant_primary] : emotionThemes.peaceful;
 
-}const emotionThemes: Record<PrimaryEmotion, { hue: number; blueBoost: number; grain: number }> = {
-
-  // Fetch reflection snippets
-
-  useEffect(() => {  scared: { hue: -10, blueBoost: 0.05, grain: 0.05 },
-
+  // Fetch snippets from fades
+  useEffect(() => {
     if (!dream.fades?.length) return;
-
-interface Props {  joyful: { hue: 8, blueBoost: -0.03, grain: -0.05 },
-
-    const sampled = dream.fades.length <= 5 ? dream.fades : dream.fades.sort(() => 0.5 - Math.random()).slice(0, 5);
-
-  dream: MicroDream;  sad: { hue: -12, blueBoost: 0.08, grain: 0 },
-
-    Promise.all(
-
-      sampled.map(async (id) => {  pigName?: string;  powerful: { hue: 6, blueBoost: -0.02, grain: 0.03 },
-
-        try {
-
-          const res = await fetch(`/api/reflect/${id}`);  onComplete?: () => void;  mad: { hue: -15, blueBoost: 0.02, grain: 0.08 },
-
-          if (res.ok) {
-
-            const data = await res.json();}  peaceful: { hue: 4, blueBoost: -0.05, grain: -0.03 },
-
-            const text = (data.normalized_text || data.raw_text || `Reflection #${id.slice(-8)}`)
-
-              .replace(/[\u{1F300}-\u{1F9FF}]/gu, '')};
-
-              .replace(/https?:\/\/[^\s]+/g, '')
-
-              .trim()const emotionThemes: Record<PrimaryEmotion, { rgbShift: { r: number; g: number; b: number }; hueRotate: number }> = {
-
-              .split(/[.!?]/)[0]
-
-              .slice(0, 100);  scared: { rgbShift: { r: 0.28, g: 0.22, b: 0.35 }, hueRotate: -8 },export default function MicroDreamCinematic({ dream, pigName = 'Your Pig', onComplete }: Props) {
-
-            return { id, text };
-
-          }  joyful: { rgbShift: { r: 0.25, g: 0.30, b: 0.22 }, hueRotate: 5 },  const router = useRouter();
-
-        } catch (e) {
-
-          console.warn('[MicroDream] Failed to fetch snippet:', id);  sad: { rgbShift: { r: 0.22, g: 0.25, b: 0.32 }, hueRotate: -10 },  const [phase, setPhase] = useState<'entering' | 'ambient' | 'waking' | 'exiting'>('entering');
-
+    
+    const sampled = dream.fades.length <= 6 ? dream.fades : dream.fades.sort(() => 0.5 - Math.random()).slice(0, 6);
+    
+    Promise.all(sampled.map(async (id) => {
+      try {
+        const res = await fetch(`/api/reflect/${id}`);
+        if (res.ok) {
+          const data = await res.json();
+          const text = (data.normalized_text || data.raw_text || `#${id.slice(-8)}`)
+            .replace(/[\u{1F300}-\u{1F9FF}]/gu, '')
+            .replace(/https?:\/\/[^\s]+/g, '')
+            .trim()
+            .split(/[.!?]/)[0]
+            .slice(0, 100);
+          return { id, text };
         }
-
-        return { id, text: `Reflection #${id.slice(-8)}` };  powerful: { rgbShift: { r: 0.30, g: 0.26, b: 0.25 }, hueRotate: 3 },  const [line1Text, setLine1Text] = useState('');
-
-      })
-
-    ).then(setSnippets);  mad: { rgbShift: { r: 0.32, g: 0.20, b: 0.24 }, hueRotate: -12 },  const [showLine2, setShowLine2] = useState(false);
-
+      } catch (e) { }
+      return { id, text: `#${id.slice(-8)}` };
+    })).then(setSnippets);
   }, [dream.fades]);
 
-  peaceful: { rgbShift: { r: 0.24, g: 0.28, b: 0.30 }, hueRotate: 6 },  const [snippets, setSnippets] = useState<Array<{ id: string; text: string }>>([]);
-
-  // Line 1 fade-in (no typing)
-
-  useEffect(() => {};  const [currentSnippetIndex, setCurrentSnippetIndex] = useState(0);
-
-    const t = setTimeout(() => setShowLine1(true), timings.lines.l1Delay);
-
-    return () => clearTimeout(t);  const [rgbIntensity, setRgbIntensity] = useState(0.25);
-
-  }, []);
-
-export default function MicroDreamCinematic({ dream, pigName = 'Your Pig', onComplete }: Props) {  const [showPinkMorph, setShowPinkMorph] = useState(false);
-
-  // Line 2 fade-in
-
-  useEffect(() => {  const router = useRouter();  
-
-    const t = setTimeout(() => setShowLine2(true), timings.lines.l2Delay);
-
-    return () => clearTimeout(t);  const [phase, setPhase] = useState<'entering' | 'ambient' | 'waking' | 'transitioning' | 'exiting'>('entering');  const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  }, []);
-
-  const [showLine1, setShowLine1] = useState(false);  const line1 = dream.lines[0] || 'A quiet pause found me.';
-
-  // RGB pulse (subtle luminance breathing)
-
-  useEffect(() => {  const [showLine2, setShowLine2] = useState(false);  const line2 = dream.lines[1] || 'Take a gentle breath.';
-
-    if (prefersReducedMotion || phase === 'transitioning' || phase === 'exiting') return;
-
-    const interval = setInterval(() => {  const [snippets, setSnippets] = useState<ReflectionSnippet[]>([]);  const theme = dream.dominant_primary ? emotionThemes[dream.dominant_primary] : emotionThemes.peaceful;
-
-      setRgbPulse((prev) => (prev >= 1.0 ? 0.92 : 1.0));
-
-    }, timings.lines.pulseDuration / 2);  const [currentSnippetIndex, setCurrentSnippetIndex] = useState(0);
-
-    return () => clearInterval(interval);
-
-  }, [phase, prefersReducedMotion]);  const [rgbPulse, setRgbPulse] = useState(1.0);  // Fetch snippets from fades
-
-
-
-  // Ambient phase  const [showExposureFlash, setShowExposureFlash] = useState(false);  useEffect(() => {
-
+  // Type-on L1
   useEffect(() => {
+    if (prefersReducedMotion) {
+      setLine1Text(line1);
+      return;
+    }
+    let i = 0;
+    const iv = setInterval(() => {
+      if (i < line1.length) setLine1Text(line1.slice(0, ++i));
+      else clearInterval(iv);
+    }, timings.lines.charDelay + Math.random() * timings.lines.charJitter);
+    return () => clearInterval(iv);
+  }, [line1, prefersReducedMotion]);
 
-    const t = setTimeout(() => setPhase('ambient'), timings.ambient.start);  const [skyMorph, setSkyMorph] = useState(0); // 0 = night, 1 = pink    if (!dream.fades?.length) return;
-
+  // L2 fade-in
+  useEffect(() => {
+    const t = setTimeout(() => setShowLine2(true), timings.lines.l2FadeDelay);
     return () => clearTimeout(t);
+  }, []);
 
-  }, []);  const startTimeRef = useRef<number>(Date.now());    
-
-
-
-  // Snippet carousel (only during ambient)    const sampled = dream.fades.length <= 6 ? dream.fades : dream.fades.sort(() => 0.5 - Math.random()).slice(0, 6);
-
+  // RGB ramp-up
   useEffect(() => {
+    const t = setTimeout(() => setRgbIntensity(0.7), timings.entrance.sceneEaseIn);
+    return () => clearTimeout(t);
+  }, []);
 
-    if (phase !== 'ambient' || !snippets.length) return;  const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;    
+  // Ambient phase start
+  useEffect(() => {
+    const t = setTimeout(() => setPhase('ambient'), timings.lines.ambientStart);
+    return () => clearTimeout(t);
+  }, []);
 
-
-
-    const cycleDuration = timings.snippet.fadeIn + timings.snippet.hold + timings.snippet.fadeOut;  const line1 = dream.lines[0] || 'A quiet pause found me.';    Promise.all(sampled.map(async (id) => {
-
-    const interval = setInterval(() => {
-
-      setCurrentSnippetIndex((prev) => {  const line2 = dream.lines[1] || 'Take a gentle breath.';      try {
-
+  // Snippet carousel
+  useEffect(() => {
+    if (phase !== 'ambient' || !snippets.length) return;
+    const duration = timings.snippet.fadeIn + timings.snippet.hold + timings.snippet.fadeOut - timings.snippet.overlap;
+    const iv = setInterval(() => {
+      setCurrentSnippetIndex(prev => {
         const next = (prev + 1) % snippets.length;
-
-        console.log('[Telemetry] micro_dream.fade_cycle', {  const theme = dream.dominant_primary ? emotionThemes[dream.dominant_primary] : emotionThemes.peaceful;        const res = await fetch(`/api/reflect/${id}`);
-
-          snippet_id: snippets[next]?.id,
-
-          index: next,        if (res.ok) {
-
-          chars: snippets[next]?.text.length,
-
-        });  // Fetch reflection snippets          const data = await res.json();
-
+        console.log('[Telemetry] micro_dream.snippet_show', { id: snippets[next]?.id, index: next, chars: snippets[next]?.text.length });
         return next;
+      });
+    }, duration);
+    return () => clearInterval(iv);
+  }, [phase, snippets]);
 
-      });  useEffect(() => {          const text = (data.normalized_text || data.raw_text || `#${id.slice(-8)}`)
-
-    }, cycleDuration);
-
-    if (!dream.fades?.length) return;            .replace(/[\u{1F300}-\u{1F9FF}]/gu, '')
-
-    return () => clearInterval(interval);
-
-  }, [phase, snippets]);            .replace(/https?:\/\/[^\s]+/g, '')
-
-
-
-  // Waking phase    const sampled = dream.fades.length <= 5 ? dream.fades : dream.fades.sort(() => 0.5 - Math.random()).slice(0, 5);            .trim()
-
+  // Waking transition
   useEffect(() => {
-
-    const t = setTimeout(() => {            .split(/[.!?]/)[0]
-
-      console.log('[Telemetry] micro_dream.transition_start', { duration_ms: Date.now() - startTimeRef.current });
-
-      setPhase('waking');    Promise.all(            .slice(0, 100);
-
-    }, timings.waking.start);
-
-    return () => clearTimeout(t);      sampled.map(async (id) => {          return { id, text };
-
+    const t = setTimeout(() => setPhase('waking'), timings.lines.ambientEnd);
+    return () => clearTimeout(t);
   }, []);
 
-        try {        }
-
-  // Transition to writer
-
-  useEffect(() => {          const res = await fetch(`/api/reflect/${id}`);      } catch (e) { }
-
+  // Exit sequence
+  useEffect(() => {
     if (phase !== 'waking') return;
-
-          if (res.ok) {      return { id, text: `#${id.slice(-8)}` };
-
-    // Start gradient morph and exposure flash
-
-    const morphTimer = setTimeout(() => {            const data = await res.json();    })).then(setSnippets);
-
-      setShowExposureFlash(true);
-
-      setSkyMorph(1);            const text = (data.normalized_text || data.raw_text || `Reflection #${id.slice(-8)}`)  }, [dream.fades]);
-
-    }, timings.waking.duration);
-
-              .replace(/[\u{1F300}-\u{1F9FF}]/gu, '')
-
-    // Complete transition
-
-    const completeTimer = setTimeout(() => {              .replace(/https?:\/\/[^\s]+/g, '')  // Type-on L1
-
-      setPhase('exiting');
-
-      console.log('[Telemetry] micro_dream.complete', {              .trim()  useEffect(() => {
-
-        algo: dream.algo,
-
-        duration_ms: Date.now() - startTimeRef.current,              .split(/[.!?]/)[0]    if (prefersReducedMotion) {
-
-        lines_hash: `${line1.slice(0, 20)}...`,
-
-      });              .slice(0, 100);      setLine1Text(line1);
-
-
-
-      setTimeout(() => {            return { id, text };      return;
-
-        onComplete ? onComplete() : router.push('/reflect/' + (window.location.pathname.split('/').pop() || ''));
-
-      }, timings.transition.fadeOut);          }    }
-
-    }, timings.waking.duration + timings.transition.exposureFlash);
-
-        } catch (e) {    let i = 0;
-
-    return () => {
-
-      clearTimeout(morphTimer);          console.warn('[MicroDream] Failed to fetch snippet:', id);    const iv = setInterval(() => {
-
-      clearTimeout(completeTimer);
-
-    };        }      if (i < line1.length) setLine1Text(line1.slice(0, ++i));
-
-  }, [phase, onComplete, router, dream.algo, line1]);
-
-        return { id, text: `Reflection #${id.slice(-8)}` };      else clearInterval(iv);
-
-  // Keyboard controls
-
-  useEffect(() => {      })    }, timings.lines.charDelay + Math.random() * timings.lines.charJitter);
-
-    const handleKey = (e: KeyboardEvent) => {
-
-      if (e.key === ' ' || e.key === 'Enter') {    ).then(setSnippets);    return () => clearInterval(iv);
-
-        e.preventDefault();
-
-        console.log('[Telemetry] micro_dream.advance_user');  }, [dream.fades]);  }, [line1, prefersReducedMotion]);
-
-        setPhase('waking');
-
-      } else if (e.key === 'Escape') {
-
-        e.preventDefault();
-
-        console.log('[Telemetry] micro_dream.skip');  // Line 1 fade-in (no typing)  // L2 fade-in
-
-        onComplete ? onComplete() : router.push('/reflect/' + (window.location.pathname.split('/').pop() || ''));
-
-      }  useEffect(() => {  useEffect(() => {
-
-    };
-
-    window.addEventListener('keydown', handleKey);    const t = setTimeout(() => setShowLine1(true), timings.lines.l1Delay);    const t = setTimeout(() => setShowLine2(true), timings.lines.l2FadeDelay);
-
-    return () => window.removeEventListener('keydown', handleKey);
-
-  }, [onComplete, router]);    return () => clearTimeout(t);    return () => clearTimeout(t);
-
-
-
-  // Preload writer route  }, []);  }, []);
-
-  useEffect(() => {
-
+    setShowPinkMorph(true);
     const t = setTimeout(() => {
-
-      router.prefetch('/reflect/' + (window.location.pathname.split('/').pop() || ''));
-
-    }, 3000);  // Line 2 fade-in  // RGB ramp-up
-
+      setPhase('exiting');
+      setTimeout(() => {
+        onComplete ? onComplete() : router.push('/reflect/' + (window.location.pathname.split('/').pop() || ''));
+      }, timings.exit.irisIn + 250);
+    }, timings.exit.wakingDuration);
     return () => clearTimeout(t);
+  }, [phase, onComplete, router]);
 
-  }, [router]);  useEffect(() => {  useEffect(() => {
-
-
-
-  // Telemetry view    const t = setTimeout(() => setShowLine2(true), timings.lines.l2Delay);    const t = setTimeout(() => setRgbIntensity(0.7), timings.entrance.sceneEaseIn);
-
+  // Keyboard
   useEffect(() => {
+    const handle = (e: KeyboardEvent) => {
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        console.log('[Telemetry] micro_dream.advance_user');
+        setPhase('waking');
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        console.log('[Telemetry] micro_dream.skip');
+        onComplete ? onComplete() : router.push('/reflect/' + (window.location.pathname.split('/').pop() || ''));
+      }
+    };
+    window.addEventListener('keydown', handle);
+    return () => window.removeEventListener('keydown', handle);
+  }, [onComplete, router]);
 
-    console.log('[Telemetry] micro_dream.view', {    return () => clearTimeout(t);    return () => clearTimeout(t);
-
+  // Telemetry
+  useEffect(() => {
+    console.log('[Telemetry] micro_dream.view', {
       algo: dream.algo,
-
-      dominant_primary: dream.dominant_primary,  }, []);  }, []);
-
+      dominant_primary: dream.dominant_primary,
       valence_mean: dream.valence_mean,
-
       arousal_mean: dream.arousal_mean,
-
-      snippet_count: snippets.length,
-
-    });  // RGB pulse (subtle luminance breathing)  // Ambient phase start
-
-  }, [dream, snippets.length]);
-
-  useEffect(() => {  useEffect(() => {
+    });
+    return () => {
+      if (phase === 'exiting') console.log('[Telemetry] micro_dream.complete');
+    };
+  }, [phase, dream]);
 
   const currentSnippet = snippets[currentSnippetIndex];
 
-  const isExiting = phase === 'transitioning' || phase === 'exiting';    if (prefersReducedMotion || phase === 'transitioning' || phase === 'exiting') return;    const t = setTimeout(() => setPhase('ambient'), timings.lines.ambientStart);
-
-
-
-  return (    const interval = setInterval(() => {    return () => clearTimeout(t);
-
-    <div className="fixed inset-0 overflow-hidden bg-black">
-
-      {/* Sky Layer — Deep indigo gradient with slow hue rotate */}      setRgbPulse((prev) => (prev >= 1.0 ? 0.92 : 1.0));  }, []);
-
+  return (
+    <div className="fixed inset-0 overflow-hidden" onClick={() => { setPhase('waking'); }}>
+      {/* Night sky ΓåÆ Pink morph */}
       <motion.div
-
-        className="absolute inset-0"    }, timings.lines.pulseDuration / 2);
-
-        initial={{ opacity: 0 }}
-
-        animate={{    return () => clearInterval(interval);  // Snippet carousel
-
-          opacity: 1,
-
-          background: skyMorph > 0.5  }, [phase, prefersReducedMotion]);  useEffect(() => {
-
-            ? `linear-gradient(135deg, #ff66a0, #ff8ec0, #ffb7c8)`
-
-            : `linear-gradient(135deg, #08001d, #150033, #2b0060)`,    if (phase !== 'ambient' || !snippets.length) return;
-
-          filter: `hue-rotate(${theme.hueRotate * (1 - skyMorph)}deg)`,
-
-        }}  // Ambient phase    const duration = timings.snippet.fadeIn + timings.snippet.hold + timings.snippet.fadeOut - timings.snippet.overlap;
-
-        transition={{
-
-          opacity: { duration: timings.entrance.skyFadeIn / 1000 },  useEffect(() => {    const iv = setInterval(() => {
-
-          background: { duration: timings.transition.gradientMorph / 1000, ease: 'easeInOut' },
-
-          filter: { duration: timings.transition.gradientMorph / 1000 },    const t = setTimeout(() => setPhase('ambient'), timings.ambient.start);      setCurrentSnippetIndex(prev => {
-
+        className="absolute inset-0"
+        animate={{
+          background: showPinkMorph
+            ? 'linear-gradient(135deg, #ff6aa0, #ff8ec0, #ffd0e3)'
+            : 'linear-gradient(135deg, #0a0030, #18003a, #001a2a)',
         }}
+        transition={{ duration: timings.exit.morphToPink / 1000 }}
+      />
 
-      />    return () => clearTimeout(t);        const next = (prev + 1) % snippets.length;
-
-
-
-      {/* Animated stars (twinkle slowly) */}  }, []);        console.log('[Telemetry] micro_dream.snippet_show', { id: snippets[next]?.id, index: next, chars: snippets[next]?.text.length });
-
-      <AnimatePresence>
-
-        {skyMorph < 0.5 && (        return next;
-
-          <motion.div
-
-            className="absolute inset-0 pointer-events-none"  // Snippet carousel (only during ambient)      });
-
-            exit={{ opacity: 0 }}
-
-            transition={{ duration: timings.transition.gradientMorph / 1000 }}  useEffect(() => {    }, duration);
-
-          >
-
-            {Array.from({ length: 60 }).map((_, i) => (    if (phase !== 'ambient' || !snippets.length) return;    return () => clearInterval(iv);
-
-              <motion.div
-
-                key={i}  }, [phase, snippets]);
-
-                className="absolute w-0.5 h-0.5 bg-white rounded-full"
-
-                style={{    const cycleDuration = timings.snippet.fadeIn + timings.snippet.hold + timings.snippet.fadeOut;
-
-                  left: `${Math.random() * 100}%`,
-
-                  top: `${Math.random() * 65}%`,    const interval = setInterval(() => {  // Waking transition
-
-                }}
-
-                animate={      setCurrentSnippetIndex((prev) => {  useEffect(() => {
-
-                  prefersReducedMotion
-
-                    ? { opacity: 0.7 }        const next = (prev + 1) % snippets.length;    const t = setTimeout(() => setPhase('waking'), timings.lines.ambientEnd);
-
-                    : { opacity: [0.6, 0.9, 0.6] }
-
-                }        console.log('[Telemetry] micro_dream.fade_cycle', {    return () => clearTimeout(t);
-
-                transition={{
-
-                  duration: 4 + Math.random() * 3,          snippet_id: snippets[next]?.id,  }, []);
-
-                  repeat: Infinity,
-
-                  delay: Math.random() * 3,          index: next,
-
-                  ease: 'easeInOut',
-
-                }}          chars: snippets[next]?.text.length,  // Exit sequence
-
-              />
-
-            ))}        });  useEffect(() => {
-
-          </motion.div>
-
-        )}        return next;    if (phase !== 'waking') return;
-
-      </AnimatePresence>
-
-      });    setShowPinkMorph(true);
-
-      {/* Drifting cloud bands */}
-
-      <AnimatePresence>    }, cycleDuration);    const t = setTimeout(() => {
-
-        {!prefersReducedMotion && skyMorph < 0.5 && (
-
-          <>      setPhase('exiting');
-
-            {[0, 1].map((i) => (
-
-              <motion.div    return () => clearInterval(interval);      setTimeout(() => {
-
-                key={i}
-
-                className="absolute rounded-full"  }, [phase, snippets]);        onComplete ? onComplete() : router.push('/reflect/' + (window.location.pathname.split('/').pop() || ''));
-
-                style={{
-
-                  top: `${18 + i * 15}%`,      }, timings.exit.irisIn + 250);
-
-                  width: `${180 + i * 60}px`,
-
-                  height: `${25 + i * 8}px`,  // Waking phase    }, timings.exit.wakingDuration);
-
-                  background: skyMorph > 0.3 ? 'rgba(255, 200, 220, 0.08)' : 'rgba(255, 255, 255, 0.05)',
-
-                  filter: `blur(${80 + i * 20}px)`,  useEffect(() => {    return () => clearTimeout(t);
-
-                  left: `-${180 + i * 60}px`,
-
-                }}    const t = setTimeout(() => {  }, [phase, onComplete, router]);
-
-                animate={{
-
-                  x: ['0vw', '110vw'],      console.log('[Telemetry] micro_dream.transition_start', { duration_ms: Date.now() - startTimeRef.current });
-
-                  background: skyMorph > 0.3 ? 'rgba(255, 200, 220, 0.12)' : 'rgba(255, 255, 255, 0.05)',
-
-                }}      setPhase('waking');  // Keyboard
-
-                exit={{ opacity: 0 }}
-
-                transition={{    }, timings.waking.start);  useEffect(() => {
-
-                  x: { duration: 45 + i * 20, repeat: Infinity, ease: 'linear' },
-
-                  background: { duration: timings.transition.gradientMorph / 1000 },    return () => clearTimeout(t);    const handle = (e: KeyboardEvent) => {
-
-                  opacity: { duration: timings.transition.fadeOut / 1000 },
-
-                }}  }, []);      if (e.key === ' ' || e.key === 'Enter') {
-
-              />
-
-            ))}        e.preventDefault();
-
-          </>
-
-        )}  // Transition to writer        console.log('[Telemetry] micro_dream.advance_user');
-
-      </AnimatePresence>
-
-  useEffect(() => {        setPhase('waking');
-
-      {/* RGB Backglow Layers (soft, pulsing) */}
-
-      <motion.div    if (phase !== 'waking') return;      } else if (e.key === 'Escape') {
-
-        className="absolute inset-0 pointer-events-none"
-
-        animate={{        e.preventDefault();
-
-          opacity: isExiting ? 0 : rgbPulse * 0.85,
-
-          scale: prefersReducedMotion ? 1 : 1.0 + (1.0 - rgbPulse) * 0.02,    // Start gradient morph and exposure flash        console.log('[Telemetry] micro_dream.skip');
-
-        }}
-
-        transition={{    const morphTimer = setTimeout(() => {        onComplete ? onComplete() : router.push('/reflect/' + (window.location.pathname.split('/').pop() || ''));
-
-          opacity: { duration: isExiting ? timings.transition.fadeOut / 1000 : timings.lines.pulseDuration / 2000, ease: 'easeInOut' },
-
-          scale: { duration: timings.lines.pulseDuration / 2000, ease: 'easeInOut' },      setShowExposureFlash(true);      }
-
-        }}
-
-      >      setSkyMorph(1);    };
-
-        {/* R glow */}
-
-        <div    }, timings.waking.duration);    window.addEventListener('keydown', handle);
-
-          className="absolute mix-blend-screen"
-
-          style={{    return () => window.removeEventListener('keydown', handle);
-
-            left: '25%',
-
-            top: '65%',    // Complete transition  }, [onComplete, router]);
-
-            width: '55vmax',
-
-            height: '55vmax',    const completeTimer = setTimeout(() => {
-
-            background: `radial-gradient(circle, rgba(255, 80, 100, ${theme.rgbShift.r}) 0%, transparent 65%)`,
-
-            filter: 'blur(90px)',      setPhase('exiting');  // Telemetry
-
-            transform: 'translate(-50%, -50%)',
-
-          }}      console.log('[Telemetry] micro_dream.complete', {  useEffect(() => {
-
-        />
-
-        {/* G glow */}        algo: dream.algo,    console.log('[Telemetry] micro_dream.view', {
-
-        <div
-
-          className="absolute mix-blend-screen"        duration_ms: Date.now() - startTimeRef.current,      algo: dream.algo,
-
-          style={{
-
-            right: '30%',        lines_hash: `${line1.slice(0, 20)}...`,      dominant_primary: dream.dominant_primary,
-
-            top: '35%',
-
-            width: '48vmax',      });      valence_mean: dream.valence_mean,
-
-            height: '48vmax',
-
-            background: `radial-gradient(circle, rgba(70, 255, 180, ${theme.rgbShift.g}) 0%, transparent 65%)`,      arousal_mean: dream.arousal_mean,
-
-            filter: 'blur(85px)',
-
-            transform: 'translate(50%, -50%)',      setTimeout(() => {    });
-
-          }}
-
-        />        onComplete ? onComplete() : router.push('/reflect/' + (window.location.pathname.split('/').pop() || ''));    return () => {
-
-        {/* B glow */}
-
-        <div      }, timings.transition.fadeOut);      if (phase === 'exiting') console.log('[Telemetry] micro_dream.complete');
-
-          className="absolute mix-blend-screen"
-
-          style={{    }, timings.waking.duration + timings.transition.exposureFlash);    };
-
-            left: '50%',
-
-            top: '80%',  }, [phase, dream]);
-
-            width: '65vmax',
-
-            height: '65vmax',    return () => {
-
-            background: `radial-gradient(circle, rgba(100, 160, 255, ${theme.rgbShift.b}) 0%, transparent 65%)`,
-
-            filter: 'blur(95px)',      clearTimeout(morphTimer);  const currentSnippet = snippets[currentSnippetIndex];
-
-            transform: 'translate(-50%, -50%)',
-
-          }}      clearTimeout(completeTimer);
-
-        />
-
-      </motion.div>    };  return (
-
-
-
-      {/* Mid Layer — Pig Dreaming */}  }, [phase, onComplete, router, dream.algo, line1]);    <div className="fixed inset-0 overflow-hidden" onClick={() => { setPhase('waking'); }}>
-
+      {/* RGB Glows */}
       <motion.div
-
-        className="absolute left-1/2 top-[38%] -translate-x-1/2 -translate-y-1/2 z-10"      {/* Night sky → Pink morph */}
-
-        initial={{ opacity: 0, y: 20 }}
-
-        animate={{  // Keyboard controls      <motion.div
-
-          opacity: isExiting ? 0 : 0.8,
-
-          y: prefersReducedMotion ? 0 : [0, -6, 0],  useEffect(() => {        className="absolute inset-0"
-
-          scale: prefersReducedMotion ? 1 : [1.0, 1.03, 1.0],
-
-        }}    const handleKey = (e: KeyboardEvent) => {        animate={{
-
-        transition={{
-
-          opacity: {      if (e.key === ' ' || e.key === 'Enter') {          background: showPinkMorph
-
-            duration: timings.entrance.pigFadeIn / 1000,
-
-            delay: timings.entrance.pigDelay / 1000,        e.preventDefault();            ? 'linear-gradient(135deg, #ff6aa0, #ff8ec0, #ffd0e3)'
-
-          },
-
-          y: { duration: 6, repeat: Infinity, ease: 'easeInOut' },        console.log('[Telemetry] micro_dream.advance_user');            : 'linear-gradient(135deg, #0a0030, #18003a, #001a2a)',
-
-          scale: { duration: 6, repeat: Infinity, ease: 'easeInOut' },
-
-        }}        setPhase('waking');        }}
-
-        style={{ mixBlendMode: 'screen' }}
-
-      >      } else if (e.key === 'Escape') {        transition={{ duration: timings.exit.morphToPink / 1000 }}
-
-        <PinkPig size={200} className="filter drop-shadow-[0_0_50px_rgba(255,180,220,0.5)]" />
-
-        e.preventDefault();      />
-
-        {/* Sparkle dust particles */}
-
-        {!prefersReducedMotion && (        console.log('[Telemetry] micro_dream.skip');
-
-          <>
-
-            {[0, 1, 2].map((i) => (        onComplete ? onComplete() : router.push('/reflect/' + (window.location.pathname.split('/').pop() || ''));      {/* RGB Glows */}
-
-              <motion.div
-
-                key={i}      }      <motion.div
-
-                className="absolute w-1 h-1 bg-white/70 rounded-full"
-
-                style={{    };        className="absolute inset-0"
-
-                  left: `${30 + i * 25}%`,
-
-                  top: `${40 + i * 10}%`,    window.addEventListener('keydown', handleKey);        animate={{ opacity: rgbIntensity }}
-
-                }}
-
-                animate={{    return () => window.removeEventListener('keydown', handleKey);        transition={{ duration: timings.entrance.sceneEaseIn / 1000 }}
-
-                  opacity: [0.3, 0.8, 0.3],
-
-                  y: [-10, -30, -50],  }, [onComplete, router]);      >
-
-                  x: [0, (i - 1) * 10, (i - 1) * 15],
-
-                }}        <div className="absolute mix-blend-screen" style={{
-
-                transition={{
-
-                  duration: 4 + i * 0.5,  // Preload writer route          left: '25%', top: '65%', width: '60vmax', height: '60vmax',
-
-                  repeat: Infinity,
-
-                  delay: i * 1.2,  useEffect(() => {          background: `radial-gradient(circle, rgba(255, 70, 90, ${0.35 + theme.blueBoost * 0.3}) 0%, transparent 70%)`,
-
-                  ease: 'easeOut',
-
-                }}    const t = setTimeout(() => {          filter: 'blur(100px)', transform: 'translate(-50%, -50%)',
-
-              />
-
-            ))}      router.prefetch('/reflect/' + (window.location.pathname.split('/').pop() || ''));        }} />
-
-          </>
-
-        )}    }, 3000);        <div className="absolute mix-blend-screen" style={{
-
-      </motion.div>
-
-    return () => clearTimeout(t);          right: '20%', top: '30%', width: '50vmax', height: '50vmax',
-
-      {/* Comic Skyline Silhouettes (parallax) */}
-
-      <AnimatePresence>  }, [router]);          background: `radial-gradient(circle, rgba(60, 255, 170, ${0.30 - theme.blueBoost * 0.2}) 0%, transparent 70%)`,
-
-        {!prefersReducedMotion && (
-
-          <>          filter: 'blur(100px)', transform: 'translate(50%, -50%)',
-
-            {/* Back layer */}
-
-            <motion.div  // Telemetry view        }} />
-
-              className="absolute bottom-0 left-0 right-0 h-28 opacity-60 z-20"
-
-              initial={{ opacity: 0, y: 20 }}  useEffect(() => {        <div className="absolute mix-blend-screen" style={{
-
-              animate={{
-
-                opacity: isExiting ? 0 : 0.6,    console.log('[Telemetry] micro_dream.view', {          left: '50%', bottom: '0', width: '70vmax', height: '70vmax',
-
-                y: 0,
-
-                x: [0, -15, 0],      algo: dream.algo,          background: `radial-gradient(circle, rgba(90, 150, 255, ${0.32 + theme.blueBoost}) 0%, transparent 70%)`,
-
-              }}
-
-              exit={{ opacity: 0 }}      dominant_primary: dream.dominant_primary,          filter: 'blur(120px)', transform: 'translate(-50%, 50%)',
-
-              transition={{
-
-                opacity: { duration: timings.entrance.skyFadeIn / 1000 },      valence_mean: dream.valence_mean,        }} />
-
-                x: { duration: 40, repeat: Infinity, ease: 'easeInOut' },
-
-              }}      arousal_mean: dream.arousal_mean,      </motion.div>
-
-              style={{
-
-                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 100'%3E%3Cpath d='M0,90 L100,90 L100,70 L150,70 L150,90 L300,90 L300,60 L350,60 L350,90 L500,90 L500,75 L550,75 L550,90 L700,90 L700,65 L750,65 L750,90 L900,90 L900,80 L950,80 L950,90 L1200,90 L1200,100 L0,100 Z' fill='rgba(255,255,255,0.06)' filter='url(%23glow)' /%3E%3Cdefs%3E%3Cfilter id='glow'%3E%3CfeGaussianBlur stdDeviation='2' /%3E%3C/filter%3E%3C/defs%3E%3C/svg%3E")`,      snippet_count: snippets.length,
-
-                backgroundSize: 'cover',
-
-                backgroundRepeat: 'no-repeat',    });      {/* Stars */}
-
-              }}
-
-            />  }, [dream, snippets.length]);      <div className="absolute inset-0 pointer-events-none">
-
-
-
-            {/* Front layer */}        {Array.from({ length: 50 }).map((_, i) => (
-
-            <motion.div
-
-              className="absolute bottom-0 left-0 right-0 h-36 z-20"  const currentSnippet = snippets[currentSnippetIndex];          <motion.div
-
-              initial={{ opacity: 0, y: 20 }}
-
-              animate={{  const isExiting = phase === 'transitioning' || phase === 'exiting';            key={i}
-
-                opacity: isExiting ? 0 : 0.75,
-
-                y: 0,            className="absolute w-0.5 h-0.5 bg-white/60 rounded-full"
-
-                x: [0, 20, 0],
-
-              }}  return (            style={{
-
-              exit={{ opacity: 0 }}
-
-              transition={{    <div className="fixed inset-0 overflow-hidden bg-black">              left: `${Math.random() * 100}%`,
-
-                opacity: { duration: timings.entrance.skyFadeIn / 1000 },
-
-                x: { duration: 30, repeat: Infinity, ease: 'easeInOut' },      {/* Sky Layer — Deep indigo gradient with slow hue rotate */}              top: `${Math.random() * 60}%`,
-
-              }}
-
-              style={{      <motion.div            }}
-
-                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 100'%3E%3Cpath d='M0,80 L50,80 L50,40 L100,40 L100,80 L200,80 L200,20 L250,20 L250,80 L400,80 L400,50 L450,50 L450,80 L600,80 L600,30 L650,30 L650,80 L800,80 L800,60 L850,60 L850,80 L1000,80 L1000,45 L1050,45 L1050,80 L1200,80 L1200,100 L0,100 Z' fill='rgba(255,255,255,0.08)' filter='url(%23glow2)' /%3E%3Cdefs%3E%3Cfilter id='glow2'%3E%3CfeGaussianBlur stdDeviation='3' /%3E%3C/filter%3E%3C/defs%3E%3C/svg%3E")`,
-
-                backgroundSize: 'cover',        className="absolute inset-0"            animate={{ opacity: [0.3, 0.8, 0.3] }}
-
-                backgroundRepeat: 'no-repeat',
-
-              }}        initial={{ opacity: 0 }}            transition={{ duration: 3 + Math.random() * 2, repeat: Infinity, delay: Math.random() * 3 }}
-
-            />
-
-          </>        animate={{          />
-
-        )}
-
-      </AnimatePresence>          opacity: 1,        ))}
-
-
-
-      {/* Top Header (soft, translucent) */}          background: skyMorph > 0.5      </div>
-
-      <motion.div
-
-        className="absolute top-6 left-0 right-0 flex justify-between items-center px-6 z-30"            ? `linear-gradient(135deg, #ff66a0, #ff8ec0, #ffb7c8)`
-
-        initial={{ opacity: 0 }}
-
-        animate={{ opacity: isExiting ? 0 : 0.7 }}            : `linear-gradient(135deg, #08001d, #150033, #2b0060)`,      {/* Clouds */}
-
-        transition={{ duration: 0.7, delay: 0.3 }}
-
-      >          filter: `hue-rotate(${theme.hueRotate * (1 - skyMorph)}deg)`,      {!prefersReducedMotion && (
-
-        <div className="bg-white/5 backdrop-blur-md rounded-full px-3 py-1 text-sm text-white/80">
-
-          Sign-in #{(dream as any).signin_count || '—'}        }}        <>
-
-        </div>
-
-        <div className="bg-white/5 backdrop-blur-md rounded-full px-3 py-1 text-sm text-white/80">        transition={{          {[0, 1, 2].map((i) => (
-
-          🔊
-
-        </div>          opacity: { duration: timings.entrance.skyFadeIn / 1000 },            <motion.div
-
-      </motion.div>
-
-          background: { duration: timings.transition.gradientMorph / 1000, ease: 'easeInOut' },              key={i}
-
-      {/* Text Cluster (center) */}
-
-      <div className="absolute inset-0 flex flex-col items-center justify-center px-8 md:px-12 z-25">          filter: { duration: timings.transition.gradientMorph / 1000 },              className="absolute h-20 rounded-full bg-white/5 backdrop-blur-sm"
-
-        <motion.div
-
-          className="max-w-4xl text-center space-y-6"        }}              style={{
-
-          animate={{
-
-            opacity: isExiting ? 0 : 1,      />                top: `${15 + i * 12}%`,
-
-            filter: isExiting ? 'blur(6px)' : 'blur(0px)',
-
-          }}                width: `${120 + i * 40}px`,
-
-          transition={{ duration: timings.transition.fadeOut / 1000 }}
-
-        >      {/* Animated stars (twinkle slowly) */}                left: `-${120 + i * 40}px`,
-
-          {/* Line 1 — Display Serif, fade in + pulse */}
-
-          <AnimatePresence>      <AnimatePresence>              }}
-
-            {showLine1 && (
-
-              <motion.h1        {skyMorph < 0.5 && (              animate={{ x: ['0vw', '110vw'] }}
-
-                initial={{ opacity: 0, filter: 'blur(8px)' }}
-
-                animate={{          <motion.div              transition={{ duration: 35 + i * 15, repeat: Infinity, ease: 'linear' }}
-
-                  opacity: 0.9,
-
-                  filter: 'blur(0px)',            className="absolute inset-0 pointer-events-none"            />
-
-                  scale: prefersReducedMotion ? 1 : [1.0, 1.015, 1.0],
-
-                }}            exit={{ opacity: 0 }}          ))}
-
-                transition={{
-
-                  opacity: { duration: timings.lines.l1FadeIn / 1000, ease: 'easeOut' },            transition={{ duration: timings.transition.gradientMorph / 1000 }}        </>
-
-                  filter: { duration: timings.lines.l1FadeIn / 1000 },
-
-                  scale: { duration: timings.lines.pulseDuration / 1000, repeat: Infinity, ease: 'easeInOut' },          >      )}
-
-                }}
-
-                className="text-5xl md:text-7xl font-serif leading-tight tracking-wide text-white/90"            {Array.from({ length: 60 }).map((_, i) => (
-
-                style={{
-
-                  fontFamily: "'Playfair Display', 'Fraunces', serif",              <motion.div      {/* Pig (breathing, idle float) */}
-
-                  textShadow: `
-
-                    0 0 12px rgba(255, 255, 255, 0.15),                key={i}      <motion.div
-
-                    0 0 30px rgba(160, 100, 255, 0.25),
-
-                    0 0 8px rgba(255, 255, 255, 0.1)                className="absolute w-0.5 h-0.5 bg-white rounded-full"        className="absolute left-1/2 top-1/3 -translate-x-1/2 -translate-y-1/2"
-
-                  `,
-
-                }}                style={{        initial={{ opacity: 0, y: 10 }}
-
-              >
-
-                {line1}                  left: `${Math.random() * 100}%`,        animate={{
-
-              </motion.h1>
-
-            )}                  top: `${Math.random() * 65}%`,          opacity: phase === 'exiting' ? 0 : 0.9,
-
-          </AnimatePresence>
-
-                }}          y: prefersReducedMotion ? 0 : [0, -6, 0],
-
-          {/* Line 2 — Sans SemiBold, fade in */}
-
-          <AnimatePresence>                animate={        }}
-
-            {showLine2 && (
-
-              <motion.p                  prefersReducedMotion        transition={{
-
-                initial={{ opacity: 0, filter: 'blur(6px)' }}
-
-                animate={{ opacity: 0.8, filter: 'blur(0px)' }}                    ? { opacity: 0.7 }          opacity: { duration: timings.entrance.sceneEaseIn / 1000 },
-
-                transition={{
-
-                  opacity: { duration: timings.lines.l2FadeIn / 1000, ease: 'easeOut' },                    : { opacity: [0.6, 0.9, 0.6] }          y: { duration: 4, repeat: Infinity, ease: 'easeInOut' },
-
-                  filter: { duration: timings.lines.l2FadeIn / 1000 },
-
-                }}                }        }}
-
-                className="text-xl md:text-2xl font-semibold text-white/80"
-
-                style={{                transition={{      >
-
-                  textShadow: `
-
-                    0 0 10px rgba(255, 255, 255, 0.12),                  duration: 4 + Math.random() * 3,        <PinkPig size={180} className="filter drop-shadow-[0_0_40px_rgba(255,150,200,0.4)]" />
-
-                    0 0 24px rgba(120, 180, 255, 0.20)
-
-                  `,                  repeat: Infinity,      </motion.div>
-
-                }}
-
-              >                  delay: Math.random() * 3,
-
-                {line2}
-
-              </motion.p>                  ease: 'easeInOut',      {/* Comic skyline silhouettes (parallax) */}
-
-            )}
-
-          </AnimatePresence>                }}      {!prefersReducedMotion && (
-
-
-
-          {/* Reflection snippet fade loop (reserved space) */}              />        <>
-
-          <div className="h-16 flex items-center justify-center mt-4">
-
-            <AnimatePresence mode="wait">            ))}          <motion.div
-
-              {phase === 'ambient' && currentSnippet && (
-
-                <motion.div          </motion.div>            className="absolute bottom-0 left-0 right-0 h-32"
-
-                  key={currentSnippet.id}
-
-                  initial={{ opacity: 0, filter: 'blur(6px)' }}        )}            style={{
-
-                  animate={{ opacity: 0.7, filter: 'blur(0px)' }}
-
-                  exit={{ opacity: 0, filter: 'blur(6px)' }}      </AnimatePresence>              backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1200 100\'%3E%3Cpath d=\'M0,80 L50,80 L50,40 L100,40 L100,80 L200,80 L200,20 L250,20 L250,80 L400,80 L400,50 L450,50 L450,80 L600,80 L600,30 L650,30 L650,80 L800,80 L800,60 L850,60 L850,80 L1000,80 L1000,45 L1050,45 L1050,80 L1200,80 L1200,100 L0,100 Z\' fill=\'rgba(255,255,255,0.08)\' /%3E%3C/svg%3E")',
-
-                  transition={{
-
-                    duration: timings.snippet.fadeIn / 1000,              backgroundSize: 'cover',
-
-                    ease: 'easeInOut',
-
-                  }}      {/* Drifting cloud bands */}              backgroundRepeat: 'no-repeat',
-
-                  className="text-lg italic text-white/70 max-w-[50ch] text-center"
-
-                  style={{      <AnimatePresence>            }}
-
-                    textShadow: `
-
-                      0 0 8px rgba(200, 220, 255, 0.18),        {!prefersReducedMotion && skyMorph < 0.5 && (            animate={{ x: [0, -20, 0] }}
-
-                      0 0 16px rgba(180, 150, 255, 0.15)
-
-                    `,          <>            transition={{ duration: 25, repeat: Infinity, ease: 'easeInOut' }}
-
-                  }}
-
-                >            {[0, 1].map((i) => (          />
-
-                  <span className="text-white/50 text-sm not-italic">From earlier: </span>
-
-                  {currentSnippet.text}              <motion.div          <motion.div
-
-                </motion.div>
-
-              )}                key={i}            className="absolute bottom-0 left-0 right-0 h-24 opacity-60"
-
-            </AnimatePresence>
-
-          </div>                className="absolute rounded-full"            style={{
-
-        </motion.div>
-
-      </div>                style={{              backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1200 100\'%3E%3Cpath d=\'M0,90 L100,90 L100,70 L150,70 L150,90 L300,90 L300,60 L350,60 L350,90 L500,90 L500,75 L550,75 L550,90 L700,90 L700,65 L750,65 L750,90 L900,90 L900,80 L950,80 L950,90 L1200,90 L1200,100 L0,100 Z\' fill=\'rgba(255,255,255,0.05)\' /%3E%3C/svg%3E")',
-
-
-
-      {/* Footer Pill (glass effect) */}                  top: `${18 + i * 15}%`,              backgroundSize: 'cover',
-
-      <motion.div
-
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30"                  width: `${180 + i * 60}px`,              backgroundRepeat: 'no-repeat',
-
-        initial={{ opacity: 0, y: 10 }}
-
-        animate={{ opacity: isExiting ? 0 : 1, y: 0 }}                  height: `${25 + i * 8}px`,            }}
-
-        transition={{
-
-          opacity: { duration: 0.5, delay: 0.4 },                  background: skyMorph > 0.3 ? 'rgba(255, 200, 220, 0.08)' : 'rgba(255, 255, 255, 0.05)',            animate={{ x: [0, 15, 0] }}
-
-          y: { duration: 0.5, delay: 0.4 },
-
-        }}                  filter: `blur(${80 + i * 20}px)`,            transition={{ duration: 35, repeat: Infinity, ease: 'easeInOut' }}
-
+        className="absolute inset-0"
+        animate={{ opacity: rgbIntensity }}
+        transition={{ duration: timings.entrance.sceneEaseIn / 1000 }}
       >
-
-        <div                  left: `-${180 + i * 60}px`,          />
-
-          className="backdrop-blur-md border rounded-full px-5 py-2 text-sm tracking-wide uppercase"
-
-          style={{                }}        </>
-
-            background: `rgba(255, 255, 255, 0.08)`,
-
-            borderColor: `rgba(${theme.rgbShift.r * 255}, ${theme.rgbShift.g * 255}, ${theme.rgbShift.b * 255}, 0.2)`,                animate={{      )}
-
-            color: 'rgba(255, 255, 255, 0.85)',
-
-            boxShadow: `0 0 20px rgba(${theme.rgbShift.r * 255}, ${theme.rgbShift.g * 255}, ${theme.rgbShift.b * 255}, 0.15)`,                  x: ['0vw', '110vw'],
-
-          }}
-
-        >                  background: skyMorph > 0.3 ? 'rgba(255, 200, 220, 0.12)' : 'rgba(255, 255, 255, 0.05)',      {/* Lines + Snippet */}
-
-          {phase === 'waking' || isExiting ? `${pigName} is waking up…` : `${pigName}'s dreamscape`}
-
-        </div>                }}      <div className="absolute inset-0 flex flex-col items-center justify-center px-6 md:px-12 z-10">
-
+        <div className="absolute mix-blend-screen" style={{
+          left: '25%', top: '65%', width: '60vmax', height: '60vmax',
+          background: `radial-gradient(circle, rgba(255, 70, 90, ${0.35 + theme.blueBoost * 0.3}) 0%, transparent 70%)`,
+          filter: 'blur(100px)', transform: 'translate(-50%, -50%)',
+        }} />
+        <div className="absolute mix-blend-screen" style={{
+          right: '20%', top: '30%', width: '50vmax', height: '50vmax',
+          background: `radial-gradient(circle, rgba(60, 255, 170, ${0.30 - theme.blueBoost * 0.2}) 0%, transparent 70%)`,
+          filter: 'blur(100px)', transform: 'translate(50%, -50%)',
+        }} />
+        <div className="absolute mix-blend-screen" style={{
+          left: '50%', bottom: '0', width: '70vmax', height: '70vmax',
+          background: `radial-gradient(circle, rgba(90, 150, 255, ${0.32 + theme.blueBoost}) 0%, transparent 70%)`,
+          filter: 'blur(120px)', transform: 'translate(-50%, 50%)',
+        }} />
       </motion.div>
 
-                exit={{ opacity: 0 }}        <motion.div
-
-      {/* Exposure Flash (filmic transition) */}
-
-      <AnimatePresence>                transition={{          className="max-w-4xl text-center space-y-5"
-
-        {showExposureFlash && (
-
-          <motion.div                  x: { duration: 45 + i * 20, repeat: Infinity, ease: 'linear' },          animate={phase === 'waking' || phase === 'exiting' ? { opacity: 0, filter: 'saturate(140%) blur(1.2px)' } : {}}
-
-            initial={{ opacity: 0 }}
-
-            animate={{ opacity: [0, 0.3, 0] }}                  background: { duration: timings.transition.gradientMorph / 1000 },          transition={{ duration: timings.exit.dissolve / 1000 }}
-
-            transition={{ duration: timings.transition.exposureFlash / 1000, ease: 'easeInOut' }}
-
-            className="absolute inset-0 bg-white pointer-events-none z-40"                  opacity: { duration: timings.transition.fadeOut / 1000 },        >
-
+      {/* Stars */}
+      <div className="absolute inset-0 pointer-events-none">
+        {Array.from({ length: 50 }).map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-0.5 h-0.5 bg-white/60 rounded-full"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 60}%`,
+            }}
+            animate={{ opacity: [0.3, 0.8, 0.3] }}
+            transition={{ duration: 3 + Math.random() * 2, repeat: Infinity, delay: Math.random() * 3 }}
           />
-
-        )}                }}          {/* L1 */}
-
-      </AnimatePresence>
-
-              />          <motion.h1
-
-      {/* Accessibility — Screen reader */}
-
-      <div className="sr-only" role="status" aria-live="polite">            ))}            className="text-4xl md:text-6xl lg:text-7xl font-serif leading-tight tracking-wide text-white/95"
-
-        {showLine1 ? line1 : ''} {showLine2 ? line2 : ''}
-
-      </div>          </>            style={{
-
-      <a
-
-        href="#skip"        )}              textShadow: `
-
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:bg-white focus:text-black focus:px-4 focus:py-2 focus:rounded focus:z-50"
-
-        onClick={(e) => {      </AnimatePresence>                0 0 20px rgba(255, 255, 255, 0.3),
-
-          e.preventDefault();
-
-          onComplete ? onComplete() : router.push('/reflect/' + (window.location.pathname.split('/').pop() || ''));                2px 2px 6px rgba(255, 255, 255, 0.2),
-
-        }}
-
-      >      {/* RGB Backglow Layers (soft, pulsing) */}                -1px -1px 4px rgba(255, 100, 100, 0.08),
-
-        Skip dream and start writing
-
-      </a>      <motion.div                1px -1px 4px rgba(100, 255, 100, 0.08),
-
-    </div>
-
-  );        className="absolute inset-0 pointer-events-none"                -1px 1px 4px rgba(100, 100, 255, 0.08)
-
-}
-
-        animate={{              `,
-
-          opacity: isExiting ? 0 : rgbPulse * 0.85,            }}
-
-          scale: prefersReducedMotion ? 1 : 1.0 + (1.0 - rgbPulse) * 0.02,            animate={!prefersReducedMotion && line1Text === line1 ? { scale: [1, 1.015, 1] } : {}}
-
-        }}            transition={{ duration: timings.lines.bloomDuration / 1000 }}
-
-        transition={{          >
-
-          opacity: { duration: isExiting ? timings.transition.fadeOut / 1000 : timings.lines.pulseDuration / 2000, ease: 'easeInOut' },            {line1Text}
-
-          scale: { duration: timings.lines.pulseDuration / 2000, ease: 'easeInOut' },          </motion.h1>
-
-        }}
-
-      >          {/* L2 */}
-
-        {/* R glow */}          <AnimatePresence>
-
-        <div            {showLine2 && (
-
-          className="absolute mix-blend-screen"              <motion.p
-
-          style={{                initial={{ opacity: 0, y: 2 }}
-
-            left: '25%',                animate={{ opacity: 0.85, y: 0 }}
-
-            top: '65%',                className="text-xl md:text-2xl text-white/85"
-
-            width: '55vmax',                style={{ textShadow: '0 0 15px rgba(255, 255, 255, 0.25)' }}
-
-            height: '55vmax',              >
-
-            background: `radial-gradient(circle, rgba(255, 80, 100, ${theme.rgbShift.r}) 0%, transparent 65%)`,                {line2}
-
-            filter: 'blur(90px)',              </motion.p>
-
-            transform: 'translate(-50%, -50%)',            )}
-
-          }}          </AnimatePresence>
-
-        />
-
-        {/* G glow */}          {/* Snippet carousel */}
-
-        <div          {phase === 'ambient' && currentSnippet && (
-
-          className="absolute mix-blend-screen"            <div className="mt-6 h-12 flex items-center justify-center">
-
-          style={{              <AnimatePresence mode="wait">
-
-            right: '30%',                <motion.div
-
-            top: '35%',                  key={currentSnippet.id}
-
-            width: '48vmax',                  initial={{ opacity: 0 }}
-
-            height: '48vmax',                  animate={{ opacity: 0.7 }}
-
-            background: `radial-gradient(circle, rgba(70, 255, 180, ${theme.rgbShift.g}) 0%, transparent 65%)`,                  exit={{ opacity: 0 }}
-
-            filter: 'blur(85px)',                  transition={{
-
-            transform: 'translate(50%, -50%)',                    opacity: { duration: timings.snippet.fadeIn / 1000 },
-
-          }}                  }}
-
-        />                  className="text-base md:text-lg text-white/80 italic max-w-[45ch] text-center"
-
-        {/* B glow */}                  style={{
-
-        <div                    textShadow: `
-
-          className="absolute mix-blend-screen"                      0 0 10px rgba(255, 200, 255, 0.2),
-
-          style={{                      0 0 18px rgba(150, 150, 255, 0.18)
-
-            left: '50%',                    `,
-
-            top: '80%',                  }}
-
-            width: '65vmax',                >
-
-            height: '65vmax',                  <span className="text-white/50 text-sm not-italic">From earlier: </span>
-
-            background: `radial-gradient(circle, rgba(100, 160, 255, ${theme.rgbShift.b}) 0%, transparent 65%)`,                  {currentSnippet.text}
-
-            filter: 'blur(95px)',                </motion.div>
-
-            transform: 'translate(-50%, -50%)',              </AnimatePresence>
-
-          }}            </div>
-
-        />          )}
-
-      </motion.div>        </motion.div>
-
+        ))}
       </div>
 
-      {/* Mid Layer — Pig Dreaming */}
-
-      <motion.div      {/* Footer pill */}
-
-        className="absolute left-1/2 top-[38%] -translate-x-1/2 -translate-y-1/2 z-10"      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
-
-        initial={{ opacity: 0, y: 20 }}        <motion.div
-
-        animate={{          initial={{ opacity: 0, y: 8 }}
-
-          opacity: isExiting ? 0 : 0.8,          animate={{ opacity: 1, y: 0 }}
-
-          y: prefersReducedMotion ? 0 : [0, -6, 0],          transition={{ delay: 0.4, duration: 0.5 }}
-
-          scale: prefersReducedMotion ? 1 : [1.0, 1.03, 1.0],          className="backdrop-blur-md bg-white/10 border border-white/15 rounded-full px-4 py-1.5 text-sm text-white/90 tracking-wide"
-
-        }}        >
-
-        transition={{          {phase === 'waking' || phase === 'exiting' ? `${pigName} is waking up…` : `${pigName}'s dreamscape`}
-
-          opacity: {        </motion.div>
-
-            duration: timings.entrance.pigFadeIn / 1000,      </div>
-
-            delay: timings.entrance.pigDelay / 1000,
-
-          },      {/* Entrance fade */}
-
-          y: { duration: 6, repeat: Infinity, ease: 'easeInOut' },      <AnimatePresence>
-
-          scale: { duration: 6, repeat: Infinity, ease: 'easeInOut' },        {phase === 'entering' && (
-
-        }}          <motion.div
-
-        style={{ mixBlendMode: 'screen' }}            initial={{ opacity: 0.6 }}
-
-      >            animate={{ opacity: 0 }}
-
-        <PinkPig size={200} className="filter drop-shadow-[0_0_50px_rgba(255,180,220,0.5)]" />            transition={{ duration: timings.entrance.fadeIn / 1000 }}
-
-            className="absolute inset-0 bg-black pointer-events-none z-20"
-
-        {/* Sparkle dust particles */}          />
-
-        {!prefersReducedMotion && (        )}
-
-          <>      </AnimatePresence>
-
-            {[0, 1, 2].map((i) => (
-
-              <motion.div      {/* Exit iris */}
-
-                key={i}      <AnimatePresence>
-
-                className="absolute w-1 h-1 bg-white/70 rounded-full"        {phase === 'exiting' && (
-
-                style={{          <motion.div
-
-                  left: `${30 + i * 25}%`,            initial={{ clipPath: 'circle(100% at 50% 50%)' }}
-
-                  top: `${40 + i * 10}%`,            animate={{ clipPath: 'circle(0% at 50% 50%)' }}
-
-                }}            transition={{ duration: timings.exit.irisIn / 1000, ease: 'easeIn' }}
-
-                animate={{            className="absolute inset-0 bg-white pointer-events-none z-50"
-
-                  opacity: [0.3, 0.8, 0.3],          />
-
-                  y: [-10, -30, -50],        )}
-
-                  x: [0, (i - 1) * 10, (i - 1) * 15],      </AnimatePresence>
-
-                }}
-
-                transition={{      {/* Screen reader */}
-
-                  duration: 4 + i * 0.5,      <div className="sr-only" role="status" aria-live="polite">
-
-                  repeat: Infinity,        {line1Text} {showLine2 ? line2 : ''}
-
-                  delay: i * 1.2,      </div>
-
-                  ease: 'easeOut',      <a
-
-                }}        href="#skip"
-
-              />        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:bg-white focus:text-black focus:px-4 focus:py-2 focus:rounded focus:z-50"
-
-            ))}        onClick={(e) => {
-
-          </>          e.preventDefault();
-
-        )}          onComplete ? onComplete() : router.push('/reflect/' + (window.location.pathname.split('/').pop() || ''));
-
-      </motion.div>        }}
-
-      >
-
-      {/* Comic Skyline Silhouettes (parallax) */}        Skip dream and start writing
-
-      <AnimatePresence>      </a>
-
-        {!prefersReducedMotion && (    </div>
-
-          <>  );
-
-            {/* Back layer */}}
-
+      {/* Clouds */}
+      {!prefersReducedMotion && (
+        <>
+          {[0, 1, 2].map((i) => (
             <motion.div
-              className="absolute bottom-0 left-0 right-0 h-28 opacity-60 z-20"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{
-                opacity: isExiting ? 0 : 0.6,
-                y: 0,
-                x: [0, -15, 0],
-              }}
-              exit={{ opacity: 0 }}
-              transition={{
-                opacity: { duration: timings.entrance.skyFadeIn / 1000 },
-                x: { duration: 40, repeat: Infinity, ease: 'easeInOut' },
-              }}
+              key={i}
+              className="absolute h-20 rounded-full bg-white/5 backdrop-blur-sm"
               style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 100'%3E%3Cpath d='M0,90 L100,90 L100,70 L150,70 L150,90 L300,90 L300,60 L350,60 L350,90 L500,90 L500,75 L550,75 L550,90 L700,90 L700,65 L750,65 L750,90 L900,90 L900,80 L950,80 L950,90 L1200,90 L1200,100 L0,100 Z' fill='rgba(255,255,255,0.06)' filter='url(%23glow)' /%3E%3Cdefs%3E%3Cfilter id='glow'%3E%3CfeGaussianBlur stdDeviation='2' /%3E%3C/filter%3E%3C/defs%3E%3C/svg%3E")`,
-                backgroundSize: 'cover',
-                backgroundRepeat: 'no-repeat',
+                top: `${15 + i * 12}%`,
+                width: `${120 + i * 40}px`,
+                left: `-${120 + i * 40}px`,
               }}
+              animate={{ x: ['0vw', '110vw'] }}
+              transition={{ duration: 35 + i * 15, repeat: Infinity, ease: 'linear' }}
             />
+          ))}
+        </>
+      )}
 
-            {/* Front layer */}
-            <motion.div
-              className="absolute bottom-0 left-0 right-0 h-36 z-20"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{
-                opacity: isExiting ? 0 : 0.75,
-                y: 0,
-                x: [0, 20, 0],
-              }}
-              exit={{ opacity: 0 }}
-              transition={{
-                opacity: { duration: timings.entrance.skyFadeIn / 1000 },
-                x: { duration: 30, repeat: Infinity, ease: 'easeInOut' },
-              }}
-              style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 100'%3E%3Cpath d='M0,80 L50,80 L50,40 L100,40 L100,80 L200,80 L200,20 L250,20 L250,80 L400,80 L400,50 L450,50 L450,80 L600,80 L600,30 L650,30 L650,80 L800,80 L800,60 L850,60 L850,80 L1000,80 L1000,45 L1050,45 L1050,80 L1200,80 L1200,100 L0,100 Z' fill='rgba(255,255,255,0.08)' filter='url(%23glow2)' /%3E%3Cdefs%3E%3Cfilter id='glow2'%3E%3CfeGaussianBlur stdDeviation='3' /%3E%3C/filter%3E%3C/defs%3E%3C/svg%3E")`,
-                backgroundSize: 'cover',
-                backgroundRepeat: 'no-repeat',
-              }}
-            />
-          </>
-        )}
-      </AnimatePresence>
-
-      {/* Top Header (soft, translucent) */}
+      {/* Pig (breathing, idle float) */}
       <motion.div
-        className="absolute top-6 left-0 right-0 flex justify-between items-center px-6 z-30"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isExiting ? 0 : 0.7 }}
-        transition={{ duration: 0.7, delay: 0.3 }}
+        className="absolute left-1/2 top-1/3 -translate-x-1/2 -translate-y-1/2"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{
+          opacity: phase === 'exiting' ? 0 : 0.9,
+          y: prefersReducedMotion ? 0 : [0, -6, 0],
+        }}
+        transition={{
+          opacity: { duration: timings.entrance.sceneEaseIn / 1000 },
+          y: { duration: 4, repeat: Infinity, ease: 'easeInOut' },
+        }}
       >
-        <div className="bg-white/5 backdrop-blur-md rounded-full px-3 py-1 text-sm text-white/80">
-          Sign-in #{(dream as any).signin_count || '—'}
-        </div>
-        <div className="bg-white/5 backdrop-blur-md rounded-full px-3 py-1 text-sm text-white/80">
-          🔊
-        </div>
+        <PinkPig size={180} className="filter drop-shadow-[0_0_40px_rgba(255,150,200,0.4)]" />
       </motion.div>
 
-      {/* Text Cluster (center) */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center px-8 md:px-12 z-25">
-        <motion.div
-          className="max-w-4xl text-center space-y-6"
-          animate={{
-            opacity: isExiting ? 0 : 1,
-            filter: isExiting ? 'blur(6px)' : 'blur(0px)',
-          }}
-          transition={{ duration: timings.transition.fadeOut / 1000 }}
-        >
-          {/* Line 1 — Display Serif, fade in + pulse */}
-          <AnimatePresence>
-            {showLine1 && (
-              <motion.h1
-                initial={{ opacity: 0, filter: 'blur(8px)' }}
-                animate={{
-                  opacity: 0.9,
-                  filter: 'blur(0px)',
-                  scale: prefersReducedMotion ? 1 : [1.0, 1.015, 1.0],
-                }}
-                transition={{
-                  opacity: { duration: timings.lines.l1FadeIn / 1000, ease: 'easeOut' },
-                  filter: { duration: timings.lines.l1FadeIn / 1000 },
-                  scale: { duration: timings.lines.pulseDuration / 1000, repeat: Infinity, ease: 'easeInOut' },
-                }}
-                className="text-5xl md:text-7xl font-serif leading-tight tracking-wide text-white/90"
-                style={{
-                  fontFamily: "'Playfair Display', 'Fraunces', serif",
-                  textShadow: `
-                    0 0 12px rgba(255, 255, 255, 0.15),
-                    0 0 30px rgba(160, 100, 255, 0.25),
-                    0 0 8px rgba(255, 255, 255, 0.1)
-                  `,
-                }}
-              >
-                {line1}
-              </motion.h1>
-            )}
-          </AnimatePresence>
+      {/* Comic skyline silhouettes (parallax) */}
+      {!prefersReducedMotion && (
+        <>
+          <motion.div
+            className="absolute bottom-0 left-0 right-0 h-32"
+            style={{
+              backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1200 100\'%3E%3Cpath d=\'M0,80 L50,80 L50,40 L100,40 L100,80 L200,80 L200,20 L250,20 L250,80 L400,80 L400,50 L450,50 L450,80 L600,80 L600,30 L650,30 L650,80 L800,80 L800,60 L850,60 L850,80 L1000,80 L1000,45 L1050,45 L1050,80 L1200,80 L1200,100 L0,100 Z\' fill=\'rgba(255,255,255,0.08)\' /%3E%3C/svg%3E")',
+              backgroundSize: 'cover',
+              backgroundRepeat: 'no-repeat',
+            }}
+            animate={{ x: [0, -20, 0] }}
+            transition={{ duration: 25, repeat: Infinity, ease: 'easeInOut' }}
+          />
+          <motion.div
+            className="absolute bottom-0 left-0 right-0 h-24 opacity-60"
+            style={{
+              backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1200 100\'%3E%3Cpath d=\'M0,90 L100,90 L100,70 L150,70 L150,90 L300,90 L300,60 L350,60 L350,90 L500,90 L500,75 L550,75 L550,90 L700,90 L700,65 L750,65 L750,90 L900,90 L900,80 L950,80 L950,90 L1200,90 L1200,100 L0,100 Z\' fill=\'rgba(255,255,255,0.05)\' /%3E%3C/svg%3E")',
+              backgroundSize: 'cover',
+              backgroundRepeat: 'no-repeat',
+            }}
+            animate={{ x: [0, 15, 0] }}
+            transition={{ duration: 35, repeat: Infinity, ease: 'easeInOut' }}
+          />
+        </>
+      )}
 
-          {/* Line 2 — Sans SemiBold, fade in */}
+      {/* Lines + Snippet */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center px-6 md:px-12 z-10">
+        <motion.div
+          className="max-w-4xl text-center space-y-5"
+          animate={phase === 'waking' || phase === 'exiting' ? { opacity: 0, filter: 'saturate(140%) blur(1.2px)' } : {}}
+          transition={{ duration: timings.exit.dissolve / 1000 }}
+        >
+          {/* L1 */}
+          <motion.h1
+            className="text-4xl md:text-6xl lg:text-7xl font-serif leading-tight tracking-wide text-white/95"
+            style={{
+              textShadow: `
+                0 0 20px rgba(255, 255, 255, 0.3),
+                2px 2px 6px rgba(255, 255, 255, 0.2),
+                -1px -1px 4px rgba(255, 100, 100, 0.08),
+                1px -1px 4px rgba(100, 255, 100, 0.08),
+                -1px 1px 4px rgba(100, 100, 255, 0.08)
+              `,
+            }}
+            animate={!prefersReducedMotion && line1Text === line1 ? { scale: [1, 1.015, 1] } : {}}
+            transition={{ duration: timings.lines.bloomDuration / 1000 }}
+          >
+            {line1Text}
+          </motion.h1>
+
+          {/* L2 */}
           <AnimatePresence>
             {showLine2 && (
               <motion.p
-                initial={{ opacity: 0, filter: 'blur(6px)' }}
-                animate={{ opacity: 0.8, filter: 'blur(0px)' }}
-                transition={{
-                  opacity: { duration: timings.lines.l2FadeIn / 1000, ease: 'easeOut' },
-                  filter: { duration: timings.lines.l2FadeIn / 1000 },
-                }}
-                className="text-xl md:text-2xl font-semibold text-white/80"
-                style={{
-                  textShadow: `
-                    0 0 10px rgba(255, 255, 255, 0.12),
-                    0 0 24px rgba(120, 180, 255, 0.20)
-                  `,
-                }}
+                initial={{ opacity: 0, y: 2 }}
+                animate={{ opacity: 0.85, y: 0 }}
+                className="text-xl md:text-2xl text-white/85"
+                style={{ textShadow: '0 0 15px rgba(255, 255, 255, 0.25)' }}
               >
                 {line2}
               </motion.p>
             )}
           </AnimatePresence>
 
-          {/* Reflection snippet fade loop (reserved space) */}
-          <div className="h-16 flex items-center justify-center mt-4">
-            <AnimatePresence mode="wait">
-              {phase === 'ambient' && currentSnippet && (
+          {/* Snippet carousel */}
+          {phase === 'ambient' && currentSnippet && (
+            <div className="mt-6 h-12 flex items-center justify-center">
+              <AnimatePresence mode="wait">
                 <motion.div
                   key={currentSnippet.id}
-                  initial={{ opacity: 0, filter: 'blur(6px)' }}
-                  animate={{ opacity: 0.7, filter: 'blur(0px)' }}
-                  exit={{ opacity: 0, filter: 'blur(6px)' }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 0.7 }}
+                  exit={{ opacity: 0 }}
                   transition={{
-                    duration: timings.snippet.fadeIn / 1000,
-                    ease: 'easeInOut',
+                    opacity: { duration: timings.snippet.fadeIn / 1000 },
                   }}
-                  className="text-lg italic text-white/70 max-w-[50ch] text-center"
+                  className="text-base md:text-lg text-white/80 italic max-w-[45ch] text-center"
                   style={{
                     textShadow: `
-                      0 0 8px rgba(200, 220, 255, 0.18),
-                      0 0 16px rgba(180, 150, 255, 0.15)
+                      0 0 10px rgba(255, 200, 255, 0.2),
+                      0 0 18px rgba(150, 150, 255, 0.18)
                     `,
                   }}
                 >
                   <span className="text-white/50 text-sm not-italic">From earlier: </span>
                   {currentSnippet.text}
                 </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+              </AnimatePresence>
+            </div>
+          )}
         </motion.div>
       </div>
 
-      {/* Footer Pill (glass effect) */}
-      <motion.div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: isExiting ? 0 : 1, y: 0 }}
-        transition={{
-          opacity: { duration: 0.5, delay: 0.4 },
-          y: { duration: 0.5, delay: 0.4 },
-        }}
-      >
-        <div
-          className="backdrop-blur-md border rounded-full px-5 py-2 text-sm tracking-wide uppercase"
-          style={{
-            background: `rgba(255, 255, 255, 0.08)`,
-            borderColor: `rgba(${theme.rgbShift.r * 255}, ${theme.rgbShift.g * 255}, ${theme.rgbShift.b * 255}, 0.2)`,
-            color: 'rgba(255, 255, 255, 0.85)',
-            boxShadow: `0 0 20px rgba(${theme.rgbShift.r * 255}, ${theme.rgbShift.g * 255}, ${theme.rgbShift.b * 255}, 0.15)`,
-          }}
+      {/* Footer pill */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+          className="backdrop-blur-md bg-white/10 border border-white/15 rounded-full px-4 py-1.5 text-sm text-white/90 tracking-wide"
         >
-          {phase === 'waking' || isExiting ? `${pigName} is waking up…` : `${pigName}'s dreamscape`}
-        </div>
-      </motion.div>
+          {phase === 'waking' || phase === 'exiting' ? `${pigName} is waking up...` : `${pigName}'s dreamscape`}
+        </motion.div>
+      </div>
 
-      {/* Exposure Flash (filmic transition) */}
+      {/* Entrance fade */}
       <AnimatePresence>
-        {showExposureFlash && (
+        {phase === 'entering' && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: [0, 0.3, 0] }}
-            transition={{ duration: timings.transition.exposureFlash / 1000, ease: 'easeInOut' }}
-            className="absolute inset-0 bg-white pointer-events-none z-40"
+            initial={{ opacity: 0.6 }}
+            animate={{ opacity: 0 }}
+            transition={{ duration: timings.entrance.fadeIn / 1000 }}
+            className="absolute inset-0 bg-black pointer-events-none z-20"
           />
         )}
       </AnimatePresence>
 
-      {/* Accessibility — Screen reader */}
+      {/* Exit iris */}
+      <AnimatePresence>
+        {phase === 'exiting' && (
+          <motion.div
+            initial={{ clipPath: 'circle(100% at 50% 50%)' }}
+            animate={{ clipPath: 'circle(0% at 50% 50%)' }}
+            transition={{ duration: timings.exit.irisIn / 1000, ease: 'easeIn' }}
+            className="absolute inset-0 bg-white pointer-events-none z-50"
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Screen reader */}
       <div className="sr-only" role="status" aria-live="polite">
-        {showLine1 ? line1 : ''} {showLine2 ? line2 : ''}
+        {line1Text} {showLine2 ? line2 : ''}
       </div>
       <a
         href="#skip"
