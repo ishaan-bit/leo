@@ -49,12 +49,11 @@ def generate_narrative_from_image(image_base64, custom_prompt=None):
     Returns:
         Narrative text description
     """
-    # Default prompt for poetic, story-like descriptions
+    # Default prompt for poetic, story-like descriptions (concise)
     if not custom_prompt:
-        custom_prompt = """Describe this image as if you're telling a personal story or reflecting on a moment. 
-Write in first person, capturing the emotions, atmosphere, and meaning of what you see. 
-Be poetic but genuine, like someone writing in their journal. 
-Keep it 2-3 sentences, natural and heartfelt."""
+        custom_prompt = """Describe this image in first person as a brief journal entry. 
+Write 2-3 short sentences maximum. Be poetic but concise. 
+Capture the emotion and atmosphere, not detailed descriptions."""
     
     payload = {
         'model': VISION_MODEL,

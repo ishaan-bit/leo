@@ -29,7 +29,7 @@ interface Scene_ReflectProps {
 }
 
 type SessionVariant = 'first' | 'returning' | 'longGap';
-type InputMode = 'notebook' | 'voice' | 'photo';
+type InputMode = 'notebook' | 'voice';
 
 export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   const { data: session, status } = useSession();
@@ -477,11 +477,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
 
   // Switch input mode
   const toggleInputMode = () => {
-    setInputMode(prev => {
-      if (prev === 'notebook') return 'voice';
-      if (prev === 'voice') return 'photo';
-      return 'notebook';
-    });
+    setInputMode(prev => prev === 'notebook' ? 'voice' : 'notebook');
   };
 
   // Handle interlude completion → transition to breathing
@@ -851,42 +847,50 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
               className="w-full max-w-2xl"
             >
               {inputMode === 'notebook' ? (
-                <NotebookInput
-                  onTextChange={handleTextChange}
-                  onSubmit={handleTextSubmit}
-                  disabled={isSubmitting}
-                  placeholder={`Dear ${pigName}...`}
-                />
-              ) : inputMode === 'voice' ? (
-                <VoiceOrb
-                  onTranscript={handleVoiceSubmit}
-                  disabled={isSubmitting}
-                />
-              ) : (
-                <div className="flex flex-col items-center gap-4">
-                  <p className="text-sm text-gray-600 font-serif italic text-center">
-                    Capture or upload a photo to create your moment
-                  </p>
-                  <CameraUpload
-                    onPhotoSelected={handlePhotoSubmit}
-                    isDisabled={isSubmitting}
+                <>
+                  <NotebookInput
+                    onTextChange={handleTextChange}
+                    onSubmit={handleTextSubmit}
+                    disabled={isSubmitting}
+                    placeholder={`Dear ${pigName}...`}
                   />
-                </div>
+                  
+                  {/* Mode toggles - voice and photo */}
+                  <div className="flex flex-col items-center mt-4 gap-2">
+                    <button
+                      onClick={toggleInputMode}
+                      className="text-sm text-pink-600 hover:text-pink-800 italic underline"
+                    >
+                      Or speak instead
+                    </button>
+                    
+                    <div className="text-sm text-gray-400 italic">or</div>
+                    
+                    <CameraUpload
+                      onPhotoSelected={handlePhotoSubmit}
+                      isDisabled={isSubmitting}
+                      className="scale-75"
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <VoiceOrb
+                    onTranscript={handleVoiceSubmit}
+                    disabled={isSubmitting}
+                  />
+                  
+                  {/* Back to notebook */}
+                  <div className="flex justify-center mt-4">
+                    <button
+                      onClick={toggleInputMode}
+                      className="text-sm text-pink-600 hover:text-pink-800 italic underline"
+                    >
+                      Or write instead
+                    </button>
+                  </div>
+                </>
               )}
-              
-              {/* Mode toggle */}
-              <div className="flex justify-center mt-4 gap-3">
-                <button
-                  onClick={toggleInputMode}
-                  className="text-sm text-pink-600 hover:text-pink-800 italic underline"
-                >
-                  {inputMode === 'notebook' 
-                    ? 'Or speak instead' 
-                    : inputMode === 'voice' 
-                    ? 'Or take a photo' 
-                    : 'Or write instead'}
-                </button>
-              </div>
             </motion.div>
           )}
         </AnimatePresence>

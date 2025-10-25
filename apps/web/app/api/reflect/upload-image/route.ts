@@ -133,8 +133,8 @@ export async function POST(request: NextRequest) {
     console.log('📸 [6/7] Saving reflection to KV:', rid);
     
     // Save to KV
-    const reflectionKey = `reflection:${rid}`;
-    await kv.set(reflectionKey, JSON.stringify(reflection), {
+    const reflectionKey = `refl:${rid}`;
+    await kv.set(reflectionKey, reflection, {
       ex: 30 * 24 * 60 * 60, // 30 days TTL
     });
     
@@ -145,19 +145,8 @@ export async function POST(request: NextRequest) {
       member: rid,
     });
     
-    console.log('📸 [7/7] Triggering enrichment worker');
-    
-    // Trigger enrichment worker (fire-and-forget)
-    const enrichmentUrl = process.env.BEHAVIORAL_API_URL;
-    if (enrichmentUrl) {
-      fetch(enrichmentUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rid }),
-      }).catch(err => console.error('⚠️  Enrichment trigger failed:', err));
-    } else {
-      console.warn('⚠️  BEHAVIORAL_API_URL not set - enrichment will not run');
-    }
+    // Add to normalized queue for enrichment worker
+    await kv.rpush('reflections:normalized', rid);
     
     console.log('✅ Image reflection created successfully');
     
