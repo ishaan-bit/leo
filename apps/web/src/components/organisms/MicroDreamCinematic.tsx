@@ -8,14 +8,14 @@ import PinkPig from '../molecules/PinkPig';
 import SoundToggle from '../atoms/SoundToggle';
 import AuthStateIndicator from '../atoms/AuthStateIndicator';
 
-// Dreamscape timing - extended for immersive RPG-style experience
+// Dreamscape timing - slowed down for gentle, contemplative experience
 const timings = {
-  entrance: { fadeIn: 1200, sceneEaseIn: 1800, pigDelay: 800 },
-  lines: { l1FadeIn: 1400, l1Delay: 2200, l2FadeIn: 1000, l2Delay: 4000, pulseDuration: 3000 },
-  snippet: { fadeIn: 600, hold: 2200, fadeOut: 600, overlap: 200 },
-  ambient: { start: 5000, end: 14000 },
-  waking: { start: 14000, duration: 2500, textDelay: 800 },
-  exit: { morphToPink: 2000, dissolve: 1200, finalFade: 800 },
+  entrance: { fadeIn: 1500, sceneEaseIn: 2200, pigDelay: 1000 },
+  lines: { l1FadeIn: 1800, l1Delay: 2800, l2FadeIn: 1300, l2Delay: 5000, pulseDuration: 4000 },
+  snippet: { fadeIn: 800, hold: 2800, fadeOut: 800, overlap: 300 },
+  ambient: { start: 6000, end: 17000 },
+  waking: { start: 17000, duration: 3000, textDelay: 1000 },
+  exit: { morphToPink: 2500, dissolve: 1500, finalFade: 1000 },
 };
 
 type PrimaryEmotion = 'sad' | 'joyful' | 'powerful' | 'mad' | 'peaceful' | 'scared';
@@ -325,33 +325,34 @@ export default function MicroDreamCinematic({ dream, pigName = 'Your Pig', onCom
       <SoundToggle />
 
       {/* Pig (floating, centered - will transition to moment page position) */}
-      <motion.div
-        className="absolute left-1/2 -translate-x-1/2 z-20"
-        style={{ top: '25%' }}
-        initial={{ opacity: 0, scale: 0.85, y: 20 }}
-        animate={{
-          opacity: phase === 'exiting' ? 0 : 0.92,
-          scale: phase === 'exiting' 
-            ? 0.7 
-            : (prefersReducedMotion ? 1 : [0.95, 1.05, 0.95]),
-          y: phase === 'exiting'
-            ? 60
-            : (prefersReducedMotion ? 0 : [0, -8, 0]),
-        }}
-        transition={{
-          opacity: phase === 'exiting' 
-            ? { duration: timings.exit.finalFade / 1000, ease: 'easeInOut' }
-            : { duration: timings.entrance.sceneEaseIn / 1000, delay: timings.entrance.pigDelay / 1000 },
-          scale: phase === 'exiting'
-            ? { duration: timings.exit.finalFade / 1000, ease: 'easeInOut' }
-            : { duration: 5, repeat: Infinity, ease: 'easeInOut' },
-          y: phase === 'exiting'
-            ? { duration: timings.exit.finalFade / 1000, ease: 'easeOut' }
-            : { duration: 4.5, repeat: Infinity, ease: 'easeInOut' },
-        }}
-      >
-        <PinkPig size={160} className="filter drop-shadow-[0_0_35px_rgba(255,100,180,0.45)]" />
-      </motion.div>
+      <div className="absolute inset-x-0 z-20 flex justify-center" style={{ top: '25%' }}>
+        <motion.div
+          className="relative"
+          initial={{ opacity: 0, scale: 0.85, y: 20 }}
+          animate={{
+            opacity: phase === 'exiting' ? 0 : 0.92,
+            scale: phase === 'exiting' 
+              ? 0.7 
+              : (prefersReducedMotion ? 1 : [0.95, 1.05, 0.95]),
+            y: phase === 'exiting'
+              ? 60
+              : (prefersReducedMotion ? 0 : [0, -8, 0]),
+          }}
+          transition={{
+            opacity: phase === 'exiting' 
+              ? { duration: timings.exit.finalFade / 1000, ease: 'easeInOut' }
+              : { duration: timings.entrance.sceneEaseIn / 1000, delay: timings.entrance.pigDelay / 1000 },
+            scale: phase === 'exiting'
+              ? { duration: timings.exit.finalFade / 1000, ease: 'easeInOut' }
+              : { duration: 5, repeat: Infinity, ease: 'easeInOut' },
+            y: phase === 'exiting'
+              ? { duration: timings.exit.finalFade / 1000, ease: 'easeOut' }
+              : { duration: 4.5, repeat: Infinity, ease: 'easeInOut' },
+          }}
+        >
+          <PinkPig size={160} className="filter drop-shadow-[0_0_35px_rgba(255,100,180,0.45)]" />
+        </motion.div>
+      </div>
 
       {/* Text cluster - below pig, smooth transition */}
       <div className="absolute inset-0 flex flex-col items-center justify-center px-6 md:px-12 z-15 pointer-events-none" style={{ top: '10%' }}>
