@@ -228,12 +228,12 @@ export default function MicroDreamCinematic({ dream, pigName = 'Your Pig', onCom
         }} />
       </motion.div>
 
-      {/* Stars */}
+      {/* Stars - fade out during exit */}
       <AnimatePresence>
         {!showPinkMorph && (
           <motion.div
             exit={{ opacity: 0 }}
-            transition={{ duration: 1 }}
+            transition={{ duration: timings.exit.morphToPink / 1000 }}
             className="absolute inset-0 pointer-events-none"
           >
             {Array.from({ length: 60 }).map((_, i) => (
@@ -252,13 +252,13 @@ export default function MicroDreamCinematic({ dream, pigName = 'Your Pig', onCom
         )}
       </AnimatePresence>
 
-      {/* Comic skyline silhouettes (behind clouds) */}
+      {/* Comic skyline silhouettes - fade out smoothly during exit */}
       {!prefersReducedMotion && (
         <>
           <motion.div
             className="absolute bottom-0 left-0 right-0 h-32 z-[5]"
             animate={{ opacity: showPinkMorph ? 0 : 1 }}
-            transition={{ duration: 1.5 }}
+            transition={{ duration: timings.exit.morphToPink / 1000, ease: 'easeOut' }}
             style={{
               backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1200 100\'%3E%3Cpath d=\'M0,80 L50,80 L50,40 L100,40 L100,80 L200,80 L200,20 L250,20 L250,80 L400,80 L400,50 L450,50 L450,80 L600,80 L600,30 L650,30 L650,80 L800,80 L800,60 L850,60 L850,80 L1000,80 L1000,45 L1050,45 L1050,80 L1200,80 L1200,100 L0,100 Z\' fill=\'rgba(255,255,255,0.08)\' /%3E%3C/svg%3E")',
               backgroundSize: 'cover',
@@ -268,7 +268,7 @@ export default function MicroDreamCinematic({ dream, pigName = 'Your Pig', onCom
           <motion.div
             className="absolute bottom-0 left-0 right-0 h-24 opacity-60 z-[5]"
             animate={{ opacity: showPinkMorph ? 0 : 0.6 }}
-            transition={{ duration: 1.5 }}
+            transition={{ duration: timings.exit.morphToPink / 1000, ease: 'easeOut' }}
             style={{
               backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1200 100\'%3E%3Cpath d=\'M0,90 L100,90 L100,70 L150,70 L150,90 L300,90 L300,60 L350,60 L350,90 L500,90 L500,75 L550,75 L550,90 L700,90 L700,65 L750,65 L750,90 L900,90 L900,80 L950,80 L950,90 L1200,90 L1200,100 L0,100 Z\' fill=\'rgba(255,255,255,0.05)\' /%3E%3C/svg%3E")',
               backgroundSize: 'cover',
@@ -278,12 +278,12 @@ export default function MicroDreamCinematic({ dream, pigName = 'Your Pig', onCom
         </>
       )}
 
-      {/* Clouds (layered OVER buildings) */}
+      {/* Clouds - fade out smoothly during exit */}
       {!prefersReducedMotion && (
         <motion.div
           className="absolute inset-0 z-[10]"
           animate={{ opacity: showPinkMorph ? 0 : 1 }}
-          transition={{ duration: 1.5 }}
+          transition={{ duration: timings.exit.morphToPink / 1000, ease: 'easeOut' }}
         >
           {[0, 1, 2, 3, 4].map((i) => (
             <motion.div
@@ -302,12 +302,10 @@ export default function MicroDreamCinematic({ dream, pigName = 'Your Pig', onCom
         </motion.div>
       )}
 
-      {/* Auth State Indicator - top left */}
-      <div className="fixed top-0 left-0 right-0 z-50 flex items-start justify-between px-6 py-4 pointer-events-none"
+      {/* Auth State Indicator - top center */}
+      <div className="fixed top-0 left-0 right-0 z-50 flex items-start justify-center px-6 py-4 pointer-events-none"
         style={{
           paddingTop: 'max(1rem, env(safe-area-inset-top))',
-          paddingLeft: 'max(1.5rem, env(safe-area-inset-left))',
-          paddingRight: 'max(1.5rem, env(safe-area-inset-right))',
         }}
       >
         <motion.div
@@ -326,39 +324,56 @@ export default function MicroDreamCinematic({ dream, pigName = 'Your Pig', onCom
       {/* Sound Toggle - top right */}
       <SoundToggle />
 
-      {/* Pig (floating above text, below sign-in) */}
+      {/* Pig (floating, centered - will transition to moment page position) */}
       <motion.div
         className="absolute left-1/2 -translate-x-1/2 z-20"
         style={{ top: '25%' }}
         initial={{ opacity: 0, scale: 0.85, y: 20 }}
         animate={{
           opacity: phase === 'exiting' ? 0 : 0.92,
-          scale: prefersReducedMotion ? 1 : [0.95, 1.05, 0.95],
-          y: prefersReducedMotion ? 0 : [0, -8, 0],
+          scale: phase === 'exiting' 
+            ? 0.7 
+            : (prefersReducedMotion ? 1 : [0.95, 1.05, 0.95]),
+          y: phase === 'exiting'
+            ? 60
+            : (prefersReducedMotion ? 0 : [0, -8, 0]),
         }}
         transition={{
-          opacity: { duration: timings.entrance.sceneEaseIn / 1000, delay: timings.entrance.pigDelay / 1000 },
-          scale: { duration: 5, repeat: Infinity, ease: 'easeInOut' },
-          y: { duration: 4.5, repeat: Infinity, ease: 'easeInOut' },
+          opacity: phase === 'exiting' 
+            ? { duration: timings.exit.finalFade / 1000, ease: 'easeInOut' }
+            : { duration: timings.entrance.sceneEaseIn / 1000, delay: timings.entrance.pigDelay / 1000 },
+          scale: phase === 'exiting'
+            ? { duration: timings.exit.finalFade / 1000, ease: 'easeInOut' }
+            : { duration: 5, repeat: Infinity, ease: 'easeInOut' },
+          y: phase === 'exiting'
+            ? { duration: timings.exit.finalFade / 1000, ease: 'easeOut' }
+            : { duration: 4.5, repeat: Infinity, ease: 'easeInOut' },
         }}
       >
         <PinkPig size={160} className="filter drop-shadow-[0_0_35px_rgba(255,100,180,0.45)]" />
       </motion.div>
 
-      {/* Text cluster - below pig */}
+      {/* Text cluster - below pig, smooth transition */}
       <div className="absolute inset-0 flex flex-col items-center justify-center px-6 md:px-12 z-15 pointer-events-none" style={{ top: '10%' }}>
         <motion.div
           className="max-w-4xl text-center space-y-6"
-          animate={phase === 'exiting' ? { opacity: 0, filter: 'blur(2px)' } : {}}
-          transition={{ duration: timings.exit.dissolve / 1000 }}
+          animate={phase === 'exiting' ? { opacity: 0, y: 30, filter: 'blur(3px)' } : {}}
+          transition={{ duration: timings.exit.dissolve / 1000, ease: 'easeOut' }}
         >
-          {/* L1 - handwritten style with RGB glow */}
+          {/* L1 - handwritten style with RGB glow, fades down smoothly */}
           <AnimatePresence>
             {showLine1 && (
               <motion.h1
                 initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: timings.lines.l1FadeIn / 1000, ease: 'easeOut' }}
+                animate={{ 
+                  opacity: phase === 'waking' || phase === 'exiting' ? 0 : 1,
+                  y: phase === 'exiting' ? 20 : 0,
+                }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ 
+                  duration: phase === 'exiting' ? timings.exit.dissolve / 1000 : timings.lines.l1FadeIn / 1000,
+                  ease: 'easeOut' 
+                }}
                 className="text-5xl md:text-7xl lg:text-8xl leading-tight tracking-wide"
                 style={{
                   fontFamily: "'Caveat', cursive",
@@ -377,13 +392,20 @@ export default function MicroDreamCinematic({ dream, pigName = 'Your Pig', onCom
             )}
           </AnimatePresence>
 
-          {/* L2 - softer handwritten */}
+          {/* L2 - softer handwritten, fades down smoothly */}
           <AnimatePresence>
             {showLine2 && (
               <motion.p
                 initial={{ opacity: 0, y: 5 }}
-                animate={{ opacity: 0.9, y: 0 }}
-                transition={{ duration: timings.lines.l2FadeIn / 1000, ease: 'easeOut' }}
+                animate={{ 
+                  opacity: phase === 'waking' || phase === 'exiting' ? 0 : 0.9,
+                  y: phase === 'exiting' ? 15 : 0,
+                }}
+                exit={{ opacity: 0, y: 15 }}
+                transition={{ 
+                  duration: phase === 'exiting' ? timings.exit.dissolve / 1000 : timings.lines.l2FadeIn / 1000,
+                  ease: 'easeOut' 
+                }}
                 className="text-2xl md:text-3xl"
                 style={{
                   fontFamily: "'Kalam', cursive",
@@ -397,7 +419,7 @@ export default function MicroDreamCinematic({ dream, pigName = 'Your Pig', onCom
             )}
           </AnimatePresence>
 
-          {/* Snippet carousel */}
+          {/* Snippet carousel - no "from earlier" label */}
           {phase === 'ambient' && currentSnippet && (
             <div className="mt-8 h-16 flex items-center justify-center">
               <AnimatePresence mode="wait">
@@ -420,21 +442,26 @@ export default function MicroDreamCinematic({ dream, pigName = 'Your Pig', onCom
                     `,
                   }}
                 >
-                  <span className="text-white/60 text-sm not-italic">from earlier: </span>
                   {currentSnippet.text}
                 </motion.div>
               </AnimatePresence>
             </div>
           )}
 
-          {/* Waking up text - appears during transition */}
+          {/* Waking up text - appears during transition, moves down */}
           <AnimatePresence>
             {showWakingText && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 1, ease: 'easeOut' }}
+                animate={{ 
+                  opacity: 1,
+                  y: phase === 'exiting' ? 25 : 0,
+                }}
+                exit={{ opacity: 0, y: 30 }}
+                transition={{ 
+                  duration: phase === 'exiting' ? timings.exit.finalFade / 1000 : 1,
+                  ease: 'easeOut' 
+                }}
                 className="mt-12 text-2xl md:text-3xl"
                 style={{
                   fontFamily: "'Caveat', cursive",
@@ -452,20 +479,20 @@ export default function MicroDreamCinematic({ dream, pigName = 'Your Pig', onCom
         </motion.div>
       </div>
 
-      {/* Footer - pulsing dreamscape label (not button-like) */}
+      {/* Footer - pulsing dreamscape label, fades down during exit */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ 
             opacity: (phase === 'waking' || phase === 'exiting') ? 0 : [0.8, 1, 0.8],
-            y: 0,
-            scale: [1, 1.02, 1],
+            y: phase === 'exiting' ? 20 : 0,
+            scale: (phase === 'waking' || phase === 'exiting') ? 0.95 : [1, 1.02, 1],
           }}
           transition={{
-            opacity: phase === 'waking' || phase === 'exiting' 
-              ? { duration: 0.8 } 
+            opacity: (phase === 'waking' || phase === 'exiting')
+              ? { duration: 0.8, ease: 'easeOut' } 
               : { duration: 3, repeat: Infinity, ease: 'easeInOut' },
-            y: { duration: 0.6, delay: 0.4 },
+            y: { duration: phase === 'exiting' ? 0.8 : 0.6, delay: phase === 'exiting' ? 0 : 0.4, ease: 'easeOut' },
             scale: { duration: 3, repeat: Infinity, ease: 'easeInOut' },
           }}
           className="px-6 py-2 text-sm tracking-widest uppercase"
