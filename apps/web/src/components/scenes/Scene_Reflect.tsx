@@ -50,7 +50,16 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   const [guestNudgeMinimized, setGuestNudgeMinimized] = useState(false);
   
   // Micro-dream state
-  const [microDream, setMicroDream] = useState<{ lines: string[]; fades: string[]; dominant_primary?: string; valence_mean?: number; arousal_mean?: number; createdAt?: string; algo?: string } | null>(null);
+  const [microDream, setMicroDream] = useState<{ 
+    lines: string[]; 
+    fades?: string[]; 
+    dominant_primary?: 'sad' | 'joyful' | 'powerful' | 'mad' | 'peaceful' | 'scared'; 
+    valence_mean?: number; 
+    arousal_mean?: number; 
+    createdAt?: string; 
+    algo?: string;
+    owner_id?: string;
+  } | null>(null);
   const [showMicroDream, setShowMicroDream] = useState(false);
   const [microDreamChecked, setMicroDreamChecked] = useState(false);
   
