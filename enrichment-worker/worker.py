@@ -237,9 +237,6 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
         import traceback
         traceback.print_exc()
         return None
-        import traceback
-        traceback.print_exc()
-        return None
 
 
 def main():
