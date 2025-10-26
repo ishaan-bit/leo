@@ -1037,25 +1037,25 @@ export default function MomentsLibrary({
 
                 {/* Subtle vignette mask - focuses attention inward */}
                 <div 
-                  className="absolute top-0 left-0 right-0 h-screen max-h-[90vh] md:max-h-[85vh] pointer-events-none rounded-[32px] z-0"
+                  className="absolute inset-0 pointer-events-none rounded-[32px] z-0"
                   style={{
                     background: 'radial-gradient(circle at 50% 40%, rgba(255,255,255,0.15), rgba(0,0,0,0.3) 90%)',
-                    position: 'sticky',
+                    minHeight: '100%',
                   }}
                 />
 
-                {/* Radial lighting layer - origin from top-left (city glow effect) - sticky position */}
+                {/* Radial lighting layer - origin from top-left (city glow effect) */}
                 <div 
-                  className="absolute top-0 left-0 right-0 h-screen max-h-[90vh] md:max-h-[85vh] pointer-events-none rounded-[32px] z-0"
+                  className="absolute inset-0 pointer-events-none rounded-[32px] z-0"
                   style={{
                     background: `radial-gradient(circle at 15% 20%, ${atmosphere.accentGlow} 0%, transparent 60%)`,
                     opacity: 0.6,
-                    position: 'sticky',
+                    minHeight: '100%',
                   }}
                 />
 
                 {/* Ambient motion particles based on emotion - constrained to background layer, max 40 particles */}
-                <div className="absolute top-0 left-0 right-0 h-screen max-h-[90vh] md:max-h-[85vh] overflow-hidden rounded-[32px] pointer-events-none z-0" style={{ position: 'sticky' }}>
+                <div className="absolute inset-0 overflow-hidden rounded-[32px] pointer-events-none z-0" style={{ minHeight: '100%' }}>
                   {/* Sad: Fine vertical rain streaks */}
                   {atmosphere.ambientMotion === 'drizzle' && Array.from({ length: 15 }).map((_, i) => (
                     <motion.div
@@ -1216,8 +1216,8 @@ export default function MomentsLibrary({
                   ))}
                 </div>
 
-                {/* Content guard - isolates text from background effects, with top padding to ensure visibility */}
-                <div className="relative pt-16 pb-6 px-6 md:pt-20 md:pb-10 md:px-10 z-10" style={{ lineHeight: '1.8', isolation: 'isolate' }}>
+                {/* Content guard - isolates text from background effects */}
+                <div className="relative p-6 md:p-10 z-10" style={{ lineHeight: '1.8', isolation: 'isolate' }}>
                   {/* Close button - floating mote style */}
                   <motion.button
                     onClick={() => setSelectedMoment(null)}
