@@ -183,9 +183,18 @@ def process_image_reflection(redis_client: UpstashClient, rid: str) -> bool:
         # Save updated reflection
         redis_client.set(reflection_key, json.dumps(reflection), ex=30 * 24 * 60 * 60)
         
-        # 6. Add to enrichment queue
+        # 6. Add to enrichment queue (must be full normalized payload as JSON string)
         print(f"📬 Adding to reflections:normalized queue for enrichment")
-        redis_client.rpush('reflections:normalized', rid)
+        
+        # Build normalized payload matching the format from regular reflections
+        normalized_payload = {
+            'rid': rid,
+            'sid': reflection['sid'],
+            'timestamp': reflection['timestamp'],
+            'normalized_text': narrative_text,
+        }
+        
+        redis_client.rpush('reflections:normalized', json.dumps(normalized_payload))
         
         print(f"✅ Image reflection processed successfully: {rid}")
         return True
