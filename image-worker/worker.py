@@ -127,8 +127,8 @@ def process_image_reflection(redis_client: UpstashClient, rid: str) -> bool:
     try:
         print(f"\n🔄 Processing image reflection: {rid}")
         
-        # 1. Get reflection from Upstash
-        reflection_key = f'refl:{rid}'
+        # 1. Get reflection from Upstash (using consistent reflection: prefix)
+        reflection_key = f'reflection:{rid}'
         reflection_json = redis_client.get(reflection_key)
         
         if not reflection_json:
@@ -197,12 +197,12 @@ def process_image_reflection(redis_client: UpstashClient, rid: str) -> bool:
         
         # Try to mark as failed
         try:
-            reflection_json = redis_client.get(f'refl:{rid}')
+            reflection_json = redis_client.get(f'reflection:{rid}')
             if reflection_json:
                 reflection = json.loads(reflection_json)
                 reflection['processing_status'] = 'failed'
                 reflection['processing_error'] = str(e)
-                redis_client.set(f'refl:{rid}', json.dumps(reflection), ex=30 * 24 * 60 * 60)
+                redis_client.set(f'reflection:{rid}', json.dumps(reflection), ex=30 * 24 * 60 * 60)
         except:
             pass
         

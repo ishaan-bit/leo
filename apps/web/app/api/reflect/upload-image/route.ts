@@ -121,8 +121,8 @@ export async function POST(request: NextRequest) {
     
     console.log('📸 [6/7] Saving reflection with base64 image to KV:', rid);
     
-    // Save to KV
-    const reflectionKey = `refl:${rid}`;
+    // Save to KV (using consistent reflection: prefix)
+    const reflectionKey = `reflection:${rid}`;
     await kv.set(reflectionKey, reflection, {
       ex: 30 * 24 * 60 * 60, // 30 days TTL
     });
