@@ -221,6 +221,7 @@ export async function translateToEnglish(
 /**
  * Translate English text to Hindi using Google Translate API
  * For moment detail view language toggle
+ * Calls server-side API to access GOOGLE_TRANSLATE_API_KEY securely
  */
 export async function translateToHindi(
   text: string
@@ -228,53 +229,32 @@ export async function translateToHindi(
   translatedText: string;
   error: string | null;
 }> {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_TRANSLATE_API_KEY || process.env.GOOGLE_TRANSLATE_API_KEY;
-  
-  if (!apiKey) {
-    console.warn('[TRANSLATION] No API key found for Hindi translation');
-    return {
-      translatedText: text,
-      error: 'GOOGLE_TRANSLATE_API_KEY not configured',
-    };
-  }
-
   try {
-    const url = `https://translation.googleapis.com/language/translate/v2?key=${apiKey}`;
-
-    const response = await fetch(url, {
+    const response = await fetch('/api/translate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        q: text,
+        text,
         target: 'hi',
-        format: 'text',
-        source: 'en',
       }),
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(
-        `Google Translate API error: ${response.status} - ${JSON.stringify(errorData)}`
-      );
+      throw new Error(`Translation API error: ${response.status}`);
     }
 
     const data = await response.json();
-    const translatedText = data.data?.translations?.[0]?.translatedText;
-
-    if (!translatedText) {
-      throw new Error('No translation returned from Google Translate API');
-    }
-
+    
     return {
-      translatedText,
-      error: null,
+      translatedText: data.translatedText || text,
+      error: data.error,
     };
+
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('[TRANSLATION] Hindi translation error:', errorMessage);
+    console.error('[TRANSLATION] Client error:', errorMessage);
     
     return {
       translatedText: text,
