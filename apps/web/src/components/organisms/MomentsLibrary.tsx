@@ -1740,7 +1740,7 @@ export default function MomentsLibrary({
                             style={{
                               aspectRatio: '16/9',
                               boxShadow: `0 4px 24px ${atmosphere.accentColor}30`,
-                              background: `linear-gradient(135deg, ${atmosphere.accentColor}15, ${atmosphere.secondaryColor}10)`,
+                              background: `linear-gradient(135deg, ${atmosphere.accentColor}15, ${atmosphere.gradient[1]}10)`,
                               border: `1px solid ${atmosphere.accentColor}20`,
                             }}
                           >
