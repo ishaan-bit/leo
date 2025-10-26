@@ -21,6 +21,22 @@ interface Moment {
   closingLine: string;
   valence: number;
   arousal: number;
+  songs?: {
+    en: {
+      title: string;
+      artist: string;
+      year: number;
+      youtube_url: string;
+      why: string;
+    };
+    hi: {
+      title: string;
+      artist: string;
+      year: number;
+      youtube_url: string;
+      why: string;
+    };
+  };
 }
 
 interface TranslatedMoment {
@@ -73,6 +89,9 @@ export default function MomentsLibrary({
   const [translatedContent, setTranslatedContent] = useState<TranslatedMoment | null>(null);
   const [isTranslating, setIsTranslating] = useState(false);
   
+  // Song recommendations state
+  const [loadingSongs, setLoadingSongs] = useState(false);
+  
   const containerRef = useRef<HTMLDivElement>(null);
   const leoRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -88,8 +107,53 @@ export default function MomentsLibrary({
       setLanguage('en');
       setTranslatedContent(null);
       setIsTranslating(false);
+      setLoadingSongs(false);
     }
   }, [selectedMoment]);
+
+  // Fetch song recommendations when moment is selected
+  useEffect(() => {
+    if (selectedMoment && !selectedMoment.songs) {
+      fetchSongRecommendations(selectedMoment.id);
+    }
+  }, [selectedMoment]);
+
+  // Fetch song recommendations from API
+  const fetchSongRecommendations = async (rid: string) => {
+    setLoadingSongs(true);
+    try {
+      const response = await fetch('/api/recommend-songs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rid }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Update the selected moment with song data
+        setSelectedMoment(prev => {
+          if (!prev || prev.id !== rid) return prev;
+          return {
+            ...prev,
+            songs: {
+              en: data.tracks.en,
+              hi: data.tracks.hi,
+            },
+          };
+        });
+
+        // Also update in moments list for caching
+        setMoments(prev => prev.map(m => 
+          m.id === rid ? { ...m, songs: { en: data.tracks.en, hi: data.tracks.hi } } : m
+        ));
+      }
+    } catch (error) {
+      console.error('Failed to fetch song recommendations:', error);
+    } finally {
+      setLoadingSongs(false);
+    }
+  };
 
   // Translation function
   const handleLanguageToggle = async () => {
@@ -1636,6 +1700,110 @@ export default function MomentsLibrary({
                             </span>
                           </motion.div>
                         ))}
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Song Recommendations (1960-1975 Era) */}
+                  {selectedMoment.songs && (
+                    <motion.div
+                      className="mb-10"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.8, delay: 1.8 }}
+                    >
+                      <h3
+                        className="text-[14px] italic mb-6"
+                        style={{
+                          fontFamily: '"Playfair Display", "Lora", "Georgia", serif',
+                          color: atmosphere.textMuted,
+                          letterSpacing: '0.02em',
+                          fontWeight: 400,
+                          opacity: 0.7,
+                          textShadow: '0 1px 1px rgba(0,0,0,0.1)',
+                        }}
+                      >
+                        A Song from Another Time 🎵
+                      </h3>
+                      
+                      {/* YouTube Player - Language aware */}
+                      <div className="space-y-4">
+                        <div 
+                          className="relative w-full rounded-lg overflow-hidden"
+                          style={{
+                            aspectRatio: '16/9',
+                            boxShadow: `0 4px 24px ${atmosphere.accentColor}30`,
+                          }}
+                        >
+                          <iframe
+                            width="100%"
+                            height="100%"
+                            src={`https://www.youtube.com/embed/${new URL(language === 'hi' ? selectedMoment.songs.hi.youtube_url : selectedMoment.songs.en.youtube_url).searchParams.get('v')}`}
+                            title="YouTube video player"
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            style={{
+                              borderRadius: '8px',
+                            }}
+                          />
+                        </div>
+                        
+                        {/* Song metadata */}
+                        <div className="text-center">
+                          <div
+                            className="text-[15px] font-medium"
+                            style={{
+                              fontFamily: '"Cormorant Garamond", "EB Garamond", "Georgia", serif',
+                              color: atmosphere.textColor,
+                              letterSpacing: '0.02em',
+                            }}
+                          >
+                            {language === 'hi' ? selectedMoment.songs.hi.title : selectedMoment.songs.en.title}
+                          </div>
+                          <div
+                            className="text-[13px] mt-1"
+                            style={{
+                              fontFamily: '"Inter", -apple-system, sans-serif',
+                              color: atmosphere.textMuted,
+                              opacity: 0.7,
+                            }}
+                          >
+                            {language === 'hi' ? selectedMoment.songs.hi.artist : selectedMoment.songs.en.artist} • {language === 'hi' ? selectedMoment.songs.hi.year : selectedMoment.songs.en.year}
+                          </div>
+                          <div
+                            className="text-[12px] italic mt-2 max-w-md mx-auto"
+                            style={{
+                              fontFamily: '"Inter", -apple-system, sans-serif',
+                              color: atmosphere.textMuted,
+                              opacity: 0.6,
+                              lineHeight: '1.6',
+                            }}
+                          >
+                            {language === 'hi' ? selectedMoment.songs.hi.why : selectedMoment.songs.en.why}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Loading state for songs */}
+                  {loadingSongs && !selectedMoment.songs && (
+                    <motion.div
+                      className="mb-10 text-center"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.4 }}
+                    >
+                      <div
+                        className="text-[13px] italic"
+                        style={{
+                          fontFamily: '"Playfair Display", "Lora", "Georgia", serif',
+                          color: atmosphere.textMuted,
+                          opacity: 0.5,
+                        }}
+                      >
+                        Finding a song for this moment...
                       </div>
                     </motion.div>
                   )}
