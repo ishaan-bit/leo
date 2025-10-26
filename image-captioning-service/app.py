@@ -456,6 +456,48 @@ def caption_image():
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
+@app.route('/caption-base64', methods=['POST'])
+def caption_base64():
+    """
+    Generate narrative from base64 image (for worker).
+    Expects JSON: { "image_base64": "..." }
+    """
+    try:
+        data = request.get_json()
+        
+        if not data or 'image_base64' not in data:
+            return jsonify({'error': 'Missing image_base64 in request body'}), 400
+        
+        image_base64 = data['image_base64']
+        custom_prompt = data.get('prompt', None)
+        
+        print(f"\n{'='*60}")
+        print(f"📸 BASE64 IMAGE CAPTION REQUEST")
+        print(f"{'='*60}")
+        print(f"Base64 length: {len(image_base64)} chars")
+        
+        # Generate narrative
+        print(f"\n🤖 Generating narrative description...")
+        narrative = generate_narrative_from_image(image_base64, custom_prompt)
+        
+        print(f"\n{'='*60}")
+        print(f"✨ NARRATIVE GENERATED")
+        print(f"{'='*60}")
+        print(f"{narrative}")
+        print(f"{'='*60}\n")
+        
+        return jsonify({
+            'success': True,
+            'narrative': narrative,
+            'model': VISION_MODEL
+        })
+    
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/health', methods=['GET'])
 def health():
     """Health check endpoint."""

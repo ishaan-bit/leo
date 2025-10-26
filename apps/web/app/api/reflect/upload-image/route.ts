@@ -71,54 +71,18 @@ export async function POST(request: NextRequest) {
       size: imageFile.size,
     });
     
-    // Call image captioning service
-    console.log('📸 [4/7] Calling image captioning service...', IMAGE_CAPTIONING_URL);
-    const captionFormData = new FormData();
-    captionFormData.append('image', imageFile);
+    // Convert image to base64
+    console.log('📸 [4/7] Converting image to base64...');
+    const imageBuffer = await imageFile.arrayBuffer();
+    const imageBase64 = Buffer.from(imageBuffer).toString('base64');
     
-    let captionResponse;
-    try {
-      captionResponse = await fetch(`${IMAGE_CAPTIONING_URL}/caption`, {
-        method: 'POST',
-        body: captionFormData,
-        signal: AbortSignal.timeout(180000), // 3 min timeout
-      });
-    } catch (fetchError) {
-      console.error('❌ Failed to connect to image-captioning service:', fetchError);
-      const errorMsg = fetchError instanceof Error ? fetchError.message : String(fetchError);
-      
-      if (errorMsg.includes('ECONNREFUSED') || errorMsg.includes('fetch failed')) {
-        return NextResponse.json(
-          { 
-            error: 'Image captioning service not available',
-            details: `Could not connect to ${IMAGE_CAPTIONING_URL}. Is the service running? Run: python image-captioning-service/app.py`,
-          },
-          { status: 503 }
-        );
-      }
-      
-      throw fetchError;
-    }
-    
-    if (!captionResponse.ok) {
-      const errorText = await captionResponse.text();
-      console.error('❌ Image captioning failed:', errorText);
-      return NextResponse.json(
-        { error: 'Failed to generate narrative from image', details: errorText },
-        { status: 500 }
-      );
-    }
-    
-    const captionData = await captionResponse.json();
-    const narrativeText = captionData.narrative;
-    
-    console.log('📸 [5/7] Generated narrative:', narrativeText);
+    console.log('📸 [5/7] Image converted to base64 (length:', imageBase64.length, 'chars)');
     
     // Generate reflection ID
     const rid = generateReflectionId();
     const timestamp = new Date().toISOString();
     
-    // Create reflection object (minimal - enrichment will add more)
+    // Create reflection object with image_base64 field
     const reflection = {
       rid,
       sid,
@@ -128,15 +92,21 @@ export async function POST(request: NextRequest) {
       user_id: userId,
       signed_in: !!userId,
       
-      // Raw data from image
-      original_text: narrativeText, // From vision model
-      normalized_text: narrativeText, // Same as original for now
+      // Raw data from image - will be populated by worker
+      original_text: '', // Worker will fill this
+      normalized_text: '', // Worker will fill this
+      
+      // Image data (base64)
+      image_base64: imageBase64,
+      image_type: imageFile.type,
+      image_filename: imageFile.name,
+      image_size: imageFile.size,
+      
+      // Status tracking
+      processing_status: 'pending', // pending -> processing -> complete
       
       // Metadata
       input_mode: 'photo',
-      image_filename: imageFile.name,
-      image_size: imageFile.size,
-      vision_model: captionData.model || 'llava:latest',
       
       // Placeholder values (enrichment will compute these)
       final: null,
@@ -149,7 +119,7 @@ export async function POST(request: NextRequest) {
       },
     };
     
-    console.log('📸 [6/7] Saving reflection to KV:', rid);
+    console.log('📸 [6/7] Saving reflection with base64 image to KV:', rid);
     
     // Save to KV
     const reflectionKey = `refl:${rid}`;
@@ -164,16 +134,17 @@ export async function POST(request: NextRequest) {
       member: rid,
     });
     
-    // Add to normalized queue for enrichment worker
-    await kv.rpush('reflections:normalized', rid);
+    // Add to images queue for processing by image-worker
+    console.log('📸 [7/7] Adding to images:queue for GPU processing...');
+    await kv.rpush('images:queue', rid);
     
-    console.log('✅ Image reflection created successfully');
+    console.log('✅ Image reflection created, queued for processing');
     
     return NextResponse.json({
       success: true,
       reflectionId: rid,
-      narrative: narrativeText,
-      message: 'Image processed and moment saved',
+      message: 'Image uploaded and queued for processing',
+      status: 'pending',
     });
     
   } catch (error) {
