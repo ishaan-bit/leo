@@ -1498,11 +1498,6 @@ export default function MomentsLibrary({
                         >
                           {language === 'hi' && translatedContent ? translatedContent.expressed : selectedMoment.expressed}
                         </div>
-                            textShadow: '0 1px 2px rgba(0,0,0,0.15)',
-                          }}
-                        >
-                          {selectedMoment.expressed}
-                        </div>
                       </motion.div>
                     )}
                   </motion.div>
