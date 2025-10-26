@@ -165,7 +165,7 @@ class HybridScorer:
         hf_weight: float = 0.5,
         emb_weight: float = 0.35,
         ollama_weight: float = 0.15,
-        timeout: int = 60  # Increased from 30s to 60s
+        timeout: int = 120  # Doubled from 60s to 120s for primary detection
     ):
         """
         Args:

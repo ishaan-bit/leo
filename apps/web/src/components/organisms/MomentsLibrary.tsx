@@ -1216,8 +1216,8 @@ export default function MomentsLibrary({
                   ))}
                 </div>
 
-                {/* Content guard - isolates text from background effects */}
-                <div className="relative p-6 md:p-10 z-10" style={{ lineHeight: '1.8', isolation: 'isolate' }}>
+                {/* Content guard - isolates text from background effects, with top padding to ensure visibility */}
+                <div className="relative pt-16 pb-6 px-6 md:pt-20 md:pb-10 md:px-10 z-10" style={{ lineHeight: '1.8', isolation: 'isolate' }}>
                   {/* Close button - floating mote style */}
                   <motion.button
                     onClick={() => setSelectedMoment(null)}
