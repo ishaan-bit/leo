@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { getZone, type PrimaryEmotion } from '@/lib/zones';
+import { translateToHindi } from '@/lib/translation';
 
 interface Moment {
   id: string;
@@ -20,6 +21,15 @@ interface Moment {
   closingLine: string;
   valence: number;
   arousal: number;
+}
+
+interface TranslatedMoment {
+  text: string;
+  invoked: string;
+  expressed: string;
+  poems: string[];
+  tips: string[];
+  closingLine: string;
 }
 
 interface MomentsLibraryProps {
@@ -58,6 +68,11 @@ export default function MomentsLibrary({
   const [blinkingWindow, setBlinkingWindow] = useState<string | null>(null);
   const [showIntroBubble, setShowIntroBubble] = useState(false);
   
+  // Language toggle state
+  const [language, setLanguage] = useState<'en' | 'hi'>('en');
+  const [translatedContent, setTranslatedContent] = useState<TranslatedMoment | null>(null);
+  const [isTranslating, setIsTranslating] = useState(false);
+  
   const containerRef = useRef<HTMLDivElement>(null);
   const leoRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -66,6 +81,58 @@ export default function MomentsLibrary({
   useEffect(() => {
     console.log('[MomentsLibrary] 🎬 Component mounted!', { pigId, pigName, currentPrimary });
   }, []);
+
+  // Reset language state when modal closes
+  useEffect(() => {
+    if (!selectedMoment) {
+      setLanguage('en');
+      setTranslatedContent(null);
+      setIsTranslating(false);
+    }
+  }, [selectedMoment]);
+
+  // Translation function
+  const handleLanguageToggle = async () => {
+    if (!selectedMoment) return;
+
+    if (language === 'en') {
+      // Translate to Hindi
+      setIsTranslating(true);
+      
+      try {
+        const [textResult, invokedResult, expressedResult, ...poemResults] = await Promise.all([
+          translateToHindi(selectedMoment.text),
+          translateToHindi(selectedMoment.invoked),
+          translateToHindi(selectedMoment.expressed),
+          ...selectedMoment.poems.map(poem => translateToHindi(poem)),
+        ]);
+
+        const tipsResults = await Promise.all(
+          selectedMoment.tips.map(tip => translateToHindi(tip))
+        );
+
+        const closingResult = await translateToHindi(selectedMoment.closingLine);
+
+        setTranslatedContent({
+          text: textResult.translatedText,
+          invoked: invokedResult.translatedText,
+          expressed: expressedResult.translatedText,
+          poems: poemResults.map(r => r.translatedText),
+          tips: tipsResults.map(r => r.translatedText),
+          closingLine: closingResult.translatedText,
+        });
+
+        setLanguage('hi');
+      } catch (error) {
+        console.error('Translation error:', error);
+      } finally {
+        setIsTranslating(false);
+      }
+    } else {
+      // Switch back to English
+      setLanguage('en');
+    }
+  };
 
   // Keyboard support: ESC closes modal
   useEffect(() => {
@@ -1216,6 +1283,35 @@ export default function MomentsLibrary({
 
                 {/* Content guard - isolates text from background effects */}
                 <div className="relative p-6 md:p-10 z-10" style={{ lineHeight: '1.8', isolation: 'isolate' }}>
+                  {/* Language Toggle button - floating mote style */}
+                  <motion.button
+                    onClick={handleLanguageToggle}
+                    disabled={isTranslating}
+                    className="absolute top-6 right-20 w-12 h-12 flex items-center justify-center rounded-full transition-all z-10"
+                    style={{
+                      background: `linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7))`,
+                      boxShadow: `0 4px 16px ${atmosphere.gradient[0]}40`,
+                      opacity: isTranslating ? 0.5 : 1,
+                    }}
+                    whileHover={{ 
+                      scale: isTranslating ? 1 : 1.1,
+                      boxShadow: `0 6px 24px ${atmosphere.gradient[0]}60`,
+                    }}
+                    whileTap={{ scale: isTranslating ? 1 : 0.95 }}
+                    aria-label={language === 'en' ? 'Translate to Hindi' : 'Show in English'}
+                    title={language === 'en' ? 'हिंदी' : 'English'}
+                  >
+                    <span 
+                      className="text-sm font-semibold" 
+                      style={{ 
+                        color: atmosphere.textColor,
+                        fontFamily: '"Inter", -apple-system, sans-serif',
+                      }}
+                    >
+                      {isTranslating ? '...' : (language === 'en' ? 'हि' : 'En')}
+                    </span>
+                  </motion.button>
+
                   {/* Close button - floating mote style */}
                   <motion.button
                     onClick={() => setSelectedMoment(null)}
@@ -1316,7 +1412,7 @@ export default function MomentsLibrary({
                         textShadow: '0 1px 2px rgba(0,0,0,0.15)',
                       }}
                     >
-                      {selectedMoment.text}
+                      {language === 'hi' && translatedContent ? translatedContent.text : selectedMoment.text}
                     </p>
                   </motion.div>
 
@@ -1361,7 +1457,7 @@ export default function MomentsLibrary({
                             textShadow: '0 1px 2px rgba(0,0,0,0.15)',
                           }}
                         >
-                          {selectedMoment.invoked}
+                          {language === 'hi' && translatedContent ? translatedContent.invoked : selectedMoment.invoked}
                         </div>
                       </motion.div>
                     )}
@@ -1400,6 +1496,11 @@ export default function MomentsLibrary({
                             textShadow: '0 1px 2px rgba(0,0,0,0.15)',
                           }}
                         >
+                          {language === 'hi' && translatedContent ? translatedContent.expressed : selectedMoment.expressed}
+                        </div>
+                            textShadow: '0 1px 2px rgba(0,0,0,0.15)',
+                          }}
+                        >
                           {selectedMoment.expressed}
                         </div>
                       </motion.div>
@@ -1428,7 +1529,7 @@ export default function MomentsLibrary({
                         What the Wind Remembered
                       </h3>
                       <div className="space-y-6">
-                        {selectedMoment.poems.map((poem, i) => {
+                        {(language === 'hi' && translatedContent ? translatedContent.poems : selectedMoment.poems).map((poem, i) => {
                           const lines = poem.split(',').map(l => l.trim());
                           return (
                             <motion.div
@@ -1492,7 +1593,7 @@ export default function MomentsLibrary({
                         Ways the Day Could Bloom 🌸
                       </h3>
                       <div className="space-y-4">
-                        {selectedMoment.tips.map((tip, i) => (
+                        {(language === 'hi' && translatedContent ? translatedContent.tips : selectedMoment.tips).map((tip, i) => (
                           <motion.div
                             key={i}
                             className="flex items-start gap-4"
@@ -1586,7 +1687,7 @@ export default function MomentsLibrary({
                           textShadow: '0 1px 2px rgba(0,0,0,0.15)',
                         }}
                       >
-                        {selectedMoment.closingLine}
+                        {language === 'hi' && translatedContent ? translatedContent.closingLine : selectedMoment.closingLine}
                       </motion.p>
                       
                       {/* Floating firefly glyph (right) */}
