@@ -57,36 +57,34 @@ async function generateSongsWithLLM(
   expressed: string
 ): Promise<{ en: SongPick; hi: SongPick }> {
   
-  const prompt = `You are a music curator specializing in 1960-1975 era songs. Analyze this emotional state and suggest TWO songs that match the feeling:
+  const prompt = `You are a music curator with encyclopedic knowledge of 1960-1975 songs. Suggest TWO real, verifiable songs that match this emotion:
 
 EMOTION DATA:
-- Valence (positivity): ${valence.toFixed(2)} (range: -1 to +1)
-- Arousal (energy): ${arousal.toFixed(2)} (range: 0 to 1)
-- Invoked feeling: "${invoked}"
-- Expressed feeling: "${expressed}"
+- Valence: ${valence.toFixed(2)} (-1=very negative, 0=neutral, +1=very positive)
+- Arousal: ${arousal.toFixed(2)} (0=calm/low-energy, 1=excited/high-energy)
+- What they felt: "${invoked}"
+- How they described it: "${expressed}"
 
-REQUIREMENTS:
-1. ONE English song (pop/folk/rock/soul/blues from 1960-1975)
-2. ONE Hindi song (Bollywood/ghazal/classical-fusion from 1960-1975)
-3. Each song must emotionally match the valence, arousal, and expressed feelings
-4. Provide exact title, artist, and year
-5. Explain why each song fits this emotional state (2-3 sentences max)
+STRICT REQUIREMENTS:
+1. ONE English song - must be a REAL song from 1960-1975 (The Beatles, Rolling Stones, Dylan, Simon & Garfunkel, etc.)
+2. ONE Hindi song - must be a REAL Bollywood/ghazal from 1960-1975 (Lata, Kishore, Rafi, Asha, etc.)
+3. Songs must match the valence (emotion positivity/negativity) and arousal (energy level)
+4. Only suggest songs you are CERTAIN exist - no invented titles
+5. If you don't know the exact YouTube ID, you MUST omit the "youtube_id" field entirely
 
-OUTPUT FORMAT (JSON only, no other text):
+OUTPUT (JSON only):
 {
   "en": {
-    "title": "Song Title",
-    "artist": "Artist Name",
+    "title": "Exact Song Title",
+    "artist": "Exact Artist Name",
     "year": 1970,
-    "youtube_id": "dQw4w9WgXcQ",
-    "why": "Brief explanation of emotional match"
+    "why": "How this matches the emotion (2 sentences max)"
   },
   "hi": {
-    "title": "Song Title (in English script)",
+    "title": "Song Title in English script (e.g., 'Lag Jaa Gale')",
     "artist": "Artist Name",
     "year": 1970,
-    "youtube_id": "dQw4w9WgXcQ",
-    "why": "Brief explanation of emotional match"
+    "why": "How this matches the emotion (2 sentences max)"
   }
 }`;
 
@@ -125,22 +123,17 @@ OUTPUT FORMAT (JSON only, no other text):
 
     const parsed = JSON.parse(jsonText);
 
-    // Build YouTube URLs from video IDs
-    const enUrl = parsed.en.youtube_id 
-      ? `https://www.youtube.com/watch?v=${parsed.en.youtube_id}`
-      : `https://www.youtube.com/results?search_query=${encodeURIComponent(`${parsed.en.title} ${parsed.en.artist} ${parsed.en.year}`)}`;
-    
-    const hiUrl = parsed.hi.youtube_id 
-      ? `https://www.youtube.com/watch?v=${parsed.hi.youtube_id}`
-      : `https://www.youtube.com/results?search_query=${encodeURIComponent(`${parsed.hi.title} ${parsed.hi.artist} ${parsed.hi.year}`)}`;
+    // Generate YouTube search URLs (LLM rarely knows exact video IDs)
+    const enSearch = `${parsed.en.title} ${parsed.en.artist} official`;
+    const hiSearch = `${parsed.hi.title} ${parsed.hi.artist} original`;
 
     return {
       en: {
         title: parsed.en.title,
         artist: parsed.en.artist,
         year: parseInt(parsed.en.year),
-        youtube_search: `${parsed.en.title} ${parsed.en.artist} ${parsed.en.year}`,
-        youtube_url: enUrl,
+        youtube_search: enSearch,
+        youtube_url: `https://www.youtube.com/results?search_query=${encodeURIComponent(enSearch)}`,
         source_confidence: 'high',
         why: parsed.en.why,
       },
@@ -148,8 +141,8 @@ OUTPUT FORMAT (JSON only, no other text):
         title: parsed.hi.title,
         artist: parsed.hi.artist,
         year: parseInt(parsed.hi.year),
-        youtube_search: `${parsed.hi.title} ${parsed.hi.artist} ${parsed.hi.year}`,
-        youtube_url: hiUrl,
+        youtube_search: hiSearch,
+        youtube_url: `https://www.youtube.com/results?search_query=${encodeURIComponent(hiSearch)}`,
         source_confidence: 'high',
         why: parsed.hi.why,
       },

@@ -1728,26 +1728,56 @@ export default function MomentsLibrary({
                       
                       {/* YouTube Player - Language aware */}
                       <div className="space-y-4">
-                        <div 
-                          className="relative w-full rounded-lg overflow-hidden"
-                          style={{
-                            aspectRatio: '16/9',
-                            boxShadow: `0 4px 24px ${atmosphere.accentColor}30`,
-                          }}
+                        {/* YouTube link button (search results) */}
+                        <a
+                          href={language === 'hi' ? selectedMoment.songs.hi.youtube_url : selectedMoment.songs.en.youtube_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block w-full"
                         >
-                          <iframe
-                            width="100%"
-                            height="100%"
-                            src={`https://www.youtube.com/embed/${new URL(language === 'hi' ? selectedMoment.songs.hi.youtube_url : selectedMoment.songs.en.youtube_url).searchParams.get('v')}`}
-                            title="YouTube video player"
-                            frameBorder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
+                          <div 
+                            className="relative w-full rounded-lg overflow-hidden p-8 text-center transition-all duration-300 hover:scale-[1.02] cursor-pointer"
                             style={{
-                              borderRadius: '8px',
+                              aspectRatio: '16/9',
+                              boxShadow: `0 4px 24px ${atmosphere.accentColor}30`,
+                              background: `linear-gradient(135deg, ${atmosphere.accentColor}15, ${atmosphere.secondaryColor}10)`,
+                              border: `1px solid ${atmosphere.accentColor}20`,
                             }}
-                          />
-                        </div>
+                          >
+                            <div className="flex flex-col items-center justify-center h-full space-y-4">
+                              {/* Play icon */}
+                              <div 
+                                className="w-16 h-16 rounded-full flex items-center justify-center"
+                                style={{
+                                  background: atmosphere.accentColor,
+                                  boxShadow: `0 4px 16px ${atmosphere.accentColor}40`,
+                                }}
+                              >
+                                <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M8 5v14l11-7z" />
+                                </svg>
+                              </div>
+                              
+                              <div>
+                                <div
+                                  className="text-lg font-medium mb-1"
+                                  style={{
+                                    fontFamily: '"Cormorant Garamond", "EB Garamond", "Georgia", serif',
+                                    color: atmosphere.textColor,
+                                  }}
+                                >
+                                  Listen on YouTube
+                                </div>
+                                <div
+                                  className="text-sm opacity-60"
+                                  style={{ color: atmosphere.textColor }}
+                                >
+                                  Click to play this song
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </a>
                         
                         {/* Song metadata */}
                         <div className="text-center">
