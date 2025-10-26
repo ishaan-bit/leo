@@ -1013,45 +1013,47 @@ export default function MomentsLibrary({
                   scrollBehavior: 'smooth',
                 }}
               >
-                {/* Background gradient layer - scrolls with content */}
-                <div 
-                  className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none rounded-[32px] z-0"
-                  style={{
-                    background: `linear-gradient(180deg, 
-                      ${atmosphere.gradient[0]} 0%, 
-                      ${atmosphere.gradient[1]} 50%,
-                      ${atmosphere.gradient[0]} 100%)`,
-                  }}
-                />
+                {/* Inner wrapper - contains backgrounds and content, expands to full content height */}
+                <div className="relative min-h-full">
+                  {/* Background gradient layer - scrolls with content */}
+                  <div 
+                    className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none rounded-[32px] z-0"
+                    style={{
+                      background: `linear-gradient(180deg, 
+                        ${atmosphere.gradient[0]} 0%, 
+                        ${atmosphere.gradient[1]} 50%,
+                        ${atmosphere.gradient[0]} 100%)`,
+                    }}
+                  />
 
-                {/* Foreground contrast overlay - ensures text legibility with soft-light blend */}
-                <div 
-                  className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none rounded-[32px] z-0"
-                  style={{
-                    background: 'linear-gradient(180deg, rgba(0,0,0,0.08), rgba(255,255,255,0.05) 40%, rgba(0,0,0,0.12))',
-                    mixBlendMode: 'soft-light',
-                  }}
-                />
+                  {/* Foreground contrast overlay - ensures text legibility with soft-light blend */}
+                  <div 
+                    className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none rounded-[32px] z-0"
+                    style={{
+                      background: 'linear-gradient(180deg, rgba(0,0,0,0.08), rgba(255,255,255,0.05) 40%, rgba(0,0,0,0.12))',
+                      mixBlendMode: 'soft-light',
+                    }}
+                  />
 
-                {/* Subtle vignette mask - focuses attention inward */}
-                <div 
-                  className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none rounded-[32px] z-0"
-                  style={{
-                    background: 'radial-gradient(circle at 50% 40%, rgba(255,255,255,0.15), rgba(0,0,0,0.3) 90%)',
-                  }}
-                />
+                  {/* Subtle vignette mask - focuses attention inward */}
+                  <div 
+                    className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none rounded-[32px] z-0"
+                    style={{
+                      background: 'radial-gradient(circle at 50% 40%, rgba(255,255,255,0.15), rgba(0,0,0,0.3) 90%)',
+                    }}
+                  />
 
-                {/* Radial lighting layer - origin from top-left (city glow effect) */}
-                <div 
-                  className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none rounded-[32px] z-0"
-                  style={{
-                    background: `radial-gradient(circle at 15% 20%, ${atmosphere.accentGlow} 0%, transparent 60%)`,
-                    opacity: 0.6,
-                  }}
-                />
+                  {/* Radial lighting layer - origin from top-left (city glow effect) */}
+                  <div 
+                    className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none rounded-[32px] z-0"
+                    style={{
+                      background: `radial-gradient(circle at 15% 20%, ${atmosphere.accentGlow} 0%, transparent 60%)`,
+                      opacity: 0.6,
+                    }}
+                  />
 
-                {/* Ambient motion particles based on emotion - constrained to background layer, max 40 particles */}
-                <div className="absolute top-0 left-0 right-0 bottom-0 overflow-hidden rounded-[32px] pointer-events-none z-0">
+                  {/* Ambient motion particles based on emotion - constrained to background layer, max 40 particles */}
+                  <div className="absolute top-0 left-0 right-0 bottom-0 overflow-hidden rounded-[32px] pointer-events-none z-0">
                   {/* Sad: Fine vertical rain streaks */}
                   {atmosphere.ambientMotion === 'drizzle' && Array.from({ length: 15 }).map((_, i) => (
                     <motion.div
@@ -1611,6 +1613,7 @@ export default function MomentsLibrary({
                     </motion.div>
                   )}
                 </div>
+                </div> {/* Close inner wrapper for backgrounds */}
               </motion.div>
             </motion.div>
           );
