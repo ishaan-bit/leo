@@ -219,24 +219,39 @@ async def recommend_songs(request: SongRequest):
     Analyzes emotion data (valence, arousal, invoked, expressed) and returns
     two era-specific songs (1 Hindi, 1 English from 1960-1975)
     """
-    
-    # Check cache first
-    cache_key = f"songs:{request.rid}"
-    if not request.refresh:
-        cached = await get_from_upstash(cache_key)
-        if cached:
-            return cached
-    
-    # Fetch reflection from Upstash
-    reflection = await get_from_upstash(f"reflection:{request.rid}")
-    if not reflection:
-        raise HTTPException(404, f"Reflection not found: {request.rid}")
-    
-    # Extract emotion data
-    valence = reflection.get('valence', 0.0)
-    arousal = reflection.get('arousal', 0.5)
-    invoked = reflection.get('invoked_emotion', '')
-    expressed = reflection.get('expressed_emotion', '')
+    try:
+        # Check cache first
+        cache_key = f"songs:{request.rid}"
+        if not request.refresh:
+            cached = await get_from_upstash(cache_key)
+            if cached:
+                return cached
+        
+        # Fetch reflection from Upstash
+        reflection = await get_from_upstash(f"reflection:{request.rid}")
+        if not reflection:
+            raise HTTPException(404, f"Reflection not found: {request.rid}")
+        
+        print(f"DEBUG: Reflection type: {type(reflection)}")
+        print(f"DEBUG: Reflection keys: {list(reflection.keys())[:10] if isinstance(reflection, dict) else 'NOT A DICT'}")
+        
+        # Extract emotion data (nested under 'final')
+        final = reflection.get('final', {})
+        if not final:
+            print("WARNING: 'final' key is empty or missing")
+            print(f"DEBUG: Available top-level keys: {list(reflection.keys())}")
+        
+        valence = final.get('valence', 0.0)
+        arousal = final.get('arousal', 0.5)
+        invoked = final.get('invoked', '')
+        expressed = final.get('expressed', '')
+        
+        print(f"DEBUG: Extracted - valence={valence}, arousal={arousal}, invoked='{invoked}', expressed='{expressed}'")
+    except Exception as e:
+        print(f"ERROR in recommend_songs: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(500, f"Internal error: {str(e)}")
     
     # Calculate mood buckets
     valence_bucket, arousal_bucket = get_emotion_buckets(valence, arousal)

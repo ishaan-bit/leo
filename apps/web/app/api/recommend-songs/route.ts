@@ -13,8 +13,6 @@ import { kv } from '@vercel/kv';
 
 const SONG_WORKER_URL = process.env.SONG_WORKER_URL || 'http://localhost:5051';
 
-const SONG_WORKER_URL = process.env.SONG_WORKER_URL || 'http://localhost:5051';
-
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
