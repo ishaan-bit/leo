@@ -220,7 +220,6 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
                                 
                                 # Import micro-dream agent
                                 import sys
-                                import os
                                 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
                                 from micro_dream_agent import MicroDreamAgent, UpstashClient, OllamaClient
                                 
