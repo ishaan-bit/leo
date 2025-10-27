@@ -1662,7 +1662,15 @@ export default function MomentsLibrary({
                   )}
 
                   {/* Song Recommendations (1960-1975 Era) */}
-                  {selectedMoment.songs && (
+                  {(() => {
+                    console.log('[MomentsLibrary] Checking songs:', {
+                      hasSongs: !!selectedMoment.songs,
+                      songs: selectedMoment.songs,
+                      en_url: selectedMoment.songs?.en?.youtube_url,
+                      hi_url: selectedMoment.songs?.hi?.youtube_url,
+                    });
+                    return selectedMoment.songs;
+                  })() && (
                     <motion.div
                       className="mb-10"
                       initial={{ opacity: 0 }}
