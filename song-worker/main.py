@@ -128,15 +128,19 @@ async def get_youtube_video_url(search_query: str, is_hindi: bool = False, is_sh
         async with httpx.AsyncClient(timeout=15.0) as client:
             # Step 1: Search for videos
             search_url = "https://www.googleapis.com/youtube/v3/search"
-            suffix = " short film" if is_short_film else " official music video"
+            suffix = " short film" if is_short_film else ""
+            # For songs, be very specific with artist name to avoid covers
             search_params = {
                 "part": "id,snippet",
                 "q": search_query + suffix,
                 "type": "video",
                 "videoDefinition": "high",  # HD videos only
                 "videoDuration": "medium",  # 4-20 minutes
-                "maxResults": 10,  # Get multiple to filter
-                "key": YOUTUBE_API_KEY
+                "maxResults": 20,  # Increased to get more candidates
+                "key": YOUTUBE_API_KEY,
+                "relevanceLanguage": "en",  # Prefer English results for better matching
+                "safeSearch": "none",
+                "order": "relevance"  # Most relevant first
             }
             
             search_response = await client.get(search_url, params=search_params)
@@ -178,7 +182,9 @@ async def get_youtube_video_url(search_query: str, is_hindi: bool = False, is_sh
             
             videos_data = videos_response.json()
             
-            # Step 3: Filter videos by criteria
+            # Step 3: Filter videos by criteria and collect candidates
+            candidates = []  # Store (video_id, total_seconds, like_count, view_count, privacy_status)
+            
             for video in videos_data.get('items', []):
                 try:
                     video_id = video['id']
@@ -189,7 +195,6 @@ async def get_youtube_video_url(search_query: str, is_hindi: bool = False, is_sh
                     # Check if video is actually playable
                     upload_status = video_status.get('uploadStatus', '')
                     privacy_status = video_status.get('privacyStatus', '')
-                    embeddable = video_status.get('embeddable', True)
                     
                     if upload_status != 'processed':
                         print(f"[SKIP] Video {video_id} not processed: {upload_status}")
@@ -210,47 +215,62 @@ async def get_youtube_video_url(search_query: str, is_hindi: bool = False, is_sh
                     seconds = int(match.group(3) or 0)
                     total_seconds = hours * 3600 + minutes * 60 + seconds
                     
-                    # Duration: 4-5 minutes (240-300 seconds) for both EN and HI
-                    if total_seconds > 300:  # 5 minutes max
-                        print(f"[SKIP] Video {video_id} too long: {total_seconds}s")
-                        continue
-                    if total_seconds < 240:  # 4 minutes min
-                        print(f"[SKIP] Video {video_id} too short: {total_seconds}s")
-                        continue
+                    like_count = int(stats.get('likeCount', 0))
+                    view_count = int(stats.get('viewCount', 0))
                     
-                    # Relaxed criteria for Hindi songs (older Bollywood may have lower engagement)
-                    if is_hindi:
-                        like_count = int(stats.get('likeCount', 0))
-                        if like_count < 50000:  # 50k likes minimum for Hindi
-                            print(f"[SKIP] Video {video_id} not enough likes: {like_count}")
-                            continue
-                        
-                        view_count = int(stats.get('viewCount', 0))
-                        if view_count < 500000:  # 500k views minimum for Hindi
-                            print(f"[SKIP] Video {video_id} not enough views: {view_count}")
-                            continue
-                    else:
-                        # Stricter for English songs (more popular on YouTube)
-                        like_count = int(stats.get('likeCount', 0))
-                        if like_count < 500000:  # 500k likes minimum for English
-                            print(f"[SKIP] Video {video_id} not enough likes: {like_count}")
-                            continue
-                        
-                        view_count = int(stats.get('viewCount', 0))
-                        if view_count < 1000000:  # 1M views minimum for English
-                            print(f"[SKIP] Video {video_id} not enough views: {view_count}")
-                            continue
-                    
-                    lang_label = "HI" if is_hindi else "EN"
-                    print(f"[OK] Found {lang_label} video {video_id}: {total_seconds}s, {like_count} likes, {view_count} views, status={privacy_status}")
-                    return f"https://www.youtube.com/watch?v={video_id}"
+                    # Add to candidates list
+                    candidates.append((video_id, total_seconds, like_count, view_count, privacy_status))
                     
                 except (KeyError, ValueError) as e:
                     print(f"[SKIP] Error parsing video: {e}")
                     continue
             
-            # If no video passed filters, return first result anyway
-            print("[!] No videos passed filters, using first result")
+            # Step 4: Find best match from candidates
+            # Priority 1: Perfect match (4-5 min, meets engagement criteria)
+            for video_id, total_seconds, like_count, view_count, privacy_status in candidates:
+                # Duration: 4-5 minutes (240-300 seconds)
+                if total_seconds < 240 or total_seconds > 300:
+                    continue
+                
+                # Engagement criteria
+                if is_hindi:
+                    if like_count >= 50000 and view_count >= 500000:
+                        lang_label = "HI"
+                        print(f"[PERFECT] Found {lang_label} video {video_id}: {total_seconds}s, {like_count} likes, {view_count} views")
+                        return f"https://www.youtube.com/watch?v={video_id}"
+                else:
+                    if like_count >= 500000 and view_count >= 1000000:
+                        lang_label = "EN"
+                        print(f"[PERFECT] Found {lang_label} video {video_id}: {total_seconds}s, {like_count} likes, {view_count} views")
+                        return f"https://www.youtube.com/watch?v={video_id}"
+            
+            # Priority 2: Relaxed duration (3-7 min) but meets engagement
+            for video_id, total_seconds, like_count, view_count, privacy_status in candidates:
+                if total_seconds < 180 or total_seconds > 420:
+                    continue
+                
+                if is_hindi:
+                    if like_count >= 50000 and view_count >= 500000:
+                        lang_label = "HI"
+                        print(f"[GOOD] Found {lang_label} video {video_id}: {total_seconds}s, {like_count} likes, {view_count} views")
+                        return f"https://www.youtube.com/watch?v={video_id}"
+                else:
+                    if like_count >= 500000 and view_count >= 1000000:
+                        lang_label = "EN"
+                        print(f"[GOOD] Found {lang_label} video {video_id}: {total_seconds}s, {like_count} likes, {view_count} views")
+                        return f"https://www.youtube.com/watch?v={video_id}"
+            
+            # Priority 3: Best available - sort by engagement and pick highest
+            if candidates:
+                # Sort by (view_count * like_count) to get most popular
+                candidates_sorted = sorted(candidates, key=lambda x: x[2] * x[3], reverse=True)
+                video_id, total_seconds, like_count, view_count, privacy_status = candidates_sorted[0]
+                lang_label = "HI" if is_hindi else "EN"
+                print(f"[FALLBACK] Using best available {lang_label} video {video_id}: {total_seconds}s, {like_count} likes, {view_count} views")
+                return f"https://www.youtube.com/watch?v={video_id}"
+            
+            # If no candidates at all, return first result
+            print("[!] No valid candidates, using first search result")
             first_video_id = video_ids[0]
             return f"https://www.youtube.com/watch?v={first_video_id}"
     
@@ -278,17 +298,28 @@ EMOTION DATA:
 - What they felt: "{invoked}"
 - How they described it: "{expressed}"
 
-STRICT REQUIREMENTS:
-1. ONE English song - must be a REAL song from 1960-1975 (The Beatles, Rolling Stones, Dylan, Simon & Garfunkel, etc.)
-2. ONE Hindi song - must be a REAL Bollywood/ghazal from 1960-1975 (Lata, Kishore, Rafi, Asha, etc.)
-   - For Hindi songs: Write the title in ENGLISH LETTERS (transliteration), NOT Devanagari script
-   - Example: "Lag Jaa Gale" NOT "लग जा गले"
-   - Example: "Pyar Kiya To Darna Kya" NOT "प्यार किया तो डरना क्या"
-   - IMPORTANT: Suggest DIFFERENT Hindi songs based on the emotion - don't always use "Lag Jaa Gale"
-   - Consider variety: Kishore Kumar, Mohammed Rafi, Asha Bhosle, Mukesh, etc.
-3. Songs must match the valence (emotion positivity/negativity) and arousal (energy level)
-4. Only suggest songs you are CERTAIN exist - no invented titles
-5. Match the SPECIFIC emotion - happy songs for positive valence, sad songs for negative valence
+CRITICAL REQUIREMENTS - READ CAREFULLY:
+1. ONE English song - must be a REAL, FAMOUS song from 1960-1975 that EVERYONE knows
+   - Examples: The Beatles, Rolling Stones, Bob Dylan, Simon & Garfunkel, Joni Mitchell, Carole King, The Doors, Led Zeppelin
+   - VARIETY: Do NOT always suggest "Here Comes The Sun" - suggest different songs based on the emotion
+   - For sadness: "The Sound of Silence", "Yesterday", "Both Sides Now"
+   - For happiness: "Good Vibrations", "Dancing in the Street", "I Can See Clearly Now"
+   - For anger/power: "Sympathy for the Devil", "Born to Be Wild", "Fortunate Son"
+   - For calm/peace: "What a Wonderful World", "Bridge Over Troubled Water", "Fire and Rain"
+
+2. ONE Hindi song - ONLY suggest songs you are 100% CERTAIN exist with the EXACT title and artist
+   - FAMOUS Bollywood classics ONLY: Lata Mangeshkar, Kishore Kumar, Mohammed Rafi, Asha Bhosle, Mukesh
+   - VERIFIED titles: "Lag Jaa Gale", "Pyar Hua Ikrar Hua", "Aye Mere Watan Ke Logo", "Kabhi Kabhi Mere Dil Mein"
+   - Write title in ENGLISH LETTERS (transliteration), NOT Devanagari
+   - If unsure, pick a very famous song you KNOW exists rather than inventing titles
+   - DO NOT make up fake song titles - use only well-known classics
+
+3. Match the SPECIFIC emotion - the song should resonate with what they're feeling:
+   - Sad → melancholic, slow songs to validate their sadness
+   - Happy → upbeat, joyful songs to amplify positivity  
+   - Angry → powerful, intense songs to feel heard
+   - Calm → gentle, peaceful songs to maintain serenity
+   - The goal is EMOTIONAL RESONANCE - make them feel understood
 
 OUTPUT (JSON only):
 {{
@@ -299,7 +330,7 @@ OUTPUT (JSON only):
     "why": "How this matches the emotion (2 sentences max)"
   }},
   "hi": {{
-    "title": "Song Title in English script (e.g., 'Lag Jaa Gale')",
+    "title": "Song Title in English script (MUST be a real, famous song)",
     "artist": "Artist Name",
     "year": 1970,
     "why": "How this matches the emotion (2 sentences max)"
@@ -315,8 +346,8 @@ OUTPUT (JSON only):
                     "prompt": prompt,
                     "stream": False,
                     "options": {
-                        "temperature": 0.8,
-                        "top_p": 0.9,
+                        "temperature": 0.9,  # Increased for more variety
+                        "top_p": 0.95,
                         "num_predict": 500,
                     }
                 }
@@ -369,8 +400,8 @@ OUTPUT (JSON only):
                 }
             
             # Build response with direct YouTube URLs (search and extract first video)
-            en_search = f"{parsed['en']['title']} {parsed['en']['artist']} official"
-            hi_search = f"{parsed['hi']['title']} {parsed['hi']['artist']} original song"
+            en_search = f"{parsed['en']['title']} {parsed['en']['artist']} official music video"
+            hi_search = f"{parsed['hi']['title']} {parsed['hi']['artist']} official video"
             
             # Get direct YouTube URLs with duration filtering
             en_url = await get_youtube_video_url(en_search, is_hindi=False)
