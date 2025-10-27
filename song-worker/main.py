@@ -18,6 +18,7 @@ from typing import Optional, Literal
 import os
 from datetime import datetime
 from dotenv import load_dotenv
+import urllib.parse
 
 # Load environment variables
 load_dotenv()
@@ -95,6 +96,45 @@ def get_emotion_buckets(valence: float, arousal: float):
     arousal_bucket = 'low' if arousal <= 0.33 else 'high' if arousal >= 0.67 else 'medium'
     return valence_bucket, arousal_bucket
 
+async def get_youtube_video_url(search_query: str) -> str:
+    """
+    Search YouTube and return direct video URL (not search results)
+    Uses YouTube's search without requiring API key
+    """
+    try:
+        # Use YouTube's internal search API (no API key required)
+        encoded_query = urllib.parse.quote_plus(search_query)
+        search_url = f"https://www.youtube.com/results?search_query={encoded_query}"
+        
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(search_url, follow_redirects=True)
+            
+            if response.status_code == 200:
+                # Extract first video ID from HTML
+                html = response.text
+                
+                # Pattern 1: Standard video link
+                match = re.search(r'"videoId":"([a-zA-Z0-9_-]{11})"', html)
+                if match:
+                    video_id = match.group(1)
+                    return f"https://www.youtube.com/watch?v={video_id}"
+                
+                # Pattern 2: Alternative format
+                match = re.search(r'/watch\?v=([a-zA-Z0-9_-]{11})', html)
+                if match:
+                    video_id = match.group(1)
+                    return f"https://www.youtube.com/watch?v={video_id}"
+        
+        # Fallback to search results if extraction fails
+        return search_url
+    
+    except Exception as e:
+        print(f"[YouTube Search Error] {e}")
+        # Return search results as fallback
+        encoded_query = urllib.parse.quote_plus(search_query)
+        return f"https://www.youtube.com/results?search_query={encoded_query}"
+
+
 async def generate_songs_with_llm(
     valence: float,
     arousal: float,
@@ -114,6 +154,9 @@ EMOTION DATA:
 STRICT REQUIREMENTS:
 1. ONE English song - must be a REAL song from 1960-1975 (The Beatles, Rolling Stones, Dylan, Simon & Garfunkel, etc.)
 2. ONE Hindi song - must be a REAL Bollywood/ghazal from 1960-1975 (Lata, Kishore, Rafi, Asha, etc.)
+   - For Hindi songs: Write the title in ENGLISH LETTERS (transliteration), NOT Devanagari script
+   - Example: "Lag Jaa Gale" NOT "लग जा गले"
+   - Example: "Pyar Kiya To Darna Kya" NOT "प्यार किया तो डरना क्या"
 3. Songs must match the valence (emotion positivity/negativity) and arousal (energy level)
 4. Only suggest songs you are CERTAIN exist - no invented titles
 5. If you don't know the exact YouTube ID, you MUST omit the "youtube_id" field entirely
@@ -166,9 +209,13 @@ OUTPUT (JSON only):
             
             parsed = json.loads(json_text)
             
-            # Build response with YouTube search URLs
+            # Build response with direct YouTube URLs (search and extract first video)
             en_search = f"{parsed['en']['title']} {parsed['en']['artist']} official"
             hi_search = f"{parsed['hi']['title']} {parsed['hi']['artist']} original"
+            
+            # Get direct YouTube URLs
+            en_url = await get_youtube_video_url(en_search)
+            hi_url = await get_youtube_video_url(hi_search)
             
             return {
                 "en": SongPick(
@@ -176,7 +223,7 @@ OUTPUT (JSON only):
                     artist=parsed['en']['artist'],
                     year=int(parsed['en']['year']),
                     youtube_search=en_search,
-                    youtube_url=f"https://www.youtube.com/results?search_query={httpx.URL(en_search)}",
+                    youtube_url=en_url,
                     source_confidence='high',
                     why=parsed['en']['why']
                 ).dict(),
@@ -185,7 +232,7 @@ OUTPUT (JSON only):
                     artist=parsed['hi']['artist'],
                     year=int(parsed['hi']['year']),
                     youtube_search=hi_search,
-                    youtube_url=f"https://www.youtube.com/results?search_query={httpx.URL(hi_search)}",
+                    youtube_url=hi_url,
                     source_confidence='high',
                     why=parsed['hi']['why']
                 ).dict()
