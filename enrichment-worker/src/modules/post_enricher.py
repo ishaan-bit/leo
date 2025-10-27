@@ -110,7 +110,7 @@ class PostEnricher:
                     "temperature": self.temperature,
                     "top_p": 0.9,
                     "repeat_penalty": 1.05,
-                    "num_predict": 600,  # Reduced from 1024 - target ~500 tokens for poems+tips+closing
+                    "num_predict": 1024,  # Increased from 600 - need full response for poems+tips+closing
                     "num_ctx": 4096,  # Explicit context window
                     "num_thread": 8  # Use all CPU cores for faster inference
                 },

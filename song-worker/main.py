@@ -16,7 +16,7 @@ import json
 import re
 from typing import Optional, Literal
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from dotenv import load_dotenv
 import urllib.parse
 
@@ -334,7 +334,7 @@ async def recommend_songs(request: SongRequest):
             "valence_bucket": valence_bucket,
             "arousal_bucket": arousal_bucket,
             "mood_cell": mood_cell,
-            "picked_at": datetime.now(datetime.UTC).isoformat(),
+            "picked_at": datetime.now(timezone.utc).isoformat(),
             "version": "song-worker-v2-llm"
         }
     }
