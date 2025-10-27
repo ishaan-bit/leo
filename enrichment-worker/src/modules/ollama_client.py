@@ -104,30 +104,30 @@ CRITICAL RULES:
             latency_ms = int((time.time() - start_time) * 1000)
             
             if response.status_code != 200:
-                print(f"❌ Ollama API error {response.status_code}: {response.text}")
+                print(f"[X] Ollama API error {response.status_code}: {response.text}")
                 return None
             
             result = response.json()
             raw_response = result.get('response', '')
             
-            print(f"📝 Ollama raw response ({latency_ms}ms): {raw_response[:200]}...")
+            print(f"[R] Ollama raw response ({latency_ms}ms): {raw_response[:200]}...")
             
             # Parse JSON from response
             parsed = self._parse_json(raw_response)
             
             if parsed:
-                print(f"✅ Ollama enrichment successful: {len(parsed)} fields")
+                print(f"[OK] Ollama enrichment successful: {len(parsed)} fields")
                 parsed['_latency_ms'] = latency_ms
                 return parsed
             else:
-                print(f"⚠️  Failed to parse JSON from Ollama response")
+                print(f"[!] Failed to parse JSON from Ollama response")
                 return None
             
         except requests.Timeout:
-            print(f"⏱️  Ollama timeout after {self.timeout}s")
+            print(f"[!] Ollama timeout after {self.timeout}s")
             return None
         except Exception as e:
-            print(f"❌ Ollama error: {type(e).__name__}: {e}")
+            print(f"[X] Ollama error: {type(e).__name__}: {e}")
             return None
     
     def _parse_json(self, raw_text: str) -> Optional[Dict]:

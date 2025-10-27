@@ -66,7 +66,7 @@ class PostEnricher:
         self.temperature = temperature
         self.timeout = timeout
         
-        print(f"🎨 PostEnricher initialized")
+        print(f"[*] PostEnricher initialized")
         print(f"   Model: {ollama_model}")
         print(f"   Temperature: {temperature}")
     
@@ -88,7 +88,7 @@ class PostEnricher:
         Returns:
             Same dict with added post_enrichment field and status="complete"
         """
-        print(f"\n🎨 Stage-2: Post-Enrichment Pipeline")
+        print(f"\n[*] Stage-2: Post-Enrichment Pipeline")
         
         # Skip if already post-enriched
         if 'post_enrichment' in hybrid_result:

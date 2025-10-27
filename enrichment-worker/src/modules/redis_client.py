@@ -45,10 +45,10 @@ class RedisClient:
                 result = response.json()
                 return result.get('result')
             else:
-                print(f"❌ Redis command failed: {response.status_code} - {response.text}")
+                print(f"[X] Redis command failed: {response.status_code} - {response.text}")
                 return None
         except Exception as e:
-            print(f"❌ Redis REST error: {e}")
+            print(f"[X] Redis REST error: {e}")
             return None
     
     def ping(self) -> bool:
@@ -104,7 +104,7 @@ class RedisClient:
         # Get existing reflection
         existing = self.get_reflection(rid)
         if not existing:
-            print(f"⚠️  Reflection {rid} not found, creating new key")
+            print(f"[!] Reflection {rid} not found, creating new key")
             existing = {}
         
         # Merge enriched data into existing reflection
@@ -113,9 +113,9 @@ class RedisClient:
         # Write back to same key
         success = self.set(key, json.dumps(merged), ex=ttl)
         if success:
-            print(f"✅ Merged enriched data into {key}")
+            print(f"[OK] Merged enriched data into {key}")
         else:
-            print(f"❌ Failed to write enriched data to {key}")
+            print(f"[X] Failed to write enriched data to {key}")
         
         return success
     

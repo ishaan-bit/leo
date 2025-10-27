@@ -192,7 +192,7 @@ class HybridScorer:
         self.hf_zeroshot_url = "https://api-inference.huggingface.co/models/facebook/bart-large-mnli"
         self.hf_embed_url = "https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2"
         
-        print(f"🔧 HybridScorer initialized")
+        print(f"[*] HybridScorer initialized")
         print(f"   HF weight: {self.hf_weight:.2f}")
         print(f"   Embedding weight: {self.emb_weight:.2f}")
         print(f"   Ollama weight: {self.ollama_weight:.2f}")
@@ -204,7 +204,7 @@ class HybridScorer:
             ollama_resp = requests.get(f"{self.ollama_base_url}/api/tags", timeout=5)
             return ollama_resp.status_code == 200
         except Exception as e:
-            print(f"⚠️  Ollama health check failed: {e}")
+            print(f"[!] Ollama health check failed: {e}")
             return False
     
     def enrich(self, normalized_text: str, history: list = None, timestamp: str = None) -> Optional[Dict]:

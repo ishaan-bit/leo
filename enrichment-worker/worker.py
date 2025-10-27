@@ -76,10 +76,10 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
     normalized_text = reflection.get('normalized_text')
     
     if not all([rid, sid, normalized_text]):
-        print(f"⚠️  Skipping incomplete reflection: {reflection}")
+        print(f"[!] Skipping incomplete reflection: {reflection}")
         return None
     
-    print(f"\n🔄 Processing {rid}")
+    print(f"\n[>] Processing {rid}")
     print(f"   Text: {normalized_text[:80]}...")
     
     start_time = time.time()
@@ -87,14 +87,14 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
     try:
         # 1. Get user history for temporal analytics
         history = redis_client.get_user_history(sid, limit=90)
-        print(f"📊 Loaded {len(history)} past reflections for {sid}")
+        print(f"[=] Loaded {len(history)} past reflections for {sid}")
         
         # 2. Stage-1: Call Hybrid Scorer for core enrichment (includes all analytics)
-        print(f"🤖 Stage-1: Hybrid Scorer...")
+        print(f"[*] Stage-1: Hybrid Scorer...")
         ollama_result = ollama_client.enrich(normalized_text, history, timestamp)
         
         if not ollama_result:
-            print(f"❌ Hybrid scorer failed for {rid}")
+            print(f"[X] Hybrid scorer failed for {rid}")
             redis_client.set_worker_status('degraded', {'reason': 'hybrid_scorer_failed', 'rid': rid})
             return None
         
@@ -128,23 +128,23 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
         
         # 4. Save Stage-1 results immediately to Upstash
         print(f"\n{'='*60}")
-        print(f"💾 SAVING STAGE-1 TO UPSTASH NOW...")
+        print(f"[S] SAVING STAGE-1 TO UPSTASH NOW...")
         print(f"{'='*60}")
         success_stage1 = redis_client.set_enriched(rid, enriched_stage1)
         
         if not success_stage1:
-            print(f"❌ Failed to write Stage-1 data for {rid}")
+            print(f"[X] Failed to write Stage-1 data for {rid}")
             return None
         
         stage1_time = int((time.time() - start_time) * 1000)
-        print(f"✅ STAGE-1 SAVED TO UPSTASH in {stage1_time}ms")
-        print(f"   → Key: reflections:enriched:{rid}")
-        print(f"   → Status: stage1_complete")
-        print(f"   → Frontend can query Upstash NOW for analytical data")
+        print(f"[OK] STAGE-1 SAVED TO UPSTASH in {stage1_time}ms")
+        print(f"   -> Key: reflections:enriched:{rid}")
+        print(f"   -> Status: stage1_complete")
+        print(f"   -> Frontend can query Upstash NOW for analytical data")
         print(f"{'='*60}\n")
         
         # 5. Stage-2: Post-Enrichment (creative content) - runs after Stage-1 is saved
-        print(f"🎨 Stage-2: Post-Enricher (background)...")
+        print(f"[*] Stage-2: Post-Enricher (background)...")
         try:
             ollama_result['status'] = 'stage1_complete'
             final_result = post_enricher.run_post_enrichment(ollama_result)
@@ -155,17 +155,17 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
             
             # 6. Update Upstash with Stage-2 results
             print(f"\n{'='*60}")
-            print(f"💾 UPDATING UPSTASH WITH STAGE-2...")
+            print(f"[S] UPDATING UPSTASH WITH STAGE-2...")
             print(f"{'='*60}")
             success_stage2 = redis_client.set_enriched(rid, enriched_stage1)
             
             if success_stage2:
                 total_time = int((time.time() - start_time) * 1000)
-                print(f"✅ STAGE-2 SAVED TO UPSTASH in {total_time - stage1_time}ms")
-                print(f"   → Key: reflections:enriched:{rid}")
-                print(f"   → Status: complete")
-                print(f"   → Added: post_enrichment (poems, tips, closing)")
-                print(f"✅ FULL PIPELINE COMPLETE in {total_time}ms")
+                print(f"[OK] STAGE-2 SAVED TO UPSTASH in {total_time - stage1_time}ms")
+                print(f"   -> Key: reflections:enriched:{rid}")
+                print(f"   -> Status: complete")
+                print(f"   -> Added: post_enrichment (poems, tips, closing)")
+                print(f"[OK] FULL PIPELINE COMPLETE in {total_time}ms")
                 print(f"{'='*60}\n")
                 
                 # 7. Check if micro-dream should be generated (after post-enrichment complete)
@@ -176,7 +176,7 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
                     reflection_json = redis_client.get(reflection_key)
                     
                     if not reflection_json:
-                        print(f"⚠️  Could not fetch reflection:{rid} for micro-dream check")
+                        print(f"[!] Could not fetch reflection:{rid} for micro-dream check")
                     else:
                         import json as json_lib
                         full_reflection = json_lib.loads(reflection_json)
@@ -210,30 +210,30 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
                                 result = agent.run(owner_id, force_dream=False, skip_ollama=False)
                                 
                                 if result and result.get('should_display'):
-                                    print(f"✅ Micro-dream generated and stored for next signin")
+                                    print(f"[OK] Micro-dream generated and stored for next signin")
                                 else:
                                     print(f"   Not eligible for display yet (signin #{result['signin_count'] if result else 'unknown'})")
                         else:
-                            print(f"⚠️  No owner_id found in reflection:{rid}")
+                            print(f"[!] No owner_id found in reflection:{rid}")
                     
                 except Exception as micro_err:
-                    print(f"⚠️  Micro-dream generation failed (non-fatal): {micro_err}")
+                    print(f"[!] Micro-dream generation failed (non-fatal): {micro_err}")
                     import traceback
                     traceback.print_exc()
                     # Non-fatal - enrichment is already complete
                 
             else:
-                print(f"⚠️  Failed to write Stage-2 data, but Stage-1 is saved")
+                print(f"[!] Failed to write Stage-2 data, but Stage-1 is saved")
                 
         except Exception as e:
-            print(f"⚠️  Stage-2 failed: {e}")
+            print(f"[!] Stage-2 failed: {e}")
             print(f"   Stage-1 data is already saved and usable")
             # Don't return None - Stage-1 is already saved
         
         return enriched_stage1
         
     except Exception as e:
-        print(f"❌ Error processing {rid}: {type(e).__name__}: {e}")
+        print(f"[X] Error processing {rid}: {type(e).__name__}: {e}")
         import traceback
         traceback.print_exc()
         return None
@@ -241,7 +241,7 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
 
 def main():
     """Main worker loop"""
-    print("🚀 Enrichment Worker Starting...")
+    print("[*] Enrichment Worker Starting...")
     print(f"   Poll interval: {POLL_MS}ms")
     print(f"   Ollama: {ollama_client.ollama_base_url}")
     print(f"   Model: {ollama_client.ollama_model}")
@@ -250,18 +250,18 @@ def main():
     
     # Check health
     health = check_health()
-    print(f"\n🏥 Health Check:")
+    print(f"\n[+] Health Check:")
     print(f"   Ollama: {health['ollama']}")
     print(f"   Redis: {health['redis']}")
     print(f"   Status: {health['status']}")
     
     if health['status'] != 'healthy':
-        print(f"\n⚠️  WARNING: System not fully healthy!")
+        print(f"\n[!] WARNING: System not fully healthy!")
         redis_client.set_worker_status('degraded', health)
     else:
         redis_client.set_worker_status('healthy', health)
     
-    print(f"\n👀 Watching {NORMALIZED_KEY} for reflections...\n")
+    print(f"\n[~] Watching {NORMALIZED_KEY} for reflections...\n")
     
     # Main loop
     processed_count = 0
@@ -272,7 +272,7 @@ def main():
             queue_len = redis_client.llen(NORMALIZED_KEY)
             
             if queue_len > 0:
-                print(f"📬 Queue length: {queue_len}")
+                print(f"[<] Queue length: {queue_len}")
                 
                 # Pop one reflection
                 reflection = redis_client.lpop_normalized(NORMALIZED_KEY)
@@ -283,7 +283,7 @@ def main():
                     
                     if result:
                         processed_count += 1
-                        print(f"📊 Total processed: {processed_count}")
+                        print(f"[=] Total processed: {processed_count}")
                     
                     # Update worker status
                     redis_client.set_worker_status('healthy', {
@@ -295,11 +295,11 @@ def main():
             time.sleep(POLL_MS / 1000.0)
             
         except KeyboardInterrupt:
-            print("\n\n👋 Worker shutting down...")
+            print("\n\n[*] Worker shutting down...")
             redis_client.set_worker_status('down', {'reason': 'manual_shutdown'})
             break
         except Exception as e:
-            print(f"❌ Worker error: {type(e).__name__}: {e}")
+            print(f"[X] Worker error: {type(e).__name__}: {e}")
             import traceback
             traceback.print_exc()
             redis_client.set_worker_status('degraded', {'reason': str(e)})
