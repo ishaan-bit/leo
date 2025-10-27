@@ -144,6 +144,19 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
         print(f"   -> Frontend can query Upstash NOW for analytical data")
         print(f"{'='*60}\n")
         
+        # 4.4. Update original reflection with 'final' data for song worker
+        print(f"[*] Adding 'final' data to reflection:{rid}...")
+        try:
+            reflection_key = f'reflection:{rid}'
+            reflection_json = redis_client.get(reflection_key)
+            if reflection_json:
+                reflection = json.loads(reflection_json)
+                reflection['final'] = enriched_stage1['final']
+                redis_client.set(reflection_key, json.dumps(reflection), ex=30 * 24 * 60 * 60)
+                print(f"[OK] Added 'final' data to reflection")
+        except Exception as update_err:
+            print(f"[!] Failed to update reflection with final data: {update_err}")
+        
         # 4.5. Generate Song Recommendations (after Stage-1, before Stage-2)
         print(f"[*] Generating song recommendations...")
         try:
