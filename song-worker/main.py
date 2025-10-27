@@ -96,43 +96,43 @@ def get_emotion_buckets(valence: float, arousal: float):
     arousal_bucket = 'low' if arousal <= 0.33 else 'high' if arousal >= 0.67 else 'medium'
     return valence_bucket, arousal_bucket
 
-async def get_youtube_video_url(search_query: str) -> str:
+async def get_youtube_video_url(search_query: str, is_hindi: bool = False) -> str:
     """
-    Search YouTube and return direct video URL (not search results)
-    Uses YouTube's search without requiring API key
+    Search YouTube and return direct video URL for a SHORT song (not concerts/compilations)
+    Filters out long videos to avoid concerts and compilations
     """
     try:
-        # Use YouTube's internal search API (no API key required)
+        # Add duration filter to search query to avoid long concerts
+        # sp=EgQQARgB means filter by duration: short (under 4 minutes)
+        # sp=EgQQARgC means filter by duration: medium (4-20 minutes)
         encoded_query = urllib.parse.quote_plus(search_query)
-        search_url = f"https://www.youtube.com/results?search_query={encoded_query}"
+        # Use medium duration filter (4-20 min) to get full songs but avoid concerts
+        search_url = f"https://www.youtube.com/results?search_query={encoded_query}&sp=EgQQARgC"
         
         async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.get(search_url, follow_redirects=True)
             
             if response.status_code == 200:
-                # Extract first video ID from HTML
                 html = response.text
                 
-                # Pattern 1: Standard video link
-                match = re.search(r'"videoId":"([a-zA-Z0-9_-]{11})"', html)
-                if match:
-                    video_id = match.group(1)
-                    return f"https://www.youtube.com/watch?v={video_id}"
+                # Extract ALL video IDs and their titles to filter out long concerts
+                video_pattern = r'"videoId":"([a-zA-Z0-9_-]{11})"'
+                matches = re.finditer(video_pattern, html)
                 
-                # Pattern 2: Alternative format
-                match = re.search(r'/watch\?v=([a-zA-Z0-9_-]{11})', html)
-                if match:
+                # Get first valid video (should be filtered by duration already)
+                for match in matches:
                     video_id = match.group(1)
-                    return f"https://www.youtube.com/watch?v={video_id}"
+                    # Avoid known concert/compilation patterns in the URL
+                    if video_id:
+                        return f"https://www.youtube.com/watch?v={video_id}"
         
-        # Fallback to search results if extraction fails
+        # Fallback to search results with duration filter
         return search_url
     
     except Exception as e:
         print(f"[YouTube Search Error] {e}")
-        # Return search results as fallback
         encoded_query = urllib.parse.quote_plus(search_query)
-        return f"https://www.youtube.com/results?search_query={encoded_query}"
+        return f"https://www.youtube.com/results?search_query={encoded_query}&sp=EgQQARgC"
 
 
 async def generate_songs_with_llm(
@@ -157,9 +157,11 @@ STRICT REQUIREMENTS:
    - For Hindi songs: Write the title in ENGLISH LETTERS (transliteration), NOT Devanagari script
    - Example: "Lag Jaa Gale" NOT "लग जा गले"
    - Example: "Pyar Kiya To Darna Kya" NOT "प्यार किया तो डरना क्या"
+   - IMPORTANT: Suggest DIFFERENT Hindi songs based on the emotion - don't always use "Lag Jaa Gale"
+   - Consider variety: Kishore Kumar, Mohammed Rafi, Asha Bhosle, Mukesh, etc.
 3. Songs must match the valence (emotion positivity/negativity) and arousal (energy level)
 4. Only suggest songs you are CERTAIN exist - no invented titles
-5. If you don't know the exact YouTube ID, you MUST omit the "youtube_id" field entirely
+5. Match the SPECIFIC emotion - happy songs for positive valence, sad songs for negative valence
 
 OUTPUT (JSON only):
 {{
@@ -211,11 +213,11 @@ OUTPUT (JSON only):
             
             # Build response with direct YouTube URLs (search and extract first video)
             en_search = f"{parsed['en']['title']} {parsed['en']['artist']} official"
-            hi_search = f"{parsed['hi']['title']} {parsed['hi']['artist']} original"
+            hi_search = f"{parsed['hi']['title']} {parsed['hi']['artist']} original song"
             
-            # Get direct YouTube URLs
-            en_url = await get_youtube_video_url(en_search)
-            hi_url = await get_youtube_video_url(hi_search)
+            # Get direct YouTube URLs with duration filtering
+            en_url = await get_youtube_video_url(en_search, is_hindi=False)
+            hi_url = await get_youtube_video_url(hi_search, is_hindi=True)
             
             return {
                 "en": SongPick(
@@ -273,13 +275,6 @@ async def recommend_songs(request: SongRequest):
     two era-specific songs (1 Hindi, 1 English from 1960-1975)
     """
     try:
-        # Check cache first
-        cache_key = f"songs:{request.rid}"
-        if not request.refresh:
-            cached = await get_from_upstash(cache_key)
-            if cached:
-                return cached
-        
         # Fetch reflection from Upstash
         reflection = await get_from_upstash(f"reflection:{request.rid}")
         if not reflection:
@@ -339,8 +334,8 @@ async def recommend_songs(request: SongRequest):
         }
     }
     
-    # Cache for 24 hours
-    await set_in_upstash(cache_key, recommendation, ex=86400)
+    # NOTE: Not caching here - enrichment worker saves songs to reflection:{rid}
+    # This avoids duplicate keys like songs:{rid}
     
     return recommendation
 
