@@ -38,7 +38,8 @@ app.add_middleware(
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 UPSTASH_REDIS_REST_URL = os.getenv("UPSTASH_REDIS_REST_URL")
 UPSTASH_REDIS_REST_TOKEN = os.getenv("UPSTASH_REDIS_REST_TOKEN")
-YOUTUBE_API_KEY = os.getenv("GOOGLE_TRANSLATE_API_KEY", "")  # Reuse Google API key for YouTube
+# Prefer an explicit YouTube key; fallback to GOOGLE_TRANSLATE_API_KEY for legacy setups
+YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY") or os.getenv("GOOGLE_TRANSLATE_API_KEY", "")
 
 # Request/Response models
 class SongRequest(BaseModel):
@@ -110,25 +111,27 @@ def get_emotion_buckets(valence: float, arousal: float):
 
 async def get_youtube_video_url(search_query: str, is_hindi: bool = False, is_short_film: bool = False) -> str:
     """
-    Search YouTube and return direct video URL for music videos with proper filtering:
-    - Duration: 4-5 minutes (hard cap at 5 min)
-    - Has video (not just audio)
-    - Over 500k likes
+    Search YouTube and return direct video URL with proper filtering:
+    - Music videos: 4-5 minutes, 500k+ likes
+    - Short films: 3-7 minutes, festival quality
     """
     try:
-        if not YOUTUBE_API_KEY or YOUTUBE_API_KEY == "your-google-translate-api-key-here":
+        print(f"[DEBUG] YouTube API Key present: {bool(YOUTUBE_API_KEY)}, length: {len(YOUTUBE_API_KEY) if YOUTUBE_API_KEY else 0}")
+        if not YOUTUBE_API_KEY or len(YOUTUBE_API_KEY) < 20:
             # Fallback to scraping if no API key
-            print("[!] No YouTube API key, using search fallback")
-            encoded_query = urllib.parse.quote_plus(search_query + " official music video")
+            print("[!] No valid YouTube API key, using search fallback")
+            suffix = " short film" if is_short_film else " official music video"
+            encoded_query = urllib.parse.quote_plus(search_query + suffix)
             return f"https://www.youtube.com/results?search_query={encoded_query}&sp=EgQQARgC"
         
         # Use YouTube Data API v3 to search
         async with httpx.AsyncClient(timeout=15.0) as client:
             # Step 1: Search for videos
             search_url = "https://www.googleapis.com/youtube/v3/search"
+            suffix = " short film" if is_short_film else " official music video"
             search_params = {
                 "part": "id,snippet",
-                "q": search_query + " official music video",
+                "q": search_query + suffix,
                 "type": "video",
                 "videoDefinition": "high",  # HD videos only
                 "videoDuration": "medium",  # 4-20 minutes
@@ -138,11 +141,21 @@ async def get_youtube_video_url(search_query: str, is_hindi: bool = False, is_sh
             
             search_response = await client.get(search_url, params=search_params)
             if search_response.status_code != 200:
-                print(f"[!] YouTube API search error: {search_response.status_code}")
+                # Log full error body for debugging
+                try:
+                    err_text = search_response.text
+                except Exception:
+                    err_text = '<unreadable response body>'
+                print(f"[!] YouTube API search error: {search_response.status_code} - {err_text}")
                 encoded_query = urllib.parse.quote_plus(search_query)
                 return f"https://www.youtube.com/results?search_query={encoded_query}"
-            
+
             search_data = search_response.json()
+            if not search_data.get('items'):
+                # Log response for debugging when items are empty
+                print(f"[!] YouTube search returned no items: {json.dumps(search_data)[:1000]}")
+                encoded_query = urllib.parse.quote_plus(search_query)
+                return f"https://www.youtube.com/results?search_query={encoded_query}"
             if not search_data.get('items'):
                 print("[!] No YouTube search results")
                 encoded_query = urllib.parse.quote_plus(search_query)
@@ -152,7 +165,7 @@ async def get_youtube_video_url(search_query: str, is_hindi: bool = False, is_sh
             video_ids = [item['id']['videoId'] for item in search_data['items']]
             videos_url = "https://www.googleapis.com/youtube/v3/videos"
             videos_params = {
-                "part": "contentDetails,statistics",
+                "part": "contentDetails,statistics,status",  # Added status for availability check
                 "id": ",".join(video_ids),
                 "key": YOUTUBE_API_KEY
             }
@@ -171,6 +184,20 @@ async def get_youtube_video_url(search_query: str, is_hindi: bool = False, is_sh
                     video_id = video['id']
                     duration = video['contentDetails']['duration']  # Format: PT4M32S
                     stats = video['statistics']
+                    video_status = video.get('status', {})
+                    
+                    # Check if video is actually playable
+                    upload_status = video_status.get('uploadStatus', '')
+                    privacy_status = video_status.get('privacyStatus', '')
+                    embeddable = video_status.get('embeddable', True)
+                    
+                    if upload_status != 'processed':
+                        print(f"[SKIP] Video {video_id} not processed: {upload_status}")
+                        continue
+                    
+                    if privacy_status not in ['public', 'unlisted']:
+                        print(f"[SKIP] Video {video_id} not public: {privacy_status}")
+                        continue
                     
                     # Parse ISO 8601 duration (PT4M32S -> 272 seconds)
                     import re
@@ -183,29 +210,39 @@ async def get_youtube_video_url(search_query: str, is_hindi: bool = False, is_sh
                     seconds = int(match.group(3) or 0)
                     total_seconds = hours * 3600 + minutes * 60 + seconds
                     
-                    # Hard cap at 5 minutes (300 seconds)
-                    if total_seconds > 300:
+                    # Duration: 4-5 minutes (240-300 seconds) for both EN and HI
+                    if total_seconds > 300:  # 5 minutes max
                         print(f"[SKIP] Video {video_id} too long: {total_seconds}s")
                         continue
-                    
-                    # Prefer 4-5 minute videos
-                    if total_seconds < 240:  # Less than 4 minutes
+                    if total_seconds < 240:  # 4 minutes min
                         print(f"[SKIP] Video {video_id} too short: {total_seconds}s")
                         continue
                     
-                    # Check likes (500k minimum)
-                    like_count = int(stats.get('likeCount', 0))
-                    if like_count < 500000:
-                        print(f"[SKIP] Video {video_id} not enough likes: {like_count}")
-                        continue
+                    # Relaxed criteria for Hindi songs (older Bollywood may have lower engagement)
+                    if is_hindi:
+                        like_count = int(stats.get('likeCount', 0))
+                        if like_count < 50000:  # 50k likes minimum for Hindi
+                            print(f"[SKIP] Video {video_id} not enough likes: {like_count}")
+                            continue
+                        
+                        view_count = int(stats.get('viewCount', 0))
+                        if view_count < 500000:  # 500k views minimum for Hindi
+                            print(f"[SKIP] Video {video_id} not enough views: {view_count}")
+                            continue
+                    else:
+                        # Stricter for English songs (more popular on YouTube)
+                        like_count = int(stats.get('likeCount', 0))
+                        if like_count < 500000:  # 500k likes minimum for English
+                            print(f"[SKIP] Video {video_id} not enough likes: {like_count}")
+                            continue
+                        
+                        view_count = int(stats.get('viewCount', 0))
+                        if view_count < 1000000:  # 1M views minimum for English
+                            print(f"[SKIP] Video {video_id} not enough views: {view_count}")
+                            continue
                     
-                    # Check if it's actually a video (has view count)
-                    view_count = int(stats.get('viewCount', 0))
-                    if view_count < 1000000:  # At least 1M views for quality
-                        print(f"[SKIP] Video {video_id} not enough views: {view_count}")
-                        continue
-                    
-                    print(f"[OK] Found video {video_id}: {total_seconds}s, {like_count} likes, {view_count} views")
+                    lang_label = "HI" if is_hindi else "EN"
+                    print(f"[OK] Found {lang_label} video {video_id}: {total_seconds}s, {like_count} likes, {view_count} views, status={privacy_status}")
                     return f"https://www.youtube.com/watch?v={video_id}"
                     
                 except (KeyError, ValueError) as e:
@@ -299,7 +336,37 @@ OUTPUT (JSON only):
             if json_match:
                 json_text = json_match.group(1)
             
-            parsed = json.loads(json_text)
+            # Clean common JSON formatting issues
+            json_text = json_text.replace('\n', ' ')  # Remove newlines
+            json_text = re.sub(r',\s*}', '}', json_text)  # Remove trailing commas
+            json_text = re.sub(r',\s*]', ']', json_text)  # Remove trailing commas in arrays
+            
+            try:
+                parsed = json.loads(json_text)
+            except json.JSONDecodeError as e:
+                print(f"[LLM Error] JSONDecodeError: {e}")
+                print(f"[LLM Raw] {raw_response[:500]}")
+                # Fallback: Use default songs
+                return {
+                    "en": SongPick(
+                        title="Here Comes The Sun",
+                        artist="The Beatles",
+                        year=1969,
+                        youtube_search="Here Comes The Sun The Beatles official",
+                        youtube_url=await get_youtube_video_url("Here Comes The Sun The Beatles official", is_hindi=False),
+                        source_confidence='medium',
+                        why="Classic uplifting song with positive emotions"
+                    ).model_dump(),
+                    "hi": SongPick(
+                        title="Pyar Hua Ikrar Hua",
+                        artist="Lata Mangeshkar, Manna Dey",
+                        year=1955,
+                        youtube_search="Pyar Hua Ikrar Hua original song",
+                        youtube_url=await get_youtube_video_url("Pyar Hua Ikrar Hua original song", is_hindi=True),
+                        source_confidence='medium',
+                        why="Timeless romantic melody with gentle emotions"
+                    ).model_dump()
+                }
             
             # Build response with direct YouTube URLs (search and extract first video)
             en_search = f"{parsed['en']['title']} {parsed['en']['artist']} official"
@@ -364,7 +431,7 @@ async def generate_films_with_llm(
 ) -> dict:
     """Use Ollama phi3 to generate contextual short film recommendations"""
     
-    prompt = f"""You are a film curator specializing in award-winning short films from 2024-2025 international film festivals. Suggest TWO real short films that match this emotion:
+    prompt = f"""You are a film curator specializing in award-winning short films from 2020-2025 international film festivals. Suggest TWO real short films that match this emotion:
 
 EMOTION DATA:
 - Valence: {valence:.2f} (-1=very negative, 0=neutral, +1=very positive)
@@ -373,12 +440,12 @@ EMOTION DATA:
 - How they described it: "{expressed}"
 
 STRICT REQUIREMENTS:
-1. ONE English short film - from Sundance, Cannes, Berlin, SXSW, Tribeca 2024-2025
-2. ONE Hindi/Indian short film - from Mumbai Film Festival, MAMI, IFFK, or international festivals 2024-2025
-3. Films must be 3-7 minutes duration (narrative short films, NOT documentaries or music videos)
-4. Films must have been shown at recognized film festivals
+1. ONE English short film - from Sundance, Cannes, Berlin, SXSW, Tribeca, or popular on YouTube (2020-2025)
+2. ONE Hindi/Indian short film - from Mumbai Film Festival, MAMI, IFFK, or popular on YouTube (2020-2025)
+3. Films must be 4-5 minutes duration (narrative short films, NOT documentaries or music videos)
+4. Films should be well-known with high engagement (popular festival films or viral shorts)
 5. Films should match the emotion (sad films for negative valence, uplifting for positive)
-6. Only suggest films you are CERTAIN exist - real festival selections
+6. Only suggest films you are CERTAIN exist and are available on YouTube
 7. For Hindi films: Write title in ENGLISH LETTERS (transliteration)
 
 OUTPUT (JSON only):
@@ -386,17 +453,17 @@ OUTPUT (JSON only):
   "en": {{
     "title": "Exact Film Title",
     "director": "Director Name",
-    "year": 2024,
-    "festival": "Sundance 2024",
+    "year": 2023,
+    "festival": "Sundance 2023",
     "duration_minutes": 5,
     "why": "How this matches the emotion (2 sentences max)"
   }},
   "hi": {{
     "title": "Film Title in English script",
     "director": "Director Name", 
-    "year": 2024,
-    "festival": "Mumbai Film Festival 2024",
-    "duration_minutes": 6,
+    "year": 2023,
+    "festival": "Mumbai Film Festival 2023",
+    "duration_minutes": 4,
     "why": "How this matches the emotion (2 sentences max)"
   }}
 }}"""
