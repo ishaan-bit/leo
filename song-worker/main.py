@@ -69,6 +69,7 @@ class SongRecommendation(BaseModel):
     moment_id: str
     lang_default: Literal['en', 'hi']
     tracks: dict[str, SongPick]
+    films: dict[str, FilmPick]  # Add films to response model
     embed: dict
     meta: dict
 
