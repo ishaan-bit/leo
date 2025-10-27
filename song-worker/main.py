@@ -17,6 +17,10 @@ import re
 from typing import Optional, Literal
 import os
 from datetime import datetime
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 app = FastAPI(title="Song Recommendation Worker", version="2.0-llm")
 
