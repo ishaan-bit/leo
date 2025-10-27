@@ -38,6 +38,7 @@ app.add_middleware(
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 UPSTASH_REDIS_REST_URL = os.getenv("UPSTASH_REDIS_REST_URL")
 UPSTASH_REDIS_REST_TOKEN = os.getenv("UPSTASH_REDIS_REST_TOKEN")
+YOUTUBE_API_KEY = os.getenv("GOOGLE_TRANSLATE_API_KEY", "")  # Reuse Google API key for YouTube
 
 # Request/Response models
 class SongRequest(BaseModel):
@@ -69,7 +70,6 @@ class SongRecommendation(BaseModel):
     moment_id: str
     lang_default: Literal['en', 'hi']
     tracks: dict[str, SongPick]
-    films: dict[str, FilmPick]  # Add films to response model
     embed: dict
     meta: dict
 
@@ -110,44 +110,117 @@ def get_emotion_buckets(valence: float, arousal: float):
 
 async def get_youtube_video_url(search_query: str, is_hindi: bool = False, is_short_film: bool = False) -> str:
     """
-    Search YouTube and return direct video URL for a SHORT song/film (not concerts/compilations)
-    Filters out long videos to avoid concerts and compilations
+    Search YouTube and return direct video URL for music videos with proper filtering:
+    - Duration: 4-5 minutes (hard cap at 5 min)
+    - Has video (not just audio)
+    - Over 500k likes
     """
     try:
-        # Add duration filter to search query
-        # sp=EgQQARgB means filter by duration: short (under 4 minutes) - for songs
-        # sp=EgQQARgC means filter by duration: medium (4-20 minutes) - for songs/short films
-        encoded_query = urllib.parse.quote_plus(search_query)
+        if not YOUTUBE_API_KEY or YOUTUBE_API_KEY == "your-google-translate-api-key-here":
+            # Fallback to scraping if no API key
+            print("[!] No YouTube API key, using search fallback")
+            encoded_query = urllib.parse.quote_plus(search_query + " official music video")
+            return f"https://www.youtube.com/results?search_query={encoded_query}&sp=EgQQARgC"
         
-        if is_short_film:
-            # For short films, use medium duration filter (4-20 min) or no filter
-            search_url = f"https://www.youtube.com/results?search_query={encoded_query}"
-        else:
-            # For songs, use medium duration filter to avoid concerts
-            search_url = f"https://www.youtube.com/results?search_query={encoded_query}&sp=EgQQARgC"
-        
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.get(search_url, follow_redirects=True)
+        # Use YouTube Data API v3 to search
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            # Step 1: Search for videos
+            search_url = "https://www.googleapis.com/youtube/v3/search"
+            search_params = {
+                "part": "id,snippet",
+                "q": search_query + " official music video",
+                "type": "video",
+                "videoDefinition": "high",  # HD videos only
+                "videoDuration": "medium",  # 4-20 minutes
+                "maxResults": 10,  # Get multiple to filter
+                "key": YOUTUBE_API_KEY
+            }
             
-            if response.status_code == 200:
-                html = response.text
-                
-                # Extract ALL video IDs and their titles to filter out long concerts
-                video_pattern = r'"videoId":"([a-zA-Z0-9_-]{11})"'
-                matches = re.finditer(video_pattern, html)
-                
-                # Get first valid video (should be filtered by duration already)
-                for match in matches:
-                    video_id = match.group(1)
-                    # Avoid known concert/compilation patterns in the URL
-                    if video_id:
-                        return f"https://www.youtube.com/watch?v={video_id}"
-        
-        # Fallback to search results with duration filter
-        return search_url
+            search_response = await client.get(search_url, params=search_params)
+            if search_response.status_code != 200:
+                print(f"[!] YouTube API search error: {search_response.status_code}")
+                encoded_query = urllib.parse.quote_plus(search_query)
+                return f"https://www.youtube.com/results?search_query={encoded_query}"
+            
+            search_data = search_response.json()
+            if not search_data.get('items'):
+                print("[!] No YouTube search results")
+                encoded_query = urllib.parse.quote_plus(search_query)
+                return f"https://www.youtube.com/results?search_query={encoded_query}"
+            
+            # Step 2: Get video details for filtering
+            video_ids = [item['id']['videoId'] for item in search_data['items']]
+            videos_url = "https://www.googleapis.com/youtube/v3/videos"
+            videos_params = {
+                "part": "contentDetails,statistics",
+                "id": ",".join(video_ids),
+                "key": YOUTUBE_API_KEY
+            }
+            
+            videos_response = await client.get(videos_url, params=videos_params)
+            if videos_response.status_code != 200:
+                # Return first result if details API fails
+                first_video_id = video_ids[0]
+                return f"https://www.youtube.com/watch?v={first_video_id}"
+            
+            videos_data = videos_response.json()
+            
+            # Step 3: Filter videos by criteria
+            for video in videos_data.get('items', []):
+                try:
+                    video_id = video['id']
+                    duration = video['contentDetails']['duration']  # Format: PT4M32S
+                    stats = video['statistics']
+                    
+                    # Parse ISO 8601 duration (PT4M32S -> 272 seconds)
+                    import re
+                    match = re.match(r'PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?', duration)
+                    if not match:
+                        continue
+                    
+                    hours = int(match.group(1) or 0)
+                    minutes = int(match.group(2) or 0)
+                    seconds = int(match.group(3) or 0)
+                    total_seconds = hours * 3600 + minutes * 60 + seconds
+                    
+                    # Hard cap at 5 minutes (300 seconds)
+                    if total_seconds > 300:
+                        print(f"[SKIP] Video {video_id} too long: {total_seconds}s")
+                        continue
+                    
+                    # Prefer 4-5 minute videos
+                    if total_seconds < 240:  # Less than 4 minutes
+                        print(f"[SKIP] Video {video_id} too short: {total_seconds}s")
+                        continue
+                    
+                    # Check likes (500k minimum)
+                    like_count = int(stats.get('likeCount', 0))
+                    if like_count < 500000:
+                        print(f"[SKIP] Video {video_id} not enough likes: {like_count}")
+                        continue
+                    
+                    # Check if it's actually a video (has view count)
+                    view_count = int(stats.get('viewCount', 0))
+                    if view_count < 1000000:  # At least 1M views for quality
+                        print(f"[SKIP] Video {video_id} not enough views: {view_count}")
+                        continue
+                    
+                    print(f"[OK] Found video {video_id}: {total_seconds}s, {like_count} likes, {view_count} views")
+                    return f"https://www.youtube.com/watch?v={video_id}"
+                    
+                except (KeyError, ValueError) as e:
+                    print(f"[SKIP] Error parsing video: {e}")
+                    continue
+            
+            # If no video passed filters, return first result anyway
+            print("[!] No videos passed filters, using first result")
+            first_video_id = video_ids[0]
+            return f"https://www.youtube.com/watch?v={first_video_id}"
     
     except Exception as e:
-        print(f"[YouTube Search Error] {e}")
+        print(f"[YouTube API Error] {e}")
+        import traceback
+        traceback.print_exc()
         encoded_query = urllib.parse.quote_plus(search_query)
         return f"https://www.youtube.com/results?search_query={encoded_query}"
 
@@ -462,12 +535,9 @@ async def recommend_songs(request: SongRequest):
     valence_bucket, arousal_bucket = get_emotion_buckets(valence, arousal)
     mood_cell = f"{valence_bucket}-{arousal_bucket}"
     
-    # Generate songs and films using LLM
-    print(f"[*] Generating songs...")
+    # Generate songs using LLM
+    print(f"[*] Generating songs with YouTube API filtering...")
     songs = await generate_songs_with_llm(valence, arousal, invoked, expressed)
-    
-    print(f"[*] Generating short films...")
-    films = await generate_films_with_llm(valence, arousal, invoked, expressed)
     
     # Determine default language
     locale = reflection.get('client_context', {}).get('locale', 'en-US')
@@ -479,7 +549,6 @@ async def recommend_songs(request: SongRequest):
         "moment_id": request.rid,
         "lang_default": lang_default,
         "tracks": songs,
-        "films": films,  # Add films to response
         "embed": {
             "mode": "youtube_iframe",
             "embed_when_lang_is": {

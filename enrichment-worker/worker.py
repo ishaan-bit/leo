@@ -157,20 +157,20 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
         except Exception as update_err:
             print(f"[!] Failed to update reflection with final data: {update_err}")
         
-        # 4.5. Generate Song & Film Recommendations (after Stage-1, before Stage-2)
-        print(f"[*] Generating song & film recommendations...")
+        # 4.5. Generate Song Recommendations (after Stage-1, before Stage-2)
+        print(f"[*] Generating song recommendations...")
         try:
             song_worker_url = os.getenv('SONG_WORKER_URL', 'http://localhost:5051')
             song_response = requests.post(
                 f'{song_worker_url}/recommend',
                 json={'rid': rid, 'refresh': False},
-                timeout=180  # Increased to 180s - now generates both songs AND films
+                timeout=180  # Timeout for YouTube API calls
             )
             
             if song_response.ok:
                 song_data = song_response.json()
                 
-                # Add songs AND films to the reflection in Upstash
+                # Add songs to the reflection in Upstash
                 reflection_key = f'reflection:{rid}'
                 reflection_json = redis_client.get(reflection_key)
                 if reflection_json:
@@ -179,21 +179,15 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
                         'en': song_data.get('tracks', {}).get('en', {}),
                         'hi': song_data.get('tracks', {}).get('hi', {})
                     }
-                    reflection['films'] = {
-                        'en': song_data.get('films', {}).get('en', {}),
-                        'hi': song_data.get('films', {}).get('hi', {})
-                    }
                     redis_client.set(reflection_key, json.dumps(reflection), ex=30 * 24 * 60 * 60)
                     
-                    print(f"[OK] Songs & Films added to reflection:{rid}")
+                    print(f"[OK] Songs added to reflection:{rid}")
                     print(f"   Song EN: {reflection['songs']['en'].get('title', 'N/A')}")
                     print(f"   Song HI: {reflection['songs']['hi'].get('title', 'N/A')}")
-                    print(f"   Film EN: {reflection['films']['en'].get('title', 'N/A')}")
-                    print(f"   Film HI: {reflection['films']['hi'].get('title', 'N/A')}")
             else:
-                print(f"[!] Song/Film worker failed: {song_response.status_code}")
+                print(f"[!] Song worker failed: {song_response.status_code}")
         except Exception as song_err:
-            print(f"[!] Song/Film generation failed (non-fatal): {song_err}")
+            print(f"[!] Song generation failed (non-fatal): {song_err}")
         
         # 5. Stage-2: Post-Enrichment (creative content) - runs after Stage-1 is saved
         print(f"[*] Stage-2: Post-Enricher (background)...")
