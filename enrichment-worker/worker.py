@@ -151,7 +151,7 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
             song_response = requests.post(
                 f'{song_worker_url}/recommend',
                 json={'rid': rid, 'refresh': False},
-                timeout=30
+                timeout=60  # Increased from 30s to 60s for Ollama processing
             )
             
             if song_response.ok:
