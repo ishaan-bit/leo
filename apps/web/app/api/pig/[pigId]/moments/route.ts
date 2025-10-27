@@ -121,6 +121,7 @@ export async function GET(
           closingLine: data.post_enrichment?.closing_line || '',
           valence: data.final?.valence || data.valence || 0.5,
           arousal: data.final?.arousal || data.arousal || 0.5,
+          songs: data.songs || null, // Include songs data from enrichment worker
         };
         
         moments.push(moment);
