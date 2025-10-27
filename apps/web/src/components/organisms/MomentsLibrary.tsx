@@ -1754,7 +1754,8 @@ export default function MomentsLibrary({
                             <iframe
                               key={language} // Force remount on language change
                               src={(() => {
-                                const url = language === 'hi' ? selectedMoment.songs.hi.youtube_url : selectedMoment.songs.en.youtube_url;
+                                const url = language === 'hi' ? selectedMoment.songs?.hi?.youtube_url : selectedMoment.songs?.en?.youtube_url;
+                                if (!url) return '';
                                 // Extract video ID from URL and convert to embed URL
                                 const videoId = url.includes('watch?v=') 
                                   ? url.split('watch?v=')[1]?.split('&')[0]
