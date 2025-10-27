@@ -6,6 +6,7 @@ Polls Redis for normalized reflections, runs analytics, calls Ollama, merges res
 import os
 import time
 import json
+import requests
 from datetime import datetime
 from typing import Dict, Optional
 from dotenv import load_dotenv
@@ -146,7 +147,6 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
         # 4.5. Generate Song Recommendations (after Stage-1, before Stage-2)
         print(f"[*] Generating song recommendations...")
         try:
-            import requests
             song_worker_url = os.getenv('SONG_WORKER_URL', 'http://localhost:5051')
             song_response = requests.post(
                 f'{song_worker_url}/recommend',
@@ -160,13 +160,12 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
                 reflection_key = f'reflection:{rid}'
                 reflection_json = redis_client.get(reflection_key)
                 if reflection_json:
-                    import json as json_lib
-                    reflection = json_lib.loads(reflection_json)
+                    reflection = json.loads(reflection_json)
                     reflection['songs'] = {
                         'en': song_data.get('tracks', {}).get('en', []),
                         'hi': song_data.get('tracks', {}).get('hi', [])
                     }
-                    redis_client.set(reflection_key, json_lib.dumps(reflection), ex=30 * 24 * 60 * 60)
+                    redis_client.set(reflection_key, json.dumps(reflection), ex=30 * 24 * 60 * 60)
                     print(f"[OK] Songs added to reflection: {len(reflection['songs']['en'])} EN, {len(reflection['songs']['hi'])} HI")
             else:
                 print(f"[!] Song worker failed: {song_response.status_code}")
