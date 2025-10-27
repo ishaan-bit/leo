@@ -156,17 +156,21 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
             
             if song_response.ok:
                 song_data = song_response.json()
+                
                 # Add songs to the reflection in Upstash
                 reflection_key = f'reflection:{rid}'
                 reflection_json = redis_client.get(reflection_key)
                 if reflection_json:
                     reflection = json.loads(reflection_json)
                     reflection['songs'] = {
-                        'en': song_data.get('tracks', {}).get('en', []),
-                        'hi': song_data.get('tracks', {}).get('hi', [])
+                        'en': song_data.get('tracks', {}).get('en', {}),
+                        'hi': song_data.get('tracks', {}).get('hi', {})
                     }
                     redis_client.set(reflection_key, json.dumps(reflection), ex=30 * 24 * 60 * 60)
-                    print(f"[OK] Songs added to reflection: {len(reflection['songs']['en'])} EN, {len(reflection['songs']['hi'])} HI")
+                    
+                    print(f"[OK] Songs added to reflection:{rid}")
+                    print(f"   EN: {reflection['songs']['en'].get('title', 'N/A')}")
+                    print(f"   HI: {reflection['songs']['hi'].get('title', 'N/A')}")
             else:
                 print(f"[!] Song worker failed: {song_response.status_code}")
         except Exception as song_err:
