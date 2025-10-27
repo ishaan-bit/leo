@@ -178,7 +178,7 @@ OUTPUT (JSON only):
 }}"""
 
     try:
-        async with httpx.AsyncClient(timeout=60.0) as client:
+        async with httpx.AsyncClient(timeout=120.0) as client:  # Increased to 120s for Ollama
             response = await client.post(
                 f"{OLLAMA_URL}/api/generate",
                 json={
@@ -226,7 +226,7 @@ OUTPUT (JSON only):
                     youtube_url=en_url,
                     source_confidence='high',
                     why=parsed['en']['why']
-                ).dict(),
+                ).model_dump(),
                 "hi": SongPick(
                     title=parsed['hi']['title'],
                     artist=parsed['hi']['artist'],
@@ -235,7 +235,7 @@ OUTPUT (JSON only):
                     youtube_url=hi_url,
                     source_confidence='high',
                     why=parsed['hi']['why']
-                ).dict()
+                ).model_dump()
             }
     
     except Exception as e:
@@ -252,7 +252,7 @@ OUTPUT (JSON only):
                 youtube_url="https://www.youtube.com/watch?v=KQetemT1sWc",
                 source_confidence='medium',
                 why="Fallback: Gentle, hopeful melody (LLM unavailable)"
-            ).dict(),
+            ).model_dump(),
             "hi": SongPick(
                 title="Lag Jaa Gale",
                 artist="Lata Mangeshkar",
@@ -261,7 +261,7 @@ OUTPUT (JSON only):
                 youtube_url="https://www.youtube.com/watch?v=Q8Pk5Bq1IVo",
                 source_confidence='medium',
                 why="Fallback: Tender ghazal (LLM unavailable)"
-            ).dict()
+            ).model_dump()
         }
 
 @app.post("/recommend", response_model=SongRecommendation)
@@ -334,7 +334,7 @@ async def recommend_songs(request: SongRequest):
             "valence_bucket": valence_bucket,
             "arousal_bucket": arousal_bucket,
             "mood_cell": mood_cell,
-            "picked_at": datetime.utcnow().isoformat(),
+            "picked_at": datetime.now(datetime.UTC).isoformat(),
             "version": "song-worker-v2-llm"
         }
     }
