@@ -53,6 +53,17 @@ class SongPick(BaseModel):
     source_confidence: Literal['high', 'medium', 'low']
     why: str
 
+class FilmPick(BaseModel):
+    title: str
+    director: str
+    year: int
+    festival: str  # e.g., "Sundance 2024", "Cannes 2024"
+    duration_minutes: int
+    youtube_search: str
+    youtube_url: str
+    source_confidence: Literal['high', 'medium', 'low']
+    why: str
+
 class SongRecommendation(BaseModel):
     rid: str
     moment_id: str
@@ -96,18 +107,23 @@ def get_emotion_buckets(valence: float, arousal: float):
     arousal_bucket = 'low' if arousal <= 0.33 else 'high' if arousal >= 0.67 else 'medium'
     return valence_bucket, arousal_bucket
 
-async def get_youtube_video_url(search_query: str, is_hindi: bool = False) -> str:
+async def get_youtube_video_url(search_query: str, is_hindi: bool = False, is_short_film: bool = False) -> str:
     """
-    Search YouTube and return direct video URL for a SHORT song (not concerts/compilations)
+    Search YouTube and return direct video URL for a SHORT song/film (not concerts/compilations)
     Filters out long videos to avoid concerts and compilations
     """
     try:
-        # Add duration filter to search query to avoid long concerts
-        # sp=EgQQARgB means filter by duration: short (under 4 minutes)
-        # sp=EgQQARgC means filter by duration: medium (4-20 minutes)
+        # Add duration filter to search query
+        # sp=EgQQARgB means filter by duration: short (under 4 minutes) - for songs
+        # sp=EgQQARgC means filter by duration: medium (4-20 minutes) - for songs/short films
         encoded_query = urllib.parse.quote_plus(search_query)
-        # Use medium duration filter (4-20 min) to get full songs but avoid concerts
-        search_url = f"https://www.youtube.com/results?search_query={encoded_query}&sp=EgQQARgC"
+        
+        if is_short_film:
+            # For short films, use medium duration filter (4-20 min) or no filter
+            search_url = f"https://www.youtube.com/results?search_query={encoded_query}"
+        else:
+            # For songs, use medium duration filter to avoid concerts
+            search_url = f"https://www.youtube.com/results?search_query={encoded_query}&sp=EgQQARgC"
         
         async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.get(search_url, follow_redirects=True)
@@ -132,7 +148,7 @@ async def get_youtube_video_url(search_query: str, is_hindi: bool = False) -> st
     except Exception as e:
         print(f"[YouTube Search Error] {e}")
         encoded_query = urllib.parse.quote_plus(search_query)
-        return f"https://www.youtube.com/results?search_query={encoded_query}&sp=EgQQARgC"
+        return f"https://www.youtube.com/results?search_query={encoded_query}"
 
 
 async def generate_songs_with_llm(
@@ -266,6 +282,146 @@ OUTPUT (JSON only):
             ).model_dump()
         }
 
+async def generate_films_with_llm(
+    valence: float,
+    arousal: float,
+    invoked: str,
+    expressed: str
+) -> dict:
+    """Use Ollama phi3 to generate contextual short film recommendations"""
+    
+    prompt = f"""You are a film curator specializing in award-winning short films from 2024-2025 international film festivals. Suggest TWO real short films that match this emotion:
+
+EMOTION DATA:
+- Valence: {valence:.2f} (-1=very negative, 0=neutral, +1=very positive)
+- Arousal: {arousal:.2f} (0=calm/low-energy, 1=excited/high-energy)
+- What they felt: "{invoked}"
+- How they described it: "{expressed}"
+
+STRICT REQUIREMENTS:
+1. ONE English short film - from Sundance, Cannes, Berlin, SXSW, Tribeca 2024-2025
+2. ONE Hindi/Indian short film - from Mumbai Film Festival, MAMI, IFFK, or international festivals 2024-2025
+3. Films must be 3-7 minutes duration (narrative short films, NOT documentaries or music videos)
+4. Films must have been shown at recognized film festivals
+5. Films should match the emotion (sad films for negative valence, uplifting for positive)
+6. Only suggest films you are CERTAIN exist - real festival selections
+7. For Hindi films: Write title in ENGLISH LETTERS (transliteration)
+
+OUTPUT (JSON only):
+{{
+  "en": {{
+    "title": "Exact Film Title",
+    "director": "Director Name",
+    "year": 2024,
+    "festival": "Sundance 2024",
+    "duration_minutes": 5,
+    "why": "How this matches the emotion (2 sentences max)"
+  }},
+  "hi": {{
+    "title": "Film Title in English script",
+    "director": "Director Name", 
+    "year": 2024,
+    "festival": "Mumbai Film Festival 2024",
+    "duration_minutes": 6,
+    "why": "How this matches the emotion (2 sentences max)"
+  }}
+}}"""
+
+    try:
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            response = await client.post(
+                f"{OLLAMA_URL}/api/generate",
+                json={
+                    "model": "phi3:latest",
+                    "prompt": prompt,
+                    "stream": False,
+                    "options": {
+                        "temperature": 0.8,
+                        "top_p": 0.9,
+                        "num_predict": 500,
+                    }
+                }
+            )
+            
+            if response.status_code != 200:
+                raise Exception(f"Ollama API error: {response.status_code}")
+            
+            data = response.json()
+            raw_response = data.get('response', '')
+            
+            # Parse JSON from LLM response
+            json_text = raw_response.strip()
+            json_match = re.search(r'```json\s*(\{[\s\S]*?\})\s*```', raw_response) or \
+                        re.search(r'(\{[\s\S]*\})', raw_response)
+            
+            if json_match:
+                json_text = json_match.group(1)
+            
+            parsed = json.loads(json_text)
+            
+            # Build response with direct YouTube URLs
+            en_search = f"{parsed['en']['title']} {parsed['en']['director']} short film"
+            hi_search = f"{parsed['hi']['title']} {parsed['hi']['director']} short film"
+            
+            # Get direct YouTube URLs
+            en_url = await get_youtube_video_url(en_search, is_short_film=True)
+            hi_url = await get_youtube_video_url(hi_search, is_short_film=True)
+            
+            return {
+                "en": FilmPick(
+                    title=parsed['en']['title'],
+                    director=parsed['en']['director'],
+                    year=int(parsed['en']['year']),
+                    festival=parsed['en']['festival'],
+                    duration_minutes=int(parsed['en']['duration_minutes']),
+                    youtube_search=en_search,
+                    youtube_url=en_url,
+                    source_confidence='high',
+                    why=parsed['en']['why']
+                ).model_dump(),
+                "hi": FilmPick(
+                    title=parsed['hi']['title'],
+                    director=parsed['hi']['director'],
+                    year=int(parsed['hi']['year']),
+                    festival=parsed['hi']['festival'],
+                    duration_minutes=int(parsed['hi']['duration_minutes']),
+                    youtube_search=hi_search,
+                    youtube_url=hi_url,
+                    source_confidence='high',
+                    why=parsed['hi']['why']
+                ).model_dump()
+            }
+    
+    except Exception as e:
+        print(f"[Film LLM Error] {type(e).__name__}: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        # Fallback films (well-known festival shorts)
+        return {
+            "en": FilmPick(
+                title="The Neighbors' Window",
+                director="Marshall Curry",
+                year=2020,
+                festival="Sundance 2020",
+                duration_minutes=20,
+                youtube_search="The Neighbors Window Marshall Curry short film",
+                youtube_url="https://www.youtube.com/results?search_query=The+Neighbors+Window+Marshall+Curry",
+                source_confidence='medium',
+                why="Fallback: Award-winning emotional short (LLM unavailable)"
+            ).model_dump(),
+            "hi": FilmPick(
+                title="Ghar Ki Murgi",
+                director="Arjun Kamath",
+                year=2020,
+                festival="MAMI 2020",
+                duration_minutes=15,
+                youtube_search="Ghar Ki Murgi short film",
+                youtube_url="https://www.youtube.com/results?search_query=Ghar+Ki+Murgi+short+film",
+                source_confidence='medium',
+                why="Fallback: Festival short (LLM unavailable)"
+            ).model_dump()
+        }
+
 @app.post("/recommend", response_model=SongRecommendation)
 async def recommend_songs(request: SongRequest):
     """
@@ -305,8 +461,12 @@ async def recommend_songs(request: SongRequest):
     valence_bucket, arousal_bucket = get_emotion_buckets(valence, arousal)
     mood_cell = f"{valence_bucket}-{arousal_bucket}"
     
-    # Generate songs using LLM
+    # Generate songs and films using LLM
+    print(f"[*] Generating songs...")
     songs = await generate_songs_with_llm(valence, arousal, invoked, expressed)
+    
+    print(f"[*] Generating short films...")
+    films = await generate_films_with_llm(valence, arousal, invoked, expressed)
     
     # Determine default language
     locale = reflection.get('client_context', {}).get('locale', 'en-US')
@@ -318,6 +478,7 @@ async def recommend_songs(request: SongRequest):
         "moment_id": request.rid,
         "lang_default": lang_default,
         "tracks": songs,
+        "films": films,  # Add films to response
         "embed": {
             "mode": "youtube_iframe",
             "embed_when_lang_is": {
