@@ -1769,7 +1769,7 @@ export default function MomentsLibrary({
                               }}
                               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                               allowFullScreen
-                              title={language === 'hi' ? selectedMoment.songs.hi.title : selectedMoment.songs.en.title}
+                              title={language === 'hi' ? selectedMoment.songs?.hi?.title : selectedMoment.songs?.en?.title}
                             />
                           </div>
                         </div>
@@ -1789,7 +1789,7 @@ export default function MomentsLibrary({
                               letterSpacing: '0.02em',
                             }}
                           >
-                            {language === 'hi' ? selectedMoment.songs.hi.title : selectedMoment.songs.en.title}
+                            {language === 'hi' ? selectedMoment.songs?.hi?.title : selectedMoment.songs?.en?.title}
                           </div>
                           <div
                             className="text-sm mt-1"
@@ -1799,7 +1799,7 @@ export default function MomentsLibrary({
                               opacity: 0.7,
                             }}
                           >
-                            {language === 'hi' ? selectedMoment.songs.hi.artist : selectedMoment.songs.en.artist} • {language === 'hi' ? selectedMoment.songs.hi.year : selectedMoment.songs.en.year}
+                            {language === 'hi' ? selectedMoment.songs?.hi?.artist : selectedMoment.songs?.en?.artist} • {language === 'hi' ? selectedMoment.songs?.hi?.year : selectedMoment.songs?.en?.year}
                           </div>
                           <div
                             className="text-xs italic mt-3 max-w-lg mx-auto"
@@ -1810,7 +1810,7 @@ export default function MomentsLibrary({
                               lineHeight: '1.7',
                             }}
                           >
-                            {language === 'hi' ? selectedMoment.songs.hi.why : selectedMoment.songs.en.why}
+                            {language === 'hi' ? selectedMoment.songs?.hi?.why : selectedMoment.songs?.en?.why}
                           </div>
                         </div>
                       </div>
