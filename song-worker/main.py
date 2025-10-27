@@ -109,13 +109,20 @@ def get_emotion_buckets(valence: float, arousal: float):
     arousal_bucket = 'low' if arousal <= 0.33 else 'high' if arousal >= 0.67 else 'medium'
     return valence_bucket, arousal_bucket
 
-async def get_youtube_video_url(search_query: str, is_hindi: bool = False, is_short_film: bool = False) -> str:
+async def get_youtube_video_url(search_query: str, song_title: str = "", is_hindi: bool = False, is_short_film: bool = False) -> str:
     """
     Search YouTube and return direct video URL with proper filtering:
-    - Music videos: 4-5 minutes, 500k+ likes
+    - Music videos: 4-5 minutes, engagement-based
     - Short films: 3-7 minutes, festival quality
+    
+    Args:
+        search_query: Full search string including artist (e.g., "Yesterday The Beatles official music video")
+        song_title: Just the song title for matching (e.g., "Yesterday")
+        is_hindi: Whether this is a Hindi song
+        is_short_film: Whether this is a short film
     """
     try:
+        print(f"[YT Search] Query: {search_query}, Hindi: {is_hindi}")
         print(f"[DEBUG] YouTube API Key present: {bool(YOUTUBE_API_KEY)}, length: {len(YOUTUBE_API_KEY) if YOUTUBE_API_KEY else 0}")
         if not YOUTUBE_API_KEY or len(YOUTUBE_API_KEY) < 20:
             # Fallback to scraping if no API key
@@ -165,8 +172,11 @@ async def get_youtube_video_url(search_query: str, is_hindi: bool = False, is_sh
                 encoded_query = urllib.parse.quote_plus(search_query)
                 return f"https://www.youtube.com/results?search_query={encoded_query}"
             
-            # Step 2: Get video details for filtering
+            # Step 2: Get video details for filtering + Build title map from search results
             video_ids = [item['id']['videoId'] for item in search_data['items']]
+            # Create map of videoId -> snippet title for title verification
+            video_titles = {item['id']['videoId']: item['snippet']['title'] for item in search_data['items']}
+            
             videos_url = "https://www.googleapis.com/youtube/v3/videos"
             videos_params = {
                 "part": "contentDetails,statistics,status",  # Added status for availability check
@@ -183,7 +193,7 @@ async def get_youtube_video_url(search_query: str, is_hindi: bool = False, is_sh
             videos_data = videos_response.json()
             
             # Step 3: Filter videos by criteria and collect candidates
-            candidates = []  # Store (video_id, total_seconds, like_count, view_count, privacy_status)
+            candidates = []  # Store (video_id, total_seconds, like_count, view_count, privacy_status, title)
             
             for video in videos_data.get('items', []):
                 try:
@@ -191,6 +201,9 @@ async def get_youtube_video_url(search_query: str, is_hindi: bool = False, is_sh
                     duration = video['contentDetails']['duration']  # Format: PT4M32S
                     stats = video['statistics']
                     video_status = video.get('status', {})
+                    
+                    # Get video title from earlier search results
+                    video_title = video_titles.get(video_id, '').lower()
                     
                     # Check if video is actually playable
                     upload_status = video_status.get('uploadStatus', '')
@@ -218,55 +231,96 @@ async def get_youtube_video_url(search_query: str, is_hindi: bool = False, is_sh
                     like_count = int(stats.get('likeCount', 0))
                     view_count = int(stats.get('viewCount', 0))
                     
-                    # Add to candidates list
-                    candidates.append((video_id, total_seconds, like_count, view_count, privacy_status))
+                    # Add to candidates list with title
+                    candidates.append((video_id, total_seconds, like_count, view_count, privacy_status, video_title))
                     
                 except (KeyError, ValueError) as e:
                     print(f"[SKIP] Error parsing video: {e}")
                     continue
             
-            # Step 4: Find best match from candidates
-            # Priority 1: Perfect match (4-5 min, meets engagement criteria)
-            for video_id, total_seconds, like_count, view_count, privacy_status in candidates:
+            # Step 4: Find best match from candidates with TITLE VERIFICATION
+            # Use the actual song title (passed as parameter) for matching, NOT the full search query
+            # This prevents "Come Together" matching when searching for "Here Comes The Sun" (both by Beatles)
+            if song_title:
+                song_title_lower = song_title.lower()
+            else:
+                # Fallback: extract from search query (less accurate)
+                song_title_lower = search_query.split(' official')[0].split(' by ')[0].lower()
+            
+            song_keywords = set(song_title_lower.split())
+            print(f"[Title Match] Looking for keywords: {song_keywords}")
+            
+            # Priority 1: Perfect match (4-5 min, meets engagement criteria, title matches)
+            for video_id, total_seconds, like_count, view_count, privacy_status, video_title in candidates:
                 # Duration: 4-5 minutes (240-300 seconds)
                 if total_seconds < 240 or total_seconds > 300:
+                    continue
+                
+                # Title verification: at least 2 keywords from song title must appear in video title
+                video_keywords = set(video_title.split())
+                matching_keywords = song_keywords & video_keywords
+                if len(matching_keywords) < 2:
+                    print(f"[SKIP] Title mismatch: '{video_title}' doesn't match '{song_title_lower}'")
                     continue
                 
                 # Engagement criteria
                 if is_hindi:
                     if like_count >= 50000 and view_count >= 500000:
                         lang_label = "HI"
-                        print(f"[PERFECT] Found {lang_label} video {video_id}: {total_seconds}s, {like_count} likes, {view_count} views")
+                        print(f"[PERFECT] Found {lang_label} video {video_id}: '{video_title}' - {total_seconds}s, {like_count} likes, {view_count} views")
                         return f"https://www.youtube.com/watch?v={video_id}"
                 else:
                     if like_count >= 500000 and view_count >= 1000000:
                         lang_label = "EN"
-                        print(f"[PERFECT] Found {lang_label} video {video_id}: {total_seconds}s, {like_count} likes, {view_count} views")
+                        print(f"[PERFECT] Found {lang_label} video {video_id}: '{video_title}' - {total_seconds}s, {like_count} likes, {view_count} views")
                         return f"https://www.youtube.com/watch?v={video_id}"
             
-            # Priority 2: Relaxed duration (3-7 min) but meets engagement
-            for video_id, total_seconds, like_count, view_count, privacy_status in candidates:
+            # Priority 2: Relaxed duration (3-7 min) but meets engagement and title matches
+            for video_id, total_seconds, like_count, view_count, privacy_status, video_title in candidates:
                 if total_seconds < 180 or total_seconds > 420:
+                    continue
+                
+                # Title verification
+                video_keywords = set(video_title.split())
+                matching_keywords = song_keywords & video_keywords
+                if len(matching_keywords) < 2:
+                    print(f"[SKIP] Title mismatch: '{video_title}' doesn't match '{song_title_lower}'")
                     continue
                 
                 if is_hindi:
                     if like_count >= 50000 and view_count >= 500000:
                         lang_label = "HI"
-                        print(f"[GOOD] Found {lang_label} video {video_id}: {total_seconds}s, {like_count} likes, {view_count} views")
+                        print(f"[GOOD] Found {lang_label} video {video_id}: '{video_title}' - {total_seconds}s, {like_count} likes, {view_count} views")
                         return f"https://www.youtube.com/watch?v={video_id}"
                 else:
                     if like_count >= 500000 and view_count >= 1000000:
                         lang_label = "EN"
-                        print(f"[GOOD] Found {lang_label} video {video_id}: {total_seconds}s, {like_count} likes, {view_count} views")
+                        print(f"[GOOD] Found {lang_label} video {video_id}: '{video_title}' - {total_seconds}s, {like_count} likes, {view_count} views")
                         return f"https://www.youtube.com/watch?v={video_id}"
             
-            # Priority 3: Best available - sort by engagement and pick highest
-            if candidates:
+            # Priority 3: Best available with title match - sort by engagement and pick highest
+            # Filter to only candidates with matching titles first
+            title_matched_candidates = []
+            for video_id, total_seconds, like_count, view_count, privacy_status, video_title in candidates:
+                video_keywords = set(video_title.split())
+                matching_keywords = song_keywords & video_keywords
+                if len(matching_keywords) >= 2:
+                    title_matched_candidates.append((video_id, total_seconds, like_count, view_count, privacy_status, video_title))
+            
+            if title_matched_candidates:
                 # Sort by (view_count * like_count) to get most popular
-                candidates_sorted = sorted(candidates, key=lambda x: x[2] * x[3], reverse=True)
-                video_id, total_seconds, like_count, view_count, privacy_status = candidates_sorted[0]
+                candidates_sorted = sorted(title_matched_candidates, key=lambda x: x[2] * x[3], reverse=True)
+                video_id, total_seconds, like_count, view_count, privacy_status, video_title = candidates_sorted[0]
                 lang_label = "HI" if is_hindi else "EN"
-                print(f"[FALLBACK] Using best available {lang_label} video {video_id}: {total_seconds}s, {like_count} likes, {view_count} views")
+                print(f"[FALLBACK] Using best available {lang_label} video {video_id}: '{video_title}' - {total_seconds}s, {like_count} likes, {view_count} views")
+                return f"https://www.youtube.com/watch?v={video_id}"
+            
+            # If no title matches, just use best engagement (last resort)
+            if candidates:
+                candidates_sorted = sorted(candidates, key=lambda x: x[2] * x[3], reverse=True)
+                video_id, total_seconds, like_count, view_count, privacy_status, video_title = candidates_sorted[0]
+                lang_label = "HI" if is_hindi else "EN"
+                print(f"[LAST RESORT] No title match found, using highest engagement {lang_label} video {video_id}: '{video_title}' - {total_seconds}s, {like_count} likes, {view_count} views")
                 return f"https://www.youtube.com/watch?v={video_id}"
             
             # If no candidates at all, return first result
@@ -290,52 +344,54 @@ async def generate_songs_with_llm(
 ) -> dict:
     """Use Ollama phi3 to generate contextual song recommendations"""
     
-    prompt = f"""You are a music curator with encyclopedic knowledge of 1960-1975 songs. Suggest TWO real, verifiable songs that match this emotion:
+    prompt = f"""Pick TWO songs (one English, one Hindi) from the lists below that match this emotion. 
 
-EMOTION DATA:
+⚠️ CRITICAL: You MUST pick songs from these exact lists. Do NOT suggest other songs even if they match better.
+⚠️ If you suggest a song NOT on these lists, it will be REJECTED and replaced with a generic fallback.
+
+EMOTION:
 - Valence: {valence:.2f} (-1=very negative, 0=neutral, +1=very positive)
-- Arousal: {arousal:.2f} (0=calm/low-energy, 1=excited/high-energy)
-- What they felt: "{invoked}"
-- How they described it: "{expressed}"
+- Arousal: {arousal:.2f} (0=calm, 1=excited)
+- Feeling: "{invoked}" / "{expressed}"
 
-CRITICAL REQUIREMENTS - READ CAREFULLY:
-1. ONE English song - must be a REAL, FAMOUS song from 1960-1975 that EVERYONE knows
-   - Examples: The Beatles, Rolling Stones, Bob Dylan, Simon & Garfunkel, Joni Mitchell, Carole King, The Doors, Led Zeppelin
-   - VARIETY: Do NOT always suggest "Here Comes The Sun" - suggest different songs based on the emotion
-   - For sadness: "The Sound of Silence", "Yesterday", "Both Sides Now"
-   - For happiness: "Good Vibrations", "Dancing in the Street", "I Can See Clearly Now"
-   - For anger/power: "Sympathy for the Devil", "Born to Be Wild", "Fortunate Son"
-   - For calm/peace: "What a Wonderful World", "Bridge Over Troubled Water", "Fire and Rain"
+ENGLISH SONGS (pick ONE from this list ONLY):
+- "Yesterday" by The Beatles (sad, melancholic)
+- "The Sound of Silence" by Simon & Garfunkel (sad, withdrawn, introspective)
+- "Both Sides Now" by Joni Mitchell (sad, reflective, bittersweet)
+- "Bridge Over Troubled Water" by Simon & Garfunkel (sad but hopeful, comforting)
+- "Here Comes The Sun" by The Beatles (happy, optimistic, uplifting)
+- "Good Vibrations" by The Beach Boys (happy, excited, joyful)
+- "Dancing in the Street" by Martha and the Vandellas (happy, energetic, celebratory)
+- "I Can See Clearly Now" by Johnny Nash (happy, relieved, positive)
+- "What a Wonderful World" by Louis Armstrong (calm, peaceful, grateful)
+- "Fire and Rain" by James Taylor (calm, sad, reflective)
+- "Sympathy for the Devil" by The Rolling Stones (angry, powerful, intense)
+- "Born to Be Wild" by Steppenwolf (angry, rebellious, free)
+- "Fortunate Son" by Creedence Clearwater Revival (angry, frustrated, protest)
+- "A Change Is Gonna Come" by Sam Cooke (sad, hopeful, determined)
+- "Imagine" by John Lennon (calm, peaceful, hopeful)
 
-2. ONE Hindi song - ONLY suggest songs you are 100% CERTAIN exist with the EXACT title and artist
-   - FAMOUS Bollywood classics ONLY: Lata Mangeshkar, Kishore Kumar, Mohammed Rafi, Asha Bhosle, Mukesh
-   - VERIFIED titles: "Lag Jaa Gale", "Pyar Hua Ikrar Hua", "Aye Mere Watan Ke Logo", "Kabhi Kabhi Mere Dil Mein"
-   - Write title in ENGLISH LETTERS (transliteration), NOT Devanagari
-   - If unsure, pick a very famous song you KNOW exists rather than inventing titles
-   - DO NOT make up fake song titles - use only well-known classics
+HINDI SONGS (pick ONE from this list ONLY):
+- "Lag Jaa Gale" by Lata Mangeshkar (sad, longing, romantic)
+- "Tere Bina Zindagi Se" by Lata Mangeshkar & Kishore Kumar (sad, longing)
+- "Pyar Hua Ikrar Hua" by Lata Mangeshkar & Manna Dey (happy, romantic, sweet)
+- "Chalte Chalte" by Kishore Kumar (happy, carefree, optimistic)
+- "Yeh Dosti" by Kishore Kumar & Manna Dey (happy, friendship, energetic)
+- "Mere Sapno Ki Rani" by Kishore Kumar (happy, romantic, playful)
+- "Chura Liya Hai Tumne" by Asha Bhosle & Mohammed Rafi (happy, romantic)
+- "Kabhi Kabhi Mere Dil Mein" by Mukesh (calm, reflective, romantic)
+- "Dum Maro Dum" by Asha Bhosle (energetic, rebellious, intense)
+- "Aye Mere Watan Ke Logo" by Lata Mangeshkar (emotional, patriotic, sad)
 
-3. Match the SPECIFIC emotion - the song should resonate with what they're feeling:
-   - Sad → melancholic, slow songs to validate their sadness
-   - Happy → upbeat, joyful songs to amplify positivity  
-   - Angry → powerful, intense songs to feel heard
-   - Calm → gentle, peaceful songs to maintain serenity
-   - The goal is EMOTIONAL RESONANCE - make them feel understood
+RULES:
+1. Output ONLY valid JSON - no extra text, no comments, no explanations in JSON fields
+2. "title" field = song title ONLY (do NOT add artist names)
+3. "artist" field = artist name ONLY (short form)
+4. Pick songs that match the emotion (sad→sad songs, happy→happy songs, angry→intense songs)
+5. Use EXACT titles and artists from lists above
 
-OUTPUT (JSON only):
-{{
-  "en": {{
-    "title": "Exact Song Title",
-    "artist": "Exact Artist Name",
-    "year": 1970,
-    "why": "How this matches the emotion (2 sentences max)"
-  }},
-  "hi": {{
-    "title": "Song Title in English script (MUST be a real, famous song)",
-    "artist": "Artist Name",
-    "year": 1970,
-    "why": "How this matches the emotion (2 sentences max)"
-  }}
-}}"""
+OUTPUT FORMAT (keep it short):
+{{"en": {{"title": "Song", "artist": "Artist", "year": 1970, "why": "Short reason"}}, "hi": {{"title": "Song", "artist": "Artist", "year": 1970, "why": "Short reason"}}}}"""
 
     try:
         async with httpx.AsyncClient(timeout=120.0) as client:  # Increased to 120s for Ollama
@@ -346,18 +402,23 @@ OUTPUT (JSON only):
                     "prompt": prompt,
                     "stream": False,
                     "options": {
-                        "temperature": 0.9,  # Increased for more variety
-                        "top_p": 0.95,
-                        "num_predict": 500,
+                        "temperature": 0.7,  # Lower temperature for more structured output
+                        "top_p": 0.9,
+                        "num_predict": 300  # Shorter limit to force concise responses
                     }
                 }
             )
             
             if response.status_code != 200:
+                print(f"[Ollama API Error] Status: {response.status_code}, Body: {response.text}")
                 raise Exception(f"Ollama API error: {response.status_code}")
             
             data = response.json()
+            print(f"[Ollama] Keys: {list(data.keys())}")
             raw_response = data.get('response', '')
+            if not raw_response:
+                print(f"[Ollama] EMPTY - Full data: {data}")
+                raise Exception("Ollama returned empty response")
             
             # Parse JSON from LLM response
             json_text = raw_response.strip()
@@ -368,44 +429,88 @@ OUTPUT (JSON only):
                 json_text = json_match.group(1)
             
             # Clean common JSON formatting issues
-            json_text = json_text.replace('\n', ' ')  # Remove newlines
+            # FIRST remove // comments before flattening (they can span to end of line and break JSON)
+            json_text = re.sub(r'//[^\n]*', '', json_text)  # Remove // comments
+            json_text = json_text.replace('\n', ' ')  # Then remove newlines
             json_text = re.sub(r',\s*}', '}', json_text)  # Remove trailing commas
             json_text = re.sub(r',\s*]', ']', json_text)  # Remove trailing commas in arrays
             
+            # Fix malformed title fields where LLM adds artist (e.g., "title": "Song" by Artist feat...)
+            # This breaks JSON structure - extract just the song title before " by "
+            json_text = re.sub(r'"title":\s*"([^"]+?)\s+by\s+[^"]*"', r'"title": "\1"', json_text)
+            
             try:
                 parsed = json.loads(json_text)
+                print(f"[LLM Success] Parsed songs: EN={parsed.get('en', {}).get('title')}, HI={parsed.get('hi', {}).get('title')}")
+                
+                # Validate BOTH English and Hindi songs are from allowed lists
+                allowed_english_songs = [
+                    "Yesterday", "The Sound of Silence", "Both Sides Now", "Bridge Over Troubled Water",
+                    "Here Comes The Sun", "Good Vibrations", "Dancing in the Street", "I Can See Clearly Now",
+                    "What a Wonderful World", "Fire and Rain", "Sympathy for the Devil", "Born to Be Wild",
+                    "Fortunate Son", "A Change Is Gonna Come", "Imagine"
+                ]
+                allowed_hindi_songs = [
+                    "Lag Jaa Gale", "Pyar Hua Ikrar Hua", "Aye Mere Watan Ke Logo",
+                    "Kabhi Kabhi Mere Dil Mein", "Tere Bina Zindagi Se", "Dum Maro Dum",
+                    "Chalte Chalte", "Yeh Dosti", "Mere Sapno Ki Rani", "Chura Liya Hai Tumne"
+                ]
+                
+                # Check English song
+                en_title = parsed.get('en', {}).get('title', '')
+                if en_title not in allowed_english_songs:
+                    print(f"[LLM REJECTED] English song '{en_title}' not in allowed list. Using emotion-based fallback.")
+                    # Use emotion-based fallback with variety based on valence + arousal
+                    if valence < -0.2:  # Sad
+                        if arousal > 0.5:
+                            parsed['en'] = {"title": "A Change Is Gonna Come", "artist": "Sam Cooke", "year": 1965, "why": "Hopeful yet sad"}
+                        else:
+                            parsed['en'] = {"title": "The Sound of Silence", "artist": "Simon & Garfunkel", "year": 1964, "why": "Introspective melancholic"}
+                    elif valence > 0.3:  # Happy
+                        if arousal > 0.6:
+                            parsed['en'] = {"title": "Good Vibrations", "artist": "The Beach Boys", "year": 1966, "why": "Energetic joyful"}
+                        else:
+                            parsed['en'] = {"title": "Here Comes The Sun", "artist": "The Beatles", "year": 1969, "why": "Uplifting optimistic"}
+                    else:  # Neutral
+                        if arousal > 0.6:
+                            parsed['en'] = {"title": "Born to Be Wild", "artist": "Steppenwolf", "year": 1968, "why": "Powerful energetic"}
+                        else:
+                            parsed['en'] = {"title": "Bridge Over Troubled Water", "artist": "Simon & Garfunkel", "year": 1970, "why": "Comforting reflective"}
+                
+                # Check Hindi song
+                hindi_title = parsed.get('hi', {}).get('title', '')
+                if hindi_title not in allowed_hindi_songs:
+                    print(f"[LLM REJECTED] Hindi song '{hindi_title}' not in allowed list. Using emotion-based fallback.")
+                    # Use emotion-based fallback with variety based on valence + arousal
+                    if valence < -0.2:  # Sad
+                        if arousal > 0.5:
+                            parsed['hi'] = {"title": "Tere Bina Zindagi Se", "artist": "Lata Mangeshkar & Kishore Kumar", "year": 1975, "why": "Longing sadness"}
+                        else:
+                            parsed['hi'] = {"title": "Lag Jaa Gale", "artist": "Lata Mangeshkar", "year": 1964, "why": "Classic melancholic"}
+                    elif valence > 0.3:  # Happy
+                        if arousal > 0.6:
+                            parsed['hi'] = {"title": "Yeh Dosti", "artist": "Kishore Kumar & Manna Dey", "year": 1975, "why": "Energetic friendship"}
+                        else:
+                            parsed['hi'] = {"title": "Pyar Hua Ikrar Hua", "artist": "Lata Mangeshkar & Manna Dey", "year": 1960, "why": "Joyful romantic"}
+                    else:  # Neutral
+                        if arousal > 0.6:
+                            parsed['hi'] = {"title": "Dum Maro Dum", "artist": "Asha Bhosle", "year": 1971, "why": "Rebellious intense"}
+                        else:
+                            parsed['hi'] = {"title": "Kabhi Kabhi Mere Dil Mein", "artist": "Mukesh", "year": 1976, "why": "Reflective calm"}
+                    
             except json.JSONDecodeError as e:
                 print(f"[LLM Error] JSONDecodeError: {e}")
-                print(f"[LLM Raw] {raw_response[:500]}")
-                # Fallback: Use default songs
-                return {
-                    "en": SongPick(
-                        title="Here Comes The Sun",
-                        artist="The Beatles",
-                        year=1969,
-                        youtube_search="Here Comes The Sun The Beatles official",
-                        youtube_url=await get_youtube_video_url("Here Comes The Sun The Beatles official", is_hindi=False),
-                        source_confidence='medium',
-                        why="Classic uplifting song with positive emotions"
-                    ).model_dump(),
-                    "hi": SongPick(
-                        title="Pyar Hua Ikrar Hua",
-                        artist="Lata Mangeshkar, Manna Dey",
-                        year=1955,
-                        youtube_search="Pyar Hua Ikrar Hua original song",
-                        youtube_url=await get_youtube_video_url("Pyar Hua Ikrar Hua original song", is_hindi=True),
-                        source_confidence='medium',
-                        why="Timeless romantic melody with gentle emotions"
-                    ).model_dump()
-                }
+                print(f"[LLM Raw Response] {raw_response}")
+                print(f"[LLM Cleaned JSON] {json_text}")
+                raise Exception(f"Failed to parse LLM response - using fallback would give wrong songs")
             
             # Build response with direct YouTube URLs (search and extract first video)
             en_search = f"{parsed['en']['title']} {parsed['en']['artist']} official music video"
             hi_search = f"{parsed['hi']['title']} {parsed['hi']['artist']} official video"
             
-            # Get direct YouTube URLs with duration filtering
-            en_url = await get_youtube_video_url(en_search, is_hindi=False)
-            hi_url = await get_youtube_video_url(hi_search, is_hindi=True)
+            # Get direct YouTube URLs with duration filtering - pass song title for accurate matching
+            en_url = await get_youtube_video_url(en_search, song_title=parsed['en']['title'], is_hindi=False)
+            hi_url = await get_youtube_video_url(hi_search, song_title=parsed['hi']['title'], is_hindi=True)
             
             return {
                 "en": SongPick(
@@ -429,30 +534,11 @@ OUTPUT (JSON only):
             }
     
     except Exception as e:
-        print(f"[LLM Error] {type(e).__name__}: {str(e)}")
+        print(f"[CRITICAL LLM Error] {type(e).__name__}: {str(e)}")
         import traceback
         traceback.print_exc()
-        # Fallback songs
-        return {
-            "en": SongPick(
-                title="Here Comes the Sun",
-                artist="The Beatles",
-                year=1969,
-                youtube_search="Here Comes the Sun The Beatles official",
-                youtube_url="https://www.youtube.com/watch?v=KQetemT1sWc",
-                source_confidence='medium',
-                why="Fallback: Gentle, hopeful melody (LLM unavailable)"
-            ).model_dump(),
-            "hi": SongPick(
-                title="Lag Jaa Gale",
-                artist="Lata Mangeshkar",
-                year=1964,
-                youtube_search="Lag Jaa Gale Lata Mangeshkar original",
-                youtube_url="https://www.youtube.com/watch?v=Q8Pk5Bq1IVo",
-                source_confidence='medium',
-                why="Fallback: Tender ghazal (LLM unavailable)"
-            ).model_dump()
-        }
+        # Re-raise the error instead of using fallback - we want to see what's breaking
+        raise HTTPException(500, f"Song generation failed: {str(e)}")
 
 async def generate_films_with_llm(
     valence: float,

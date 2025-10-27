@@ -89,8 +89,7 @@ export default function MomentsLibrary({
   const [translatedContent, setTranslatedContent] = useState<TranslatedMoment | null>(null);
   const [isTranslating, setIsTranslating] = useState(false);
   
-  // Song recommendations state
-  const [loadingSongs, setLoadingSongs] = useState(false);
+  // Songs are enriched automatically by worker - no separate loading state needed
   
   const containerRef = useRef<HTMLDivElement>(null);
   const leoRef = useRef<HTMLDivElement>(null);
@@ -107,53 +106,11 @@ export default function MomentsLibrary({
       setLanguage('en');
       setTranslatedContent(null);
       setIsTranslating(false);
-      setLoadingSongs(false);
     }
   }, [selectedMoment]);
 
-  // Fetch song recommendations when moment is selected
-  useEffect(() => {
-    if (selectedMoment && !selectedMoment.songs) {
-      fetchSongRecommendations(selectedMoment.id);
-    }
-  }, [selectedMoment]);
-
-  // Fetch song recommendations from API
-  const fetchSongRecommendations = async (rid: string) => {
-    setLoadingSongs(true);
-    try {
-      const response = await fetch('/api/recommend-songs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rid }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        
-        // Update the selected moment with song data
-        setSelectedMoment(prev => {
-          if (!prev || prev.id !== rid) return prev;
-          return {
-            ...prev,
-            songs: {
-              en: data.tracks.en,
-              hi: data.tracks.hi,
-            },
-          };
-        });
-
-        // Also update in moments list for caching
-        setMoments(prev => prev.map(m => 
-          m.id === rid ? { ...m, songs: { en: data.tracks.en, hi: data.tracks.hi } } : m
-        ));
-      }
-    } catch (error) {
-      console.error('Failed to fetch song recommendations:', error);
-    } finally {
-      setLoadingSongs(false);
-    }
-  };
+  // Songs are already enriched by enrichment worker - no need to fetch separately
+  // They're loaded with the moment data from Redis
 
   // Translation function
   const handleLanguageToggle = async () => {
@@ -1723,66 +1680,100 @@ export default function MomentsLibrary({
                           textShadow: '0 1px 1px rgba(0,0,0,0.1)',
                         }}
                       >
-                        A Song from Another Time 🎵
+                        A song found for your moment 🎵
                       </h3>
                       
-                      {/* YouTube Player - Language aware */}
-                      <div className="space-y-4">
-                        {/* YouTube link button (search results) */}
-                        <a
-                          href={language === 'hi' ? selectedMoment.songs.hi.youtube_url : selectedMoment.songs.en.youtube_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block w-full"
-                        >
-                          <div 
-                            className="relative w-full rounded-lg overflow-hidden p-8 text-center transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+                      {/* YouTube Embedded Player - Glassmorphic Card */}
+                      <div className="space-y-6">
+                        {/* Language Toggle - Minimal pill */}
+                        <div className="flex justify-center">
+                          <div
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-md transition-all duration-300"
                             style={{
-                              aspectRatio: '16/9',
-                              boxShadow: `0 4px 24px ${atmosphere.accentColor}30`,
-                              background: `linear-gradient(135deg, ${atmosphere.accentColor}15, ${atmosphere.gradient[1]}10)`,
-                              border: `1px solid ${atmosphere.accentColor}20`,
+                              background: `linear-gradient(135deg, ${atmosphere.accentColor}10, ${atmosphere.gradient[1]}08)`,
+                              border: `1px solid ${language === 'hi' ? '#f59e0b' : atmosphere.accentColor}30`,
+                              boxShadow: `0 4px 16px ${language === 'hi' ? '#f59e0b' : atmosphere.accentColor}20`,
                             }}
                           >
-                            <div className="flex flex-col items-center justify-center h-full space-y-4">
-                              {/* Play icon */}
-                              <div 
-                                className="w-16 h-16 rounded-full flex items-center justify-center"
-                                style={{
-                                  background: atmosphere.accentColor,
-                                  boxShadow: `0 4px 16px ${atmosphere.accentColor}40`,
-                                }}
-                              >
-                                <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-                                  <path d="M8 5v14l11-7z" />
-                                </svg>
-                              </div>
-                              
-                              <div>
-                                <div
-                                  className="text-lg font-medium mb-1"
-                                  style={{
-                                    fontFamily: '"Cormorant Garamond", "EB Garamond", "Georgia", serif',
-                                    color: atmosphere.textColor,
-                                  }}
-                                >
-                                  Listen on YouTube
-                                </div>
-                                <div
-                                  className="text-sm opacity-60"
-                                  style={{ color: atmosphere.textColor }}
-                                >
-                                  Click to play this song
-                                </div>
-                              </div>
-                            </div>
+                            <button
+                              onClick={() => setLanguage('en')}
+                              className="px-3 py-1 rounded-full text-sm font-medium transition-all duration-200"
+                              style={{
+                                fontFamily: '"Inter", -apple-system, sans-serif',
+                                background: language === 'en' ? atmosphere.accentColor : 'transparent',
+                                color: language === 'en' ? '#ffffff' : atmosphere.textMuted,
+                                opacity: language === 'en' ? 1 : 0.6,
+                              }}
+                            >
+                              English
+                            </button>
+                            <button
+                              onClick={() => setLanguage('hi')}
+                              className="px-3 py-1 rounded-full text-sm font-medium transition-all duration-200"
+                              style={{
+                                fontFamily: '"Inter", -apple-system, sans-serif',
+                                background: language === 'hi' ? '#f59e0b' : 'transparent',
+                                color: language === 'hi' ? '#ffffff' : atmosphere.textMuted,
+                                opacity: language === 'hi' ? 1 : 0.6,
+                              }}
+                            >
+                              हिंदी
+                            </button>
                           </div>
-                        </a>
+                        </div>
+
+                        {/* YouTube Player Card */}
+                        <div 
+                          className="relative rounded-2xl overflow-hidden backdrop-blur-xl transition-all duration-300"
+                          style={{
+                            boxShadow: `0 8px 32px ${language === 'hi' ? '#f59e0b' : atmosphere.accentColor}25`,
+                            background: `linear-gradient(135deg, ${language === 'hi' ? 'rgba(245, 158, 11, 0.08)' : `${atmosphere.accentColor}08`}, rgba(255, 255, 255, 0.02))`,
+                            border: `1px solid ${language === 'hi' ? 'rgba(245, 158, 11, 0.2)' : `${atmosphere.accentColor}20`}`,
+                          }}
+                        >
+                          {/* Gradient border glow */}
+                          <div 
+                            className="absolute inset-0 rounded-2xl opacity-50 pointer-events-none"
+                            style={{
+                              background: language === 'hi' 
+                                ? 'linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(251, 191, 36, 0.1) 50%, rgba(245, 158, 11, 0.15) 100%)'
+                                : `linear-gradient(135deg, ${atmosphere.accentColor}15 0%, ${atmosphere.gradient[1]}10 50%, ${atmosphere.accentColor}15 100%)`,
+                            }}
+                          />
+
+                          {/* YouTube iframe embed */}
+                          <div className="relative" style={{ paddingBottom: '56.25%' /* 16:9 aspect ratio */ }}>
+                            <iframe
+                              key={language} // Force remount on language change
+                              src={(() => {
+                                const url = language === 'hi' ? selectedMoment.songs.hi.youtube_url : selectedMoment.songs.en.youtube_url;
+                                // Extract video ID from URL and convert to embed URL
+                                const videoId = url.includes('watch?v=') 
+                                  ? url.split('watch?v=')[1]?.split('&')[0]
+                                  : url.split('/').pop();
+                                return `https://www.youtube.com/embed/${videoId}?autoplay=0&rel=0&modestbranding=1`;
+                              })()}
+                              className="absolute top-0 left-0 w-full h-full rounded-xl"
+                              style={{
+                                border: 'none',
+                                filter: 'saturate(1.1) brightness(1.05)',
+                              }}
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                              title={language === 'hi' ? selectedMoment.songs.hi.title : selectedMoment.songs.en.title}
+                            />
+                          </div>
+                        </div>
                         
-                        {/* Song metadata */}
-                        <div className="text-center">
+                        {/* Song metadata - refined with glassmorphism */}
+                        <div 
+                          className="text-center p-4 rounded-xl backdrop-blur-sm"
+                          style={{
+                            background: `linear-gradient(135deg, ${atmosphere.accentColor}05, transparent)`,
+                          }}
+                        >
                           <div
-                            className="text-[15px] font-medium"
+                            className="text-lg font-medium"
                             style={{
                               fontFamily: '"Cormorant Garamond", "EB Garamond", "Georgia", serif',
                               color: atmosphere.textColor,
@@ -1792,7 +1783,7 @@ export default function MomentsLibrary({
                             {language === 'hi' ? selectedMoment.songs.hi.title : selectedMoment.songs.en.title}
                           </div>
                           <div
-                            className="text-[13px] mt-1"
+                            className="text-sm mt-1"
                             style={{
                               fontFamily: '"Inter", -apple-system, sans-serif',
                               color: atmosphere.textMuted,
@@ -1802,38 +1793,17 @@ export default function MomentsLibrary({
                             {language === 'hi' ? selectedMoment.songs.hi.artist : selectedMoment.songs.en.artist} • {language === 'hi' ? selectedMoment.songs.hi.year : selectedMoment.songs.en.year}
                           </div>
                           <div
-                            className="text-[12px] italic mt-2 max-w-md mx-auto"
+                            className="text-xs italic mt-3 max-w-lg mx-auto"
                             style={{
                               fontFamily: '"Inter", -apple-system, sans-serif',
                               color: atmosphere.textMuted,
                               opacity: 0.6,
-                              lineHeight: '1.6',
+                              lineHeight: '1.7',
                             }}
                           >
                             {language === 'hi' ? selectedMoment.songs.hi.why : selectedMoment.songs.en.why}
                           </div>
                         </div>
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {/* Loading state for songs */}
-                  {loadingSongs && !selectedMoment.songs && (
-                    <motion.div
-                      className="mb-10 text-center"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.4 }}
-                    >
-                      <div
-                        className="text-[13px] italic"
-                        style={{
-                          fontFamily: '"Playfair Display", "Lora", "Georgia", serif',
-                          color: atmosphere.textMuted,
-                          opacity: 0.5,
-                        }}
-                      >
-                        Finding a song for this moment...
                       </div>
                     </motion.div>
                   )}
