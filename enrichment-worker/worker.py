@@ -255,10 +255,19 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
             if reflection_json:
                 reflection = json.loads(reflection_json)
                 reflection['final'] = enriched_stage1['final']
-                redis_client.set(reflection_key, json.dumps(reflection), ex=30 * 24 * 60 * 60)
-                print(f"[OK] Added 'final' data to reflection")
+                write_success = redis_client.set(reflection_key, json.dumps(reflection), ex=30 * 24 * 60 * 60)
+                if write_success:
+                    print(f"[OK] Added 'final' data to reflection:{rid}")
+                    print(f"   Primary: {enriched_stage1['final']['wheel']['primary']}")
+                    print(f"   Wheel: {enriched_stage1['final']['wheel']['primary']} → {enriched_stage1['final']['wheel'].get('secondary')} → {enriched_stage1['final']['wheel'].get('tertiary')}")
+                else:
+                    print(f"[!] Redis write failed for reflection:{rid}")
+            else:
+                print(f"[!] Could not fetch reflection:{rid} to update with final data")
         except Exception as update_err:
             print(f"[!] Failed to update reflection with final data: {update_err}")
+            import traceback
+            traceback.print_exc()
         
         # 4.5. Start Song Generation in Background (parallel with Stage-2)
         print(f"[*] Starting song generation in background thread...")
