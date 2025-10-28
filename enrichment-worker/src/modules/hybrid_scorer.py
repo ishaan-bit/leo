@@ -222,8 +222,34 @@ class HybridScorer:
             print(f"   [4/9] Ollama rerank...")
             ollama_result = self._ollama_rerank(normalized_text)
             
-            # Step 5: Fuse scores
-            fused = self._fuse_scores(hf_scores, secondary_tertiary_scores, driver_scores, surface_scores, ollama_result, normalized_text)
+            # Step 4.5: Extract circadian phase early for A1 priors
+            circadian_phase = None
+            if timestamp:
+                try:
+                    from datetime import datetime
+                    import pytz
+                    dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                    ist = pytz.timezone('Asia/Kolkata')
+                    local_dt = dt.astimezone(ist)
+                    hour = local_dt.hour + local_dt.minute / 60.0
+                    
+                    if hour < 6:
+                        circadian_phase = 'night'
+                    elif hour < 12:
+                        circadian_phase = 'morning'
+                    elif hour < 17:
+                        circadian_phase = 'afternoon'
+                    elif hour < 21:
+                        circadian_phase = 'evening'
+                    else:
+                        circadian_phase = 'night'
+                    
+                    print(f"   [A1] Circadian phase: {circadian_phase} (hour: {hour:.1f})")
+                except Exception as e:
+                    print(f"   [A1] Circadian extraction failed: {e}")
+            
+            # Step 5: Fuse scores (with circadian priors)
+            fused = self._fuse_scores(hf_scores, secondary_tertiary_scores, driver_scores, surface_scores, ollama_result, normalized_text, circadian_phase)
             
             # Step 6: Deterministic correction
             corrected = self._correct_output(fused, normalized_text)
@@ -1091,10 +1117,14 @@ JSON:"""
         driver_scores: Dict[str, float],
         surface_scores: Dict[str, float],
         ollama_result: Optional[Dict],
-        normalized_text: str
+        normalized_text: str,
+        circadian_phase: Optional[str] = None
     ) -> Dict:
         """
         Fuse HF + Embeddings + Ollama into final Willcox labels
+        
+        Args:
+            circadian_phase: Time of day phase for circadian priors (A1)
         
         Returns:
             Dict with primary, secondary, tertiary, invoked, expressed, valence, arousal, confidence
@@ -1196,8 +1226,8 @@ JSON:"""
             if isinstance(ollama_expressed, list):
                 expressed = list(set(expressed + ollama_expressed[:3]))[:3]
         
-        # Valence/Arousal: Use Willcox ranges
-        valence, arousal = self._estimate_valence_arousal(primary, secondary, driver_scores)
+        # Valence/Arousal: Use Willcox ranges + circadian priors (A1)
+        valence, arousal = self._estimate_valence_arousal(primary, secondary, driver_scores, circadian_phase)
         
         # Confidence: based on agreement across models
         confidence = self._estimate_confidence(hf_scores, ollama_result, primary)
@@ -1217,10 +1247,19 @@ JSON:"""
         self,
         primary: str,
         secondary: Optional[str],
-        driver_scores: Dict[str, float]
+        driver_scores: Dict[str, float],
+        circadian_phase: Optional[str] = None
     ) -> Tuple[float, float]:
         """
-        Estimate valence and arousal from Willcox emotion + text signals
+        Estimate valence and arousal from Willcox emotion + text signals + circadian priors
+        
+        A1: Circadian priors - morning boosts valence/arousal, night dampens
+        
+        Args:
+            primary: Willcox primary emotion
+            secondary: Willcox secondary emotion (optional)
+            driver_scores: Embedding similarity scores for driver lexicon
+            circadian_phase: Time of day phase ('morning', 'afternoon', 'evening', 'night')
         
         Returns:
             (valence, arousal) tuple in [0, 1]
@@ -1256,6 +1295,20 @@ JSON:"""
         if driver_scores.get('withdrawal', 0) > 0.3:
             base_v -= 0.2
             base_a -= 0.1
+        
+        # A1: Apply circadian priors (phase-aware bias)
+        if circadian_phase:
+            if circadian_phase == 'morning':
+                # Morning: boost both valence and arousal (awakening, energized baseline)
+                base_v += 0.10  # Range: +0.07 to +0.15 per spec
+                base_a += 0.15  # Range: +0.10 to +0.20 per spec
+                print(f"   [A1 Circadian Prior] Morning bias: V +0.10, A +0.15")
+            elif circadian_phase == 'night':
+                # Night: dampen both (fatigue, winding down)
+                base_v -= 0.07  # Range: -0.05 to -0.10 per spec
+                base_a -= 0.07  # Range: -0.05 to -0.10 per spec
+                print(f"   [A1 Circadian Prior] Night bias: V -0.07, A -0.07")
+            # Afternoon/evening: neutral (no prior)
         
         # Clamp to [0, 1]
         valence = max(0.0, min(1.0, base_v))
