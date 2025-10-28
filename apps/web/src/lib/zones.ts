@@ -6,14 +6,15 @@
  */
 
 // IMPORTANT: These MUST match the Willcox Feelings Wheel 6 primaries from the backend
-// Backend returns: Joyful, Sad, Peaceful, Powerful, Scared, Mad
+// Backend canonical primaries: sad, angry, fearful, happy, peaceful, strong (lowercase)
+// Backend maps to frontend: happy→joyful, angry→mad, fearful→scared, strong→powerful
 export type PrimaryEmotion = 
-  | 'joyful'
-  | 'sad' 
-  | 'peaceful'
-  | 'powerful'
-  | 'scared'   // Willcox uses "Scared" not "fearful"
-  | 'mad';     // Willcox uses "Mad" not "angry"
+  | 'joyful'    // Backend: happy
+  | 'sad'       // Backend: sad
+  | 'peaceful'  // Backend: peaceful
+  | 'powerful'  // Backend: strong
+  | 'scared'    // Backend: fearful
+  | 'mad';      // Backend: angry
 
 export interface Zone {
   id: PrimaryEmotion;

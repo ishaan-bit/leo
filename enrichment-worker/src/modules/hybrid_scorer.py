@@ -158,10 +158,11 @@ class HybridScorer:
         self.timeout = 120
         self.use_ollama = use_ollama
         
-        # Fusion weights (HF 0.5 + Embedding 0.35 + Ollama 0.15 = 1.0)
-        self.hf_weight = 0.5
-        self.emb_weight = 0.35
-        self.ollama_weight = 0.15
+        # Fusion weights - CRITICAL: Ollama MUST override HF when it has strong opinion
+        # HF is often wrong/random, Ollama phi3 is smarter
+        self.hf_weight = 0.35       # Reduced from 0.5
+        self.emb_weight = 0.35      # Unchanged
+        self.ollama_weight = 0.30   # Increased from 0.15 to override HF
         
         # HF API endpoints
         self.hf_zeroshot_url = "https://api-inference.huggingface.co/models/facebook/bart-large-mnli"
@@ -343,19 +344,28 @@ class HybridScorer:
             print(f"   Expressed: {serialized['expressed']}")
             print(f"   Congruence: {congruence}")
             
-            # CRITICAL: Map old Willcox v1 names to new v2 names for frontend compatibility
-            # Frontend expects: joyful, sad, mad, scared, peaceful, powerful
-            # Backend returns: Happy, Sad, Angry, Fearful, Peaceful, Strong
+            # CRITICAL: Map backend canonical primaries to frontend zone primaries
+            # Backend uses: sad, angry, fearful, happy, peaceful, strong (from willcox_wheel.json)
+            # Frontend expects: sad, mad, scared, joyful, peaceful, powerful (from zones.ts)
+            # This mapping MUST be case-insensitive to handle both capitalized and lowercase
             v1_to_v2_mapping = {
+                # Capitalized versions (from Ollama or old code)
                 'Happy': 'joyful',
                 'Sad': 'sad',
                 'Angry': 'mad',
                 'Fearful': 'scared',
                 'Peaceful': 'peaceful',
-                'Strong': 'powerful'
+                'Strong': 'powerful',
+                # Lowercase versions (from wheel JSON and HF)
+                'happy': 'joyful',
+                'sad': 'sad',
+                'angry': 'mad',
+                'fearful': 'scared',
+                'peaceful': 'peaceful',
+                'strong': 'powerful',
             }
             
-            # Map primary emotion
+            # Map primary emotion (case-insensitive)
             old_primary = serialized['wheel']['primary']
             new_primary = v1_to_v2_mapping.get(old_primary, old_primary.lower())
             serialized['wheel']['primary'] = new_primary
@@ -379,30 +389,16 @@ class HybridScorer:
             Dict of emotion -> score or None
         """
         try:
-            # Use all secondaries + tertiaries as candidate labels for richer matching
-            candidate_labels = []
-            label_to_primary = {}
-            
-            for primary, secondaries in self.WILLCOX_HIERARCHY.items():
-                # Add primary itself
-                candidate_labels.append(primary.lower())
-                label_to_primary[primary.lower()] = primary
-                
-                # Add all secondaries
-                for secondary, tertiaries in secondaries.items():
-                    candidate_labels.append(secondary)
-                    label_to_primary[secondary] = primary
-                    
-                    # Add all tertiaries
-                    for tertiary in tertiaries:
-                        candidate_labels.append(tertiary)
-                        label_to_primary[tertiary] = primary
+            # CRITICAL: Use ONLY the 6 primaries for zero-shot classification
+            # Using 216 labels dilutes scores to ~0.167 (random uniform)
+            # We'll use embeddings for secondary/tertiary later
+            candidate_labels = [p.lower() for p in self.WILLCOX_PRIMARY]
             
             payload = {
                 "inputs": text,
                 "parameters": {
                     "candidate_labels": candidate_labels,
-                    "multi_label": True
+                    "multi_label": False  # Single-label for primary classification
                 }
             }
             
@@ -419,20 +415,14 @@ class HybridScorer:
             
             result = response.json()
             
-            # Aggregate scores by Willcox primary
-            primary_scores = {p: 0.0 for p in self.WILLCOX_PRIMARY}
+            # Map lowercase labels back to proper Willcox primaries
+            normalized = {}
             for label, score in zip(result['labels'], result['scores']):
-                primary = label_to_primary.get(label)
-                if primary:
-                    # Take max score for each primary
-                    primary_scores[primary] = max(primary_scores[primary], score)
-            
-            # Softmax normalization
-            scores_array = np.array(list(primary_scores.values()))
-            exp_scores = np.exp(scores_array - np.max(scores_array))  # Numerical stability
-            softmax_scores = exp_scores / exp_scores.sum()
-            
-            normalized = {p: float(s) for p, s in zip(self.WILLCOX_PRIMARY, softmax_scores)}
+                # Find matching primary (case-insensitive)
+                for primary in self.WILLCOX_PRIMARY:
+                    if primary.lower() == label.lower():
+                        normalized[primary] = float(score)
+                        break
             
             print(f"   HF scores: {sorted(normalized.items(), key=lambda x: -x[1])[:3]}")
             
@@ -1296,6 +1286,27 @@ JSON:"""
         Returns:
             Dict with primary, secondary, tertiary, invoked, expressed, valence, arousal, confidence
         """
+        # Map Ollama's legacy v1 labels to v2 (Willcox canonical)
+        OLLAMA_TO_WILLCOX = {
+            'Joyful': 'Happy',
+            'Mad': 'Angry',
+            'Scared': 'Fearful',
+            'Powerful': 'Strong',
+            'Peaceful': 'Peaceful',  # unchanged
+            'Sad': 'Sad',  # unchanged
+            'Happy': 'Happy',  # support both
+            'Angry': 'Angry',
+            'Fearful': 'Fearful',
+            'Strong': 'Strong'
+        }
+        
+        # Normalize Ollama result if present
+        if ollama_result and ollama_result.get('primary'):
+            ollama_primary_raw = ollama_result['primary']
+            ollama_result['primary'] = OLLAMA_TO_WILLCOX.get(ollama_primary_raw, ollama_primary_raw)
+            if ollama_primary_raw != ollama_result['primary']:
+                print(f"   [Ollama Mapping] {ollama_primary_raw} → {ollama_result['primary']}")
+        
         # Primary emotion: weighted fusion
         fused_emotion_scores = {}
         for emotion in self.WILLCOX_PRIMARY:
@@ -1310,6 +1321,10 @@ JSON:"""
                 self.hf_weight * hf_score + 
                 self.ollama_weight * ollama_boost
             )
+        
+        # DEBUG: Show fusion scores
+        print(f"   [Fusion Scores] {sorted(fused_emotion_scores.items(), key=lambda x: -x[1])[:3]}")
+        print(f"   [Ollama Primary] {ollama_result.get('primary') if ollama_result else 'None'}")
         
         # Pick top primary
         primary = max(fused_emotion_scores.items(), key=lambda x: x[1])[0]
