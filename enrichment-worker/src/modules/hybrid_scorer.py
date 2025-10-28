@@ -274,6 +274,17 @@ class HybridScorer:
             invoked_list = corrected.get('invoked', [])
             expressed_list = corrected.get('expressed', [])
             
+            # Step 8.5: A2 - Apply EMA drift with adaptive alpha (smooth valence/arousal with history)
+            if history:
+                valence, arousal, ema_meta = self._apply_adaptive_ema_smoothing(
+                    valence, arousal, history, confidence_score, timestamp
+                )
+                # Store EMA metadata for transparency
+                ema_alpha_used = ema_meta['alpha']
+                print(f"   [A2 EMA Drift] Alpha: {ema_alpha_used:.2f}, V: {ema_meta['raw_v']:.2f}→{valence:.2f}, A: {ema_meta['raw_a']:.2f}→{arousal:.2f}")
+            else:
+                ema_alpha_used = 1.0  # No smoothing if no history
+            
             # Map invoked to specific events (not just copying invoked)
             events = self._map_to_events(invoked_list, valence, arousal)
             
@@ -1320,6 +1331,108 @@ JSON:"""
         arousal = max(0.0, min(1.0, base_a))
         
         return valence, arousal
+    
+    def _apply_adaptive_ema_smoothing(
+        self,
+        raw_valence: float,
+        raw_arousal: float,
+        history: list,
+        confidence: float,
+        timestamp: Optional[str] = None
+    ) -> Tuple[float, float, Dict]:
+        """
+        A2: Apply EMA smoothing with adaptive alpha
+        
+        Alpha calculation based on:
+        - User history sparsity (sparse → high α, rely more on current)
+        - Expressed confidence (low → high α, rely more on current as signal is weak)
+        - Time since last reflection (long gap → high α, context shifted)
+        
+        Args:
+            raw_valence: Current reflection's valence
+            raw_arousal: Current reflection's arousal
+            history: List of past reflections
+            confidence: Confidence score [0, 1]
+            timestamp: Current reflection timestamp
+        
+        Returns:
+            (smoothed_valence, smoothed_arousal, metadata_dict)
+        """
+        if not history:
+            return raw_valence, raw_arousal, {'alpha': 1.0, 'raw_v': raw_valence, 'raw_a': raw_arousal, 'reason': 'no_history'}
+        
+        # Calculate adaptive alpha
+        base_alpha = 0.4  # Default moderate smoothing
+        
+        # Factor 1: History sparsity (fewer reflections → higher α)
+        history_count = len(history)
+        if history_count < 5:
+            sparsity_boost = 0.2
+        elif history_count < 15:
+            sparsity_boost = 0.1
+        else:
+            sparsity_boost = 0.0
+        
+        # Factor 2: Confidence (low confidence → higher α, trust current less)
+        # Actually INVERTED: low confidence means raw signal is unreliable, so LOWER α (more smoothing)
+        if confidence < 0.5:
+            confidence_adjust = -0.15  # More smoothing
+        elif confidence > 0.8:
+            confidence_adjust = 0.1   # Less smoothing, trust current
+        else:
+            confidence_adjust = 0.0
+        
+        # Factor 3: Time since last (long gap → higher α, context changed)
+        time_gap_boost = 0.0
+        if timestamp and history:
+            try:
+                from datetime import datetime
+                current_dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                last_ts = history[-1].get('enriched_at') or history[-1].get('created_at')
+                if last_ts:
+                    last_dt = datetime.fromisoformat(last_ts.replace('Z', '+00:00'))
+                    gap_days = (current_dt - last_dt).total_seconds() / 86400
+                    
+                    if gap_days >= 20:
+                        time_gap_boost = 0.25  # α ≥ 0.6 per spec
+                    elif gap_days >= 7:
+                        time_gap_boost = 0.15
+                    elif gap_days <= 2:
+                        time_gap_boost = -0.15  # α ≤ 0.3 per spec (more smoothing for frequent)
+            except:
+                pass
+        
+        # Compute final alpha
+        alpha = base_alpha + sparsity_boost + confidence_adjust + time_gap_boost
+        alpha = max(0.0, min(1.0, alpha))  # Clamp to [0, 1]
+        
+        # Compute historical EMA (7-day window)
+        def get_recent_ema(history, field, window=7):
+            recent_vals = [h.get('final', {}).get(field, 0.5) for h in history[-window:]]
+            if not recent_vals:
+                return 0.5
+            # Simple average (could use proper EMA, but average is simpler for baseline)
+            return sum(recent_vals) / len(recent_vals)
+        
+        historical_v = get_recent_ema(history, 'valence')
+        historical_a = get_recent_ema(history, 'arousal')
+        
+        # Blend: smoothed = α * current + (1 - α) * historical
+        smoothed_v = alpha * raw_valence + (1 - alpha) * historical_v
+        smoothed_a = alpha * raw_arousal + (1 - alpha) * historical_a
+        
+        # Clamp
+        smoothed_v = max(0.0, min(1.0, smoothed_v))
+        smoothed_a = max(0.0, min(1.0, smoothed_a))
+        
+        return smoothed_v, smoothed_a, {
+            'alpha': round(alpha, 2),
+            'raw_v': round(raw_valence, 2),
+            'raw_a': round(raw_arousal, 2),
+            'historical_v': round(historical_v, 2),
+            'historical_a': round(historical_a, 2),
+            'reason': f"sparse:{sparsity_boost:+.2f}, conf:{confidence_adjust:+.2f}, gap:{time_gap_boost:+.2f}"
+        }
     
     def _estimate_confidence(
         self,
