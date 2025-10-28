@@ -592,102 +592,30 @@ class MicroDreamAgent:
                 lines[-1] = lines[-1].rstrip('.') + " — and that's new."
         
         return lines
-        """
-        Generate Line 1 — Tone of Now.
-        Based on valence_mean, arousal_mean, dominant_primary.
-        """
-        valence = metrics['valence_mean']
-        arousal = metrics['arousal_mean']
-        primary = metrics['dominant_primary']
-        
-        # Direct emotional statements per primary
-        if primary == 'peaceful':
-            if valence > 0.3:
-                line = "You found some calm this week."
-            elif arousal < 0.4:
-                line = "Things slowed down, quieter now."
-            else:
-                line = "A steady peace, holding ground."
-        
-        elif primary == 'joyful':
-            if valence > 0.4:
-                line = "Light moments lifted you up."
-            else:
-                line = "Small joys breaking through."
-        
-        elif primary == 'mad':
-            if arousal > 0.6:
-                line = "Anger flared up, still burning."
-            else:
-                line = "Frustration simmered underneath."
-        
-        elif primary == 'scared':
-            if arousal > 0.6:
-                line = "Fear shook you, racing fast."
-            elif valence < -0.2:
-                line = "Worry pressed in heavy."
-            else:
-                line = "Unease lingered, holding tight."
-        
-        elif primary == 'sad':
-            if valence < -0.3:
-                line = "Sadness weighed you down hard."
-            else:
-                line = "A quiet ache, settling in."
-        
-        elif primary == 'powerful':
-            if valence > 0.3:
-                line = "Strength rose, clear and steady."
-            else:
-                line = "You stood your ground firmly."
-        
-        else:
-            # Fallback to valence/arousal mapping
-            if valence > 0.2 and arousal < 0.5:
-                line = "A steady peace, holding ground."
-            elif valence < -0.2 and arousal > 0.5:
-                line = "Tension ran high, restless."
-            else:
-                line = "Things shifted, holding steady."
-        
-        return line
     
-    def generate_line2_direction(self, metrics: Dict) -> str:
+    def generate_micro_dream_lines(self, metrics: Dict, moments: List[Dict]) -> List[str]:
         """
-        Generate Line 2 — Direction / Next.
-        Based on delta_valence and closing_line.
+        Generate 3-5 line micro-dream based on arc direction.
+        
+        Uses template system (v1.2):
+          - Upturn: L1 (past heaviness) → L2 (morning rise) → L3 (social ease) → L4 (pivot)
+          - Downturn: L1 (struggle) → L2 (decline) → L3 (acknowledge) → L4 (care cue)
+          - Steady: L1 (routine) → L2 (constancy) → L3 (curiosity)
         """
-        delta = metrics['delta_valence']
-        closing_line = metrics['latest_closing_line']
-        primary = metrics['latest_primary']
+        arc = metrics['arc_direction']
+        language = self.detect_language(moments)
         
-        # Prefer closing_line if available
-        if closing_line and len(closing_line) > 5:
-            return closing_line
+        if arc == 'upturn':
+            lines = self.generate_upturn_template(metrics, moments, language)
+        elif arc == 'downturn':
+            lines = self.generate_downturn_template(metrics, moments, language)
+        else:  # steady
+            lines = self.generate_steady_template(metrics, moments, language)
         
-        # Delta-based direction
-        if delta >= 0.1:
-            line = "You're moving toward lighter ground."
-        elif delta <= -0.1:
-            line = "It got harder. Be gentle."
-        else:
-            line = "Holding steady; keep the small light."
+        # Validate and add bridge if needed
+        lines = self.validate_and_bridge(lines, metrics)
         
-        # Fallback to primary-based closing
-        if not closing_line:
-            primary_closings = {
-                'joyful': 'Carry this light forward.',
-                'peaceful': 'Let the calm keep watch.',
-                'powerful': 'Stand in your strength.',
-                'mad': 'Name it, reshape it.',
-                'sad': 'Be gentle with what aches.',
-                'scared': "Breathe; you're not alone."
-            }
-            
-            if primary in primary_closings and abs(delta) < 0.05:
-                line = primary_closings[primary]
-        
-        return line
+        return lines
     
     def refine_with_ollama(self, lines: List[str], metrics: Dict) -> List[str]:
         """
