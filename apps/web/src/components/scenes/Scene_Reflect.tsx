@@ -490,19 +490,26 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
 
   // Handle interlude completion → transition to breathing
   const handleInterludeComplete = async (primaryEmotion: string) => {
-    console.log('[Scene_Reflect] ✅ Zoom complete, fetching reflection data for breathing');
+    console.log('[Scene_Reflect] ✅ Interlude complete, primary emotion:', primaryEmotion);
+    console.log('[Scene_Reflect] Fetching reflection data for breathing...');
     
     try {
       // Fetch full reflection to get secondary + invoked words
       const response = await fetch(`/api/reflect/${currentReflectionId}`);
-      if (!response.ok) throw new Error('Failed to fetch reflection');
+      if (!response.ok) {
+        console.error('[Scene_Reflect] Failed to fetch reflection, status:', response.status);
+        throw new Error('Failed to fetch reflection');
+      }
       
       const reflection = await response.json();
+      console.log('[Scene_Reflect] Reflection data:', reflection);
+      
       const zone = getZone(primaryEmotion);
       
       if (!zone) {
-        console.error('[Scene_Reflect] No zone found for primary:', primaryEmotion);
-        return;
+        console.error('[Scene_Reflect] ❌ No zone found for primary:', primaryEmotion);
+        // Still transition even if zone not found - use default
+        console.log('[Scene_Reflect] Proceeding with default zone');
       }
       
       const invokedWords = reflection.final?.invoked
@@ -511,25 +518,44 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
             : reflection.final.invoked.split(/[+\s]+/).map((w: string) => w.trim()))
         : (reflection.final?.events?.labels || []);
       
-      console.log('[Scene_Reflect] Transitioning to breathing:', {
+      console.log('[Scene_Reflect] ✅ Transitioning to breathing:', {
         primary: primaryEmotion,
         secondary: reflection.final?.wheel?.secondary,
-        zone: zone.name,
+        zone: zone?.name || 'default',
         invokedWords,
       });
       
       setBreathingContext({
         primary: primaryEmotion as PrimaryEmotion,
         secondary: reflection.final?.wheel?.secondary,
-        zoneName: zone.name,
-        zoneColor: zone.color,
+        zoneName: zone?.name || 'Default',
+        zoneColor: zone?.color || '#A78BFA',
         invokedWords,
       });
       
+      // CRITICAL: Transition to breathing sequence
+      console.log('[Scene_Reflect] Setting showInterlude=false, showBreathing=true');
       setShowInterlude(false);
       setShowBreathing(true);
+      
     } catch (error) {
-      console.error('[Scene_Reflect] Error fetching reflection for breathing:', error);
+      console.error('[Scene_Reflect] ❌ Error in handleInterludeComplete:', error);
+      
+      // FALLBACK: Still transition to breathing even if fetch fails
+      console.log('[Scene_Reflect] Proceeding with minimal breathing context (fallback)');
+      const zone = getZone(primaryEmotion);
+      
+      setBreathingContext({
+        primary: primaryEmotion as PrimaryEmotion,
+        secondary: undefined,
+        zoneName: zone?.name || 'Default',
+        zoneColor: zone?.color || '#A78BFA',
+        invokedWords: [],
+      });
+      
+      console.log('[Scene_Reflect] FALLBACK: Setting showInterlude=false, showBreathing=true');
+      setShowInterlude(false);
+      setShowBreathing(true);
     }
   };
 
