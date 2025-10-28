@@ -922,19 +922,19 @@ export default function BreathingSequence({
         
         if (!containerRect) return null;
         
-        // Leo bubble: Use center-based positioning since Leo is at left: 50%, top: 35%
+        // Leo bubble: Use center-based positioning since Leo is at left: 50%, top: 28%
         // This matches Leo's actual CSS positioning rather than relying on getBoundingClientRect
         // which can be affected by transforms
         const leoAnchor = {
           x: containerRect.width / 2, // Match left: 50%
-          y: containerRect.height * 0.35 - 120, // Match top: 35%, offset up by ~120px to clear Leo
+          y: containerRect.height * 0.28 - 120, // Match top: 28% (Leo's actual position), offset up by ~120px to clear Leo
         };
         
-        // Building/Tips bubble: top-left corner of building container
-        // This ensures it's anchored to the visible building regardless of screen size
+        // Building/Tips bubble: Anchored to the PRIMARY tower (always at 35% from left, bottom of screen)
+        // Calculate position based on primary tower's actual location
         const buildingAnchor = buildingRect ? {
-          x: buildingRect.left - containerRect.left + 60, // 60px from left edge of building
-          y: buildingRect.top - containerRect.top + 40, // 40px from top of building
+          x: (containerRect.width * 0.35) + 40, // 35% from left (primary tower position) + 40px offset into building
+          y: buildingRect.top - containerRect.top + 40, // 40px from top of building container
         } : null;
         
         if (DEBUG_BUBBLES) {
