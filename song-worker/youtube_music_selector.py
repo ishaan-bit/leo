@@ -5,12 +5,13 @@ Replaces Ollama-based selection with:
 1. Willcox emotion → Genre mapping
 2. YouTube Data API v3 search with filters
 3. Duration/embeddable/view threshold validation
-4. 24h no-repeat per-user caching
+4. 24h no-repeat per-user caching (E1: persisted to Upstash Redis)
 5. Progressive fallback logic
 """
 
 import httpx
 import re
+import json
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timedelta
 import os
@@ -118,19 +119,22 @@ GENRE_MAP_HI = {
     ("Strong", "successful"): {"genre": "filmi celebration", "keywords": ["success", "victory", "bollywood"], "era": "1970s"},
 }
 
-# Per-user cache (in production, use Redis)
-# Format: {user_id: [(video_id, timestamp), ...]}
-recent_plays_cache: Dict[str, List[Tuple[str, datetime]]] = {}
+# Note: recent_plays_cache is now persisted to Upstash Redis (E1)
+# Key format: "song_history:{user_id}"
+# Value format: JSON array of {"video_id": str, "ts": ISO timestamp}
 
 
 class YouTubeMusicSelector:
     """
     YouTube Data API v3 music selector with emotion-driven search
+    E1: Now persists 24h no-repeat cache to Upstash Redis
     """
     
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str, upstash_url: Optional[str] = None, upstash_token: Optional[str] = None):
         self.api_key = api_key
         self.base_url = "https://www.googleapis.com/youtube/v3"
+        self.upstash_url = upstash_url
+        self.upstash_token = upstash_token
     
     async def select_track(
         self,
@@ -273,8 +277,8 @@ class YouTubeMusicSelector:
             for video in videos_data.get("items", []):
                 video_id = video["id"]
                 
-                # Check if recently played by this user
-                if self._was_recently_played(user_id, video_id):
+                # E1: Check if recently played by this user (Redis-backed)
+                if await self._was_recently_played(user_id, video_id):
                     print(f"[Skip] {video_id} - played in last 24h")
                     continue
                 
@@ -309,8 +313,8 @@ class YouTubeMusicSelector:
             # Step 4: Pick best candidate (highest view count)
             best = max(candidates, key=lambda x: x["view_count"])
             
-            # Record in cache
-            self._record_play(user_id, best["video_id"])
+            # E1: Record in cache (Redis-backed, 24h TTL)
+            await self._record_play(user_id, best["video_id"])
             
             # Return with URLs
             return {
@@ -330,28 +334,91 @@ class YouTubeMusicSelector:
         seconds = int(match.group(3) or 0)
         return hours * 3600 + minutes * 60 + seconds
     
-    def _was_recently_played(self, user_id: str, video_id: str) -> bool:
-        """Check if video was played by user in last 24h"""
-        if user_id not in recent_plays_cache:
+    async def _was_recently_played(self, user_id: str, video_id: str) -> bool:
+        """
+        E1: Check if video was played by user in last 24h (Upstash Redis)
+        """
+        if not self.upstash_url or not self.upstash_token:
+            # Fallback: no caching if Upstash not configured
             return False
         
-        cutoff = datetime.now() - timedelta(hours=24)
-        recent = [
-            (vid, ts) for (vid, ts) in recent_plays_cache[user_id]
-            if ts > cutoff
-        ]
-        
-        # Update cache (remove old entries)
-        recent_plays_cache[user_id] = recent
-        
-        return any(vid == video_id for (vid, _) in recent)
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"{self.upstash_url}/get/song_history:{user_id}",
+                    headers={"Authorization": f"Bearer {self.upstash_token}"}
+                )
+                
+                if response.status_code != 200:
+                    return False
+                
+                data = response.json()
+                if not data.get('result'):
+                    return False
+                
+                # Parse stored history
+                history = json.loads(data['result'])
+                if not isinstance(history, list):
+                    return False
+                
+                # Check if video was played in last 24h
+                cutoff = datetime.now() - timedelta(hours=24)
+                for entry in history:
+                    if entry.get('video_id') == video_id:
+                        ts = datetime.fromisoformat(entry['ts'])
+                        if ts > cutoff:
+                            return True
+                
+                return False
+        except Exception as e:
+            print(f"[E1 Cache Check Error] {e}")
+            return False  # Fail open (allow selection)
     
-    def _record_play(self, user_id: str, video_id: str):
-        """Record that user played this video"""
-        if user_id not in recent_plays_cache:
-            recent_plays_cache[user_id] = []
+    async def _record_play(self, user_id: str, video_id: str):
+        """
+        E1: Record that user played this video (Upstash Redis with 24h auto-expire)
+        """
+        if not self.upstash_url or not self.upstash_token:
+            return
         
-        recent_plays_cache[user_id].append((video_id, datetime.now()))
+        try:
+            # Fetch current history
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"{self.upstash_url}/get/song_history:{user_id}",
+                    headers={"Authorization": f"Bearer {self.upstash_token}"}
+                )
+                
+                history = []
+                if response.status_code == 200:
+                    data = response.json()
+                    if data.get('result'):
+                        history = json.loads(data['result'])
+                        if not isinstance(history, list):
+                            history = []
+                
+                # Remove entries older than 24h
+                cutoff = datetime.now() - timedelta(hours=24)
+                history = [
+                    entry for entry in history
+                    if datetime.fromisoformat(entry['ts']) > cutoff
+                ]
+                
+                # Add new entry
+                history.append({
+                    'video_id': video_id,
+                    'ts': datetime.now().isoformat()
+                })
+                
+                # Store back (24h TTL)
+                await client.post(
+                    f"{self.upstash_url}/set/song_history:{user_id}",
+                    headers={"Authorization": f"Bearer {self.upstash_token}"},
+                    json=json.dumps(history),
+                    params={"EX": 86400}  # 24 hours
+                )
+        except Exception as e:
+            print(f"[E1 Record Play Error] {e}")
     
     def _get_curated_fallback(
         self,

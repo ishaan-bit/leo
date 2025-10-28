@@ -43,7 +43,12 @@ UPSTASH_REDIS_REST_TOKEN = os.getenv("UPSTASH_REDIS_REST_TOKEN")
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY") or os.getenv("GOOGLE_TRANSLATE_API_KEY", "")
 
 # Initialize YouTube selector
-youtube_selector = YouTubeMusicSelector(api_key=YOUTUBE_API_KEY) if YOUTUBE_API_KEY else None
+# Initialize YouTube selector with Upstash for E1 (24h no-repeat cache)
+youtube_selector = YouTubeMusicSelector(
+    api_key=YOUTUBE_API_KEY,
+    upstash_url=UPSTASH_REDIS_REST_URL,
+    upstash_token=UPSTASH_REDIS_REST_TOKEN
+) if YOUTUBE_API_KEY else None
 
 # Request/Response models
 class SongRequest(BaseModel):
