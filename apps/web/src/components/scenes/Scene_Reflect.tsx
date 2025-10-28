@@ -82,6 +82,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   const [heartPuffs, setHeartPuffs] = useState<Array<{ x: number; y: number; rotation: number; delay: number }>>([]);
   const [showHeartAnimation, setShowHeartAnimation] = useState(false);
   const [wordCount, setWordCount] = useState(0); // Track word count for blush intensity
+  const [isMomentExpanded, setIsMomentExpanded] = useState(false); // Track if a moment is expanded in library
   
   const audioSystemRef = useRef(getAdaptiveAmbientSystem());
   const sceneStartTime = useRef(Date.now());
@@ -630,32 +631,37 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   if (showMomentsLibrary) {
     return (
       <>
-        {/* Keep Auth state and Sound toggle visible */}
-        <div className="fixed top-0 left-0 right-0 z-[60] flex items-center justify-center px-6 py-4 pointer-events-none"
-          style={{
-            paddingTop: 'max(1rem, env(safe-area-inset-top))',
-            paddingLeft: 'max(1.5rem, env(safe-area-inset-left))',
-            paddingRight: 'max(1.5rem, env(safe-area-inset-right))',
-          }}
-        >
-          <motion.div
-            initial={{ opacity: 1 }}
-            className="pointer-events-auto"
-          >
-            <AuthStateIndicator 
-              userName={session?.user?.name}
-              isGuest={status === 'unauthenticated'}
-            />
-          </motion.div>
-        </div>
-        
-        <SoundToggle />
+        {/* Keep Auth state and Sound toggle visible - hide when moment is expanded */}
+        {!isMomentExpanded && (
+          <>
+            <div className="fixed top-0 left-0 right-0 z-[60] flex items-center justify-center px-6 py-4 pointer-events-none"
+              style={{
+                paddingTop: 'max(1rem, env(safe-area-inset-top))',
+                paddingLeft: 'max(1.5rem, env(safe-area-inset-left))',
+                paddingRight: 'max(1.5rem, env(safe-area-inset-right))',
+              }}
+            >
+              <motion.div
+                initial={{ opacity: 1 }}
+                className="pointer-events-auto"
+              >
+                <AuthStateIndicator 
+                  userName={session?.user?.name}
+                  isGuest={status === 'unauthenticated'}
+                />
+              </motion.div>
+            </div>
+            
+            <SoundToggle />
+          </>
+        )}
         
         <MomentsLibrary
           pigId={pigId}
           pigName={pigName}
           currentPrimary={(breathingContext?.primary || 'joy') as PrimaryEmotion} // Default to joy if no context
           onNewReflection={handleNewReflection}
+          onMomentSelected={setIsMomentExpanded}
         />
       </>
     );
@@ -855,11 +861,11 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
                     placeholder={`Dear ${pigName}...`}
                   />
                   
-                  {/* Mode toggles - voice and photo */}
-                  <div className="flex flex-col items-center mt-4 gap-2">
+                  {/* Mode toggles - voice and photo on same line for mobile */}
+                  <div className="flex flex-row items-center justify-center mt-4 gap-3 flex-wrap">
                     <button
                       onClick={toggleInputMode}
-                      className="text-sm text-pink-600 hover:text-pink-800 italic underline"
+                      className="text-sm text-pink-600 hover:text-pink-800 italic underline whitespace-nowrap"
                     >
                       Or speak instead
                     </button>

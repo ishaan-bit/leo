@@ -53,6 +53,7 @@ interface MomentsLibraryProps {
   pigName: string;
   currentPrimary: PrimaryEmotion; // Today's zone to start with
   onNewReflection: () => void;
+  onMomentSelected?: (selected: boolean) => void; // Notify parent when moment is expanded/closed
 }
 
 const EASING = [0.65, 0, 0.35, 1] as const;
@@ -74,6 +75,7 @@ export default function MomentsLibrary({
   pigName,
   currentPrimary,
   onNewReflection,
+  onMomentSelected,
 }: MomentsLibraryProps) {
   const [phase, setPhase] = useState<'intro' | 'skyline' | 'library'>('intro');
   const [moments, setMoments] = useState<Moment[]>([]);
@@ -207,7 +209,10 @@ export default function MomentsLibrary({
       // Focus the modal container
       modalRef.current.focus();
     }
-  }, [selectedMoment]);
+    
+    // Notify parent when moment selection changes
+    onMomentSelected?.(!!selectedMoment);
+  }, [selectedMoment, onMomentSelected]);
 
   // Fetch moments from API with retry logic
   useEffect(() => {
@@ -838,7 +843,7 @@ export default function MomentsLibrary({
           <>
             {/* Main Title */}
             <motion.div
-              className="absolute top-16 md:top-20 left-0 right-0 z-20 text-center pointer-events-none px-4"
+              className="absolute top-20 sm:top-24 md:top-20 left-0 right-0 z-20 text-center pointer-events-none px-4"
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
@@ -860,7 +865,7 @@ export default function MomentsLibrary({
             
             {/* Subtitle - layered reveal after title, enhanced visibility */}
             <motion.div
-              className="absolute top-28 md:top-36 left-0 right-0 z-20 text-center pointer-events-none px-4"
+              className="absolute top-32 sm:top-36 md:top-36 left-0 right-0 z-20 text-center pointer-events-none px-4"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -880,9 +885,9 @@ export default function MomentsLibrary({
               </p>
             </motion.div>
 
-            {/* Share a New Moment Icon - top-left */}
+            {/* Share a New Moment Icon - top-left, adjusted for mobile to avoid overlap */}
             <motion.button
-              className="fixed top-4 left-4 z-50 pointer-events-auto rounded-full overflow-hidden group"
+              className="fixed top-4 left-2 md:left-4 z-50 pointer-events-auto rounded-full overflow-hidden group"
               onClick={onNewReflection}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ 
@@ -902,6 +907,7 @@ export default function MomentsLibrary({
                 boxShadow: '0 4px 16px rgba(255, 215, 0, 0.3)',
                 width: '48px',
                 height: '48px',
+                paddingLeft: 'max(0.5rem, env(safe-area-inset-left))',
               }}
             >
               {/* Sparkle with occasional pulse */}
@@ -1798,7 +1804,7 @@ export default function MomentsLibrary({
                                   const videoId = finalUrl.includes('watch?v=') 
                                     ? finalUrl.split('watch?v=')[1]?.split('&')[0]
                                     : finalUrl.split('/').pop();
-                                  return `https://www.youtube.com/embed/${videoId}?autoplay=0&rel=0&modestbranding=1`;
+                                  return `https://www.youtube.com/embed/${videoId}?autoplay=0&rel=0&modestbranding=1&enablejsapi=1`;
                                 })()}
                                 className="absolute top-0 left-0 w-full h-full rounded-xl"
                                 style={{
@@ -1810,6 +1816,39 @@ export default function MomentsLibrary({
                                 loading="lazy"
                                 title={title ? `${title} by ${artist}` : 'Song recommendation'}
                                 aria-label={title ? `YouTube player — ${title} by ${artist}` : 'YouTube player'}
+                                onLoad={(e) => {
+                                  // Set up message listener for YouTube player events
+                                  const handleYouTubeMessage = (event: MessageEvent) => {
+                                    if (event.origin !== 'https://www.youtube.com') return;
+                                    
+                                    try {
+                                      const data = JSON.parse(event.data);
+                                      if (data.event === 'infoDelivery' && data.info?.playerState !== undefined) {
+                                        const state = data.info.playerState;
+                                        // 1 = playing, 2 = paused, 0 = ended
+                                        if (state === 1) {
+                                          // YouTube is playing - mute ambient
+                                          const { stopAmbientSound } = require('@/lib/sound');
+                                          stopAmbientSound();
+                                          console.log('[MomentsLibrary] YouTube playing - muted ambient');
+                                        } else if (state === 2 || state === 0) {
+                                          // YouTube paused or ended - resume ambient
+                                          const { playAmbientSound, isMuted } = require('@/lib/sound');
+                                          if (!isMuted()) {
+                                            playAmbientSound();
+                                            console.log('[MomentsLibrary] YouTube paused/ended - resumed ambient');
+                                          }
+                                        }
+                                      }
+                                    } catch {}
+                                  };
+                                  
+                                  window.addEventListener('message', handleYouTubeMessage);
+                                  
+                                  // Request player state updates
+                                  const iframe = e.currentTarget as HTMLIFrameElement;
+                                  iframe.contentWindow?.postMessage('{"event":"listening","id":"1"}', '*');
+                                }}
                               />
                             </div>
                           </motion.div>

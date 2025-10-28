@@ -1,6 +1,6 @@
 """
-Hybrid Scorer v3 - Willcox Feelings Wheel (JSON-locked)
-========================================================
+Hybrid Scorer v4 - Willcox Feelings Wheel (Canonical JSON)
+===========================================================
 Drop-in replacement for OllamaClient using Gloria Willcox Feelings Wheel.
 Fuses HF zero-shot + sentence embeddings + Ollama rerank.
 
@@ -13,19 +13,29 @@ Architecture:
 4. Deterministic Correction - Validate hierarchy, reject contradictory events, reconcile valence/arousal
 5. Serialize to EXACT schema worker.py expects
 
-Emotion Taxonomy (Willcox Feelings Wheel):
-  Primary (6): Joyful, Powerful, Peaceful, Sad, Mad, Scared
-  Secondary (6 per primary): e.g., Joyful → [optimistic, proud, content, playful, interested, accepted]
-  Tertiary (6 per secondary): e.g., proud → [confident, fulfilled, satisfied, amused, curious, respected]
+Emotion Taxonomy (Willcox Feelings Wheel - CANONICAL):
+  ✅ Loaded from src/data/willcox_wheel.json (single source of truth)
+  Primary (6): Sad, Angry, Fearful, Happy, Peaceful, Strong
+  Secondary (6 per primary): e.g., Happy → [optimistic, trusting, peaceful, powerful, accepted, proud]
+  Tertiary (6 per secondary): e.g., proud → [successful, confident, accomplished, important, valuable, worthy]
+  Total: 6×6×6 = 216 emotions
+
+Legacy Mapping (for backwards compatibility):
+  Joyful   → Happy
+  Powerful → Strong
+  Peaceful → Peaceful (unchanged)
+  Sad      → Sad (unchanged)
+  Mad      → Angry
+  Scared   → Fearful
 
 Output Schema (MUST MATCH ollama_client + add tertiary):
 {
   "invoked": str,                    # e.g., "motivation"
   "expressed": str | list[str],      # e.g., ["reflective", "proud"]
   "wheel": {
-    "primary": str,                  # Willcox primary: Joyful|Powerful|Peaceful|Sad|Mad|Scared
+    "primary": str,                  # Willcox primary: Sad|Angry|Fearful|Happy|Peaceful|Strong
     "secondary": str | null,         # Willcox secondary or null
-    "tertiary": str | null           # *** NEW *** Willcox tertiary or null
+    "tertiary": str | null           # Willcox tertiary or null
   },
   "valence": float,                  # [0, 1], mapped from Willcox ranges
   "arousal": float,                  # [0, 1], mapped from Willcox ranges
@@ -53,149 +63,112 @@ import re
 from typing import Optional, Dict, List, Tuple
 import numpy as np
 from datetime import datetime, timezone
+from pathlib import Path
 
 
 class HybridScorer:
     """
     Hybrid enrichment scorer using HF + Embeddings + Ollama
     Preserves exact output schema compatibility
+    Loads canonical Willcox Wheel from JSON
     """
     
-    # Willcox Feelings Wheel - Primary (6 emotions)
-    WILLCOX_PRIMARY = [
-        'Joyful', 'Powerful', 'Peaceful', 'Sad', 'Mad', 'Scared'
-    ]
-    
-    # Willcox Hierarchy: Primary → Secondary (6 each) → Tertiary (6 each)
-    WILLCOX_HIERARCHY = {
-        'Joyful': {
-            'optimistic': ['hopeful', 'inspired', 'open', 'encouraged', 'confident', 'motivated'],
-            'cheerful': ['happy', 'lighthearted', 'sunny', 'bright', 'upbeat', 'buoyant'],
-            'content': ['pleased', 'satisfied', 'fulfilled', 'happy', 'comfortable', 'joyful'],
-            'playful': ['aroused', 'energetic', 'free', 'amused', 'spontaneous', 'silly'],
-            'interested': ['curious', 'engaged', 'fascinated', 'intrigued', 'absorbed', 'inquisitive'],
-            'accepted': ['respected', 'valued', 'included', 'appreciated', 'acknowledged', 'welcomed']
-        },
-        'Powerful': {
-            'proud': ['successful', 'confident', 'accomplished', 'worthy', 'fulfilled', 'valued'],
-            'courageous': ['daring', 'bold', 'brave', 'fearless', 'assertive', 'strong'],
-            'creative': ['innovative', 'imaginative', 'inspired', 'resourceful', 'inventive', 'original'],
-            'confident': ['secure', 'capable', 'competent', 'assured', 'certain', 'self-reliant'],
-            'loving': ['affectionate', 'warm', 'compassionate', 'tender', 'caring', 'devoted'],
-            'hopeful': ['optimistic', 'encouraged', 'expectant', 'positive', 'trusting', 'faithful']
-        },
-        'Peaceful': {
-            'relaxed': ['calm', 'comfortable', 'rested', 'relieved', 'serene', 'tranquil'],
-            'thoughtful': ['reflective', 'contemplative', 'pensive', 'considerate', 'analytical', 'meditative'],
-            'intimate': ['connected', 'close', 'vulnerable', 'open', 'trusting', 'loved'],
-            'thankful': ['grateful', 'appreciative', 'blessed', 'fortunate', 'content', 'satisfied'],
-            'trusting': ['secure', 'safe', 'confident', 'assured', 'comfortable', 'relaxed'],
-            'nurturing': ['caring', 'protective', 'supportive', 'maternal', 'loving', 'tender']
-        },
-        'Sad': {
-            'lonely': ['isolated', 'abandoned', 'alone', 'rejected', 'empty', 'disconnected'],
-            'disappointed': ['let down', 'discouraged', 'defeated', 'unhappy', 'dissatisfied', 'unfulfilled'],
-            'guilty': ['regretful', 'ashamed', 'remorseful', 'sorry', 'responsible', 'blameworthy'],
-            'ashamed': ['embarrassed', 'humiliated', 'mortified', 'inferior', 'inadequate', 'unworthy'],
-            'abandoned': ['deserted', 'left', 'alone', 'neglected', 'forgotten', 'unwanted'],
-            'bored': ['uninterested', 'indifferent', 'apathetic', 'listless', 'unstimulated', 'flat']
-        },
-        'Mad': {
-            'hurt': ['betrayed', 'rejected', 'wounded', 'offended', 'let down', 'mistreated'],
-            'hostile': ['aggressive', 'angry', 'vengeful', 'hateful', 'bitter', 'resentful'],
-            'angry': ['furious', 'enraged', 'outraged', 'livid', 'irate', 'mad'],
-            'selfish': ['inconsiderate', 'thoughtless', 'self-centered', 'uncaring', 'insensitive', 'entitled'],
-            'hateful': ['disgusted', 'contemptuous', 'disdainful', 'scornful', 'repulsed', 'revolted'],
-            'critical': ['judgmental', 'disapproving', 'cynical', 'harsh', 'demanding', 'fault-finding']
-        },
-        'Scared': {
-            'rejected': ['inadequate', 'unworthy', 'unlovable', 'excluded', 'unwanted', 'inferior'],
-            'confused': ['uncertain', 'unclear', 'lost', 'baffled', 'puzzled', 'perplexed'],
-            'helpless': ['powerless', 'trapped', 'stuck', 'overwhelmed', 'incapable', 'vulnerable'],
-            'anxious': ['worried', 'nervous', 'tense', 'fearful', 'uneasy', 'apprehensive'],
-            'insecure': ['inadequate', 'inferior', 'unconfident', 'uncertain', 'vulnerable', 'doubtful'],
-            'submissive': ['weak', 'powerless', 'passive', 'compliant', 'obedient', 'worthless']
-        }
-    }
-    
-    # Valence & Arousal ranges per Willcox primary
-    WILLCOX_VA_MAP = {
-        'Joyful': {'valence': (0.8, 0.9), 'arousal': (0.5, 0.65)},
-        'Powerful': {'valence': (0.7, 0.85), 'arousal': (0.55, 0.7)},
-        'Peaceful': {'valence': (0.75, 0.85), 'arousal': (0.3, 0.5)},
-        'Sad': {'valence': (0.2, 0.4), 'arousal': (0.3, 0.5)},
-        'Mad': {'valence': (0.2, 0.4), 'arousal': (0.6, 0.8)},
-        'Scared': {'valence': (0.2, 0.45), 'arousal': (0.65, 0.8)}
-    }
-    
-    # Driver lexicon (for invoked) - emotion drivers/causes
-    DRIVER_LEXICON = [
-        'motivation', 'agency', 'progress', 'achievement', 'recognition', 'self_acceptance',
-        'connection', 'belonging', 'pride', 'relief', 'hope', 'contentment', 'awe', 'serenity',
-        'fatigue', 'overwhelm', 'pressure', 'irritation', 'hurt', 'withdrawal', 'loss', 'longing',
-        'self_assertion', 'exhaustion', 'frustration', 'learning', 'change', 'renewal',
-        'uncertainty', 'complexity', 'gratitude', 'low_progress', 'worry', 'tension'
-    ]
-    
-    # Surface tone lexicon (for expressed) - how emotion appears
-    SURFACE_LEXICON = [
-        'proud', 'reflective', 'playful', 'content', 'peaceful', 'calm', 'light', 'enthusiastic',
-        'relieved', 'confident', 'motivated', 'inspired', 'grateful', 'hopeful', 'determined',
-        'tense', 'confused', 'deflated', 'guarded', 'wistful', 'shaky', 'defeated', 'irritated',
-        'tired', 'exhausted', 'annoyed', 'matter-of-fact', 'resigned', 'flat', 'stressed',
-        'anxious', 'overwhelmed', 'withdrawn', 'vulnerable'
-    ]
-    
-    # Contradictory event pairs (for validation)
-    CONTRADICTORY_EVENTS = {
-        'pride': ['low_progress', 'failure', 'inadequacy'],
-        'progress': ['low_progress', 'stuck', 'stagnation'],
-        'achievement': ['low_progress', 'failure'],
-        'relief': ['pressure', 'overwhelm', 'tension'],
-        'calm': ['anxiety', 'tension', 'overwhelm'],
-        'low_progress': ['progress', 'achievement', 'pride'],
-        'overwhelm': ['relief', 'calm', 'peace']
-    }
-    
-    def __init__(
-        self,
-        hf_token: str,
-        ollama_base_url: str = "http://localhost:11434",
-        ollama_model: str = "phi3:latest",
-        hf_weight: float = 0.5,
-        emb_weight: float = 0.35,
-        ollama_weight: float = 0.15,
-        timeout: int = 120  # Doubled from 60s to 120s for primary detection
-    ):
+    def __init__(self, hf_token: str, ollama_base_url: str = "http://localhost:11434", use_ollama: bool = True):
         """
+        Initialize HybridScorer with canonical Willcox Wheel
+        
         Args:
-            hf_token: Hugging Face API token
-            ollama_base_url: Ollama server URL
-            ollama_model: Model name (phi3:latest)
-            hf_weight: Weight for HF zero-shot scores (default 0.5)
-            emb_weight: Weight for embedding similarity (default 0.35)
-            ollama_weight: Weight for Ollama rerank (default 0.15)
-            timeout: Request timeout in seconds
+            hf_token: Hugging Face API token for embeddings + zero-shot
+            ollama_base_url: Ollama server URL (default: http://localhost:11434)
+            use_ollama: Whether to use Ollama for reranking (default: True)
         """
         self.hf_token = hf_token
-        self.ollama_base_url = ollama_base_url.rstrip('/')
-        self.ollama_model = ollama_model
-        self.timeout = timeout
+        self.ollama_base_url = ollama_base_url
+        self.use_ollama = use_ollama
         
-        # Fusion weights (must sum to 1.0)
-        total = hf_weight + emb_weight + ollama_weight
-        self.hf_weight = hf_weight / total
-        self.emb_weight = emb_weight / total
-        self.ollama_weight = ollama_weight / total
+        # Load canonical Willcox Wheel from JSON
+        wheel_path = Path(__file__).parent.parent / "data" / "willcox_wheel.json"
+        with open(wheel_path, 'r', encoding='utf-8') as f:
+            wheel_data = json.load(f)
+            self.WILLCOX_HIERARCHY = wheel_data['wheel']
+            self.wheel_metadata = wheel_data['metadata']
+        
+        # Extract primaries from wheel (preserves order from JSON)
+        self.WILLCOX_PRIMARY = list(self.WILLCOX_HIERARCHY.keys())
+        
+        print(f"✅ Loaded Willcox Wheel v{self.wheel_metadata['version']} ({self.wheel_metadata['total_emotions']} emotions)")
+        print(f"   Primaries: {', '.join(self.WILLCOX_PRIMARY)}")
+        
+        # Legacy mapping for backwards compatibility (old → new)
+        # This ensures old references like "Joyful" still work
+        self.LEGACY_MAPPING = {
+            'Joyful': 'Happy',
+            'Powerful': 'Strong',
+            'Peaceful': 'Peaceful',  # unchanged
+            'Sad': 'Sad',            # unchanged
+            'Mad': 'Angry',
+            'Scared': 'Fearful'
+        }
+        
+        # Reverse mapping (new → old) for lookups
+        self.REVERSE_LEGACY = {v: k for k, v in self.LEGACY_MAPPING.items()}
+    
+        # Valence & Arousal ranges per Willcox primary (updated for new names)
+        self.WILLCOX_VA_MAP = {
+            'Happy': {'valence': (0.8, 0.9), 'arousal': (0.5, 0.65)},      # was Joyful
+            'Strong': {'valence': (0.7, 0.85), 'arousal': (0.55, 0.7)},    # was Powerful
+            'Peaceful': {'valence': (0.75, 0.85), 'arousal': (0.3, 0.5)},  # unchanged
+            'Sad': {'valence': (0.2, 0.4), 'arousal': (0.3, 0.5)},         # unchanged
+            'Angry': {'valence': (0.2, 0.4), 'arousal': (0.6, 0.8)},       # was Mad
+            'Fearful': {'valence': (0.2, 0.45), 'arousal': (0.65, 0.8)}    # was Scared
+        }
+    
+        # Driver lexicon (for invoked) - emotion drivers/causes
+        self.DRIVER_LEXICON = [
+            'motivation', 'agency', 'progress', 'achievement', 'recognition', 'self_acceptance',
+            'connection', 'belonging', 'pride', 'relief', 'hope', 'contentment', 'awe', 'serenity',
+            'fatigue', 'overwhelm', 'pressure', 'irritation', 'hurt', 'withdrawal', 'loss', 'longing',
+            'self_assertion', 'exhaustion', 'frustration', 'learning', 'change', 'renewal',
+            'uncertainty', 'complexity', 'gratitude', 'low_progress', 'worry', 'tension'
+        ]
+        
+        # Surface tone lexicon (for expressed) - how emotion appears
+        self.SURFACE_LEXICON = [
+            'proud', 'reflective', 'playful', 'content', 'peaceful', 'calm', 'light', 'enthusiastic',
+            'relieved', 'confident', 'motivated', 'inspired', 'grateful', 'hopeful', 'determined',
+            'tense', 'confused', 'deflated', 'guarded', 'wistful', 'shaky', 'defeated', 'irritated',
+            'tired', 'exhausted', 'annoyed', 'matter-of-fact', 'resigned', 'flat', 'stressed',
+            'anxious', 'overwhelmed', 'withdrawn', 'vulnerable'
+        ]
+        
+        # Contradictory event pairs (for validation)
+        self.CONTRADICTORY_EVENTS = {
+            'pride': ['low_progress', 'failure', 'inadequacy'],
+            'progress': ['low_progress', 'stuck', 'stagnation'],
+            'achievement': ['low_progress', 'failure'],
+            'relief': ['pressure', 'overwhelm', 'tension'],
+            'calm': ['anxiety', 'tension', 'overwhelm'],
+            'low_progress': ['progress', 'achievement', 'pride'],
+            'overwhelm': ['relief', 'calm', 'peace']
+        }
+        
+        # Initialize API endpoints and weights
+        self.ollama_base_url = ollama_base_url.rstrip('/')
+        self.ollama_model = "phi3:latest"
+        self.timeout = 120
+        self.use_ollama = use_ollama
+        
+        # Fusion weights (HF 0.5 + Embedding 0.35 + Ollama 0.15 = 1.0)
+        self.hf_weight = 0.5
+        self.emb_weight = 0.35
+        self.ollama_weight = 0.15
         
         # HF API endpoints
         self.hf_zeroshot_url = "https://api-inference.huggingface.co/models/facebook/bart-large-mnli"
         self.hf_embed_url = "https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2"
         
-        print(f"[*] HybridScorer initialized")
-        print(f"   HF weight: {self.hf_weight:.2f}")
-        print(f"   Embedding weight: {self.emb_weight:.2f}")
-        print(f"   Ollama weight: {self.ollama_weight:.2f}")
+        print(f"[*] HybridScorer initialized with canonical Willcox Wheel")
+        print(f"   Fusion weights - HF: {self.hf_weight:.2f}, Embedding: {self.emb_weight:.2f}, Ollama: {self.ollama_weight:.2f}")
     
     def is_available(self) -> bool:
         """Check if Ollama is reachable (HF check skipped for speed)"""

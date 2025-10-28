@@ -78,22 +78,31 @@ export async function GET(
         const primaryEmotion = data.final?.wheel?.primary || 'Peaceful';
         
         // Map Gloria Willcox emotion to PrimaryEmotion type
-        // MAPPING: Joyful→joyful, Powerful→powerful, Peaceful→peaceful, Sad→sad, Scared→scared, Mad→mad
+        // CANONICAL MAPPING (v4): Happy→joyful, Strong→powerful, Peaceful→peaceful, Sad→sad, Fearful→scared, Angry→mad
+        // LEGACY MAPPING (v3): Joyful→joyful, Powerful→powerful, Peaceful→peaceful, Sad→sad, Scared→scared, Mad→mad
         const zoneMapping: Record<string, string> = {
-          'Joyful': 'joyful',
-          'Playful': 'joyful',
-          'Content': 'joyful',
+          // Canonical primaries (new)
+          'Happy': 'joyful',
+          'Strong': 'powerful',
           'Peaceful': 'peaceful',
-          'Trusting': 'peaceful',
+          'Sad': 'sad',
+          'Fearful': 'scared',
+          'Angry': 'mad',
+          
+          // Legacy primaries (backwards compatibility)
+          'Joyful': 'joyful',
           'Powerful': 'powerful',
           'Scared': 'scared',
+          'Mad': 'mad',
+          
+          // Secondary emotions (fallback)
+          'Playful': 'joyful',
+          'Content': 'joyful',
+          'Trusting': 'peaceful',
           'Anxious': 'scared',
           'Rejected': 'scared',
-          'Sad': 'sad',
           'Lonely': 'sad',
           'Depressed': 'sad',
-          'Mad': 'mad',
-          'Angry': 'mad',
           'Hurt': 'mad',
           'Disgusted': 'mad',
           'Disapproving': 'mad',

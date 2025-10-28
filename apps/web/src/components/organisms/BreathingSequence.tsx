@@ -860,15 +860,20 @@ export default function BreathingSequence({
           return (
             <motion.div
               key={word.id}
-              className="absolute pointer-events-none z-40"
-              style={{ left: `${x}%`, top: `${y}%` }}
+              className="absolute pointer-events-none will-change-transform z-40"
+              style={{ 
+                left: `${x}%`, 
+                top: `${y}%`,
+                transform: 'translateZ(0)', // Force GPU acceleration on mobile
+                backfaceVisibility: 'hidden', // Improve mobile rendering
+              }}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1.05, y: -20 }}
               exit={{ opacity: 0, scale: 0.9, transition: { duration: 1.5, ease: 'easeOut' } }}
               transition={{ duration: 6, ease: EASING }}
             >
               <span
-                className="text-3xl font-serif italic font-bold"
+                className="text-3xl md:text-3xl font-serif italic font-bold block"
                 style={{
                   color: '#FFD700',
                   textShadow: `
@@ -877,6 +882,7 @@ export default function BreathingSequence({
                     0 0 60px #FFD70080,
                     0 4px 8px rgba(0,0,0,0.6)
                   `,
+                  WebkitFontSmoothing: 'antialiased', // Improve mobile text rendering
                 }}
               >
                 {word.text}

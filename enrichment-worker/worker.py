@@ -18,6 +18,7 @@ load_dotenv()
 from src.modules.redis_client import get_redis
 from src.modules.hybrid_scorer import HybridScorer
 from src.modules.post_enricher import PostEnricher
+from src.utils.emotion_validator import get_validator
 
 # Configuration
 POLL_MS = int(os.getenv('WORKER_POLL_MS', '500'))
@@ -27,14 +28,11 @@ TIMEZONE = os.getenv('TIMEZONE', 'Asia/Kolkata')
 
 # Initialize components
 redis_client = get_redis()
+emotion_validator = get_validator()  # Canonical Willcox Wheel validator
 ollama_client = HybridScorer(
     hf_token=os.getenv('HF_TOKEN'),
     ollama_base_url=os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434'),
-    ollama_model=os.getenv('OLLAMA_MODEL', 'phi3:latest'),
-    hf_weight=float(os.getenv('HF_WEIGHT', '0.4')),
-    emb_weight=float(os.getenv('EMB_WEIGHT', '0.3')),
-    ollama_weight=float(os.getenv('OLLAMA_WEIGHT', '0.3')),
-    timeout=int(os.getenv('OLLAMA_TIMEOUT', '60'))  # Increased from 30s to 60s
+    use_ollama=True
 )
 
 # Stage-2 Post-Enricher
@@ -98,6 +96,40 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
             print(f"[X] Hybrid scorer failed for {rid}")
             redis_client.set_worker_status('degraded', {'reason': 'hybrid_scorer_failed', 'rid': rid})
             return None
+        
+        # 2.5. VALIDATE EMOTIONS against canonical Willcox Wheel
+        print(f"[*] Validating emotions...")
+        wheel = ollama_result.get('wheel', {})
+        primary = wheel.get('primary')
+        secondary = wheel.get('secondary')
+        tertiary = wheel.get('tertiary')
+        
+        # Validate emotion triplet
+        is_valid = emotion_validator.validate_emotion(primary, secondary, tertiary) if (primary and secondary and tertiary) else False
+        
+        # Log validation result
+        emotion_validator.log_validation(primary, secondary, tertiary, is_valid, context=rid)
+        
+        # Normalize if invalid
+        if not is_valid:
+            print(f"[!] Invalid emotion detected: {primary} -> {secondary} -> {tertiary}")
+            is_valid_normalized, p_norm, s_norm, t_norm = emotion_validator.normalize_emotion(primary, secondary, tertiary)
+            
+            # Update wheel with normalized values
+            ollama_result['wheel'] = {
+                'primary': p_norm,
+                'secondary': s_norm,
+                'tertiary': t_norm
+            }
+            
+            # Add warning
+            if 'warnings' not in ollama_result:
+                ollama_result['warnings'] = []
+            ollama_result['warnings'].append(f"Emotion normalized from {primary}/{secondary}/{tertiary} to {p_norm}/{s_norm}/{t_norm}")
+            
+            print(f"[*] Normalized to: {p_norm} -> {s_norm} -> {t_norm}")
+        else:
+            print(f"[OK] Emotion valid: {primary} -> {secondary} -> {tertiary}")
         
         # 3. Build Stage-1 enriched fields for Redis
         enriched_stage1 = {

@@ -1,0 +1,78 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "source": "Gloria Willcox Feelings Wheel",
+    "total_emotions": 216,
+    "primaries": 6,
+    "secondaries_per_primary": 6,
+    "tertiaries_per_secondary": 6,
+    "rules": {
+      "strict_validation": true,
+      "case_sensitive": true,
+      "no_inference": true,
+      "no_extrapolation": true,
+      "no_synonym_generation": true
+    }
+  },
+  "wheel": {
+    "Sad": {
+      "lonely": ["isolated", "abandoned", "alone", "rejected", "excluded", "ignored"],
+      "vulnerable": ["fragile", "guarded", "reserved", "sensitive", "shy", "scared"],
+      "despair": ["grief", "powerless", "depressed", "empty", "miserable", "disappointed"],
+      "guilty": ["ashamed", "remorseful", "embarrassed", "inadequate", "unworthy", "insignificant"],
+      "abandoned": ["victimized", "ignored", "persecuted", "neglected", "isolated", "unwanted"],
+      "bored": ["apathetic", "indifferent", "detached", "numb", "listless", "tired"]
+    },
+    "Angry": {
+      "let down": ["betrayed", "resentful", "bitter", "humiliated", "disrespected", "ridiculed"],
+      "humiliated": ["disrespected", "ridiculed", "embarrassed", "mocked", "belittled", "degraded"],
+      "bitter": ["indignant", "violated", "cheated", "betrayed", "resentful", "wronged"],
+      "mad": ["furious", "jealous", "aggressive", "frustrated", "distant", "critical"],
+      "aggressive": ["provoked", "hostile", "hateful", "infuriated", "antagonistic", "threatened"],
+      "frustrated": ["infuriated", "annoyed", "irritated", "agitated", "impatient", "exasperated"]
+    },
+    "Fearful": {
+      "scared": ["helpless", "frightened", "terrified", "panicked", "anxious", "worried"],
+      "anxious": ["overwhelmed", "worried", "stressed", "nervous", "uneasy", "apprehensive"],
+      "insecure": ["inadequate", "inferior", "worthless", "insignificant", "vulnerable", "weak"],
+      "weak": ["worthless", "insignificant", "inadequate", "powerless", "useless", "incapable"],
+      "rejected": ["excluded", "persecuted", "unwanted", "alienated", "ostracized", "victimized"],
+      "threatened": ["nervous", "exposed", "alarmed", "trapped", "defenseless", "cornered"]
+    },
+    "Happy": {
+      "optimistic": ["hopeful", "inspired", "confident", "encouraged", "eager", "motivated"],
+      "trusting": ["sensitive", "intimate", "warm", "open", "grateful", "faithful"],
+      "peaceful": ["loving", "thankful", "comfortable", "content", "relaxed", "calm"],
+      "powerful": ["creative", "unique", "free", "confident", "valued", "courageous"],
+      "accepted": ["respected", "valued", "appreciated", "loved", "cherished", "esteemed"],
+      "proud": ["successful", "confident", "accomplished", "important", "valuable", "worthy"]
+    },
+    "Peaceful": {
+      "loving": ["affectionate", "tender", "compassionate", "caring", "devoted", "nurturing"],
+      "trusting": ["secure", "safe", "protected", "confident", "reassured", "comfortable"],
+      "thankful": ["grateful", "appreciative", "blessed", "fortunate", "privileged", "honored"],
+      "comfortable": ["relaxed", "calm", "serene", "peaceful", "tranquil", "at ease"],
+      "satisfied": ["content", "fulfilled", "pleased", "gratified", "happy", "complete"],
+      "relieved": ["unburdened", "free", "liberated", "light", "released", "peaceful"]
+    },
+    "Strong": {
+      "proud": ["confident", "accomplished", "successful", "triumphant", "victorious", "respected"],
+      "confident": ["secure", "assured", "certain", "self-reliant", "capable", "empowered"],
+      "creative": ["inspired", "imaginative", "innovative", "inventive", "original", "expressive"],
+      "powerful": ["authoritative", "influential", "commanding", "dominant", "mighty", "potent"],
+      "courageous": ["brave", "bold", "fearless", "daring", "heroic", "valiant"],
+      "respected": ["admired", "valued", "esteemed", "honored", "appreciated", "recognized"]
+    }
+  },
+  "validation_rules": {
+    "description": "Strict validation rules for emotion wheel consistency",
+    "rules": [
+      "validateEmotion() returns true ONLY if all 3 levels (primary, secondary, tertiary) match exactly",
+      "Case-sensitive lookups required",
+      "Invalid inputs must normalize to closest valid parent (never create new term)",
+      "Log every emotion write: { ok, primary, secondary, tertiary }",
+      "Never invent, interpolate, or rename beyond canonical dataset",
+      "Updates only via explicit migration scripts"
+    ]
+  }
+}
