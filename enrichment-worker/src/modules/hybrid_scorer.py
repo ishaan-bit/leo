@@ -343,6 +343,26 @@ class HybridScorer:
             print(f"   Expressed: {serialized['expressed']}")
             print(f"   Congruence: {congruence}")
             
+            # CRITICAL: Map old Willcox v1 names to new v2 names for frontend compatibility
+            # Frontend expects: joyful, sad, mad, scared, peaceful, powerful
+            # Backend returns: Happy, Sad, Angry, Fearful, Peaceful, Strong
+            v1_to_v2_mapping = {
+                'Happy': 'joyful',
+                'Sad': 'sad',
+                'Angry': 'mad',
+                'Fearful': 'scared',
+                'Peaceful': 'peaceful',
+                'Strong': 'powerful'
+            }
+            
+            # Map primary emotion
+            old_primary = serialized['wheel']['primary']
+            new_primary = v1_to_v2_mapping.get(old_primary, old_primary.lower())
+            serialized['wheel']['primary'] = new_primary
+            
+            if old_primary != new_primary:
+                print(f"   [MAPPED] {old_primary} → {new_primary} (for frontend zone compatibility)")
+            
             return serialized
             
         except Exception as e:
@@ -1281,9 +1301,9 @@ JSON:"""
         for emotion in self.WILLCOX_PRIMARY:
             hf_score = hf_scores.get(emotion, 0.0)
             
-            # Ollama boost if it matches
+            # Ollama boost if it matches (case-insensitive)
             ollama_boost = 0.0
-            if ollama_result and ollama_result.get('primary') == emotion:
+            if ollama_result and ollama_result.get('primary', '').lower() == emotion.lower():
                 ollama_boost = 1.0
             
             fused_emotion_scores[emotion] = (

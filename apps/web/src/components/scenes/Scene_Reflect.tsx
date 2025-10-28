@@ -84,6 +84,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   const [showHeartAnimation, setShowHeartAnimation] = useState(false);
   const [wordCount, setWordCount] = useState(0); // Track word count for blush intensity
   const [isMomentExpanded, setIsMomentExpanded] = useState(false); // Track if a moment is expanded in library
+  const [audioStarted, setAudioStarted] = useState(false); // Track if user has started audio
   
   const audioSystemRef = useRef(getAdaptiveAmbientSystem());
   const sceneStartTime = useRef(Date.now());
@@ -109,13 +110,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   // Initialize audio system
   useEffect(() => {
     audioSystemRef.current.init();
-    
-    // Start ambient sound on mount (after user has interacted to reach this page)
-    if (!isMuted()) {
-      console.log('[Scene_Reflect] Starting ambient sound after user interaction');
-      playAmbientSound();
-    }
-    
+    // Audio will start when user clicks the start button
     return () => {
       audioSystemRef.current.stop();
     };
@@ -213,6 +208,13 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
 
   // Handle text input change (real-time affect updates)
   const handleTextChange = (text: string, metrics: TypingMetrics) => {
+    // Start audio on first interaction (if not already started)
+    if (!audioStarted && !isMuted()) {
+      console.log('[Scene_Reflect] Starting ambient sound on first input');
+      playAmbientSound();
+      setAudioStarted(true);
+    }
+    
     // Update word count for blush intensity
     const words = text.trim().split(/\s+/).filter(w => w.length > 0);
     setWordCount(words.length);
@@ -603,6 +605,15 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     alert('Enrichment timeout - but interlude continues playing');
   };
 
+  // Handle audio start on user click
+  const handleStartAudio = () => {
+    if (!isMuted()) {
+      console.log('[Scene_Reflect] Starting ambient sound on user click');
+      playAmbientSound();
+    }
+    setAudioStarted(true);
+  };
+
   // If showing interlude, render it as overlay
   if (showInterlude && currentReflectionId) {
     return (
@@ -833,7 +844,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
       {/* Main content - centered vertically with reduced top padding and scrollable */}
       <div className="relative z-10 flex flex-col items-center justify-start min-h-screen px-6 py-4 md:py-6 pt-12 pb-32 overflow-y-auto">
         {/* Pig avatar - SIMPLE, just like naming page */}
-        <div ref={pigRef} className="mb-4">
+        <div ref={pigRef} className="mb-8">
           <PinkPig 
             size={200} 
             state={scenePhase === 'listening' ? 'thinking' : (showHeartAnimation ? 'happy' : 'idle')}
@@ -848,7 +859,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          className="mb-4 text-center max-w-lg px-4"
+          className="mb-6 text-center max-w-lg px-4"
         >
           <p 
             className="text-2xl md:text-3xl font-serif italic text-[#9C1F5F] leading-snug tracking-wide"
@@ -895,7 +906,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
                   />
                   
                   {/* Mode toggles - voice and photo on same line for mobile */}
-                  <div className="flex flex-row items-center justify-center mt-1 gap-3 flex-wrap">
+                  <div className="flex flex-row items-center justify-center mt-4 gap-3 flex-wrap">
                     <button
                       onClick={toggleInputMode}
                       className="text-sm text-pink-600 hover:text-pink-800 italic underline whitespace-nowrap"

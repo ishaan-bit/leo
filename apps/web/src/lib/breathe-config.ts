@@ -64,7 +64,7 @@ export const PRIMARY_PRESETS: Record<PrimaryEmotion, PrimaryPreset> = {
   peaceful: {
     color: '#4FFFE3', // Soft teal (Haven)
     audio: '/audio/breathe/ocean_peace.mp3',
-    cycle: { in: 6, h1: 1.5, out: 6, h2: 1.5 }, // Balanced (was 4/1/4/1)
+    cycle: { in: 4, h1: 1, out: 4, h2: 1 }, // Balanced - faster for better UX (was 6/1.5/6/1.5)
     light: { mode: 'drift', intensity: [0.3, 0.9] },
   },
   powerful: {

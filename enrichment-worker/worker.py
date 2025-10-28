@@ -10,9 +10,12 @@ import requests
 from datetime import datetime
 from typing import Dict, Optional
 from dotenv import load_dotenv
+from pathlib import Path
+import threading
 
-# Load environment variables
-load_dotenv()
+# Load environment variables from .env file in the same directory as this script
+env_path = Path(__file__).parent / '.env'
+load_dotenv(dotenv_path=env_path)
 
 # Import modules
 from src.modules.redis_client import get_redis
@@ -24,29 +27,19 @@ POLL_MS = int(os.getenv('WORKER_POLL_MS', '500'))
 NORMALIZED_KEY = os.getenv('REFLECTIONS_NORMALIZED_KEY', 'reflections:normalized')
 BASELINE_BLEND = float(os.getenv('BASELINE_BLEND', '0.35'))
 TIMEZONE = os.getenv('TIMEZONE', 'Asia/Kolkata')
-USE_AGENT_MODE = os.getenv('USE_AGENT_MODE', 'false').lower() == 'true'
 
 # Initialize components
 redis_client = get_redis()
 emotion_validator = get_validator()  # Canonical Willcox Wheel validator
 
-# Initialize scorer based on mode (Agent Mode or Hybrid Scorer)
-if USE_AGENT_MODE:
-    print(f"[*] Initializing Agent Mode Scorer (execute-once idempotent)")
-    from src.modules.agent_mode_scorer import AgentModeScorer
-    ollama_client = AgentModeScorer(
-        hf_token=os.getenv('HF_TOKEN'),
-        ollama_base_url=os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434'),
-        timezone=TIMEZONE
-    )
-else:
-    print(f"[*] Initializing Hybrid Scorer (continuous enrichment)")
-    from src.modules.hybrid_scorer import HybridScorer
-    ollama_client = HybridScorer(
-        hf_token=os.getenv('HF_TOKEN'),
-        ollama_base_url=os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434'),
-        use_ollama=True
-    )
+# Initialize Hybrid Scorer
+print(f"[*] Initializing Hybrid Scorer")
+from src.modules.hybrid_scorer import HybridScorer
+ollama_client = HybridScorer(
+    hf_token=os.getenv('HF_TOKEN'),
+    ollama_base_url=os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434'),
+    use_ollama=True
+)
 
 # Stage-2 Post-Enricher
 post_enricher = PostEnricher(
@@ -55,6 +48,43 @@ post_enricher = PostEnricher(
     temperature=float(os.getenv('STAGE2_TEMPERATURE', '0.8')),
     timeout=int(os.getenv('STAGE2_TIMEOUT', '360'))  # 6 minutes for CPU inference (no GPU)
 )
+
+
+def generate_songs_async(rid: str):
+    """
+    Generate song recommendations in background thread (non-blocking)
+    Runs in parallel with Stage 2 post-enrichment
+    """
+    try:
+        print(f"[ASYNC] Starting song generation for {rid}...")
+        song_worker_url = os.getenv('SONG_WORKER_URL', 'http://localhost:5051')
+        song_response = requests.post(
+            f'{song_worker_url}/recommend',
+            json={'rid': rid, 'refresh': False},
+            timeout=180  # Timeout for YouTube API calls
+        )
+        
+        if song_response.ok:
+            song_data = song_response.json()
+            
+            # Add songs to the reflection in Upstash
+            reflection_key = f'reflection:{rid}'
+            reflection_json = redis_client.get(reflection_key)
+            if reflection_json:
+                reflection = json.loads(reflection_json)
+                reflection['songs'] = {
+                    'en': song_data.get('tracks', {}).get('en', {}),
+                    'hi': song_data.get('tracks', {}).get('hi', {})
+                }
+                redis_client.set(reflection_key, json.dumps(reflection), ex=30 * 24 * 60 * 60)
+                
+                print(f"[OK] Songs added to reflection:{rid}")
+                print(f"   Song EN: {reflection['songs']['en'].get('title', 'N/A')}")
+                print(f"   Song HI: {reflection['songs']['hi'].get('title', 'N/A')}")
+        else:
+            print(f"[!] Song worker failed: {song_response.status_code}")
+    except Exception as song_err:
+        print(f"[!] Song generation failed (non-fatal): {song_err}")
 
 
 def check_health() -> Dict:
@@ -101,29 +131,9 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
         history = redis_client.get_user_history(sid, limit=90)
         print(f"[=] Loaded {len(history)} past reflections for {sid}")
         
-        # 2. Stage-1: Call enrichment scorer (Agent Mode or Hybrid Scorer)
-        if USE_AGENT_MODE:
-            print(f"[*] Stage-1: Agent Mode Scorer...")
-            
-            # Extract prev_reflection for explicit temporal continuity
-            prev_reflection = history[0] if history else None
-            
-            # Call Agent Mode with full reflection dict
-            ollama_result = ollama_client.enrich(
-                reflection={
-                    'rid': rid,
-                    'sid': sid,
-                    'normalized_text': normalized_text,
-                    'timestamp': timestamp,
-                    'timezone_used': TIMEZONE
-                },
-                prev_reflection=prev_reflection,
-                history=history
-            )
-        else:
-            print(f"[*] Stage-1: Hybrid Scorer...")
-            # Legacy API for hybrid scorer
-            ollama_result = ollama_client.enrich(normalized_text, history, timestamp)
+        # 2. Stage-1: Hybrid Scorer
+        print(f"[*] Stage-1: Hybrid Scorer...")
+        ollama_result = ollama_client.enrich(normalized_text, history, timestamp)
         
         if not ollama_result:
             print(f"[X] Enrichment scorer failed for {rid}")
@@ -131,44 +141,38 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
             return None
         
         # 2.5. VALIDATE EMOTIONS against canonical Willcox Wheel
-        # Note: Agent Mode does this internally with retries, skip duplicate validation
-        if not USE_AGENT_MODE:
-            print(f"[*] Validating emotions...")
-            wheel = ollama_result.get('wheel', {})
-            primary = wheel.get('primary')
-            secondary = wheel.get('secondary')
-            tertiary = wheel.get('tertiary')
+        print(f"[*] Validating emotions...")
+        wheel = ollama_result.get('wheel', {})
+        primary = wheel.get('primary')
+        secondary = wheel.get('secondary')
+        tertiary = wheel.get('tertiary')
+        
+        # Validate emotion triplet
+        is_valid = emotion_validator.validate_emotion(primary, secondary, tertiary) if (primary and secondary and tertiary) else False
+        
+        # Log validation result
+        emotion_validator.log_validation(primary, secondary, tertiary, is_valid, context=rid)
+        
+        # Normalize if invalid
+        if not is_valid:
+            print(f"[!] Invalid emotion detected: {primary} -> {secondary} -> {tertiary}")
+            is_valid_normalized, p_norm, s_norm, t_norm = emotion_validator.normalize_emotion(primary, secondary, tertiary)
             
-            # Validate emotion triplet
-            is_valid = emotion_validator.validate_emotion(primary, secondary, tertiary) if (primary and secondary and tertiary) else False
+            # Update wheel with normalized values
+            ollama_result['wheel'] = {
+                'primary': p_norm,
+                'secondary': s_norm,
+                'tertiary': t_norm
+            }
             
-            # Log validation result
-            emotion_validator.log_validation(primary, secondary, tertiary, is_valid, context=rid)
+            # Add warning
+            if 'warnings' not in ollama_result:
+                ollama_result['warnings'] = []
+            ollama_result['warnings'].append(f"Emotion normalized from {primary}/{secondary}/{tertiary} to {p_norm}/{s_norm}/{t_norm}")
             
-            # Normalize if invalid
-            if not is_valid:
-                print(f"[!] Invalid emotion detected: {primary} -> {secondary} -> {tertiary}")
-                is_valid_normalized, p_norm, s_norm, t_norm = emotion_validator.normalize_emotion(primary, secondary, tertiary)
-                
-                # Update wheel with normalized values
-                ollama_result['wheel'] = {
-                    'primary': p_norm,
-                    'secondary': s_norm,
-                    'tertiary': t_norm
-                }
-                
-                # Add warning
-                if 'warnings' not in ollama_result:
-                    ollama_result['warnings'] = []
-                ollama_result['warnings'].append(f"Emotion normalized from {primary}/{secondary}/{tertiary} to {p_norm}/{s_norm}/{t_norm}")
-                
-                print(f"[*] Normalized to: {p_norm} -> {s_norm} -> {t_norm}")
-            else:
-                print(f"[OK] Emotion valid: {primary} -> {secondary} -> {tertiary}")
+            print(f"[*] Normalized to: {p_norm} -> {s_norm} -> {t_norm}")
         else:
-            # Agent Mode already validated - just log result
-            wheel = ollama_result.get('wheel', {})
-            print(f"[OK] Agent Mode validated: {wheel.get('primary')} -> {wheel.get('secondary')} -> {wheel.get('tertiary')}")
+            print(f"[OK] Emotion valid: {primary} -> {secondary} -> {tertiary}")
         
         # 3. Build Stage-1 enriched fields for Redis
         enriched_stage1 = {
@@ -228,39 +232,13 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
         except Exception as update_err:
             print(f"[!] Failed to update reflection with final data: {update_err}")
         
-        # 4.5. Generate Song Recommendations (after Stage-1, before Stage-2)
-        print(f"[*] Generating song recommendations...")
-        try:
-            song_worker_url = os.getenv('SONG_WORKER_URL', 'http://localhost:5051')
-            song_response = requests.post(
-                f'{song_worker_url}/recommend',
-                json={'rid': rid, 'refresh': False},
-                timeout=180  # Timeout for YouTube API calls
-            )
-            
-            if song_response.ok:
-                song_data = song_response.json()
-                
-                # Add songs to the reflection in Upstash
-                reflection_key = f'reflection:{rid}'
-                reflection_json = redis_client.get(reflection_key)
-                if reflection_json:
-                    reflection = json.loads(reflection_json)
-                    reflection['songs'] = {
-                        'en': song_data.get('tracks', {}).get('en', {}),
-                        'hi': song_data.get('tracks', {}).get('hi', {})
-                    }
-                    redis_client.set(reflection_key, json.dumps(reflection), ex=30 * 24 * 60 * 60)
-                    
-                    print(f"[OK] Songs added to reflection:{rid}")
-                    print(f"   Song EN: {reflection['songs']['en'].get('title', 'N/A')}")
-                    print(f"   Song HI: {reflection['songs']['hi'].get('title', 'N/A')}")
-            else:
-                print(f"[!] Song worker failed: {song_response.status_code}")
-        except Exception as song_err:
-            print(f"[!] Song generation failed (non-fatal): {song_err}")
+        # 4.5. Start Song Generation in Background (parallel with Stage-2)
+        print(f"[*] Starting song generation in background thread...")
+        song_thread = threading.Thread(target=generate_songs_async, args=(rid,), daemon=True)
+        song_thread.start()
+        print(f"[OK] Song generation started (non-blocking)")
         
-        # 5. Stage-2: Post-Enrichment (creative content) - runs after Stage-1 is saved
+        # 5. Stage-2: Post-Enrichment (creative content) - runs PARALLEL with songs
         print(f"[*] Stage-2: Post-Enricher (background)...")
         try:
             ollama_result['status'] = 'stage1_complete'
@@ -359,6 +337,8 @@ def main():
     """Main worker loop"""
     print("[*] Enrichment Worker Starting...")
     print(f"   Poll interval: {POLL_MS}ms")
+    
+    # Print Ollama info
     print(f"   Ollama: {ollama_client.ollama_base_url}")
     print(f"   Model: {ollama_client.ollama_model}")
     print(f"   Timezone: {TIMEZONE}")
