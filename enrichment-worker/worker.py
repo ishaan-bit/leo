@@ -174,6 +174,34 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
         else:
             print(f"[OK] Emotion valid: {primary} -> {secondary} -> {tertiary}")
         
+        # 2.6. MAP BACKEND TO FRONTEND LABELS
+        # Backend uses: sad, angry, fearful, happy, peaceful, strong (from willcox_wheel.json)
+        # Frontend expects: sad, mad, scared, joyful, peaceful, powerful (from zones.ts)
+        # This mapping happens AFTER validation so validator can check canonical wheel
+        print(f"[*] Mapping backend emotions to frontend labels...")
+        backend_to_frontend = {
+            'happy': 'joyful',
+            'sad': 'sad',
+            'angry': 'mad',
+            'fearful': 'scared',
+            'peaceful': 'peaceful',
+            'strong': 'powerful',
+            # Capitalized versions (just in case)
+            'Happy': 'joyful',
+            'Sad': 'sad',
+            'Angry': 'mad',
+            'Fearful': 'scared',
+            'Peaceful': 'peaceful',
+            'Strong': 'powerful',
+        }
+        
+        current_primary = ollama_result['wheel'].get('primary')
+        if current_primary:
+            mapped_primary = backend_to_frontend.get(current_primary, current_primary.lower())
+            if current_primary != mapped_primary:
+                print(f"   [MAPPED] {current_primary} → {mapped_primary} (for frontend zone compatibility)")
+                ollama_result['wheel']['primary'] = mapped_primary
+        
         # 3. Build Stage-1 enriched fields for Redis
         enriched_stage1 = {
             'timezone_used': TIMEZONE,

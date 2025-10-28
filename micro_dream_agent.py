@@ -200,7 +200,7 @@ class MicroDreamAgent:
                 final = data.get('final', {})
                 valence = final.get('valence', 0.0)
                 arousal = final.get('arousal', 0.0)
-                primary = final.get('wheel', {}).get('primary', 'peaceful').lower()
+                primary = (final.get('wheel', {}).get('primary') or 'peaceful').lower()
                 
                 # Extract closing line and metadata
                 closing_line = ''

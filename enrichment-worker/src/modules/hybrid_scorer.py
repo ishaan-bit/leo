@@ -344,34 +344,8 @@ class HybridScorer:
             print(f"   Expressed: {serialized['expressed']}")
             print(f"   Congruence: {congruence}")
             
-            # CRITICAL: Map backend canonical primaries to frontend zone primaries
-            # Backend uses: sad, angry, fearful, happy, peaceful, strong (from willcox_wheel.json)
-            # Frontend expects: sad, mad, scared, joyful, peaceful, powerful (from zones.ts)
-            # This mapping MUST be case-insensitive to handle both capitalized and lowercase
-            v1_to_v2_mapping = {
-                # Capitalized versions (from Ollama or old code)
-                'Happy': 'joyful',
-                'Sad': 'sad',
-                'Angry': 'mad',
-                'Fearful': 'scared',
-                'Peaceful': 'peaceful',
-                'Strong': 'powerful',
-                # Lowercase versions (from wheel JSON and HF)
-                'happy': 'joyful',
-                'sad': 'sad',
-                'angry': 'mad',
-                'fearful': 'scared',
-                'peaceful': 'peaceful',
-                'strong': 'powerful',
-            }
-            
-            # Map primary emotion (case-insensitive)
-            old_primary = serialized['wheel']['primary']
-            new_primary = v1_to_v2_mapping.get(old_primary, old_primary.lower())
-            serialized['wheel']['primary'] = new_primary
-            
-            if old_primary != new_primary:
-                print(f"   [MAPPED] {old_primary} → {new_primary} (for frontend zone compatibility)")
+            # NOTE: Primary emotion mapping to frontend labels (angry→mad, etc.) now happens
+            # in worker.py AFTER validation, so validator can check against canonical wheel
             
             return serialized
             
