@@ -863,9 +863,12 @@ export default function MomentsLibrary({
               </h1>
             </motion.div>
             
-            {/* Subtitle - layered reveal after title, enhanced visibility */}
+            {/* Subtitle - layered reveal after title, enhanced visibility with more spacing */}
             <motion.div
-              className="absolute top-40 sm:top-44 md:top-44 left-0 right-0 z-20 text-center pointer-events-none px-4"
+              className="absolute left-0 right-0 z-20 text-center pointer-events-none px-4"
+              style={{
+                top: '11rem', // Increased from top-40 (10rem) to 11rem for better spacing
+              }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}

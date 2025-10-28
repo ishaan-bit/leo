@@ -897,15 +897,20 @@ export default function CityInterlude({
                     }}
                   />
                   
-                  {/* Tower name (visible when primary, enhanced during transition) */}
+                  {/* Tower name (visible when primary, enhanced during transition) - CENTERED directly above building */}
                   {isPrimary && (
                     <motion.div
-                      className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap text-sm font-serif italic"
-                      style={{ color: tower.color, textShadow: `0 0 10px ${tower.color}` }}
+                      className="absolute left-1/2 whitespace-nowrap text-sm font-serif italic"
+                      style={{ 
+                        color: tower.color, 
+                        textShadow: `0 0 10px ${tower.color}`,
+                        top: '-2.5rem', // Fixed distance above building (40px)
+                        transform: 'translateX(-50%)', // Perfect horizontal centering
+                      }}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ 
                         opacity: 1, 
-                y: 0,
+                        y: 0,
                         scale: isTransitionPhase ? [1, 1.2] : 1, // Grow during transition
                       }}
                       transition={{ 

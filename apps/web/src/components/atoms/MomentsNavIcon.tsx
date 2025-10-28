@@ -9,12 +9,12 @@ type Props = {
 export default function MomentsNavIcon({ onClick }: Props) {
   return (
     <motion.div
-      className="fixed top-4 left-2 md:left-4 z-[100] flex items-center gap-2 pointer-events-none"
+      className="fixed left-2 md:left-4 z-[100] flex items-center gap-2 pointer-events-none"
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.5, delay: 0.5 }}
       style={{
-        paddingTop: 'max(1rem, env(safe-area-inset-top))',
+        top: 'max(1rem, env(safe-area-inset-top))', // Aligned with top navigation
         paddingLeft: 'max(0.5rem, env(safe-area-inset-left))',
       }}
     >

@@ -85,12 +85,12 @@ export default function SoundToggle({ autoHintDelayMs = 2000, autoHideDelayMs = 
 
   return (
     <motion.div
-      className="fixed top-4 right-2 md:right-4 z-[100] flex flex-col items-end gap-1 pointer-events-none"
+      className="fixed right-2 md:right-4 z-[100] flex flex-col items-end gap-1 pointer-events-none"
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.5 }}
       style={{
-        paddingTop: 'max(1rem, env(safe-area-inset-top))',
+        top: 'max(1rem, env(safe-area-inset-top))', // Aligned with top navigation
         paddingRight: 'max(0.5rem, env(safe-area-inset-right))',
       }}
     >
