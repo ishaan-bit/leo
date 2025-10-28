@@ -558,6 +558,69 @@ class HybridScorer:
         
         return cues
     
+    def _sanitize_to_single_tokens(self, labels: list, field_name: str = "labels") -> list:
+        """
+        Enforce Agent Mode Refinement rules: single-token labels only.
+        Strip multi-word phrases, remove punctuation (except internal hyphens),
+        enforce lowercase, max 3 items.
+        
+        Rules:
+        - No spaces (except convert to underscore for compound terms)
+        - No slashes, commas, periods, or other punctuation
+        - Lowercase only
+        - Max 3 tokens
+        - If a phrase is detected, take first meaningful word or convert to snake_case
+        
+        Examples:
+            "relief from constant checking" → "relief"
+            "fatigue + relief + heaviness" → ["fatigue", "relief", "heaviness"]
+            "calm / playful / exhausted" → ["calm", "playful", "exhausted"]
+        """
+        if not labels:
+            return []
+        
+        sanitized = []
+        for label in labels[:3]:  # Max 3
+            if not isinstance(label, str):
+                continue
+            
+            # Remove leading/trailing whitespace
+            clean = label.strip().lower()
+            
+            # Check for phrases (multiple words separated by spaces)
+            words = clean.split()
+            if len(words) > 1:
+                # Try to extract first meaningful word
+                # Common stop words to skip
+                stop_words = {'from', 'of', 'the', 'a', 'an', 'in', 'on', 'at', 'to', 'for', 'with'}
+                meaningful_words = [w for w in words if w not in stop_words and len(w) > 2]
+                
+                if meaningful_words:
+                    # Take first meaningful word
+                    token = meaningful_words[0]
+                else:
+                    # Fallback: convert to snake_case if short phrase
+                    if len(words) <= 3:
+                        token = '_'.join(words[:2])
+                    else:
+                        token = words[0]
+            else:
+                token = clean
+            
+            # Remove punctuation except internal hyphens/underscores
+            # Allow: alphanumeric + hyphen + underscore
+            token = re.sub(r'[^\w\-]', '', token)
+            
+            # Ensure not empty after cleaning
+            if token and len(token) > 1:
+                sanitized.append(token)
+        
+        # Log if we had to sanitize
+        if len(sanitized) != len(labels[:3]) or any(s != l.strip().lower() for s, l in zip(sanitized, labels[:3])):
+            print(f"[SANITIZE] {field_name}: {labels[:3]} → {sanitized}")
+        
+        return sanitized[:3]  # Max 3
+    
     def _map_to_events(self, invoked: list, valence: float, arousal: float) -> list:
         """
         Map invoked drivers to specific event labels based on valence/arousal
@@ -568,8 +631,11 @@ class HybridScorer:
         if not invoked:
             return []
         
+        # Sanitize invoked first (in case they contain phrases)
+        invoked_clean = self._sanitize_to_single_tokens(invoked, field_name="events_from_invoked")
+        
         events = []
-        for inv in invoked[:3]:
+        for inv in invoked_clean[:3]:  # Max 3 events
             # Map driver to event with confidence based on valence/arousal alignment
             confidence = 0.85  # Base confidence
             
@@ -1240,6 +1306,9 @@ JSON:"""
             if isinstance(ollama_invoked, list):
                 invoked = list(set(invoked + ollama_invoked[:3]))[:3]
         
+        # Sanitize invoked to single tokens (Agent Mode Refinement)
+        invoked = self._sanitize_to_single_tokens(invoked, field_name="invoked")
+        
         # Expressed: top 2-3 surface tones
         top_surface = sorted(surface_scores.items(), key=lambda x: -x[1])[:3]
         expressed = [s[0] for s in top_surface if s[1] > 0.1]
@@ -1249,6 +1318,9 @@ JSON:"""
             ollama_expressed = ollama_result['expressed']
             if isinstance(ollama_expressed, list):
                 expressed = list(set(expressed + ollama_expressed[:3]))[:3]
+        
+        # Sanitize expressed to single tokens (Agent Mode Refinement)
+        expressed = self._sanitize_to_single_tokens(expressed, field_name="expressed")
         
         # Valence/Arousal: Use Willcox ranges + circadian priors (A1)
         valence, arousal = self._estimate_valence_arousal(primary, secondary, driver_scores, circadian_phase)
