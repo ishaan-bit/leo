@@ -278,29 +278,7 @@ export default function MicroDreamCinematic({ dream, pigName = 'Your Pig', onCom
         </>
       )}
 
-      {/* Clouds - fade out smoothly during exit */}
-      {!prefersReducedMotion && (
-        <motion.div
-          className="absolute inset-0 z-[10]"
-          animate={{ opacity: showPinkMorph ? 0 : 1 }}
-          transition={{ duration: timings.exit.morphToPink / 1000, ease: 'easeOut' }}
-        >
-          {[0, 1, 2, 3, 4].map((i) => (
-            <motion.div
-              key={i}
-              className="absolute rounded-full bg-white/7 backdrop-blur-sm"
-              style={{
-                top: `${20 + i * 10}%`,
-                height: `${60 + i * 15}px`,
-                width: `${140 + i * 50}px`,
-                left: `-${140 + i * 50}px`,
-              }}
-              animate={{ x: ['0vw', '110vw'] }}
-              transition={{ duration: 40 + i * 12, repeat: Infinity, ease: 'linear', delay: i * 3 }}
-            />
-          ))}
-        </motion.div>
-      )}
+      {/* Clouds removed - was causing text blur */}
 
       {/* Auth State Indicator - top center */}
       <div className="fixed top-0 left-0 right-0 z-50 flex items-start justify-center px-6 py-4 pointer-events-none"
@@ -324,8 +302,8 @@ export default function MicroDreamCinematic({ dream, pigName = 'Your Pig', onCom
       {/* Sound Toggle - top right */}
       <SoundToggle />
 
-      {/* Pig (floating, centered - will transition to moment page position) */}
-      <div className="absolute inset-x-0 z-20 flex justify-center" style={{ top: '25%' }}>
+      {/* Pig (floating, centered higher - will transition to moment page position) */}
+      <div className="absolute inset-x-0 z-20 flex justify-center" style={{ top: '12%' }}>
         <motion.div
           className="relative"
           initial={{ opacity: 0, scale: 0.85, y: 20 }}
@@ -480,8 +458,8 @@ export default function MicroDreamCinematic({ dream, pigName = 'Your Pig', onCom
         </motion.div>
       </div>
 
-      {/* Footer - pulsing dreamscape label, fades down during exit */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20">
+      {/* Footer - centered pig name + dreamscape label, fades down during exit */}
+      <div className="absolute bottom-8 left-0 right-0 z-20 flex justify-center">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ 
@@ -496,7 +474,7 @@ export default function MicroDreamCinematic({ dream, pigName = 'Your Pig', onCom
             y: { duration: phase === 'exiting' ? 0.8 : 0.6, delay: phase === 'exiting' ? 0 : 0.4, ease: 'easeOut' },
             scale: { duration: 3, repeat: Infinity, ease: 'easeInOut' },
           }}
-          className="px-6 py-2 text-sm tracking-widest uppercase"
+          className="px-6 py-2 text-sm tracking-widest uppercase text-center"
           style={{
             fontFamily: "'Kalam', cursive",
             fontWeight: 300,
