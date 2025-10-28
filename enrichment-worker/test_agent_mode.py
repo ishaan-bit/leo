@@ -9,10 +9,10 @@ import sys
 import json
 from dotenv import load_dotenv
 
-# Add src to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+# Add enrichment-worker to path
+sys.path.insert(0, os.path.dirname(__file__))
 
-from modules.agent_mode_scorer import AgentModeScorer
+from src.modules.agent_mode_scorer import AgentModeScorer
 
 
 def test_agent_mode_scorer():
