@@ -837,13 +837,16 @@ export default function MomentsLibrary({
         })}
       </motion.div>
 
-      {/* Title - lowered slightly for better balance, sequential fade-in */}
+      {/* Title - more spacing from top to clear sign-in button, sequential fade-in */}
       <AnimatePresence>
         {phase === 'library' && (
           <>
-            {/* Main Title */}
+            {/* Main Title - increased top spacing to avoid overlap with sign-in */}
             <motion.div
-              className="absolute top-20 sm:top-24 md:top-20 left-0 right-0 z-20 text-center pointer-events-none px-4"
+              className="absolute left-0 right-0 z-20 text-center pointer-events-none px-4"
+              style={{
+                top: '6rem', // Increased from top-20 (5rem) to 6rem for clearance from sign-in button
+              }}
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
@@ -888,9 +891,9 @@ export default function MomentsLibrary({
               </p>
             </motion.div>
 
-            {/* Share a New Moment Icon - top-left, adjusted for mobile to avoid overlap */}
+            {/* Share a New Moment Icon - top-left, same size as sound toggle for visual consistency */}
             <motion.button
-              className="fixed top-4 left-2 md:left-4 z-50 pointer-events-auto rounded-full overflow-hidden group"
+              className="fixed left-2 md:left-4 z-50 pointer-events-auto rounded-full overflow-hidden group"
               onClick={onNewReflection}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ 
@@ -908,8 +911,12 @@ export default function MomentsLibrary({
               style={{
                 background: 'linear-gradient(135deg, #FFD700 0%, #FFC1CC 100%)',
                 boxShadow: '0 4px 16px rgba(255, 215, 0, 0.3)',
-                width: '48px',
-                height: '48px',
+                width: '32px',  // Match SoundToggle size
+                height: '32px', // Match SoundToggle size
+                minWidth: '32px',
+                minHeight: '32px',
+                padding: '6px', // Match SoundToggle padding
+                top: 'max(1rem, env(safe-area-inset-top))', // Aligned with top navigation
                 paddingLeft: 'max(0.5rem, env(safe-area-inset-left))',
               }}
             >
@@ -930,7 +937,7 @@ export default function MomentsLibrary({
                 }}
               >
                 <motion.span 
-                  className="text-2xl"
+                  className="text-lg" // Reduced from text-2xl to fit smaller button
                   animate={{
                     scale: [1, 1.15, 1],
                     rotate: [0, 12, -12, 0],
