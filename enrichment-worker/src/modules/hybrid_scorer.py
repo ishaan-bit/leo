@@ -289,6 +289,14 @@ class HybridScorer:
             events = self._map_to_events(invoked_list, valence, arousal)
             
             congruence = self._compute_congruence(invoked_list, expressed_list, valence, arousal)
+            
+            # Step 8.6: A3 - Congruence smoothing (if low congruence, adjust valence toward invoked signal)
+            if congruence < 0.7:  # Low congruence threshold
+                valence, arousal, congruence_meta = self._apply_congruence_smoothing(
+                    valence, arousal, invoked_list, expressed_list, congruence
+                )
+                print(f"   [A3 Congruence] Low congruence ({congruence:.2f}), adjusted V: {congruence_meta['raw_v']:.2f}→{valence:.2f}, A: {congruence_meta['raw_a']:.2f}→{arousal:.2f}")
+            
             temporal = self._compute_temporal_analytics(valence, arousal, history, timestamp)
             willingness_score = self._compute_willingness_score(invoked_list, expressed_list, willingness_cues, valence)
             comparator = self._compute_comparator(events, invoked_list, expressed_list, valence, arousal)
@@ -1432,6 +1440,100 @@ JSON:"""
             'historical_v': round(historical_v, 2),
             'historical_a': round(historical_a, 2),
             'reason': f"sparse:{sparsity_boost:+.2f}, conf:{confidence_adjust:+.2f}, gap:{time_gap_boost:+.2f}"
+        }
+    
+    def _apply_congruence_smoothing(
+        self,
+        valence: float,
+        arousal: float,
+        invoked: list,
+        expressed: list,
+        congruence: float
+    ) -> Tuple[float, float, Dict]:
+        """
+        A3: Apply congruence-based smoothing to valence/arousal
+        
+        When congruence is low (<0.7), it suggests expressed tone is defensive/suppressed.
+        In this case, shift valence/arousal toward what invoked drivers suggest.
+        
+        Example: User says "fine" (low arousal expressed) but tone is angry (high arousal invoked)
+        → Weight invoked higher, increase arousal
+        
+        Args:
+            valence: Current valence
+            arousal: Current arousal
+            invoked: Driver emotions (deeper feelings)
+            expressed: Surface tone (how they present)
+            congruence: Congruence score [0, 1]
+        
+        Returns:
+            (adjusted_valence, adjusted_arousal, metadata_dict)
+        """
+        raw_v = valence
+        raw_a = arousal
+        
+        # Calculate penalty strength based on congruence gap
+        # congruence < 0.3 → strong penalty (0.2 adjustment)
+        # congruence 0.3-0.7 → moderate penalty (0.05-0.15 adjustment)
+        penalty_strength = max(0.0, (0.7 - congruence) * 0.4)  # 0 to 0.28
+        
+        # Determine invoked signal direction
+        # Map invoked drivers to expected valence/arousal shifts
+        invoked_signals = {
+            'overwhelm': {'v': -0.2, 'a': +0.2},
+            'frustration': {'v': -0.15, 'a': +0.15},
+            'grief': {'v': -0.3, 'a': -0.1},
+            'anxiety': {'v': -0.1, 'a': +0.25},
+            'fatigue': {'v': -0.1, 'a': -0.2},
+            'anger': {'v': -0.2, 'a': +0.3},
+            'fear': {'v': -0.15, 'a': +0.2},
+            'pride': {'v': +0.25, 'a': +0.1},
+            'connection': {'v': +0.2, 'a': +0.05},
+            'relief': {'v': +0.2, 'a': -0.1},
+            'joy': {'v': +0.3, 'a': +0.15},
+        }
+        
+        # Calculate weighted average of invoked signals
+        v_shift = 0.0
+        a_shift = 0.0
+        matched_count = 0
+        
+        for inv in invoked:
+            inv_lower = inv.lower()
+            for key, shifts in invoked_signals.items():
+                if key in inv_lower or inv_lower in key:
+                    v_shift += shifts['v']
+                    a_shift += shifts['a']
+                    matched_count += 1
+                    break
+        
+        if matched_count > 0:
+            v_shift /= matched_count
+            a_shift /= matched_count
+            
+            # Apply penalty-weighted shift
+            adjusted_v = valence + (v_shift * penalty_strength)
+            adjusted_a = arousal + (a_shift * penalty_strength)
+            
+            # Clamp
+            adjusted_v = max(0.0, min(1.0, adjusted_v))
+            adjusted_a = max(0.0, min(1.0, adjusted_a))
+            
+            return adjusted_v, adjusted_a, {
+                'raw_v': round(raw_v, 2),
+                'raw_a': round(raw_a, 2),
+                'penalty_strength': round(penalty_strength, 2),
+                'invoked_v_shift': round(v_shift, 2),
+                'invoked_a_shift': round(a_shift, 2),
+                'reason': f"Low congruence ({congruence:.2f}), weighted invoked signals"
+            }
+        
+        # No invoked signals matched, return unchanged
+        return valence, arousal, {
+            'raw_v': round(raw_v, 2),
+            'raw_a': round(raw_a, 2),
+            'penalty_strength': 0.0,
+            'reason': 'No invoked signals matched'
         }
     
     def _estimate_confidence(
