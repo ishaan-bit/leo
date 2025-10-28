@@ -621,6 +621,50 @@ class HybridScorer:
         
         return sanitized[:3]  # Max 3
     
+    def _find_nearest_in_vocab_tertiary(self, ood_label: str, primary: str, secondary: str) -> Tuple[str, float]:
+        """
+        Agent Mode Refinement: Find nearest in-vocab tertiary using cosine similarity.
+        Used when Ollama/classifier returns an out-of-vocab emotion.
+        
+        Args:
+            ood_label: The out-of-vocab label from classifier
+            primary: Willcox primary (for context)
+            secondary: Willcox secondary (for narrowing search)
+        
+        Returns:
+            (best_tertiary, similarity_score)
+        """
+        # Get all valid tertiaries for this secondary
+        if primary not in self.WILLCOX_HIERARCHY or secondary not in self.WILLCOX_HIERARCHY[primary]:
+            # If secondary invalid, search ALL tertiaries under primary
+            if primary in self.WILLCOX_HIERARCHY:
+                all_tertiaries = []
+                for sec_key, terts in self.WILLCOX_HIERARCHY[primary].items():
+                    all_tertiaries.extend(terts)
+                candidates = all_tertiaries
+            else:
+                # Last resort: search ALL tertiaries in wheel
+                candidates = []
+                for prim, secs in self.WILLCOX_HIERARCHY.items():
+                    for sec, terts in secs.items():
+                        candidates.extend(terts)
+        else:
+            candidates = self.WILLCOX_HIERARCHY[primary][secondary]
+        
+        if not candidates:
+            # Emergency fallback
+            return "unknown", 0.0
+        
+        # Compute embedding similarity between OOD label and all candidates
+        similarities = self._embedding_similarity(ood_label, candidates)
+        
+        # Pick best match
+        best_tertiary = max(similarities.items(), key=lambda x: x[1])
+        
+        print(f"[OOD Remap] '{ood_label}' → '{best_tertiary[0]}' (sim={best_tertiary[1]:.3f}) in {primary}/{secondary}")
+        
+        return best_tertiary  # (label, similarity_score)
+    
     def _map_to_events(self, invoked: list, valence: float, arousal: float) -> list:
         """
         Map invoked drivers to specific event labels based on valence/arousal
@@ -1267,12 +1311,19 @@ JSON:"""
         
         # Tertiary: ALWAYS enforce non-null (W1: Willcox completeness requirement)
         tertiary = None
+        was_ood_remapped = False  # Track if we had to remap OOD label
+        
         if ollama_result and ollama_result.get('tertiary') and secondary:
             tertiary_candidate = ollama_result['tertiary']
             # Validate it belongs to secondary
             if primary in self.WILLCOX_HIERARCHY and secondary in self.WILLCOX_HIERARCHY[primary]:
                 if tertiary_candidate in self.WILLCOX_HIERARCHY[primary][secondary]:
                     tertiary = tertiary_candidate
+                else:
+                    # OOD detected! Use nearest-neighbor fallback
+                    print(f"[OOD Detected] Tertiary '{tertiary_candidate}' not in vocab for {primary}/{secondary}")
+                    tertiary, sim_score = self._find_nearest_in_vocab_tertiary(tertiary_candidate, primary, secondary)
+                    was_ood_remapped = True
         
         if not tertiary and secondary and primary in secondary_tertiary_scores:
             # Use top embedding tertiary
@@ -1328,6 +1379,11 @@ JSON:"""
         # Confidence: based on agreement across models
         confidence = self._estimate_confidence(hf_scores, ollama_result, primary)
         
+        # Agent Mode Refinement: Cap confidence at 0.72 if OOD remapping occurred
+        if was_ood_remapped:
+            confidence = min(confidence, 0.72)
+            print(f"[Confidence Cap] OOD remap → confidence capped at 0.72 (was {confidence:.2f})")
+        
         return {
             'primary': primary,
             'secondary': secondary,
@@ -1337,6 +1393,7 @@ JSON:"""
             'valence': valence,
             'arousal': arousal,
             'confidence': confidence,
+            'was_ood_remapped': was_ood_remapped  # Track for logging/validation
         }
     
     def _estimate_valence_arousal(
