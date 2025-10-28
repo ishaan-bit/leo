@@ -880,32 +880,45 @@ class HybridScorer:
     
     def _compute_willingness_score(self, invoked: list, expressed: list, cues: Dict, valence: float) -> Dict:
         """
-        Compute willingness to express using hybrid approach
+        Compute willingness to express using Agent Mode Refinement formula:
+        Base 0.4 + 0.2 for first-person - 0.1 for hedges - 0.1 for strong negations, clamp [0,1]
         
         Returns:
             Dict with willingness_to_express, inhibition, amplification, dissociation, social_desirability
         """
-        # Base willingness from congruence between invoked and expressed
-        base_willingness = 0.5
+        # Agent Mode Refinement: Start from base 0.4
+        willingness = 0.4
         
-        if invoked and expressed:
-            # High willingness if they align
-            overlap = set(invoked) & set(expressed)
-            base_willingness = len(overlap) / max(len(invoked), len(expressed)) if invoked or expressed else 0.5
-        
-        # Adjust based on cues
-        inhibition = len(cues.get('hedges', [])) * 0.05
-        amplification = len(cues.get('intensifiers', [])) * 0.05
-        
-        # Dissociation: low self-reference + low valence
+        # +0.2 for first-person disclosures (self_reference count >= 2)
         self_ref_count = len(cues.get('self_reference', []))
-        dissociation = 0.1 if self_ref_count < 2 and valence < 0.4 else 0
+        first_person_boost = 0.2 if self_ref_count >= 2 else 0.0
+        willingness += first_person_boost
         
-        # Social desirability: positive valence but hedging
-        social_desirability = 0.1 if valence > 0.6 and len(cues.get('hedges', [])) > 0 else 0
+        # -0.1 for hedges (uncertainty markers)
+        hedge_count = len(cues.get('hedges', []))
+        hedge_penalty = 0.1 if hedge_count > 0 else 0.0
+        willingness -= hedge_penalty
         
-        willingness = base_willingness - inhibition + amplification
-        willingness = max(0, min(1, willingness))
+        # -0.1 for strong negations (emphatic denial/negation)
+        negation_count = len(cues.get('negations', []))
+        # Consider "strong" negations if 2+ negations present
+        strong_negation_penalty = 0.1 if negation_count >= 2 else 0.0
+        willingness -= strong_negation_penalty
+        
+        # Clamp to [0, 1]
+        willingness = max(0.0, min(1.0, willingness))
+        
+        # Calculate component scores for debugging/transparency
+        inhibition = hedge_penalty + strong_negation_penalty
+        amplification = first_person_boost
+        
+        # Dissociation: low self-reference + low valence (unchanged)
+        dissociation = 0.1 if self_ref_count < 2 and valence < 0.4 else 0.0
+        
+        # Social desirability: positive valence but hedging (unchanged)
+        social_desirability = 0.1 if valence > 0.6 and hedge_count > 0 else 0.0
+        
+        print(f"[Willingness] base=0.4, +first_person={first_person_boost}, -hedges={hedge_penalty}, -strong_neg={strong_negation_penalty} → {willingness:.2f}")
         
         return {
             'willingness_to_express': round(willingness, 2),
