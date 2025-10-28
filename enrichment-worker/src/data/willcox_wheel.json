@@ -1,12 +1,12 @@
 {
   "metadata": {
-    "version": "1.0.0",
-    "source": "Gloria Willcox Feelings Wheel",
-    "source_of_truth": "Visual wheel diagram - EXACT match required. This is the single constant source of truth.",
+    "version": "2.0.0",
+    "source": "Gloria Willcox Feelings Wheel - Agent Mode Refinement Strict Mapping",
+    "source_of_truth": "User-provided 6×6×6 mapping - EXACT match required",
     "visual_structure": {
-      "primaries_clockwise_from_top": ["Sad (pink/magenta)", "Angry (red)", "Fearful (purple/blue)", "Happy (orange)", "Peaceful (yellow/green)", "Strong (teal/cyan)"],
+      "primaries_clockwise_from_top": ["Sad", "Angry", "Fearful", "Happy", "Peaceful", "Strong"],
       "hierarchy": "6 primaries × 6 secondaries × 6 tertiaries = 216 total emotions",
-      "requirement": "ALL outputs must include complete 3-level path (primary → secondary → tertiary). NEVER null."
+      "requirement": "ALL outputs must include complete 3-level path (primary → secondary → tertiary). NEVER null. Single-token lowercase only."
     },
     "total_emotions": 216,
     "primaries": 6,
@@ -14,72 +14,78 @@
     "tertiaries_per_secondary": 6,
     "rules": {
       "strict_validation": true,
-      "case_sensitive": true,
+      "case_insensitive": true,
+      "single_token_only": true,
+      "no_phrases": true,
       "no_inference": true,
       "no_extrapolation": true,
       "no_synonym_generation": true,
-      "enforce_completeness": "CRITICAL - secondary and tertiary MUST NEVER be null. If ambiguous, use first/nearest neighbor within parent."
+      "enforce_completeness": "CRITICAL - secondary and tertiary MUST NEVER be null. If ambiguous, use nearest-neighbor cosine similarity over label embeddings.",
+      "ood_handling": "If classifier returns out-of-vocab, compute cosine(sim) and pick nearest in-vocab tertiary. Cap confidence at 0.72."
     }
   },
   "wheel": {
-    "Sad": {
-      "lonely": ["isolated", "abandoned", "alone", "rejected", "excluded", "ignored"],
-      "vulnerable": ["fragile", "guarded", "reserved", "sensitive", "shy", "scared"],
-      "despair": ["grief", "powerless", "depressed", "empty", "miserable", "disappointed"],
-      "guilty": ["ashamed", "remorseful", "embarrassed", "inadequate", "unworthy", "insignificant"],
-      "abandoned": ["victimized", "ignored", "persecuted", "neglected", "isolated", "unwanted"],
-      "bored": ["apathetic", "indifferent", "detached", "numb", "listless", "tired"]
+    "sad": {
+      "lonely": ["isolated", "abandoned", "excluded", "unloved", "ignored", "disconnected"],
+      "hurt": ["disappointed", "vulnerable", "betrayed", "rejected", "let down", "neglected"],
+      "depressed": ["ashamed", "guilty", "grieving", "numb", "empty", "unmotivated"],
+      "grief": ["loss", "regretful", "mourning", "yearning", "nostalgic", "pained"],
+      "inferior": ["inadequate", "worthless", "weak", "powerless", "insecure", "helpless"],
+      "despair": ["hopeless", "miserable", "defeated", "desperate", "broken", "exhausted"]
     },
-    "Angry": {
-      "let down": ["betrayed", "resentful", "bitter", "humiliated", "disrespected", "ridiculed"],
-      "humiliated": ["disrespected", "ridiculed", "embarrassed", "mocked", "belittled", "degraded"],
-      "bitter": ["indignant", "violated", "cheated", "betrayed", "resentful", "wronged"],
-      "mad": ["furious", "jealous", "aggressive", "frustrated", "distant", "critical"],
-      "aggressive": ["provoked", "hostile", "hateful", "infuriated", "antagonistic", "threatened"],
-      "frustrated": ["infuriated", "annoyed", "irritated", "agitated", "impatient", "exasperated"]
+    "angry": {
+      "mad": ["furious", "enraged", "irritated", "vengeful", "hostile", "indignant"],
+      "disappointed": ["betrayed", "dismissed", "disrespected", "unheard", "let down", "discouraged"],
+      "humiliated": ["ashamed", "embarrassed", "exposed", "ridiculed", "disgraced", "shamed"],
+      "aggressive": ["provoked", "confrontational", "defensive", "assertive", "antagonistic", "forceful"],
+      "frustrated": ["annoyed", "impatient", "irritated", "blocked", "powerless", "restless"],
+      "critical": ["judgmental", "disapproving", "cynical", "skeptical", "harsh", "unforgiving"]
     },
-    "Fearful": {
-      "scared": ["helpless", "frightened", "terrified", "panicked", "anxious", "worried"],
-      "anxious": ["overwhelmed", "worried", "stressed", "nervous", "uneasy", "apprehensive"],
-      "insecure": ["inadequate", "inferior", "worthless", "insignificant", "vulnerable", "weak"],
-      "weak": ["worthless", "insignificant", "inadequate", "powerless", "useless", "incapable"],
-      "rejected": ["excluded", "persecuted", "unwanted", "alienated", "ostracized", "victimized"],
-      "threatened": ["nervous", "exposed", "alarmed", "trapped", "defenseless", "cornered"]
+    "fearful": {
+      "rejected": ["unwanted", "unloved", "excluded", "ignored", "abandoned", "unworthy"],
+      "weak": ["helpless", "powerless", "vulnerable", "afraid", "fragile", "dependent"],
+      "insecure": ["inferior", "worthless", "self-doubting", "awkward", "embarrassed", "self-conscious"],
+      "anxious": ["worried", "tense", "nervous", "restless", "uneasy", "on edge"],
+      "overwhelmed": ["panicked", "stressed", "terrified", "overloaded", "trapped", "breathless"],
+      "helpless": ["incapable", "lost", "useless", "defenseless", "stuck", "frozen"]
     },
-    "Happy": {
-      "optimistic": ["hopeful", "inspired", "confident", "encouraged", "eager", "motivated"],
-      "trusting": ["sensitive", "intimate", "warm", "open", "grateful", "faithful"],
-      "peaceful": ["loving", "thankful", "comfortable", "content", "relaxed", "calm"],
-      "powerful": ["creative", "unique", "free", "confident", "valued", "courageous"],
-      "accepted": ["respected", "valued", "appreciated", "loved", "cherished", "esteemed"],
-      "proud": ["successful", "confident", "accomplished", "important", "valuable", "worthy"]
+    "happy": {
+      "excited": ["energetic", "animated", "enthusiastic", "eager", "lively", "vibrant"],
+      "interested": ["curious", "engaged", "focused", "absorbed", "involved", "fascinated"],
+      "energetic": ["stimulated", "inspired", "driven", "active", "motivated", "dynamic"],
+      "cheerful": ["joyful", "playful", "lighthearted", "amused", "grateful", "content"],
+      "creative": ["inventive", "expressive", "imaginative", "artistic", "innovative", "visionary"],
+      "optimistic": ["hopeful", "positive", "expectant", "confident", "bright", "forward-looking"]
     },
-    "Peaceful": {
-      "loving": ["affectionate", "tender", "compassionate", "caring", "devoted", "nurturing"],
-      "trusting": ["secure", "safe", "protected", "confident", "reassured", "comfortable"],
-      "thankful": ["grateful", "appreciative", "blessed", "fortunate", "privileged", "honored"],
-      "comfortable": ["relaxed", "calm", "serene", "peaceful", "tranquil", "at ease"],
-      "satisfied": ["content", "fulfilled", "pleased", "gratified", "happy", "complete"],
-      "relieved": ["unburdened", "free", "liberated", "light", "released", "peaceful"]
+    "peaceful": {
+      "content": ["satisfied", "comfortable", "fulfilled", "pleased", "accepting", "settled"],
+      "thoughtful": ["reflective", "mindful", "aware", "meditative", "contemplative", "considerate"],
+      "relaxed": ["calm", "serene", "easygoing", "untroubled", "restful", "loose"],
+      "loving": ["kind", "caring", "compassionate", "affectionate", "warm", "tender"],
+      "grateful": ["thankful", "appreciative", "blessed", "aware", "fulfilled", "acknowledging"],
+      "free": ["unburdened", "liberated", "unrestricted", "open", "weightless", "spacious"]
     },
-    "Strong": {
-      "proud": ["confident", "accomplished", "successful", "triumphant", "victorious", "respected"],
-      "confident": ["secure", "assured", "certain", "self-reliant", "capable", "empowered"],
-      "creative": ["inspired", "imaginative", "innovative", "inventive", "original", "expressive"],
-      "powerful": ["authoritative", "influential", "commanding", "dominant", "mighty", "potent"],
-      "courageous": ["brave", "bold", "fearless", "daring", "heroic", "valiant"],
-      "respected": ["admired", "valued", "esteemed", "honored", "appreciated", "recognized"]
+    "strong": {
+      "powerful": ["capable", "assertive", "confident", "commanding", "decisive", "determined"],
+      "intelligent": ["wise", "insightful", "clever", "smart", "discerning", "perceptive"],
+      "resilient": ["tough", "enduring", "adaptable", "grounded", "balanced", "centered"],
+      "important": ["significant", "valued", "meaningful", "esteemed", "needed", "relevant"],
+      "hopeful": ["courageous", "inspired", "brave", "faithful", "assured", "uplifted"],
+      "proud": ["accomplished", "successful", "worthwhile", "victorious", "respected", "honored"]
     }
   },
   "validation_rules": {
-    "description": "Strict validation rules for emotion wheel consistency",
+    "description": "Strict validation rules for emotion wheel consistency - Agent Mode Refinement",
     "rules": [
-      "validateEmotion() returns true ONLY if all 3 levels (primary, secondary, tertiary) match exactly",
-      "Case-sensitive lookups required",
-      "Invalid inputs must normalize to closest valid parent (never create new term)",
-      "Log every emotion write: { ok, primary, secondary, tertiary }",
+      "validateEmotion() returns true ONLY if all 3 levels (primary, secondary, tertiary) match exactly (case-insensitive)",
+      "All labels must be single tokens - no spaces, hyphens, slashes, or punctuation except internal hyphens in compound words",
+      "Invalid inputs must normalize to closest valid parent via cosine similarity over embeddings",
+      "If OOD label detected, remap to nearest in-vocab and cap confidence at 0.72",
+      "Log every emotion write: { ok, primary, secondary, tertiary, was_remapped, confidence }",
       "Never invent, interpolate, or rename beyond canonical dataset",
-      "Updates only via explicit migration scripts"
+      "Events field: max 3 single-token ontology terms, lowercase, no phrases",
+      "Invoked/Expressed: single tokens from same ontology, separated by / for multi-tags",
+      "Hard fail if: multi-word in vocab output, NULL tertiary when parent exists, wheel label not in this vocab"
     ]
   }
 }

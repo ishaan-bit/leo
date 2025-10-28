@@ -364,8 +364,13 @@ async def generate_songs_with_youtube(
     # Extract tags from reflection metadata
     tags = reflection.get('tags', [])
     
+    # Parse invoked and expressed into lists (they come as strings with separators)
+    invoked_list = [s.strip() for s in invoked.split('+') if s.strip()] if invoked else []
+    expressed_list = [s.strip() for s in expressed.split('/') if s.strip()] if expressed else []
+    
     print(f"[YouTube Selector] Wheel: {primary} → {secondary} → {tertiary}")
     print(f"[YouTube Selector] Tags: {tags}")
+    print(f"[YouTube Selector] Invoked: {invoked_list}, Expressed: {expressed_list}")
     print(f"[YouTube Selector] Valence: {valence:.2f}, Arousal: {arousal:.2f}")
     
     # Generate songs using YouTube API selector
@@ -375,6 +380,8 @@ async def generate_songs_with_youtube(
             primary=primary,
             secondary=secondary,
             tertiary=tertiary,
+            invoked=invoked_list,
+            expressed=expressed_list,
             valence=valence,
             arousal=arousal,
             tags=tags,
@@ -387,6 +394,8 @@ async def generate_songs_with_youtube(
             primary=primary,
             secondary=secondary,
             tertiary=tertiary,
+            invoked=invoked_list,
+            expressed=expressed_list,
             valence=valence,
             arousal=arousal,
             tags=tags,
@@ -489,6 +498,14 @@ async def recommend_songs(request: SongRequest):
     # Generate songs using YouTube API
     print(f"[*] Generating songs with YouTube API selector...")
     songs = await generate_songs_with_youtube(reflection, valence, arousal, invoked, expressed)
+    
+    # Validate song response structure
+    if not songs or 'en' not in songs or 'hi' not in songs:
+        raise HTTPException(500, "Failed to generate songs - invalid response structure")
+    
+    # Ensure both tracks have youtube_url
+    if 'youtube_url' not in songs['en'] or 'youtube_url' not in songs['hi']:
+        raise HTTPException(500, f"Song generation failed - missing youtube_url. EN keys: {list(songs.get('en', {}).keys())}, HI keys: {list(songs.get('hi', {}).keys())}")
     
     # Determine default language
     locale = reflection.get('client_context', {}).get('locale', 'en-US')
