@@ -130,8 +130,14 @@ export default function VoiceOrb({ onTranscript, disabled = false }: VoiceOrbPro
     setTranscript('');
     
     try {
-      // Request microphone access
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Request microphone access with explicit error handling for mobile
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        }
+      });
       streamRef.current = stream;
       
       // Setup audio analysis
@@ -160,9 +166,19 @@ export default function VoiceOrb({ onTranscript, disabled = false }: VoiceOrbPro
       return () => {
         clearInterval(analysisInterval);
       };
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error accessing microphone:', err);
-      setError('Could not access microphone');
+      
+      // Better error messages for mobile users
+      if (err.name === 'NotAllowedError') {
+        setError('Microphone permission denied. Please allow access in your browser settings.');
+      } else if (err.name === 'NotFoundError') {
+        setError('No microphone found on this device.');
+      } else if (err.name === 'NotSupportedError') {
+        setError('Voice input not supported on this browser.');
+      } else {
+        setError('Could not access microphone. Please check permissions.');
+      }
     }
   };
 

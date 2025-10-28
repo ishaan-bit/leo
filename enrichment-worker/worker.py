@@ -61,7 +61,7 @@ def generate_songs_async(rid: str):
         song_response = requests.post(
             f'{song_worker_url}/recommend',
             json={'rid': rid, 'refresh': False},
-            timeout=180  # Timeout for YouTube API calls
+            timeout=300  # Increased timeout for YouTube API retries and fallback
         )
         
         if song_response.ok:

@@ -63,7 +63,6 @@ export default function CameraUpload({
         ref={fileInputRef}
         type="file"
         accept="image/*"
-        capture="environment" // Prefer rear camera on mobile
         onChange={handleFileSelect}
         className="hidden"
         disabled={isDisabled}

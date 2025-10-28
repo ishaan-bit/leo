@@ -155,7 +155,7 @@ def process_image_reflection(redis_client: UpstashClient, rid: str) -> bool:
         caption_response = requests.post(
             f'{IMAGE_CAPTIONING_URL}/caption-base64',
             json={'image_base64': image_base64},
-            timeout=180  # 3 minutes for GPU processing
+            timeout=(60, 300)  # (connect timeout, read timeout) - 5min for large uploads + GPU
         )
         
         if not caption_response.ok:
