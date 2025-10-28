@@ -662,7 +662,7 @@ export default function BreathingSequence({
       <motion.div
         ref={leoContainerRef}
         id="leoContainer"
-        className="absolute z-20 left-1/2 top-[35%]"
+        className="absolute z-20 left-1/2 top-[28%]"
         style={{ x: '-50%', y: '-50%' }}
       >
         <motion.div
@@ -690,7 +690,7 @@ export default function BreathingSequence({
             className="absolute left-1/2 z-30 pointer-events-none"
             style={{
               x: '-50%',
-              top: 'calc(35% + 160px)', // Below Leo
+              top: 'calc(28% + 160px)', // Below Leo
             }}
             animate={{ 
               opacity: isInhaling ? [0.3, 0.95, 0.95] : [0.95, 0.3, 0.3],

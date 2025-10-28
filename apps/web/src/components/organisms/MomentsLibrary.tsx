@@ -738,7 +738,7 @@ export default function MomentsLibrary({
                 <AnimatePresence>
                   {phase === 'library' && isVisible && hasMoments && (
                     <motion.div
-                      className="absolute -top-24 left-1/2 -translate-x-1/2 whitespace-nowrap z-30 text-center"
+                      className="absolute -top-28 md:-top-24 left-1/2 -translate-x-1/2 whitespace-nowrap z-30 text-center"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ 
                         opacity: isHovered ? 1 : 0.9,
@@ -865,7 +865,7 @@ export default function MomentsLibrary({
             
             {/* Subtitle - layered reveal after title, enhanced visibility */}
             <motion.div
-              className="absolute top-32 sm:top-36 md:top-36 left-0 right-0 z-20 text-center pointer-events-none px-4"
+              className="absolute top-40 sm:top-44 md:top-44 left-0 right-0 z-20 text-center pointer-events-none px-4"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}

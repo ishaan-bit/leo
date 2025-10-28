@@ -28,7 +28,7 @@ export function initAmbientSound() {
     loop: true,
     volume: wasMuted ? 0 : 0.4, // Start at user's last preference
     html5: true,
-    autoplay: true, // Always playing
+    autoplay: false, // Don't autoplay - wait for user interaction
   });
   
   // Store globally to persist across page navigations
@@ -36,11 +36,24 @@ export function initAmbientSound() {
     window.__leoAmbientSound = ambientSound;
   }
   
+  // If not muted, play immediately (this will work after user interaction)
+  if (!wasMuted) {
+    console.log('[sound.ts] Auto-starting sound (not muted)');
+    ambientSound.play();
+  }
+  
   return ambientSound;
 }
 
 export function playAmbientSound() {
   const sound = initAmbientSound();
+  
+  // Ensure it's playing
+  if (!sound.playing()) {
+    console.log('[sound.ts] Starting playback');
+    sound.play();
+  }
+  
   sound.fade(sound.volume(), 0.4, 800); // Fade in to audible volume
   
   // Ensure volume is exactly 0.4 after fade completes

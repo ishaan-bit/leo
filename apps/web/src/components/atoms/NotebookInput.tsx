@@ -224,7 +224,7 @@ export default function NotebookInput({
           onBlur={() => setIsFocused(false)}
           placeholder={placeholder}
           disabled={disabled}
-          className="w-full min-h-[160px] max-h-[400px] p-6 pl-20 bg-transparent border-none outline-none resize-none font-serif text-lg text-pink-900 placeholder:text-pink-400/70 placeholder:italic overflow-y-auto"
+          className="w-full min-h-[140px] max-h-[350px] p-6 pl-20 bg-transparent border-none outline-none resize-none font-serif text-lg text-pink-900 placeholder:text-pink-400/70 placeholder:italic overflow-y-auto"
           style={{
             lineHeight: '1.75',
             cursor: 'text',

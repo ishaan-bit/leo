@@ -20,6 +20,7 @@ import { composeAffectFromTyping, composeAffectFromVoice } from '@/lib/behaviora
 import { getAdaptiveAmbientSystem } from '@/lib/audio/AdaptiveAmbientSystem';
 import { getTimeOfDay, getTimeTheme, getTimeBasedGreeting } from '@/lib/time-theme';
 import { generateHeartPuff } from '@/lib/pig-animations';
+import { playAmbientSound, isMuted } from '@/lib/sound';
 import dialogueData from '@/lib/copy/reflect.dialogue.json';
 import { getZone, type PrimaryEmotion } from '@/lib/zones';
 
@@ -108,6 +109,12 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   // Initialize audio system
   useEffect(() => {
     audioSystemRef.current.init();
+    
+    // Start ambient sound on mount (after user has interacted to reach this page)
+    if (!isMuted()) {
+      console.log('[Scene_Reflect] Starting ambient sound after user interaction');
+      playAmbientSound();
+    }
     
     return () => {
       audioSystemRef.current.stop();
@@ -693,7 +700,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   }
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br ${backgroundTone} relative overflow-hidden transition-colors duration-1000`}>
+    <div className={`min-h-screen bg-gradient-to-br ${backgroundTone} relative overflow-x-hidden overflow-y-auto transition-colors duration-1000`}>
       {/* Breathing background gradient overlay */}
       <motion.div
         className="absolute inset-0 pointer-events-none"
