@@ -42,6 +42,51 @@ def cosine_similarity(text1: str, text2: str) -> float:
     return len(intersection) / len(union) if union else 0.0
 
 
+def get_circadian_prompt_additions(phase: str) -> str:
+    """
+    E4: Generate phase-specific guidance for Ollama to avoid time-inappropriate suggestions
+    
+    Args:
+        phase: 'morning', 'afternoon', 'evening', or 'night'
+    
+    Returns:
+        Additional prompt text with phase-specific constraints and examples
+    """
+    if phase == 'morning':
+        return """
+CIRCADIAN CONTEXT: MORNING (6am-12pm)
+- User is likely waking up, starting their day, or mid-morning
+- PREFER: morning-compatible actions (chai at window, fresh air, walk/commute reflection, light planning)
+- AVOID: night language ("tonight", "rest now", "sleep", "dim lights", "wind down")
+- Closing line examples: "carry this lightness into the day. See you tomorrow." / "the morning holds space for this feeling. See you tomorrow."
+"""
+    elif phase == 'afternoon':
+        return """
+CIRCADIAN CONTEXT: AFTERNOON (12pm-5pm)
+- User is mid-day, possibly at work/study, lunch break, or afternoon lull
+- PREFER: afternoon actions (chai break, step outside, quick pause, brief walk)
+- AVOID: morning language ("sunrise", "start of day") AND night language ("tonight", "rest now", "sleep")
+- Closing line examples: "the afternoon carries this quietly. See you tomorrow." / "let the day unfold at its own pace. See you tomorrow."
+"""
+    elif phase == 'evening':
+        return """
+CIRCADIAN CONTEXT: EVENING (5pm-9pm)
+- User is transitioning from day, possibly commuting home, winding down work
+- PREFER: evening actions (walk/terrace visit, music, dim chai, reflection before night)
+- AVOID: morning language ("sunrise", "start fresh") AND deep night language ("sleep", "bed")
+- Closing line examples: "let the evening hold this gently. See you tomorrow." / "the day's weight can settle now. See you tomorrow."
+"""
+    else:  # night
+        return """
+CIRCADIAN CONTEXT: NIGHT (9pm-6am)
+- User is late evening or nighttime, possibly preparing for sleep or awake late
+- PREFER: night-compatible actions (lying down, dim lights, quiet music, journaling before sleep, rest)
+- AVOID: morning language ("sunrise yoga", "fresh start", "morning walk", "wake up early")
+- AVOID: high-energy suggestions (exercise, planning, social activities)
+- Closing line examples: "rest now—nothing needs solving tonight. See you tomorrow." / "let tonight's weight settle where it will. See you tomorrow."
+"""
+
+
 class PostEnricher:
     """
     Stage-2 post-processor using Ollama for creative content generation.
@@ -99,11 +144,19 @@ class PostEnricher:
         print(f"   [1/3] Extracting reliable fields...")
         reliable = pick_reliable_fields(hybrid_result)
         
-        print(f"   [2/3] Calling Ollama ({self.ollama_model})...")
+        # E4: Extract circadian phase for phase-aware prompting
+        circadian_phase = hybrid_result.get('temporal', {}).get('circadian', {}).get('phase', 'afternoon')
+        hour_local = hybrid_result.get('temporal', {}).get('circadian', {}).get('hour_local', 12.0)
+        
+        print(f"   [2/3] Calling Ollama ({self.ollama_model}) - Phase: {circadian_phase} ({hour_local:.1f}h)...")
         print(f"      Input: {reliable['normalized_text'][:60]}...")
         
         # Call Ollama
         try:
+            # E4: Build circadian-aware system prompt
+            circadian_addition = get_circadian_prompt_additions(circadian_phase)
+            phase_aware_prompt = STAGE2_SYSTEM_PROMPT + circadian_addition
+            
             payload = {
                 "model": self.ollama_model,
                 "options": {
@@ -116,7 +169,7 @@ class PostEnricher:
                 },
                 "keep_alive": "30m",  # Keep model loaded for 30 minutes
                 "messages": [
-                    {"role": "system", "content": STAGE2_SYSTEM_PROMPT},
+                    {"role": "system", "content": phase_aware_prompt},
                     {"role": "user", "content": json.dumps({"HYBRID_RESULT": reliable})}
                 ],
                 "stream": False
