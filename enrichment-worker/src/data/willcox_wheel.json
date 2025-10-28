@@ -2,6 +2,12 @@
   "metadata": {
     "version": "1.0.0",
     "source": "Gloria Willcox Feelings Wheel",
+    "source_of_truth": "Visual wheel diagram - EXACT match required. This is the single constant source of truth.",
+    "visual_structure": {
+      "primaries_clockwise_from_top": ["Sad (pink/magenta)", "Angry (red)", "Fearful (purple/blue)", "Happy (orange)", "Peaceful (yellow/green)", "Strong (teal/cyan)"],
+      "hierarchy": "6 primaries × 6 secondaries × 6 tertiaries = 216 total emotions",
+      "requirement": "ALL outputs must include complete 3-level path (primary → secondary → tertiary). NEVER null."
+    },
     "total_emotions": 216,
     "primaries": 6,
     "secondaries_per_primary": 6,
@@ -11,7 +17,8 @@
       "case_sensitive": true,
       "no_inference": true,
       "no_extrapolation": true,
-      "no_synonym_generation": true
+      "no_synonym_generation": true,
+      "enforce_completeness": "CRITICAL - secondary and tertiary MUST NEVER be null. If ambiguous, use first/nearest neighbor within parent."
     }
   },
   "wheel": {

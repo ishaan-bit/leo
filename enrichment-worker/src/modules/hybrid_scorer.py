@@ -1145,7 +1145,7 @@ JSON:"""
                 # Use already computed embedding-based secondary
                 secondary = secondary_tertiary_scores[primary]['secondary']
         
-        # Tertiary: prefer Ollama if valid, else use embedding scores
+        # Tertiary: ALWAYS enforce non-null (W1: Willcox completeness requirement)
         tertiary = None
         if ollama_result and ollama_result.get('tertiary') and secondary:
             tertiary_candidate = ollama_result['tertiary']
@@ -1159,6 +1159,22 @@ JSON:"""
             tertiaries = secondary_tertiary_scores[primary].get('tertiaries', {})
             if tertiaries:
                 tertiary = max(tertiaries.items(), key=lambda x: x[1])[0]
+        
+        # CRITICAL: Enforce non-null tertiary via nearest neighbor fallback
+        if not tertiary and secondary and primary in self.WILLCOX_HIERARCHY:
+            # Fallback: pick first tertiary from secondary (deterministic)
+            available_tertiaries = self.WILLCOX_HIERARCHY[primary].get(secondary, [])
+            if available_tertiaries:
+                tertiary = available_tertiaries[0]  # Deterministic first choice
+                print(f"   [!] Tertiary fallback: {primary}/{secondary} -> {tertiary} (first in list)")
+        
+        # Last resort: if still no tertiary but have secondary, pick ANY tertiary from that secondary
+        if not tertiary and secondary and primary in self.WILLCOX_HIERARCHY:
+            for sec_key, terts in self.WILLCOX_HIERARCHY[primary].items():
+                if sec_key == secondary and terts:
+                    tertiary = terts[0]
+                    print(f"   [!!] Emergency tertiary: {tertiary} from {primary}/{secondary}")
+                    break
         
         # Invoked: top 3 drivers from embedding similarity
         top_drivers = sorted(driver_scores.items(), key=lambda x: -x[1])[:3]
@@ -1379,12 +1395,32 @@ JSON:"""
         else:
             expressed_str = "unknown"
         
-        # Wheel: Add tertiary to 3-level hierarchy
+        # Wheel: CRITICAL - ALWAYS return complete 3-level hierarchy (source of truth from image)
+        # NEVER allow secondary or tertiary to be None - enforce completeness
+        primary = corrected.get('primary', 'Sad')
+        secondary = corrected.get('secondary', None)
+        tertiary = corrected.get('tertiary', None)
+        
+        # ENFORCE: If secondary is None but we have primary, pick first secondary
+        if not secondary and primary in self.WILLCOX_HIERARCHY:
+            secondary = list(self.WILLCOX_HIERARCHY[primary].keys())[0]
+            print(f"   [!!] CRITICAL: Secondary was None, forced to {secondary}")
+        
+        # ENFORCE: If tertiary is None but we have secondary, pick first tertiary
+        if not tertiary and secondary and primary in self.WILLCOX_HIERARCHY:
+            if secondary in self.WILLCOX_HIERARCHY[primary]:
+                tertiary = self.WILLCOX_HIERARCHY[primary][secondary][0]
+                print(f"   [!!] CRITICAL: Tertiary was None, forced to {tertiary}")
+        
         wheel = {
-            'primary': corrected.get('primary', 'Sad'),
-            'secondary': corrected.get('secondary', None),
-            'tertiary': corrected.get('tertiary', None)
+            'primary': primary,
+            'secondary': secondary,  # MUST NOT be None
+            'tertiary': tertiary      # MUST NOT be None
         }
+        
+        # ASSERTION: Validate completeness (source of truth requirement)
+        if not wheel['secondary'] or not wheel['tertiary']:
+            raise ValueError(f"WILLCOX WHEEL INTEGRITY VIOLATION: Incomplete wheel {wheel} - all 3 levels required (source of truth)")
         
         # Valence/arousal/confidence
         valence = corrected.get('valence', 0.5)
