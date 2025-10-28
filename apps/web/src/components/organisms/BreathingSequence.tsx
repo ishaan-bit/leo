@@ -362,6 +362,27 @@ export default function BreathingSequence({
     console.log('[Bubble Sequence] Poems:', poems);
     console.log('[Bubble Sequence] Tips:', tips);
     
+    // DETECT FORMAT: 3 distinct poems (old) vs 1 poem with 3 lines (new)
+    // Heuristic: If all 3 entries are very short (< 15 words), assume old format (3 separate poems)
+    // If they're 5-12 words each (new Agent Mode spec), they're 3 lines of ONE poem
+    const wordCount = (text: string) => text.trim().split(/\s+/).filter(Boolean).length;
+    const poem1Words = poems[0] ? wordCount(poems[0]) : 0;
+    const poem2Words = poems[1] ? wordCount(poems[1]) : 0;
+    const poem3Words = poems[2] ? wordCount(poems[2]) : 0;
+    const avgWords = poems.length > 0 ? (poem1Words + poem2Words + poem3Words) / poems.filter(Boolean).length : 0;
+    
+    // If average is 5-12 words and we have exactly 3 entries, it's the NEW format (3 lines of one poem)
+    // Otherwise, fall back to OLD format (3 separate poems)
+    const isNewFormat = poems.length === 3 && avgWords >= 5 && avgWords <= 13;
+    
+    console.log('[Bubble Sequence] Format detection:', {
+      poem1Words,
+      poem2Words,
+      poem3Words,
+      avgWords,
+      isNewFormat: isNewFormat ? 'NEW (1 poem, 3 lines)' : 'OLD (3 separate poems)'
+    });
+    
     // NEW: Handle 3 standalone poems (no comma splitting needed)
     const poem1 = poems[0] || '';
     const poem2 = poems[1] || '';
