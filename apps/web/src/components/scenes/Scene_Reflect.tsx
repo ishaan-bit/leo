@@ -869,7 +869,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
                   />
                   
                   {/* Mode toggles - voice and photo on same line for mobile */}
-                  <div className="flex flex-row items-center justify-center mt-4 gap-3 flex-wrap">
+                  <div className="flex flex-row items-center justify-center mt-2 gap-3 flex-wrap">
                     <button
                       onClick={toggleInputMode}
                       className="text-sm text-pink-600 hover:text-pink-800 italic underline whitespace-nowrap"

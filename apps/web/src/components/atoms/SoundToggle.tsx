@@ -25,6 +25,12 @@ export default function SoundToggle({ autoHintDelayMs = 2000, autoHideDelayMs = 
       const muted = isMuted();
       setEnabled(!muted);
       
+      // Auto-play if not muted
+      if (!muted) {
+        console.log('[SoundToggle] Auto-playing ambient music (not muted)');
+        playAmbientSound();
+      }
+      
       // Listen for storage changes (when user toggles on another tab/page)
       const handleStorageChange = (e: StorageEvent) => {
         if (e.key === 'leo.ambient.muted') {
@@ -79,13 +85,13 @@ export default function SoundToggle({ autoHintDelayMs = 2000, autoHideDelayMs = 
 
   return (
     <motion.div
-      className="fixed top-4 right-12 md:right-10 z-[100] flex flex-col items-end gap-1 pointer-events-none"
+      className="fixed top-4 right-4 md:right-6 z-[100] flex flex-col items-end gap-1 pointer-events-none"
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.5 }}
       style={{
         paddingTop: 'max(1rem, env(safe-area-inset-top))',
-        paddingRight: 'max(2.5rem, env(safe-area-inset-right))',
+        paddingRight: 'max(1rem, env(safe-area-inset-right))',
       }}
     >
       <button
