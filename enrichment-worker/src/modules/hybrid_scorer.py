@@ -690,7 +690,7 @@ class HybridScorer:
                 break
         
         # Circadian
-        circadian = {'hour_local': 12, 'phase': 'afternoon', 'sleep_adjacent': False}
+        circadian = {'hour_local': 12, 'phase': 'afternoon', 'sleep_adjacent': False, 'timezone_used': 'Asia/Kolkata'}
         if timestamp:
             try:
                 dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
@@ -710,7 +710,12 @@ class HybridScorer:
                     phase = 'night'
                 
                 sleep_adjacent = hour < 6 or hour >= 22
-                circadian = {'hour_local': round(hour, 1), 'phase': phase, 'sleep_adjacent': sleep_adjacent}
+                circadian = {
+                    'hour_local': round(hour, 1), 
+                    'phase': phase, 
+                    'sleep_adjacent': sleep_adjacent,
+                    'timezone_used': 'Asia/Kolkata'
+                }
             except:
                 pass
         
