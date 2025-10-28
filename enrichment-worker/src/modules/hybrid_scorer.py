@@ -96,7 +96,7 @@ class HybridScorer:
         # Extract primaries from wheel (preserves order from JSON)
         self.WILLCOX_PRIMARY = list(self.WILLCOX_HIERARCHY.keys())
         
-        print(f"✅ Loaded Willcox Wheel v{self.wheel_metadata['version']} ({self.wheel_metadata['total_emotions']} emotions)")
+        print(f"[OK] Loaded Willcox Wheel v{self.wheel_metadata['version']} ({self.wheel_metadata['total_emotions']} emotions)")
         print(f"   Primaries: {', '.join(self.WILLCOX_PRIMARY)}")
         
         # Legacy mapping for backwards compatibility (old → new)
@@ -199,14 +199,14 @@ class HybridScorer:
         history = history or []
         
         try:
-            print(f"\n🧠 Willcox Hybrid Enrichment Pipeline")
+            print(f"\n[*] Willcox Hybrid Enrichment Pipeline")
             print(f"   Text: {normalized_text[:80]}...")
             
             # Step 1: HF Zero-Shot for Willcox primary emotions
             print(f"   [1/9] HF Zero-Shot...")
             hf_scores = self._hf_zero_shot(normalized_text)
             if not hf_scores:
-                print("⚠️  HF zero-shot failed, using fallback")
+                print("[!]  HF zero-shot failed, using fallback")
                 hf_scores = {e: 1.0/6 for e in self.WILLCOX_PRIMARY}  # Uniform fallback
             
             # Step 2: Embedding similarity for secondary/tertiary
@@ -292,8 +292,8 @@ class HybridScorer:
             }
             serialized['_latency_ms'] = latency_ms
             
-            print(f"✅ Willcox hybrid enrichment complete in {latency_ms}ms")
-            print(f"   Wheel: {serialized['wheel']['primary']} → {serialized['wheel'].get('secondary')} → {serialized['wheel'].get('tertiary')}")
+            print(f"[OK] Willcox hybrid enrichment complete in {latency_ms}ms")
+            print(f"   Wheel: {serialized['wheel']['primary']} -> {serialized['wheel'].get('secondary')} -> {serialized['wheel'].get('tertiary')}")
             print(f"   Invoked: {serialized['invoked']}")
             print(f"   Expressed: {serialized['expressed']}")
             print(f"   Congruence: {congruence}")
@@ -301,7 +301,7 @@ class HybridScorer:
             return serialized
             
         except Exception as e:
-            print(f"❌ Hybrid enrichment error: {type(e).__name__}: {e}")
+            print(f"[X] Hybrid enrichment error: {type(e).__name__}: {e}")
             import traceback
             traceback.print_exc()
             return None
@@ -349,7 +349,7 @@ class HybridScorer:
             )
             
             if response.status_code != 200:
-                print(f"⚠️  HF API error {response.status_code}")
+                print(f"[!]  HF API error {response.status_code}")
                 return None
             
             result = response.json()
@@ -374,7 +374,7 @@ class HybridScorer:
             return normalized
             
         except Exception as e:
-            print(f"⚠️  HF zero-shot error: {e}")
+            print(f"[!]  HF zero-shot error: {e}")
             return None
     
     def _compute_secondary_tertiary_scores(self, text: str, primary_scores: Dict[str, float]) -> Dict:
@@ -443,7 +443,7 @@ class HybridScorer:
             )
             
             if response.status_code != 200:
-                print(f"⚠️  HF embedding API error {response.status_code}")
+                print(f"[!]  HF embedding API error {response.status_code}")
                 return {c: 0.0 for c in candidates}
             
             similarities = response.json()
@@ -461,7 +461,7 @@ class HybridScorer:
             return result
             
         except Exception as e:
-            print(f"⚠️  Embedding similarity error: {e}")
+            print(f"[!]  Embedding similarity error: {e}")
             return {c: 0.0 for c in candidates}
     
     def _extract_willingness_cues(self, text: str) -> Dict:
@@ -1014,7 +1014,7 @@ JSON:"""
             )
             
             if response.status_code != 200:
-                print(f"⚠️  Ollama API error {response.status_code}")
+                print(f"[!]  Ollama API error {response.status_code}")
                 return None
             
             result = response.json()
@@ -1027,11 +1027,11 @@ JSON:"""
                 print(f"   Ollama rerank: primary={parsed.get('primary')}, secondary={parsed.get('secondary')}")
                 return parsed
             else:
-                print(f"⚠️  Failed to parse Ollama JSON. Raw response:\n{raw_response[:200]}")
+                print(f"[!]  Failed to parse Ollama JSON. Raw response:\n{raw_response[:200]}")
                 return None
                 
         except Exception as e:
-            print(f"⚠️  Ollama rerank error: {e}")
+            print(f"[!]  Ollama rerank error: {e}")
             return None
     
     def _parse_json(self, raw_text: str) -> Optional[Dict]:
@@ -1306,11 +1306,11 @@ JSON:"""
         # Ensure tertiary belongs to secondary
         if tertiary and secondary:
             if primary not in self.WILLCOX_HIERARCHY or secondary not in self.WILLCOX_HIERARCHY[primary]:
-                print(f"❌ Invalid tertiary '{tertiary}' for secondary '{secondary}' - clearing")
+                print(f"[X] Invalid tertiary '{tertiary}' for secondary '{secondary}' - clearing")
                 corrected['tertiary'] = None
                 tertiary = None
             elif tertiary not in self.WILLCOX_HIERARCHY[primary][secondary]:
-                print(f"❌ Invalid tertiary '{tertiary}' for '{primary}/{secondary}' - clearing")
+                print(f"[X] Invalid tertiary '{tertiary}' for '{primary}/{secondary}' - clearing")
                 corrected['tertiary'] = None
                 tertiary = None
         

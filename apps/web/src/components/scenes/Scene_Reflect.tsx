@@ -797,12 +797,12 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
         </div>
       )}
 
-      {/* Main content - centered vertically with reduced top padding */}
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 py-4 md:py-8 pt-24">
+      {/* Main content - centered vertically with reduced top padding and scrollable */}
+      <div className="relative z-10 flex flex-col items-center justify-start min-h-screen px-6 py-4 md:py-8 pt-16 pb-32 overflow-y-auto">
         {/* Pig avatar - SIMPLE, just like naming page */}
-        <div ref={pigRef} className="mb-8">
+        <div ref={pigRef} className="mb-6">
           <PinkPig 
-            size={240} 
+            size={200} 
             state={scenePhase === 'listening' ? 'thinking' : (showHeartAnimation ? 'happy' : 'idle')}
             onInputFocus={scenePhase === 'listening'}
             wordCount={wordCount}
@@ -815,7 +815,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          className="mb-10 text-center max-w-lg px-4"
+          className="mb-6 text-center max-w-lg px-4"
         >
           <p 
             className="text-2xl md:text-3xl font-serif italic text-[#9C1F5F] leading-snug tracking-wide"

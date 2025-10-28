@@ -459,44 +459,44 @@ OUTPUT FORMAT (keep it short):
                 # Check English song
                 en_title = parsed.get('en', {}).get('title', '')
                 if en_title not in allowed_english_songs:
-                    print(f"[LLM REJECTED] English song '{en_title}' not in allowed list. Using emotion-based fallback.")
-                    # Use emotion-based fallback with variety based on valence + arousal
-                    if valence < -0.2:  # Sad
+                    print(f"[LLM REJECTED] English song '{en_title}' not in allowed list. Using curated artist fallback.")
+                    # Curated artist fallback based on emotion (Pink Floyd, BB King, Chet Baker, Simon & Garfunkel, etc.)
+                    if valence < -0.2:  # Sad/Melancholic
                         if arousal > 0.5:
-                            parsed['en'] = {"title": "A Change Is Gonna Come", "artist": "Sam Cooke", "year": 1965, "why": "Hopeful yet sad"}
+                            parsed['en'] = {"title": "Comfortably Numb", "artist": "Pink Floyd", "year": 1979, "why": "Emotional isolation with intensity"}
                         else:
-                            parsed['en'] = {"title": "The Sound of Silence", "artist": "Simon & Garfunkel", "year": 1964, "why": "Introspective melancholic"}
-                    elif valence > 0.3:  # Happy
+                            parsed['en'] = {"title": "The Thrill Is Gone", "artist": "BB King", "year": 1969, "why": "Deep blues melancholy"}
+                    elif valence > 0.3:  # Happy/Uplifting
                         if arousal > 0.6:
-                            parsed['en'] = {"title": "Good Vibrations", "artist": "The Beach Boys", "year": 1966, "why": "Energetic joyful"}
+                            parsed['en'] = {"title": "Mrs. Robinson", "artist": "Simon & Garfunkel", "year": 1968, "why": "Energetic uplifting"}
                         else:
-                            parsed['en'] = {"title": "Here Comes The Sun", "artist": "The Beatles", "year": 1969, "why": "Uplifting optimistic"}
-                    else:  # Neutral
+                            parsed['en'] = {"title": "My Funny Valentine", "artist": "Chet Baker", "year": 1954, "why": "Gentle romantic"}
+                    else:  # Neutral/Reflective
                         if arousal > 0.6:
-                            parsed['en'] = {"title": "Born to Be Wild", "artist": "Steppenwolf", "year": 1968, "why": "Powerful energetic"}
+                            parsed['en'] = {"title": "Time", "artist": "Pink Floyd", "year": 1973, "why": "Powerful introspective"}
                         else:
-                            parsed['en'] = {"title": "Bridge Over Troubled Water", "artist": "Simon & Garfunkel", "year": 1970, "why": "Comforting reflective"}
+                            parsed['en'] = {"title": "The Sound of Silence", "artist": "Simon & Garfunkel", "year": 1964, "why": "Contemplative calm"}
                 
                 # Check Hindi song
                 hindi_title = parsed.get('hi', {}).get('title', '')
                 if hindi_title not in allowed_hindi_songs:
-                    print(f"[LLM REJECTED] Hindi song '{hindi_title}' not in allowed list. Using emotion-based fallback.")
-                    # Use emotion-based fallback with variety based on valence + arousal
-                    if valence < -0.2:  # Sad
+                    print(f"[LLM REJECTED] Hindi song '{hindi_title}' not in allowed list. Using curated artist fallback.")
+                    # Curated artist fallback (Rafi, Mehdi Hassan, Jagjit Singh, Kishore Kumar, etc.)
+                    if valence < -0.2:  # Sad/Melancholic
                         if arousal > 0.5:
-                            parsed['hi'] = {"title": "Tere Bina Zindagi Se", "artist": "Lata Mangeshkar & Kishore Kumar", "year": 1975, "why": "Longing sadness"}
+                            parsed['hi'] = {"title": "Ranjish Hi Sahi", "artist": "Mehdi Hassan", "year": 1982, "why": "Passionate longing ghazal"}
                         else:
-                            parsed['hi'] = {"title": "Lag Jaa Gale", "artist": "Lata Mangeshkar", "year": 1964, "why": "Classic melancholic"}
-                    elif valence > 0.3:  # Happy
+                            parsed['hi'] = {"title": "Hothon Se Chhoo Lo Tum", "artist": "Jagjit Singh", "year": 1982, "why": "Tender melancholic ghazal"}
+                    elif valence > 0.3:  # Happy/Uplifting
                         if arousal > 0.6:
-                            parsed['hi'] = {"title": "Yeh Dosti", "artist": "Kishore Kumar & Manna Dey", "year": 1975, "why": "Energetic friendship"}
+                            parsed['hi'] = {"title": "Aaj Kal Tere Mere Pyar Ke Charche", "artist": "Kishore Kumar", "year": 1968, "why": "Playful energetic"}
                         else:
-                            parsed['hi'] = {"title": "Pyar Hua Ikrar Hua", "artist": "Lata Mangeshkar & Manna Dey", "year": 1960, "why": "Joyful romantic"}
-                    else:  # Neutral
+                            parsed['hi'] = {"title": "Baharon Phool Barsao", "artist": "Mohammed Rafi", "year": 1966, "why": "Joyful celebratory"}
+                    else:  # Neutral/Reflective
                         if arousal > 0.6:
-                            parsed['hi'] = {"title": "Dum Maro Dum", "artist": "Asha Bhosle", "year": 1971, "why": "Rebellious intense"}
+                            parsed['hi'] = {"title": "Pal Pal Dil Ke Paas", "artist": "Kishore Kumar", "year": 1973, "why": "Romantic energetic"}
                         else:
-                            parsed['hi'] = {"title": "Kabhi Kabhi Mere Dil Mein", "artist": "Mukesh", "year": 1976, "why": "Reflective calm"}
+                            parsed['hi'] = {"title": "Chupke Chupke", "artist": "Jagjit Singh & Chitra Singh", "year": 1985, "why": "Reflective ghazal"}
                     
             except json.JSONDecodeError as e:
                 print(f"[LLM Error] JSONDecodeError: {e}")

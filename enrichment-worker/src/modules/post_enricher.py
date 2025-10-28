@@ -1,4 +1,4 @@
-"""
+﻿"""
 Stage-2 Post-Enrichment Module
 ================================
 Calls Ollama to generate creative user-facing content from hybrid enrichment.
@@ -92,7 +92,7 @@ class PostEnricher:
         
         # Skip if already post-enriched
         if 'post_enrichment' in hybrid_result:
-            print(f"   ⚠️  Already post-enriched, skipping")
+            print(f"   [!]  Already post-enriched, skipping")
             return hybrid_result
         
         # Extract reliable fields only
@@ -151,7 +151,7 @@ class PostEnricher:
             # Validate we have exactly 3 poems
             poems = parsed['post_enrichment']['poems']
             if len(poems) != 3:
-                print(f"⚠️  Expected 3 poems, got {len(poems)}, padding with fallback")
+                print(f"[!]  Expected 3 poems, got {len(poems)}, padding with fallback")
                 while len(poems) < 3:
                     poems.append("...")
                 poems = poems[:3]  # Trim if more than 3
@@ -167,7 +167,7 @@ class PostEnricher:
                 max_similarity = max(max_similarity, sim)
             
             if max_similarity > 0.75:
-                print(f"⚠️  Closing line too similar to poems (sim={max_similarity:.2f}), regenerating...")
+                print(f"[!]  Closing line too similar to poems (sim={max_similarity:.2f}), regenerating...")
                 # Regenerate closing line with penalty
                 new_closing = self._regenerate_closing_line(
                     reliable,
@@ -182,7 +182,7 @@ class PostEnricher:
             hybrid_result['post_enrichment'] = parsed['post_enrichment']
             hybrid_result['status'] = 'complete'
             
-            print(f"✅ Stage-2 complete")
+            print(f"[OK] Stage-2 complete")
             print(f"   Poems: {len(parsed['post_enrichment']['poems'])}")
             print(f"   Tips: {len(parsed['post_enrichment']['tips'])}")
             print(f"   Style: {parsed['post_enrichment']['style']}")
@@ -190,14 +190,14 @@ class PostEnricher:
             return hybrid_result
             
         except requests.Timeout:
-            print(f"❌ Ollama timeout after {self.timeout}s")
+            print(f"[X] Ollama timeout after {self.timeout}s")
             # Add fallback empty post_enrichment
             hybrid_result['post_enrichment'] = self._fallback_response(reliable)
             hybrid_result['status'] = 'complete_with_fallback'
             return hybrid_result
             
         except Exception as e:
-            print(f"❌ Post-enrichment error: {type(e).__name__}: {e}")
+            print(f"[X] Post-enrichment error: {type(e).__name__}: {e}")
             hybrid_result['post_enrichment'] = self._fallback_response(reliable)
             hybrid_result['status'] = 'complete_with_fallback'
             return hybrid_result
@@ -234,7 +234,7 @@ class PostEnricher:
                             json_str = content[start:i+1]
                             return json.loads(json_str)
         except Exception as e:
-            print(f"⚠️  JSON extraction failed: {e}")
+            print(f"[!]  JSON extraction failed: {e}")
         
         # Try stripping whitespace and trying again
         try:
@@ -243,7 +243,7 @@ class PostEnricher:
         except:
             pass
         
-        print(f"⚠️  Failed to parse JSON from: {content[:200]}...")
+        print(f"[!]  Failed to parse JSON from: {content[:200]}...")
         return None
     
     def _split_single_poem(self, poem: str) -> str:
@@ -389,7 +389,7 @@ Return ONLY the closing line, nothing else."""
             return new_line
             
         except Exception as e:
-            print(f"⚠️  Failed to regenerate closing line: {e}")
+            print(f"[!]  Failed to regenerate closing line: {e}")
             return None
     
     def _fallback_response(self, reliable: Dict) -> Dict:
