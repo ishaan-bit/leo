@@ -1,7 +1,7 @@
 """
-Song Recommendation Worker - LLM-Powered (1960-1975 Era)
+Song Recommendation Worker - YouTube Data API v3
 
-Uses Ollama phi3 with GPU acceleration to generate fresh, contextual song suggestions
+Uses emotion-driven genre mapping + YouTube Data API for contextual song suggestions
 based on emotional analysis from Stage-1 reflections.
 
 Endpoint: POST /recommend
@@ -14,16 +14,19 @@ from pydantic import BaseModel
 import httpx
 import json
 import re
-from typing import Optional, Literal
+from typing import Optional, Literal, List
 import os
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 import urllib.parse
 
+# Import YouTube music selector
+from youtube_music_selector import YouTubeMusicSelector
+
 # Load environment variables
 load_dotenv()
 
-app = FastAPI(title="Song Recommendation Worker", version="2.0-llm")
+app = FastAPI(title="Song Recommendation Worker", version="3.0-youtube-api")
 
 # CORS configuration
 app.add_middleware(
@@ -35,11 +38,12 @@ app.add_middleware(
 )
 
 # Configuration
-OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 UPSTASH_REDIS_REST_URL = os.getenv("UPSTASH_REDIS_REST_URL")
 UPSTASH_REDIS_REST_TOKEN = os.getenv("UPSTASH_REDIS_REST_TOKEN")
-# Prefer an explicit YouTube key; fallback to GOOGLE_TRANSLATE_API_KEY for legacy setups
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY") or os.getenv("GOOGLE_TRANSLATE_API_KEY", "")
+
+# Initialize YouTube selector
+youtube_selector = YouTubeMusicSelector(api_key=YOUTUBE_API_KEY) if YOUTUBE_API_KEY else None
 
 # Request/Response models
 class SongRequest(BaseModel):
@@ -336,349 +340,107 @@ async def get_youtube_video_url(search_query: str, song_title: str = "", is_hind
         return f"https://www.youtube.com/results?search_query={encoded_query}"
 
 
-async def generate_songs_with_llm(
+async def generate_songs_with_youtube(
+    reflection: dict,
     valence: float,
     arousal: float,
     invoked: str,
     expressed: str
 ) -> dict:
-    """Use Ollama phi3 to generate contextual song recommendations"""
+    """Use YouTube Data API to generate contextual song recommendations"""
     
-    prompt = f"""Pick TWO songs (one English, one Hindi) from the lists below that match this emotion. 
-
-⚠️ CRITICAL: You MUST pick songs from these exact lists. Do NOT suggest other songs even if they match better.
-⚠️ If you suggest a song NOT on these lists, it will be REJECTED and replaced with a generic fallback.
-
-EMOTION:
-- Valence: {valence:.2f} (-1=very negative, 0=neutral, +1=very positive)
-- Arousal: {arousal:.2f} (0=calm, 1=excited)
-- Feeling: "{invoked}" / "{expressed}"
-
-ENGLISH SONGS (pick ONE from this list ONLY):
-- "Yesterday" by The Beatles (sad, melancholic)
-- "The Sound of Silence" by Simon & Garfunkel (sad, withdrawn, introspective)
-- "Both Sides Now" by Joni Mitchell (sad, reflective, bittersweet)
-- "Bridge Over Troubled Water" by Simon & Garfunkel (sad but hopeful, comforting)
-- "Here Comes The Sun" by The Beatles (happy, optimistic, uplifting)
-- "Good Vibrations" by The Beach Boys (happy, excited, joyful)
-- "Dancing in the Street" by Martha and the Vandellas (happy, energetic, celebratory)
-- "I Can See Clearly Now" by Johnny Nash (happy, relieved, positive)
-- "What a Wonderful World" by Louis Armstrong (calm, peaceful, grateful)
-- "Fire and Rain" by James Taylor (calm, sad, reflective)
-- "Sympathy for the Devil" by The Rolling Stones (angry, powerful, intense)
-- "Born to Be Wild" by Steppenwolf (angry, rebellious, free)
-- "Fortunate Son" by Creedence Clearwater Revival (angry, frustrated, protest)
-- "A Change Is Gonna Come" by Sam Cooke (sad, hopeful, determined)
-- "Imagine" by John Lennon (calm, peaceful, hopeful)
-
-HINDI SONGS (pick ONE from this list ONLY):
-- "Lag Jaa Gale" by Lata Mangeshkar (sad, longing, romantic)
-- "Tere Bina Zindagi Se" by Lata Mangeshkar & Kishore Kumar (sad, longing)
-- "Pyar Hua Ikrar Hua" by Lata Mangeshkar & Manna Dey (happy, romantic, sweet)
-- "Chalte Chalte" by Kishore Kumar (happy, carefree, optimistic)
-- "Yeh Dosti" by Kishore Kumar & Manna Dey (happy, friendship, energetic)
-- "Mere Sapno Ki Rani" by Kishore Kumar (happy, romantic, playful)
-- "Chura Liya Hai Tumne" by Asha Bhosle & Mohammed Rafi (happy, romantic)
-- "Kabhi Kabhi Mere Dil Mein" by Mukesh (calm, reflective, romantic)
-- "Dum Maro Dum" by Asha Bhosle (energetic, rebellious, intense)
-- "Aye Mere Watan Ke Logo" by Lata Mangeshkar (emotional, patriotic, sad)
-
-RULES:
-1. Output ONLY valid JSON - no extra text, no comments, no explanations in JSON fields
-2. "title" field = song title ONLY (do NOT add artist names)
-3. "artist" field = artist name ONLY (short form)
-4. Pick songs that match the emotion (sad→sad songs, happy→happy songs, angry→intense songs)
-5. Use EXACT titles and artists from lists above
-
-OUTPUT FORMAT (keep it short):
-{{"en": {{"title": "Song", "artist": "Artist", "year": 1970, "why": "Short reason"}}, "hi": {{"title": "Song", "artist": "Artist", "year": 1970, "why": "Short reason"}}}}"""
-
+    # Extract wheel data (primary, secondary, tertiary) from reflection
+    final = reflection.get('final', {})
+    wheel = final.get('wheel', {})
+    primary = wheel.get('primary', '')
+    secondary = wheel.get('secondary', '')
+    tertiary = wheel.get('tertiary', '')
+    
+    # Extract tags from reflection metadata
+    tags = reflection.get('tags', [])
+    
+    print(f"[YouTube Selector] Wheel: {primary} → {secondary} → {tertiary}")
+    print(f"[YouTube Selector] Tags: {tags}")
+    print(f"[YouTube Selector] Valence: {valence:.2f}, Arousal: {arousal:.2f}")
+    
+    # Generate songs using YouTube API selector
     try:
-        async with httpx.AsyncClient(timeout=120.0) as client:  # Increased to 120s for Ollama
-            response = await client.post(
-                f"{OLLAMA_URL}/api/generate",
-                json={
-                    "model": "phi3:latest",
-                    "prompt": prompt,
-                    "stream": False,
-                    "options": {
-                        "temperature": 0.7,  # Lower temperature for more structured output
-                        "top_p": 0.9,
-                        "num_predict": 300  # Shorter limit to force concise responses
-                    }
-                }
-            )
-            
-            if response.status_code != 200:
-                print(f"[Ollama API Error] Status: {response.status_code}, Body: {response.text}")
-                raise Exception(f"Ollama API error: {response.status_code}")
-            
-            data = response.json()
-            print(f"[Ollama] Keys: {list(data.keys())}")
-            raw_response = data.get('response', '')
-            if not raw_response:
-                print(f"[Ollama] EMPTY - Full data: {data}")
-                raise Exception("Ollama returned empty response")
-            
-            # Parse JSON from LLM response
-            json_text = raw_response.strip()
-            json_match = re.search(r'```json\s*(\{[\s\S]*?\})\s*```', raw_response) or \
-                        re.search(r'(\{[\s\S]*\})', raw_response)
-            
-            if json_match:
-                json_text = json_match.group(1)
-            
-            # Clean common JSON formatting issues
-            # FIRST remove // comments before flattening (they can span to end of line and break JSON)
-            json_text = re.sub(r'//[^\n]*', '', json_text)  # Remove // comments
-            json_text = json_text.replace('\n', ' ')  # Then remove newlines
-            json_text = re.sub(r',\s*}', '}', json_text)  # Remove trailing commas
-            json_text = re.sub(r',\s*]', ']', json_text)  # Remove trailing commas in arrays
-            
-            # Fix malformed title fields where LLM adds artist (e.g., "title": "Song" by Artist feat...)
-            # This breaks JSON structure - extract just the song title before " by "
-            json_text = re.sub(r'"title":\s*"([^"]+?)\s+by\s+[^"]*"', r'"title": "\1"', json_text)
-            
-            try:
-                parsed = json.loads(json_text)
-                print(f"[LLM Success] Parsed songs: EN={parsed.get('en', {}).get('title')}, HI={parsed.get('hi', {}).get('title')}")
-                
-                # Validate BOTH English and Hindi songs are from allowed lists
-                allowed_english_songs = [
-                    "Yesterday", "The Sound of Silence", "Both Sides Now", "Bridge Over Troubled Water",
-                    "Here Comes The Sun", "Good Vibrations", "Dancing in the Street", "I Can See Clearly Now",
-                    "What a Wonderful World", "Fire and Rain", "Sympathy for the Devil", "Born to Be Wild",
-                    "Fortunate Son", "A Change Is Gonna Come", "Imagine"
-                ]
-                allowed_hindi_songs = [
-                    "Lag Jaa Gale", "Pyar Hua Ikrar Hua", "Aye Mere Watan Ke Logo",
-                    "Kabhi Kabhi Mere Dil Mein", "Tere Bina Zindagi Se", "Dum Maro Dum",
-                    "Chalte Chalte", "Yeh Dosti", "Mere Sapno Ki Rani", "Chura Liya Hai Tumne"
-                ]
-                
-                # Check English song
-                en_title = parsed.get('en', {}).get('title', '')
-                if en_title not in allowed_english_songs:
-                    print(f"[LLM REJECTED] English song '{en_title}' not in allowed list. Using curated artist fallback.")
-                    # Curated artist fallback based on emotion (Pink Floyd, BB King, Chet Baker, Simon & Garfunkel, etc.)
-                    if valence < -0.2:  # Sad/Melancholic
-                        if arousal > 0.5:
-                            parsed['en'] = {"title": "Comfortably Numb", "artist": "Pink Floyd", "year": 1979, "why": "Emotional isolation with intensity"}
-                        else:
-                            parsed['en'] = {"title": "The Thrill Is Gone", "artist": "BB King", "year": 1969, "why": "Deep blues melancholy"}
-                    elif valence > 0.3:  # Happy/Uplifting
-                        if arousal > 0.6:
-                            parsed['en'] = {"title": "Mrs. Robinson", "artist": "Simon & Garfunkel", "year": 1968, "why": "Energetic uplifting"}
-                        else:
-                            parsed['en'] = {"title": "My Funny Valentine", "artist": "Chet Baker", "year": 1954, "why": "Gentle romantic"}
-                    else:  # Neutral/Reflective
-                        if arousal > 0.6:
-                            parsed['en'] = {"title": "Time", "artist": "Pink Floyd", "year": 1973, "why": "Powerful introspective"}
-                        else:
-                            parsed['en'] = {"title": "The Sound of Silence", "artist": "Simon & Garfunkel", "year": 1964, "why": "Contemplative calm"}
-                
-                # Check Hindi song
-                hindi_title = parsed.get('hi', {}).get('title', '')
-                if hindi_title not in allowed_hindi_songs:
-                    print(f"[LLM REJECTED] Hindi song '{hindi_title}' not in allowed list. Using curated artist fallback.")
-                    # Curated artist fallback (Rafi, Mehdi Hassan, Jagjit Singh, Kishore Kumar, etc.)
-                    if valence < -0.2:  # Sad/Melancholic
-                        if arousal > 0.5:
-                            parsed['hi'] = {"title": "Ranjish Hi Sahi", "artist": "Mehdi Hassan", "year": 1982, "why": "Passionate longing ghazal"}
-                        else:
-                            parsed['hi'] = {"title": "Hothon Se Chhoo Lo Tum", "artist": "Jagjit Singh", "year": 1982, "why": "Tender melancholic ghazal"}
-                    elif valence > 0.3:  # Happy/Uplifting
-                        if arousal > 0.6:
-                            parsed['hi'] = {"title": "Aaj Kal Tere Mere Pyar Ke Charche", "artist": "Kishore Kumar", "year": 1968, "why": "Playful energetic"}
-                        else:
-                            parsed['hi'] = {"title": "Baharon Phool Barsao", "artist": "Mohammed Rafi", "year": 1966, "why": "Joyful celebratory"}
-                    else:  # Neutral/Reflective
-                        if arousal > 0.6:
-                            parsed['hi'] = {"title": "Pal Pal Dil Ke Paas", "artist": "Kishore Kumar", "year": 1973, "why": "Romantic energetic"}
-                        else:
-                            parsed['hi'] = {"title": "Chupke Chupke", "artist": "Jagjit Singh & Chitra Singh", "year": 1985, "why": "Reflective ghazal"}
-                    
-            except json.JSONDecodeError as e:
-                print(f"[LLM Error] JSONDecodeError: {e}")
-                print(f"[LLM Raw Response] {raw_response}")
-                print(f"[LLM Cleaned JSON] {json_text}")
-                raise Exception(f"Failed to parse LLM response - using fallback would give wrong songs")
-            
-            # Build response with direct YouTube URLs (search and extract first video)
-            en_search = f"{parsed['en']['title']} {parsed['en']['artist']} official music video"
-            hi_search = f"{parsed['hi']['title']} {parsed['hi']['artist']} official video"
-            
-            # Get direct YouTube URLs with duration filtering - pass song title for accurate matching
-            en_url = await get_youtube_video_url(en_search, song_title=parsed['en']['title'], is_hindi=False)
-            hi_url = await get_youtube_video_url(hi_search, song_title=parsed['hi']['title'], is_hindi=True)
-            
-            return {
-                "en": SongPick(
-                    title=parsed['en']['title'],
-                    artist=parsed['en']['artist'],
-                    year=int(parsed['en']['year']),
-                    youtube_search=en_search,
-                    youtube_url=en_url,
-                    source_confidence='high',
-                    why=parsed['en']['why']
-                ).model_dump(),
-                "hi": SongPick(
-                    title=parsed['hi']['title'],
-                    artist=parsed['hi']['artist'],
-                    year=int(parsed['hi']['year']),
-                    youtube_search=hi_search,
-                    youtube_url=hi_url,
-                    source_confidence='high',
-                    why=parsed['hi']['why']
-                ).model_dump()
-            }
-    
-    except Exception as e:
-        print(f"[CRITICAL LLM Error] {type(e).__name__}: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        # Re-raise the error instead of using fallback - we want to see what's breaking
-        raise HTTPException(500, f"Song generation failed: {str(e)}")
-
-async def generate_films_with_llm(
-    valence: float,
-    arousal: float,
-    invoked: str,
-    expressed: str
-) -> dict:
-    """Use Ollama phi3 to generate contextual short film recommendations"""
-    
-    prompt = f"""You are a film curator specializing in award-winning short films from 2020-2025 international film festivals. Suggest TWO real short films that match this emotion:
-
-EMOTION DATA:
-- Valence: {valence:.2f} (-1=very negative, 0=neutral, +1=very positive)
-- Arousal: {arousal:.2f} (0=calm/low-energy, 1=excited/high-energy)
-- What they felt: "{invoked}"
-- How they described it: "{expressed}"
-
-STRICT REQUIREMENTS:
-1. ONE English short film - from Sundance, Cannes, Berlin, SXSW, Tribeca, or popular on YouTube (2020-2025)
-2. ONE Hindi/Indian short film - from Mumbai Film Festival, MAMI, IFFK, or popular on YouTube (2020-2025)
-3. Films must be 4-5 minutes duration (narrative short films, NOT documentaries or music videos)
-4. Films should be well-known with high engagement (popular festival films or viral shorts)
-5. Films should match the emotion (sad films for negative valence, uplifting for positive)
-6. Only suggest films you are CERTAIN exist and are available on YouTube
-7. For Hindi films: Write title in ENGLISH LETTERS (transliteration)
-
-OUTPUT (JSON only):
-{{
-  "en": {{
-    "title": "Exact Film Title",
-    "director": "Director Name",
-    "year": 2023,
-    "festival": "Sundance 2023",
-    "duration_minutes": 5,
-    "why": "How this matches the emotion (2 sentences max)"
-  }},
-  "hi": {{
-    "title": "Film Title in English script",
-    "director": "Director Name", 
-    "year": 2023,
-    "festival": "Mumbai Film Festival 2023",
-    "duration_minutes": 4,
-    "why": "How this matches the emotion (2 sentences max)"
-  }}
-}}"""
-
-    try:
-        async with httpx.AsyncClient(timeout=120.0) as client:
-            response = await client.post(
-                f"{OLLAMA_URL}/api/generate",
-                json={
-                    "model": "phi3:latest",
-                    "prompt": prompt,
-                    "stream": False,
-                    "options": {
-                        "temperature": 0.8,
-                        "top_p": 0.9,
-                        "num_predict": 500,
-                    }
-                }
-            )
-            
-            if response.status_code != 200:
-                raise Exception(f"Ollama API error: {response.status_code}")
-            
-            data = response.json()
-            raw_response = data.get('response', '')
-            
-            # Parse JSON from LLM response
-            json_text = raw_response.strip()
-            json_match = re.search(r'```json\s*(\{[\s\S]*?\})\s*```', raw_response) or \
-                        re.search(r'(\{[\s\S]*\})', raw_response)
-            
-            if json_match:
-                json_text = json_match.group(1)
-            
-            parsed = json.loads(json_text)
-            
-            # Build response with direct YouTube URLs
-            en_search = f"{parsed['en']['title']} {parsed['en']['director']} short film"
-            hi_search = f"{parsed['hi']['title']} {parsed['hi']['director']} short film"
-            
-            # Get direct YouTube URLs
-            en_url = await get_youtube_video_url(en_search, is_short_film=True)
-            hi_url = await get_youtube_video_url(hi_search, is_short_film=True)
-            
-            return {
-                "en": FilmPick(
-                    title=parsed['en']['title'],
-                    director=parsed['en']['director'],
-                    year=int(parsed['en']['year']),
-                    festival=parsed['en']['festival'],
-                    duration_minutes=int(parsed['en']['duration_minutes']),
-                    youtube_search=en_search,
-                    youtube_url=en_url,
-                    source_confidence='high',
-                    why=parsed['en']['why']
-                ).model_dump(),
-                "hi": FilmPick(
-                    title=parsed['hi']['title'],
-                    director=parsed['hi']['director'],
-                    year=int(parsed['hi']['year']),
-                    festival=parsed['hi']['festival'],
-                    duration_minutes=int(parsed['hi']['duration_minutes']),
-                    youtube_search=hi_search,
-                    youtube_url=hi_url,
-                    source_confidence='high',
-                    why=parsed['hi']['why']
-                ).model_dump()
-            }
-    
-    except Exception as e:
-        print(f"[Film LLM Error] {type(e).__name__}: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        # Fallback films (well-known festival shorts)
-        return {
-            "en": FilmPick(
-                title="The Neighbors' Window",
-                director="Marshall Curry",
-                year=2020,
-                festival="Sundance 2020",
-                duration_minutes=20,
-                youtube_search="The Neighbors Window Marshall Curry short film",
-                youtube_url="https://www.youtube.com/results?search_query=The+Neighbors+Window+Marshall+Curry",
-                source_confidence='medium',
-                why="Fallback: Award-winning emotional short (LLM unavailable)"
-            ).model_dump(),
-            "hi": FilmPick(
-                title="Ghar Ki Murgi",
-                director="Arjun Kamath",
-                year=2020,
-                festival="MAMI 2020",
-                duration_minutes=15,
-                youtube_search="Ghar Ki Murgi short film",
-                youtube_url="https://www.youtube.com/results?search_query=Ghar+Ki+Murgi+short+film",
-                source_confidence='medium',
-                why="Fallback: Festival short (LLM unavailable)"
-            ).model_dump()
+        # English track
+        en_result = await youtube_selector.select_track(
+            primary=primary,
+            secondary=secondary,
+            tertiary=tertiary,
+            valence=valence,
+            arousal=arousal,
+            tags=tags,
+            lang='en',
+            user_id=reflection.get('uid', 'anonymous')
+        )
+        
+        # Hindi track
+        hi_result = await youtube_selector.select_track(
+            primary=primary,
+            secondary=secondary,
+            tertiary=tertiary,
+            valence=valence,
+            arousal=arousal,
+            tags=tags,
+            lang='hi',
+            user_id=reflection.get('uid', 'anonymous')
+        )
+        
+        print(f"[YouTube Selector] EN: {en_result.get('title')} by {en_result.get('channel')} (fallback: {en_result.get('fallback_level')})")
+        print(f"[YouTube Selector] HI: {hi_result.get('title')} by {hi_result.get('channel')} (fallback: {hi_result.get('fallback_level')})")
+        
+        # Map YouTube results to SongPick format
+        en_song = {
+            "title": en_result['title'],
+            "artist": en_result['channel'],
+            "year": 1970,  # Default era, could parse from video metadata if available
+            "youtube_search": f"{en_result['title']} {en_result['channel']}",
+            "youtube_url": en_result['watch_url'],
+            "source_confidence": "high" if en_result['fallback_level'] == 0 else "medium" if en_result['fallback_level'] <= 2 else "low",
+            "why": en_result['reason']
         }
+        
+        hi_song = {
+            "title": hi_result['title'],
+            "artist": hi_result['channel'],
+            "year": 1970,
+            "youtube_search": f"{hi_result['title']} {hi_result['channel']}",
+            "youtube_url": hi_result['watch_url'],
+            "source_confidence": "high" if hi_result['fallback_level'] == 0 else "medium" if hi_result['fallback_level'] <= 2 else "low",
+            "why": hi_result['reason']
+        }
+        
+        return {"en": en_song, "hi": hi_song}
+        
+    except Exception as e:
+        print(f"[YouTube Selector ERROR] {e}")
+        import traceback
+        traceback.print_exc()
+        
+        # Fallback to generic songs if YouTube API fails
+        return {
+            "en": {
+                "title": "What a Wonderful World",
+                "artist": "Louis Armstrong",
+                "year": 1967,
+                "youtube_search": "What a Wonderful World Louis Armstrong",
+                "youtube_url": "https://www.youtube.com/watch?v=VqhCQZaH4Vs",
+                "source_confidence": "low",
+                "why": "Fallback due to API error"
+            },
+            "hi": {
+                "title": "Kabhi Kabhi Mere Dil Mein",
+                "artist": "Mukesh",
+                "year": 1976,
+                "youtube_search": "Kabhi Kabhi Mere Dil Mein Mukesh",
+                "source_confidence": "low",
+                "why": "Fallback due to API error"
+            }
+        }
+
 
 @app.post("/recommend", response_model=SongRecommendation)
 async def recommend_songs(request: SongRequest):
@@ -719,9 +481,9 @@ async def recommend_songs(request: SongRequest):
     valence_bucket, arousal_bucket = get_emotion_buckets(valence, arousal)
     mood_cell = f"{valence_bucket}-{arousal_bucket}"
     
-    # Generate songs using LLM
-    print(f"[*] Generating songs with YouTube API filtering...")
-    songs = await generate_songs_with_llm(valence, arousal, invoked, expressed)
+    # Generate songs using YouTube API
+    print(f"[*] Generating songs with YouTube API selector...")
+    songs = await generate_songs_with_youtube(reflection, valence, arousal, invoked, expressed)
     
     # Determine default language
     locale = reflection.get('client_context', {}).get('locale', 'en-US')
@@ -758,20 +520,14 @@ async def recommend_songs(request: SongRequest):
 async def health_check():
     """Health check endpoint"""
     
-    # Check Ollama availability
-    ollama_status = "unknown"
-    try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            response = await client.get(f"{OLLAMA_URL}/api/tags")
-            ollama_status = "ok" if response.status_code == 200 else "error"
-    except:
-        ollama_status = "unavailable"
+    # Check YouTube API availability
+    youtube_status = "configured" if YOUTUBE_API_KEY else "missing"
     
     return {
         "status": "healthy",
         "service": "song-worker",
-        "version": "2.0-llm",
-        "ollama": ollama_status,
+        "version": "3.0-youtube-api",
+        "youtube_api": youtube_status,
         "upstash": "configured" if UPSTASH_REDIS_REST_URL else "missing"
     }
 
