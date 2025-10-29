@@ -1,0 +1,4832 @@
+[
+  {
+    "primary": "sad",
+    "secondary": "lonely",
+    "tertiary": "isolated",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Comfortably Numb"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "The Thrill Is Gone"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Tears"
+      },
+      "ClassicRockFallback": {
+        "artist": "Led Zeppelin",
+        "track": "Since I've Been Loving You"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "lonely",
+    "tertiary": "abandoned",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Wish You Were Here"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "How Blue Can You Get"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Losing It"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Rolling Stones",
+        "track": "Wild Horses"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "lonely",
+    "tertiary": "excluded",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Hey You"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Sweet Sixteen"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Different Strings"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Beatles",
+        "track": "Yesterday"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "lonely",
+    "tertiary": "unloved",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Nobody Home"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Chains and Things"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "The Pass"
+      },
+      "ClassicRockFallback": {
+        "artist": "Eagles",
+        "track": "Desperado"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "lonely",
+    "tertiary": "ignored",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Goodbye Blue Sky"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Worry, Worry"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Open Secrets"
+      },
+      "ClassicRockFallback": {
+        "artist": "Fleetwood Mac",
+        "track": "Landslide"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "lonely",
+    "tertiary": "disconnected",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Time"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Guess Who"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Nobody's Hero"
+      },
+      "ClassicRockFallback": {
+        "artist": "Neil Young",
+        "track": "Old Man"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "hurt",
+    "tertiary": "disappointed",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Us and Them"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Three O'Clock Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Tears"
+      },
+      "ClassicRockFallback": {
+        "artist": "Eric Clapton",
+        "track": "Wonderful Tonight"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "hurt",
+    "tertiary": "vulnerable",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Mother"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Don't Answer the Door"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Losing It"
+      },
+      "ClassicRockFallback": {
+        "artist": "Led Zeppelin",
+        "track": "Since I've Been Loving You"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "hurt",
+    "tertiary": "betrayed",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "The Final Cut"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Ghetto Woman"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Different Strings"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Rolling Stones",
+        "track": "Wild Horses"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "hurt",
+    "tertiary": "rejected",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "A Great Day for Freedom"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "The Thrill Is Gone"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "The Pass"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Beatles",
+        "track": "Yesterday"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "hurt",
+    "tertiary": "let down",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "On the Turning Away"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "How Blue Can You Get"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Open Secrets"
+      },
+      "ClassicRockFallback": {
+        "artist": "Eagles",
+        "track": "Desperado"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "hurt",
+    "tertiary": "neglected",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Lost for Words"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Sweet Sixteen"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Nobody's Hero"
+      },
+      "ClassicRockFallback": {
+        "artist": "Fleetwood Mac",
+        "track": "Landslide"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "depressed",
+    "tertiary": "ashamed",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Marooned"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Chains and Things"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Tears"
+      },
+      "ClassicRockFallback": {
+        "artist": "Neil Young",
+        "track": "Old Man"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "depressed",
+    "tertiary": "guilty",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Echoes"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Worry, Worry"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Losing It"
+      },
+      "ClassicRockFallback": {
+        "artist": "Eric Clapton",
+        "track": "Wonderful Tonight"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "depressed",
+    "tertiary": "grieving",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Comfortably Numb"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Guess Who"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Different Strings"
+      },
+      "ClassicRockFallback": {
+        "artist": "Led Zeppelin",
+        "track": "Since I've Been Loving You"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "depressed",
+    "tertiary": "numb",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Wish You Were Here"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Three O'Clock Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "The Pass"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Rolling Stones",
+        "track": "Wild Horses"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "depressed",
+    "tertiary": "empty",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Hey You"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Don't Answer the Door"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Open Secrets"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Beatles",
+        "track": "Yesterday"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "depressed",
+    "tertiary": "unmotivated",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Nobody Home"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Ghetto Woman"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Nobody's Hero"
+      },
+      "ClassicRockFallback": {
+        "artist": "Eagles",
+        "track": "Desperado"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "grief",
+    "tertiary": "loss",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Goodbye Blue Sky"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "The Thrill Is Gone"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Tears"
+      },
+      "ClassicRockFallback": {
+        "artist": "Fleetwood Mac",
+        "track": "Landslide"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "grief",
+    "tertiary": "regretful",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Time"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "How Blue Can You Get"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Losing It"
+      },
+      "ClassicRockFallback": {
+        "artist": "Neil Young",
+        "track": "Old Man"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "grief",
+    "tertiary": "mourning",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Us and Them"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Sweet Sixteen"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Different Strings"
+      },
+      "ClassicRockFallback": {
+        "artist": "Eric Clapton",
+        "track": "Wonderful Tonight"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "grief",
+    "tertiary": "yearning",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Mother"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Chains and Things"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "The Pass"
+      },
+      "ClassicRockFallback": {
+        "artist": "Led Zeppelin",
+        "track": "Since I've Been Loving You"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "grief",
+    "tertiary": "nostalgic",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "The Final Cut"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Worry, Worry"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Open Secrets"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Rolling Stones",
+        "track": "Wild Horses"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "grief",
+    "tertiary": "pained",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "A Great Day for Freedom"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Guess Who"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Nobody's Hero"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Beatles",
+        "track": "Yesterday"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "inferior",
+    "tertiary": "inadequate",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "On the Turning Away"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Three O'Clock Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Tears"
+      },
+      "ClassicRockFallback": {
+        "artist": "Eagles",
+        "track": "Desperado"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "inferior",
+    "tertiary": "worthless",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Lost for Words"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Don't Answer the Door"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Losing It"
+      },
+      "ClassicRockFallback": {
+        "artist": "Fleetwood Mac",
+        "track": "Landslide"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "inferior",
+    "tertiary": "weak",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Marooned"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Ghetto Woman"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Different Strings"
+      },
+      "ClassicRockFallback": {
+        "artist": "Neil Young",
+        "track": "Old Man"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "inferior",
+    "tertiary": "powerless",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Echoes"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "The Thrill Is Gone"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "The Pass"
+      },
+      "ClassicRockFallback": {
+        "artist": "Eric Clapton",
+        "track": "Wonderful Tonight"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "inferior",
+    "tertiary": "insecure",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Comfortably Numb"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "How Blue Can You Get"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Open Secrets"
+      },
+      "ClassicRockFallback": {
+        "artist": "Led Zeppelin",
+        "track": "Since I've Been Loving You"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "inferior",
+    "tertiary": "helpless",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Wish You Were Here"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Sweet Sixteen"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Nobody's Hero"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Rolling Stones",
+        "track": "Wild Horses"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "despair",
+    "tertiary": "hopeless",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Hey You"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Chains and Things"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Tears"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Beatles",
+        "track": "Yesterday"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "despair",
+    "tertiary": "miserable",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Nobody Home"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Worry, Worry"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Losing It"
+      },
+      "ClassicRockFallback": {
+        "artist": "Eagles",
+        "track": "Desperado"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "despair",
+    "tertiary": "defeated",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Goodbye Blue Sky"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Guess Who"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Different Strings"
+      },
+      "ClassicRockFallback": {
+        "artist": "Fleetwood Mac",
+        "track": "Landslide"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "despair",
+    "tertiary": "desperate",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Time"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Three O'Clock Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "The Pass"
+      },
+      "ClassicRockFallback": {
+        "artist": "Neil Young",
+        "track": "Old Man"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "despair",
+    "tertiary": "broken",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Us and Them"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Don't Answer the Door"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Open Secrets"
+      },
+      "ClassicRockFallback": {
+        "artist": "Eric Clapton",
+        "track": "Wonderful Tonight"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "despair",
+    "tertiary": "exhausted",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Mother"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Ghetto Woman"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Nobody's Hero"
+      },
+      "ClassicRockFallback": {
+        "artist": "Led Zeppelin",
+        "track": "Since I've Been Loving You"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "mad",
+    "tertiary": "furious",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Run Like Hell"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Paying the Cost to Be the Boss"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Anthem"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Who",
+        "track": "Won't Get Fooled Again"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "mad",
+    "tertiary": "enraged",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Another Brick in the Wall, Pt. 2"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Why I Sing the Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Subdivisions"
+      },
+      "ClassicRockFallback": {
+        "artist": "Black Sabbath",
+        "track": "War Pigs"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "mad",
+    "tertiary": "irritated",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "In the Flesh"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Caldonia"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Tom Sawyer"
+      },
+      "ClassicRockFallback": {
+        "artist": "AC/DC",
+        "track": "Back in Black"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "mad",
+    "tertiary": "vengeful",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Dogs"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Don't Answer the Door"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Stick It Out"
+      },
+      "ClassicRockFallback": {
+        "artist": "Deep Purple",
+        "track": "Smoke on the Water"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "mad",
+    "tertiary": "hostile",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Have a Cigar"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Hummingbird"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Distant Early Warning"
+      },
+      "ClassicRockFallback": {
+        "artist": "Cream",
+        "track": "Sunshine of Your Love"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "mad",
+    "tertiary": "indignant",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Money"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Get Out of Here"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "YYZ"
+      },
+      "ClassicRockFallback": {
+        "artist": "Aerosmith",
+        "track": "Back in the Saddle"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "disappointed",
+    "tertiary": "betrayed",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Sheep"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Paying the Cost to Be the Boss"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Anthem"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Who",
+        "track": "Won't Get Fooled Again"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "disappointed",
+    "tertiary": "dismissed",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Welcome to the Machine"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Why I Sing the Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Subdivisions"
+      },
+      "ClassicRockFallback": {
+        "artist": "Black Sabbath",
+        "track": "War Pigs"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "disappointed",
+    "tertiary": "disrespected",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "One of These Days"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Caldonia"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Tom Sawyer"
+      },
+      "ClassicRockFallback": {
+        "artist": "AC/DC",
+        "track": "Back in Black"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "disappointed",
+    "tertiary": "unheard",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "The Fletcher Memorial Home"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Don't Answer the Door"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Stick It Out"
+      },
+      "ClassicRockFallback": {
+        "artist": "Deep Purple",
+        "track": "Smoke on the Water"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "disappointed",
+    "tertiary": "let down",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Run Like Hell"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Hummingbird"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Distant Early Warning"
+      },
+      "ClassicRockFallback": {
+        "artist": "Cream",
+        "track": "Sunshine of Your Love"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "disappointed",
+    "tertiary": "discouraged",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Another Brick in the Wall, Pt. 2"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Get Out of Here"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "YYZ"
+      },
+      "ClassicRockFallback": {
+        "artist": "Aerosmith",
+        "track": "Back in the Saddle"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "humiliated",
+    "tertiary": "ashamed",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "In the Flesh"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Paying the Cost to Be the Boss"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Anthem"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Who",
+        "track": "Won't Get Fooled Again"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "humiliated",
+    "tertiary": "embarrassed",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Dogs"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Why I Sing the Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Subdivisions"
+      },
+      "ClassicRockFallback": {
+        "artist": "Black Sabbath",
+        "track": "War Pigs"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "humiliated",
+    "tertiary": "exposed",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Have a Cigar"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Caldonia"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Tom Sawyer"
+      },
+      "ClassicRockFallback": {
+        "artist": "AC/DC",
+        "track": "Back in Black"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "humiliated",
+    "tertiary": "ridiculed",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Money"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Don't Answer the Door"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Stick It Out"
+      },
+      "ClassicRockFallback": {
+        "artist": "Deep Purple",
+        "track": "Smoke on the Water"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "humiliated",
+    "tertiary": "disgraced",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Sheep"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Hummingbird"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Distant Early Warning"
+      },
+      "ClassicRockFallback": {
+        "artist": "Cream",
+        "track": "Sunshine of Your Love"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "humiliated",
+    "tertiary": "shamed",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Welcome to the Machine"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Get Out of Here"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "YYZ"
+      },
+      "ClassicRockFallback": {
+        "artist": "Aerosmith",
+        "track": "Back in the Saddle"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "aggressive",
+    "tertiary": "provoked",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "One of These Days"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Paying the Cost to Be the Boss"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Anthem"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Who",
+        "track": "Won't Get Fooled Again"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "aggressive",
+    "tertiary": "confrontational",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "The Fletcher Memorial Home"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Why I Sing the Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Subdivisions"
+      },
+      "ClassicRockFallback": {
+        "artist": "Black Sabbath",
+        "track": "War Pigs"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "aggressive",
+    "tertiary": "defensive",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Run Like Hell"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Caldonia"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Tom Sawyer"
+      },
+      "ClassicRockFallback": {
+        "artist": "AC/DC",
+        "track": "Back in Black"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "aggressive",
+    "tertiary": "assertive",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Another Brick in the Wall, Pt. 2"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Don't Answer the Door"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Stick It Out"
+      },
+      "ClassicRockFallback": {
+        "artist": "Deep Purple",
+        "track": "Smoke on the Water"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "aggressive",
+    "tertiary": "antagonistic",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "In the Flesh"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Hummingbird"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Distant Early Warning"
+      },
+      "ClassicRockFallback": {
+        "artist": "Cream",
+        "track": "Sunshine of Your Love"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "aggressive",
+    "tertiary": "forceful",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Dogs"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Get Out of Here"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "YYZ"
+      },
+      "ClassicRockFallback": {
+        "artist": "Aerosmith",
+        "track": "Back in the Saddle"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "frustrated",
+    "tertiary": "annoyed",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Have a Cigar"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Paying the Cost to Be the Boss"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Anthem"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Who",
+        "track": "Won't Get Fooled Again"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "frustrated",
+    "tertiary": "impatient",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Money"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Why I Sing the Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Subdivisions"
+      },
+      "ClassicRockFallback": {
+        "artist": "Black Sabbath",
+        "track": "War Pigs"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "frustrated",
+    "tertiary": "irritated",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Sheep"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Caldonia"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Tom Sawyer"
+      },
+      "ClassicRockFallback": {
+        "artist": "AC/DC",
+        "track": "Back in Black"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "frustrated",
+    "tertiary": "blocked",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Welcome to the Machine"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Don't Answer the Door"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Stick It Out"
+      },
+      "ClassicRockFallback": {
+        "artist": "Deep Purple",
+        "track": "Smoke on the Water"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "frustrated",
+    "tertiary": "powerless",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "One of These Days"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Hummingbird"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Distant Early Warning"
+      },
+      "ClassicRockFallback": {
+        "artist": "Cream",
+        "track": "Sunshine of Your Love"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "frustrated",
+    "tertiary": "restless",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "The Fletcher Memorial Home"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Get Out of Here"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "YYZ"
+      },
+      "ClassicRockFallback": {
+        "artist": "Aerosmith",
+        "track": "Back in the Saddle"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "critical",
+    "tertiary": "judgmental",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Run Like Hell"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Paying the Cost to Be the Boss"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Anthem"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Who",
+        "track": "Won't Get Fooled Again"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "critical",
+    "tertiary": "disapproving",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Another Brick in the Wall, Pt. 2"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Why I Sing the Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Subdivisions"
+      },
+      "ClassicRockFallback": {
+        "artist": "Black Sabbath",
+        "track": "War Pigs"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "critical",
+    "tertiary": "cynical",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "In the Flesh"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Caldonia"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Tom Sawyer"
+      },
+      "ClassicRockFallback": {
+        "artist": "AC/DC",
+        "track": "Back in Black"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "critical",
+    "tertiary": "skeptical",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Dogs"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Don't Answer the Door"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Stick It Out"
+      },
+      "ClassicRockFallback": {
+        "artist": "Deep Purple",
+        "track": "Smoke on the Water"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "critical",
+    "tertiary": "harsh",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Have a Cigar"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Hummingbird"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Distant Early Warning"
+      },
+      "ClassicRockFallback": {
+        "artist": "Cream",
+        "track": "Sunshine of Your Love"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "critical",
+    "tertiary": "unforgiving",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Money"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Get Out of Here"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "YYZ"
+      },
+      "ClassicRockFallback": {
+        "artist": "Aerosmith",
+        "track": "Back in the Saddle"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "rejected",
+    "tertiary": "unwanted",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Is There Anybody Out There?"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Worry, Worry"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "The Enemy Within"
+      },
+      "ClassicRockFallback": {
+        "artist": "Black Sabbath",
+        "track": "Paranoid"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "rejected",
+    "tertiary": "unloved",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "The Trial"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Chains and Things"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "The Weapon"
+      },
+      "ClassicRockFallback": {
+        "artist": "Blue Öyster Cult",
+        "track": "(Don't Fear) The Reaper"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "rejected",
+    "tertiary": "excluded",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Don't Leave Me Now"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Every Day I Have the Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Witch Hunt"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Doors",
+        "track": "Riders on the Storm"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "rejected",
+    "tertiary": "ignored",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Sorrow"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Help the Poor"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Distant Early Warning"
+      },
+      "ClassicRockFallback": {
+        "artist": "Alice Cooper",
+        "track": "Welcome to My Nightmare"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "rejected",
+    "tertiary": "abandoned",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "A Saucerful of Secrets"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Guess Who"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Red Sector A"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Doors",
+        "track": "People Are Strange"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "rejected",
+    "tertiary": "unworthy",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Set the Controls for the Heart of the Sun"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Worry, Worry"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "The Enemy Within"
+      },
+      "ClassicRockFallback": {
+        "artist": "Black Sabbath",
+        "track": "Paranoid"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "weak",
+    "tertiary": "helpless",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "On the Run"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Chains and Things"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "The Weapon"
+      },
+      "ClassicRockFallback": {
+        "artist": "Blue Öyster Cult",
+        "track": "(Don't Fear) The Reaper"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "weak",
+    "tertiary": "powerless",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "The Great Gig in the Sky"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Every Day I Have the Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Witch Hunt"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Doors",
+        "track": "Riders on the Storm"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "weak",
+    "tertiary": "vulnerable",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Paranoid Eyes"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Help the Poor"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Distant Early Warning"
+      },
+      "ClassicRockFallback": {
+        "artist": "Alice Cooper",
+        "track": "Welcome to My Nightmare"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "weak",
+    "tertiary": "afraid",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Shine On You Crazy Diamond, Pt. 1-5"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Guess Who"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Red Sector A"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Doors",
+        "track": "People Are Strange"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "weak",
+    "tertiary": "fragile",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Is There Anybody Out There?"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Worry, Worry"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "The Enemy Within"
+      },
+      "ClassicRockFallback": {
+        "artist": "Black Sabbath",
+        "track": "Paranoid"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "weak",
+    "tertiary": "dependent",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "The Trial"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Chains and Things"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "The Weapon"
+      },
+      "ClassicRockFallback": {
+        "artist": "Blue Öyster Cult",
+        "track": "(Don't Fear) The Reaper"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "insecure",
+    "tertiary": "inferior",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Don't Leave Me Now"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Every Day I Have the Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Witch Hunt"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Doors",
+        "track": "Riders on the Storm"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "insecure",
+    "tertiary": "worthless",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Sorrow"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Help the Poor"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Distant Early Warning"
+      },
+      "ClassicRockFallback": {
+        "artist": "Alice Cooper",
+        "track": "Welcome to My Nightmare"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "insecure",
+    "tertiary": "self-doubting",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "A Saucerful of Secrets"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Guess Who"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Red Sector A"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Doors",
+        "track": "People Are Strange"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "insecure",
+    "tertiary": "awkward",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Set the Controls for the Heart of the Sun"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Worry, Worry"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "The Enemy Within"
+      },
+      "ClassicRockFallback": {
+        "artist": "Black Sabbath",
+        "track": "Paranoid"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "insecure",
+    "tertiary": "embarrassed",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "On the Run"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Chains and Things"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "The Weapon"
+      },
+      "ClassicRockFallback": {
+        "artist": "Blue Öyster Cult",
+        "track": "(Don't Fear) The Reaper"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "insecure",
+    "tertiary": "self-conscious",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "The Great Gig in the Sky"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Every Day I Have the Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Witch Hunt"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Doors",
+        "track": "Riders on the Storm"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "anxious",
+    "tertiary": "worried",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Paranoid Eyes"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Help the Poor"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Distant Early Warning"
+      },
+      "ClassicRockFallback": {
+        "artist": "Alice Cooper",
+        "track": "Welcome to My Nightmare"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "anxious",
+    "tertiary": "tense",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Shine On You Crazy Diamond, Pt. 1-5"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Guess Who"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Red Sector A"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Doors",
+        "track": "People Are Strange"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "anxious",
+    "tertiary": "nervous",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Is There Anybody Out There?"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Worry, Worry"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "The Enemy Within"
+      },
+      "ClassicRockFallback": {
+        "artist": "Black Sabbath",
+        "track": "Paranoid"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "anxious",
+    "tertiary": "restless",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "The Trial"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Chains and Things"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "The Weapon"
+      },
+      "ClassicRockFallback": {
+        "artist": "Blue Öyster Cult",
+        "track": "(Don't Fear) The Reaper"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "anxious",
+    "tertiary": "uneasy",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Don't Leave Me Now"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Every Day I Have the Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Witch Hunt"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Doors",
+        "track": "Riders on the Storm"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "anxious",
+    "tertiary": "on edge",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Sorrow"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Help the Poor"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Distant Early Warning"
+      },
+      "ClassicRockFallback": {
+        "artist": "Alice Cooper",
+        "track": "Welcome to My Nightmare"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "overwhelmed",
+    "tertiary": "panicked",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "A Saucerful of Secrets"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Guess Who"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Red Sector A"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Doors",
+        "track": "People Are Strange"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "overwhelmed",
+    "tertiary": "stressed",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Set the Controls for the Heart of the Sun"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Worry, Worry"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "The Enemy Within"
+      },
+      "ClassicRockFallback": {
+        "artist": "Black Sabbath",
+        "track": "Paranoid"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "overwhelmed",
+    "tertiary": "terrified",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "On the Run"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Chains and Things"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "The Weapon"
+      },
+      "ClassicRockFallback": {
+        "artist": "Blue Öyster Cult",
+        "track": "(Don't Fear) The Reaper"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "overwhelmed",
+    "tertiary": "overloaded",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "The Great Gig in the Sky"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Every Day I Have the Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Witch Hunt"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Doors",
+        "track": "Riders on the Storm"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "overwhelmed",
+    "tertiary": "trapped",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Paranoid Eyes"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Help the Poor"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Distant Early Warning"
+      },
+      "ClassicRockFallback": {
+        "artist": "Alice Cooper",
+        "track": "Welcome to My Nightmare"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "overwhelmed",
+    "tertiary": "breathless",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Shine On You Crazy Diamond, Pt. 1-5"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Guess Who"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Red Sector A"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Doors",
+        "track": "People Are Strange"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "helpless",
+    "tertiary": "incapable",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Is There Anybody Out There?"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Worry, Worry"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "The Enemy Within"
+      },
+      "ClassicRockFallback": {
+        "artist": "Black Sabbath",
+        "track": "Paranoid"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "helpless",
+    "tertiary": "lost",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "The Trial"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Chains and Things"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "The Weapon"
+      },
+      "ClassicRockFallback": {
+        "artist": "Blue Öyster Cult",
+        "track": "(Don't Fear) The Reaper"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "helpless",
+    "tertiary": "useless",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Don't Leave Me Now"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Every Day I Have the Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Witch Hunt"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Doors",
+        "track": "Riders on the Storm"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "helpless",
+    "tertiary": "defenseless",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Sorrow"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Help the Poor"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Distant Early Warning"
+      },
+      "ClassicRockFallback": {
+        "artist": "Alice Cooper",
+        "track": "Welcome to My Nightmare"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "helpless",
+    "tertiary": "stuck",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "A Saucerful of Secrets"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Guess Who"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Red Sector A"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Doors",
+        "track": "People Are Strange"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "helpless",
+    "tertiary": "frozen",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Set the Controls for the Heart of the Sun"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Worry, Worry"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "The Enemy Within"
+      },
+      "ClassicRockFallback": {
+        "artist": "Black Sabbath",
+        "track": "Paranoid"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "excited",
+    "tertiary": "energetic",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Learning to Fly"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Let the Good Times Roll"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "The Spirit of Radio"
+      },
+      "ClassicRockFallback": {
+        "artist": "Queen",
+        "track": "Don't Stop Me Now"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "excited",
+    "tertiary": "animated",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "High Hopes"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Every Day I Have the Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Fly by Night"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Beatles",
+        "track": "Here Comes the Sun"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "excited",
+    "tertiary": "enthusiastic",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Breathe"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "When Love Comes to Town"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Time Stand Still"
+      },
+      "ClassicRockFallback": {
+        "artist": "ELO",
+        "track": "Mr. Blue Sky"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "excited",
+    "tertiary": "eager",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "See Emily Play"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "I Like to Live the Love"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "New World Man"
+      },
+      "ClassicRockFallback": {
+        "artist": "Lynyrd Skynyrd",
+        "track": "Sweet Home Alabama"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "excited",
+    "tertiary": "lively",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Arnold Layne"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Beautician Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Freewill"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Kinks",
+        "track": "Sunny Afternoon"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "excited",
+    "tertiary": "vibrant",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Bike"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Let the Good Times Roll"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Closer to the Heart"
+      },
+      "ClassicRockFallback": {
+        "artist": "Queen",
+        "track": "Don't Stop Me Now"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "interested",
+    "tertiary": "curious",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "San Tropez"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Every Day I Have the Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "The Spirit of Radio"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Beatles",
+        "track": "Here Comes the Sun"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "interested",
+    "tertiary": "engaged",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Wot's... Uh the Deal?"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "When Love Comes to Town"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Fly by Night"
+      },
+      "ClassicRockFallback": {
+        "artist": "ELO",
+        "track": "Mr. Blue Sky"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "interested",
+    "tertiary": "focused",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Fearless"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "I Like to Live the Love"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Time Stand Still"
+      },
+      "ClassicRockFallback": {
+        "artist": "Lynyrd Skynyrd",
+        "track": "Sweet Home Alabama"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "interested",
+    "tertiary": "absorbed",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Fat Old Sun"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Beautician Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "New World Man"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Kinks",
+        "track": "Sunny Afternoon"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "interested",
+    "tertiary": "involved",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Learning to Fly"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Let the Good Times Roll"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Freewill"
+      },
+      "ClassicRockFallback": {
+        "artist": "Queen",
+        "track": "Don't Stop Me Now"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "interested",
+    "tertiary": "fascinated",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "High Hopes"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Every Day I Have the Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Closer to the Heart"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Beatles",
+        "track": "Here Comes the Sun"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "energetic",
+    "tertiary": "stimulated",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Breathe"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "When Love Comes to Town"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "The Spirit of Radio"
+      },
+      "ClassicRockFallback": {
+        "artist": "ELO",
+        "track": "Mr. Blue Sky"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "energetic",
+    "tertiary": "inspired",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "See Emily Play"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "I Like to Live the Love"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Fly by Night"
+      },
+      "ClassicRockFallback": {
+        "artist": "Lynyrd Skynyrd",
+        "track": "Sweet Home Alabama"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "energetic",
+    "tertiary": "driven",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Arnold Layne"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Beautician Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Time Stand Still"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Kinks",
+        "track": "Sunny Afternoon"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "energetic",
+    "tertiary": "active",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Bike"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Let the Good Times Roll"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "New World Man"
+      },
+      "ClassicRockFallback": {
+        "artist": "Queen",
+        "track": "Don't Stop Me Now"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "energetic",
+    "tertiary": "motivated",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "San Tropez"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Every Day I Have the Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Freewill"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Beatles",
+        "track": "Here Comes the Sun"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "energetic",
+    "tertiary": "dynamic",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Wot's... Uh the Deal?"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "When Love Comes to Town"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Closer to the Heart"
+      },
+      "ClassicRockFallback": {
+        "artist": "ELO",
+        "track": "Mr. Blue Sky"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "cheerful",
+    "tertiary": "joyful",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Fearless"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "I Like to Live the Love"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "The Spirit of Radio"
+      },
+      "ClassicRockFallback": {
+        "artist": "Lynyrd Skynyrd",
+        "track": "Sweet Home Alabama"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "cheerful",
+    "tertiary": "playful",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Fat Old Sun"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Beautician Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Fly by Night"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Kinks",
+        "track": "Sunny Afternoon"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "cheerful",
+    "tertiary": "lighthearted",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Learning to Fly"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Let the Good Times Roll"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Time Stand Still"
+      },
+      "ClassicRockFallback": {
+        "artist": "Queen",
+        "track": "Don't Stop Me Now"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "cheerful",
+    "tertiary": "amused",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "High Hopes"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Every Day I Have the Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "New World Man"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Beatles",
+        "track": "Here Comes the Sun"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "cheerful",
+    "tertiary": "grateful",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Breathe"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "When Love Comes to Town"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Freewill"
+      },
+      "ClassicRockFallback": {
+        "artist": "ELO",
+        "track": "Mr. Blue Sky"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "cheerful",
+    "tertiary": "content",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "See Emily Play"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "I Like to Live the Love"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Closer to the Heart"
+      },
+      "ClassicRockFallback": {
+        "artist": "Lynyrd Skynyrd",
+        "track": "Sweet Home Alabama"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "creative",
+    "tertiary": "inventive",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Arnold Layne"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Beautician Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "The Spirit of Radio"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Kinks",
+        "track": "Sunny Afternoon"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "creative",
+    "tertiary": "expressive",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Bike"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Let the Good Times Roll"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Fly by Night"
+      },
+      "ClassicRockFallback": {
+        "artist": "Queen",
+        "track": "Don't Stop Me Now"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "creative",
+    "tertiary": "imaginative",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "San Tropez"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Every Day I Have the Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Time Stand Still"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Beatles",
+        "track": "Here Comes the Sun"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "creative",
+    "tertiary": "artistic",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Wot's... Uh the Deal?"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "When Love Comes to Town"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "New World Man"
+      },
+      "ClassicRockFallback": {
+        "artist": "ELO",
+        "track": "Mr. Blue Sky"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "creative",
+    "tertiary": "innovative",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Fearless"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "I Like to Live the Love"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Freewill"
+      },
+      "ClassicRockFallback": {
+        "artist": "Lynyrd Skynyrd",
+        "track": "Sweet Home Alabama"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "creative",
+    "tertiary": "visionary",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Fat Old Sun"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Beautician Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Closer to the Heart"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Kinks",
+        "track": "Sunny Afternoon"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "optimistic",
+    "tertiary": "hopeful",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Learning to Fly"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Let the Good Times Roll"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "The Spirit of Radio"
+      },
+      "ClassicRockFallback": {
+        "artist": "Queen",
+        "track": "Don't Stop Me Now"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "optimistic",
+    "tertiary": "positive",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "High Hopes"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Every Day I Have the Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Fly by Night"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Beatles",
+        "track": "Here Comes the Sun"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "optimistic",
+    "tertiary": "expectant",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Breathe"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "When Love Comes to Town"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Time Stand Still"
+      },
+      "ClassicRockFallback": {
+        "artist": "ELO",
+        "track": "Mr. Blue Sky"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "optimistic",
+    "tertiary": "confident",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "See Emily Play"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "I Like to Live the Love"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "New World Man"
+      },
+      "ClassicRockFallback": {
+        "artist": "Lynyrd Skynyrd",
+        "track": "Sweet Home Alabama"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "optimistic",
+    "tertiary": "bright",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Arnold Layne"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Beautician Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Freewill"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Kinks",
+        "track": "Sunny Afternoon"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "optimistic",
+    "tertiary": "forward-looking",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Bike"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Let the Good Times Roll"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Closer to the Heart"
+      },
+      "ClassicRockFallback": {
+        "artist": "Queen",
+        "track": "Don't Stop Me Now"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "content",
+    "tertiary": "satisfied",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Us and Them"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Sweet Little Angel"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Rivendell"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Beatles",
+        "track": "Let It Be"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "content",
+    "tertiary": "comfortable",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Breathe"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Three O'Clock Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Madrigal"
+      },
+      "ClassicRockFallback": {
+        "artist": "Simon & Garfunkel",
+        "track": "The Sound of Silence"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "content",
+    "tertiary": "fulfilled",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "A Pillow of Winds"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Blue Shadows"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Different Strings"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Allman Brothers Band",
+        "track": "Melissa"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "content",
+    "tertiary": "pleased",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Cirrus Minor"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Into the Night"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Entre Nous"
+      },
+      "ClassicRockFallback": {
+        "artist": "Nick Drake",
+        "track": "Northern Sky"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "content",
+    "tertiary": "accepting",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Fat Old Sun"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "The Letter"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Available Light"
+      },
+      "ClassicRockFallback": {
+        "artist": "Eric Clapton",
+        "track": "Wonderful Tonight"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "content",
+    "tertiary": "settled",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Green Is the Colour"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Sweet Little Angel"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Rivendell"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Beatles",
+        "track": "Let It Be"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "thoughtful",
+    "tertiary": "reflective",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "If"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Three O'Clock Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Madrigal"
+      },
+      "ClassicRockFallback": {
+        "artist": "Simon & Garfunkel",
+        "track": "The Sound of Silence"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "thoughtful",
+    "tertiary": "mindful",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Fearless"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Blue Shadows"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Different Strings"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Allman Brothers Band",
+        "track": "Melissa"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "thoughtful",
+    "tertiary": "aware",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Grantchester Meadows"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Into the Night"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Entre Nous"
+      },
+      "ClassicRockFallback": {
+        "artist": "Nick Drake",
+        "track": "Northern Sky"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "thoughtful",
+    "tertiary": "meditative",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Shine On You Crazy Diamond, Pt. 1-5"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "The Letter"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Available Light"
+      },
+      "ClassicRockFallback": {
+        "artist": "Eric Clapton",
+        "track": "Wonderful Tonight"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "thoughtful",
+    "tertiary": "contemplative",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Us and Them"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Sweet Little Angel"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Rivendell"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Beatles",
+        "track": "Let It Be"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "thoughtful",
+    "tertiary": "considerate",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Breathe"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Three O'Clock Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Madrigal"
+      },
+      "ClassicRockFallback": {
+        "artist": "Simon & Garfunkel",
+        "track": "The Sound of Silence"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "relaxed",
+    "tertiary": "calm",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "A Pillow of Winds"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Blue Shadows"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Different Strings"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Allman Brothers Band",
+        "track": "Melissa"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "relaxed",
+    "tertiary": "serene",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Cirrus Minor"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Into the Night"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Entre Nous"
+      },
+      "ClassicRockFallback": {
+        "artist": "Nick Drake",
+        "track": "Northern Sky"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "relaxed",
+    "tertiary": "easygoing",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Fat Old Sun"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "The Letter"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Available Light"
+      },
+      "ClassicRockFallback": {
+        "artist": "Eric Clapton",
+        "track": "Wonderful Tonight"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "relaxed",
+    "tertiary": "untroubled",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Green Is the Colour"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Sweet Little Angel"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Rivendell"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Beatles",
+        "track": "Let It Be"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "relaxed",
+    "tertiary": "restful",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "If"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Three O'Clock Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Madrigal"
+      },
+      "ClassicRockFallback": {
+        "artist": "Simon & Garfunkel",
+        "track": "The Sound of Silence"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "relaxed",
+    "tertiary": "loose",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Fearless"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Blue Shadows"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Different Strings"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Allman Brothers Band",
+        "track": "Melissa"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "loving",
+    "tertiary": "kind",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Grantchester Meadows"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Into the Night"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Entre Nous"
+      },
+      "ClassicRockFallback": {
+        "artist": "Nick Drake",
+        "track": "Northern Sky"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "loving",
+    "tertiary": "caring",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Shine On You Crazy Diamond, Pt. 1-5"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "The Letter"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Available Light"
+      },
+      "ClassicRockFallback": {
+        "artist": "Eric Clapton",
+        "track": "Wonderful Tonight"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "loving",
+    "tertiary": "compassionate",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Us and Them"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Sweet Little Angel"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Rivendell"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Beatles",
+        "track": "Let It Be"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "loving",
+    "tertiary": "affectionate",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Breathe"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Three O'Clock Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Madrigal"
+      },
+      "ClassicRockFallback": {
+        "artist": "Simon & Garfunkel",
+        "track": "The Sound of Silence"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "loving",
+    "tertiary": "warm",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "A Pillow of Winds"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Blue Shadows"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Different Strings"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Allman Brothers Band",
+        "track": "Melissa"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "loving",
+    "tertiary": "tender",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Cirrus Minor"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Into the Night"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Entre Nous"
+      },
+      "ClassicRockFallback": {
+        "artist": "Nick Drake",
+        "track": "Northern Sky"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "grateful",
+    "tertiary": "thankful",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Fat Old Sun"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "The Letter"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Available Light"
+      },
+      "ClassicRockFallback": {
+        "artist": "Eric Clapton",
+        "track": "Wonderful Tonight"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "grateful",
+    "tertiary": "appreciative",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Green Is the Colour"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Sweet Little Angel"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Rivendell"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Beatles",
+        "track": "Let It Be"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "grateful",
+    "tertiary": "blessed",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "If"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Three O'Clock Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Madrigal"
+      },
+      "ClassicRockFallback": {
+        "artist": "Simon & Garfunkel",
+        "track": "The Sound of Silence"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "grateful",
+    "tertiary": "aware",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Fearless"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Blue Shadows"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Different Strings"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Allman Brothers Band",
+        "track": "Melissa"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "grateful",
+    "tertiary": "fulfilled",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Grantchester Meadows"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Into the Night"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Entre Nous"
+      },
+      "ClassicRockFallback": {
+        "artist": "Nick Drake",
+        "track": "Northern Sky"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "grateful",
+    "tertiary": "acknowledging",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Shine On You Crazy Diamond, Pt. 1-5"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "The Letter"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Available Light"
+      },
+      "ClassicRockFallback": {
+        "artist": "Eric Clapton",
+        "track": "Wonderful Tonight"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "free",
+    "tertiary": "unburdened",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Us and Them"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Sweet Little Angel"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Rivendell"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Beatles",
+        "track": "Let It Be"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "free",
+    "tertiary": "liberated",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Breathe"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Three O'Clock Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Madrigal"
+      },
+      "ClassicRockFallback": {
+        "artist": "Simon & Garfunkel",
+        "track": "The Sound of Silence"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "free",
+    "tertiary": "unrestricted",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "A Pillow of Winds"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Blue Shadows"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Different Strings"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Allman Brothers Band",
+        "track": "Melissa"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "free",
+    "tertiary": "open",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Cirrus Minor"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Into the Night"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Entre Nous"
+      },
+      "ClassicRockFallback": {
+        "artist": "Nick Drake",
+        "track": "Northern Sky"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "free",
+    "tertiary": "weightless",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Fat Old Sun"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "The Letter"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Available Light"
+      },
+      "ClassicRockFallback": {
+        "artist": "Eric Clapton",
+        "track": "Wonderful Tonight"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "free",
+    "tertiary": "spacious",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Green Is the Colour"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Sweet Little Angel"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Rivendell"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Beatles",
+        "track": "Let It Be"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "intelligent",
+    "tertiary": "wise",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Time"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Why I Sing the Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Tom Sawyer"
+      },
+      "ClassicRockFallback": {
+        "artist": "Queen",
+        "track": "We Will Rock You"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "intelligent",
+    "tertiary": "insightful",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "High Hopes"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "To Know You Is to Love You"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "2112 Overture / The Temples of Syrinx"
+      },
+      "ClassicRockFallback": {
+        "artist": "Led Zeppelin",
+        "track": "Kashmir"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "intelligent",
+    "tertiary": "clever",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Comfortably Numb"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "I Like to Live the Love"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Xanadu"
+      },
+      "ClassicRockFallback": {
+        "artist": "AC/DC",
+        "track": "Thunderstruck"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "intelligent",
+    "tertiary": "smart",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Dogs"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Riding with the King"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "La Villa Strangiato"
+      },
+      "ClassicRockFallback": {
+        "artist": "Deep Purple",
+        "track": "Highway Star"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "intelligent",
+    "tertiary": "discerning",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Eclipse"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Ain't Nobody Home"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Natural Science"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Rolling Stones",
+        "track": "Start Me Up"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "intelligent",
+    "tertiary": "perceptive",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Run Like Hell"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Why I Sing the Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Red Barchetta"
+      },
+      "ClassicRockFallback": {
+        "artist": "Queen",
+        "track": "We Will Rock You"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "resilient",
+    "tertiary": "tough",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "One Slip"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "To Know You Is to Love You"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Tom Sawyer"
+      },
+      "ClassicRockFallback": {
+        "artist": "Led Zeppelin",
+        "track": "Kashmir"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "resilient",
+    "tertiary": "enduring",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "On the Turning Away"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "I Like to Live the Love"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "2112 Overture / The Temples of Syrinx"
+      },
+      "ClassicRockFallback": {
+        "artist": "AC/DC",
+        "track": "Thunderstruck"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "resilient",
+    "tertiary": "adaptable",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Time"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Riding with the King"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Xanadu"
+      },
+      "ClassicRockFallback": {
+        "artist": "Deep Purple",
+        "track": "Highway Star"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "resilient",
+    "tertiary": "grounded",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "High Hopes"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Ain't Nobody Home"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "La Villa Strangiato"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Rolling Stones",
+        "track": "Start Me Up"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "resilient",
+    "tertiary": "balanced",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Comfortably Numb"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Why I Sing the Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Natural Science"
+      },
+      "ClassicRockFallback": {
+        "artist": "Queen",
+        "track": "We Will Rock You"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "resilient",
+    "tertiary": "centered",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Dogs"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "To Know You Is to Love You"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Red Barchetta"
+      },
+      "ClassicRockFallback": {
+        "artist": "Led Zeppelin",
+        "track": "Kashmir"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "important",
+    "tertiary": "significant",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Eclipse"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "I Like to Live the Love"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Tom Sawyer"
+      },
+      "ClassicRockFallback": {
+        "artist": "AC/DC",
+        "track": "Thunderstruck"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "important",
+    "tertiary": "valued",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Run Like Hell"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Riding with the King"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "2112 Overture / The Temples of Syrinx"
+      },
+      "ClassicRockFallback": {
+        "artist": "Deep Purple",
+        "track": "Highway Star"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "important",
+    "tertiary": "meaningful",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "One Slip"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Ain't Nobody Home"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Xanadu"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Rolling Stones",
+        "track": "Start Me Up"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "important",
+    "tertiary": "esteemed",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "On the Turning Away"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Why I Sing the Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "La Villa Strangiato"
+      },
+      "ClassicRockFallback": {
+        "artist": "Queen",
+        "track": "We Will Rock You"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "important",
+    "tertiary": "needed",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Time"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "To Know You Is to Love You"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Natural Science"
+      },
+      "ClassicRockFallback": {
+        "artist": "Led Zeppelin",
+        "track": "Kashmir"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "important",
+    "tertiary": "relevant",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "High Hopes"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "I Like to Live the Love"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Red Barchetta"
+      },
+      "ClassicRockFallback": {
+        "artist": "AC/DC",
+        "track": "Thunderstruck"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "hopeful",
+    "tertiary": "courageous",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Comfortably Numb"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Riding with the King"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Tom Sawyer"
+      },
+      "ClassicRockFallback": {
+        "artist": "Deep Purple",
+        "track": "Highway Star"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "hopeful",
+    "tertiary": "inspired",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Dogs"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Ain't Nobody Home"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "2112 Overture / The Temples of Syrinx"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Rolling Stones",
+        "track": "Start Me Up"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "hopeful",
+    "tertiary": "brave",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Eclipse"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Why I Sing the Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Xanadu"
+      },
+      "ClassicRockFallback": {
+        "artist": "Queen",
+        "track": "We Will Rock You"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "hopeful",
+    "tertiary": "faithful",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Run Like Hell"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "To Know You Is to Love You"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "La Villa Strangiato"
+      },
+      "ClassicRockFallback": {
+        "artist": "Led Zeppelin",
+        "track": "Kashmir"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "hopeful",
+    "tertiary": "assured",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "One Slip"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "I Like to Live the Love"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Natural Science"
+      },
+      "ClassicRockFallback": {
+        "artist": "AC/DC",
+        "track": "Thunderstruck"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "hopeful",
+    "tertiary": "uplifted",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "On the Turning Away"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Riding with the King"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Red Barchetta"
+      },
+      "ClassicRockFallback": {
+        "artist": "Deep Purple",
+        "track": "Highway Star"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "proud",
+    "tertiary": "accomplished",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Time"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Ain't Nobody Home"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Tom Sawyer"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Rolling Stones",
+        "track": "Start Me Up"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "proud",
+    "tertiary": "successful",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "High Hopes"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Why I Sing the Blues"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "2112 Overture / The Temples of Syrinx"
+      },
+      "ClassicRockFallback": {
+        "artist": "Queen",
+        "track": "We Will Rock You"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "proud",
+    "tertiary": "worthwhile",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Comfortably Numb"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "To Know You Is to Love You"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Xanadu"
+      },
+      "ClassicRockFallback": {
+        "artist": "Led Zeppelin",
+        "track": "Kashmir"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "proud",
+    "tertiary": "victorious",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Dogs"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "I Like to Live the Love"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "La Villa Strangiato"
+      },
+      "ClassicRockFallback": {
+        "artist": "AC/DC",
+        "track": "Thunderstruck"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "proud",
+    "tertiary": "respected",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Eclipse"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Riding with the King"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Natural Science"
+      },
+      "ClassicRockFallback": {
+        "artist": "Deep Purple",
+        "track": "Highway Star"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "proud",
+    "tertiary": "honored",
+    "songs": {
+      "PinkFloyd": {
+        "artist": "Pink Floyd",
+        "track": "Run Like Hell"
+      },
+      "BBKing": {
+        "artist": "B.B. King",
+        "track": "Ain't Nobody Home"
+      },
+      "Rush": {
+        "artist": "Rush",
+        "track": "Red Barchetta"
+      },
+      "ClassicRockFallback": {
+        "artist": "The Rolling Stones",
+        "track": "Start Me Up"
+      }
+    }
+  }
+]

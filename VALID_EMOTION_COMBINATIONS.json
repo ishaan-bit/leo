@@ -1,0 +1,97 @@
+{
+  "description": "Complete set of valid emotion combinations that can appear on Upstash Redis",
+  "mapping_info": {
+    "backend_canonical": ["sad", "angry", "fearful", "happy", "peaceful", "strong"],
+    "frontend_zones": ["sad", "mad", "scared", "joyful", "peaceful", "powerful"],
+    "backend_to_frontend_mapping": {
+      "sad": "sad",
+      "angry": "mad",
+      "fearful": "scared",
+      "happy": "joyful",
+      "peaceful": "peaceful",
+      "strong": "powerful"
+    },
+    "note": "Backend stores canonical (angry), frontend displays mapped (mad). After fix, backend now stores FRONTEND labels (mad, scared, joyful, powerful) in reflection:rid"
+  },
+  "total_combinations": 216,
+  "structure": "6 primaries × 6 secondaries/primary × 6 tertiaries/secondary = 216 total",
+  "valid_combinations": {
+    "sad": {
+      "lonely": ["isolated", "abandoned", "excluded", "unloved", "ignored", "disconnected"],
+      "hurt": ["disappointed", "vulnerable", "betrayed", "rejected", "let down", "neglected"],
+      "depressed": ["ashamed", "guilty", "grieving", "numb", "empty", "unmotivated"],
+      "grief": ["loss", "regretful", "mourning", "yearning", "nostalgic", "pained"],
+      "inferior": ["inadequate", "worthless", "weak", "powerless", "insecure", "helpless"],
+      "despair": ["hopeless", "miserable", "defeated", "desperate", "broken", "exhausted"]
+    },
+    "mad": {
+      "mad": ["furious", "enraged", "irritated", "vengeful", "hostile", "indignant"],
+      "disappointed": ["betrayed", "dismissed", "disrespected", "unheard", "let down", "discouraged"],
+      "humiliated": ["ashamed", "embarrassed", "exposed", "ridiculed", "disgraced", "shamed"],
+      "aggressive": ["provoked", "confrontational", "defensive", "assertive", "antagonistic", "forceful"],
+      "frustrated": ["annoyed", "impatient", "irritated", "blocked", "powerless", "restless"],
+      "critical": ["judgmental", "disapproving", "cynical", "skeptical", "harsh", "unforgiving"]
+    },
+    "scared": {
+      "rejected": ["unwanted", "unloved", "excluded", "ignored", "abandoned", "unworthy"],
+      "weak": ["helpless", "powerless", "vulnerable", "afraid", "fragile", "dependent"],
+      "insecure": ["inferior", "worthless", "self-doubting", "awkward", "embarrassed", "self-conscious"],
+      "anxious": ["worried", "tense", "nervous", "restless", "uneasy", "on edge"],
+      "overwhelmed": ["panicked", "stressed", "terrified", "overloaded", "trapped", "breathless"],
+      "helpless": ["incapable", "lost", "useless", "defenseless", "stuck", "frozen"]
+    },
+    "joyful": {
+      "excited": ["energetic", "animated", "enthusiastic", "eager", "lively", "vibrant"],
+      "interested": ["curious", "engaged", "focused", "absorbed", "involved", "fascinated"],
+      "energetic": ["stimulated", "inspired", "driven", "active", "motivated", "dynamic"],
+      "cheerful": ["joyful", "playful", "lighthearted", "amused", "grateful", "content"],
+      "creative": ["inventive", "expressive", "imaginative", "artistic", "innovative", "visionary"],
+      "optimistic": ["hopeful", "positive", "expectant", "confident", "bright", "forward-looking"]
+    },
+    "peaceful": {
+      "content": ["satisfied", "comfortable", "fulfilled", "pleased", "accepting", "settled"],
+      "thoughtful": ["reflective", "mindful", "aware", "meditative", "contemplative", "considerate"],
+      "relaxed": ["calm", "serene", "easygoing", "untroubled", "restful", "loose"],
+      "loving": ["kind", "caring", "compassionate", "affectionate", "warm", "tender"],
+      "grateful": ["thankful", "appreciative", "blessed", "aware", "fulfilled", "acknowledging"],
+      "free": ["unburdened", "liberated", "unrestricted", "open", "weightless", "spacious"]
+    },
+    "powerful": {
+      "intelligent": ["wise", "insightful", "clever", "smart", "discerning", "perceptive"],
+      "resilient": ["tough", "enduring", "adaptable", "grounded", "balanced", "centered"],
+      "important": ["significant", "valued", "meaningful", "esteemed", "needed", "relevant"],
+      "hopeful": ["courageous", "inspired", "brave", "faithful", "assured", "uplifted"],
+      "proud": ["accomplished", "successful", "worthwhile", "victorious", "respected", "honored"]
+    }
+  },
+  "constraints": {
+    "primary_must_be_one_of": ["sad", "mad", "scared", "joyful", "peaceful", "powerful"],
+    "secondary_must_belong_to_primary": "Each primary has exactly 6 valid secondaries",
+    "tertiary_must_belong_to_secondary": "Each secondary has exactly 6 valid tertiaries",
+    "all_different": "primary ≠ secondary ≠ tertiary (enforced after fix)",
+    "all_lowercase": true,
+    "single_token_only": true,
+    "never_null": "All three levels MUST be present (W1: Willcox completeness)"
+  },
+  "examples": {
+    "valid": [
+      {"primary": "scared", "secondary": "overwhelmed", "tertiary": "overloaded"},
+      {"primary": "joyful", "secondary": "excited", "tertiary": "energetic"},
+      {"primary": "sad", "secondary": "lonely", "tertiary": "isolated"},
+      {"primary": "mad", "secondary": "frustrated", "tertiary": "annoyed"},
+      {"primary": "peaceful", "secondary": "relaxed", "tertiary": "calm"},
+      {"primary": "powerful", "secondary": "resilient", "tertiary": "tough"}
+    ],
+    "invalid": [
+      {"primary": "powerful", "secondary": "powerful", "tertiary": "confident", "reason": "primary == secondary (BUG - now fixed)"},
+      {"primary": "happy", "secondary": "excited", "tertiary": "energetic", "reason": "Backend uses 'happy', Upstash should have 'joyful'"},
+      {"primary": "scared", "secondary": null, "tertiary": "panicked", "reason": "NULL secondary violates W1"},
+      {"primary": "mad", "secondary": "peaceful", "tertiary": "calm", "reason": "'peaceful' not under 'mad'"}
+    ]
+  },
+  "note_on_powerful_fix": {
+    "before_fix": "powerful could appear as both primary AND secondary (under strong)",
+    "after_fix": "powerful only appears as PRIMARY. Under powerful primary, valid secondaries are: intelligent, resilient, important, hopeful, proud",
+    "removed_secondary": "The 'powerful' secondary (under strong) is now FILTERED OUT when strong maps to powerful primary"
+  }
+}

@@ -150,77 +150,97 @@ class YouTubeMusicSelector:
         arousal: float = 0.5
     ) -> Dict:
         """
-        Select a YouTube video track based on emotion mapping
-        
-        Returns:
-            {
-                "video_id": str,
-                "title": str,
-                "channel": str,
-                "duration_seconds": int,
-                "view_count": int,
-                "watch_url": str,
-                "embed_url": str,
-                "reason": str,
-                "fallback_level": int  # 0=perfect, 1=relaxed, 2=broadened, 3=curated
-            }
+        Select a YouTube video track based on emotion mapping - SIMPLIFIED for reliability
         """
-        # Step 1: Map emotion to genre + keywords
-        genre_map = GENRE_MAP_EN if lang == 'en' else GENRE_MAP_HI
-        emotion_key = (primary, secondary) if secondary else (primary, primary)
+        # SIMPLIFIED APPROACH: Direct emotion → song search
+        # No complex genre mapping, just emotion-based queries that work
         
-        # Fallback to primary-only if no exact match
-        if emotion_key not in genre_map:
-            # Try just primary
-            for key in genre_map.keys():
-                if key[0] == primary:
-                    emotion_key = key
-                    break
+        emotion_search_terms = {
+            # English searches
+            ('en', 'scared'): 'anxious contemplative indie folk',
+            ('en', 'mad'): 'angry rock alternative',
+            ('en', 'sad'): 'melancholic piano ballad',
+            ('en', 'joyful'): 'uplifting happy indie pop',
+            ('en', 'peaceful'): 'calm ambient meditation music',
+            ('en', 'powerful'): 'empowering epic orchestral',
+            
+            # Hindi searches  
+            ('hi', 'scared'): 'डर दर्द भरा गीत ghazal',
+            ('hi', 'mad'): 'गुस्सा रॉक गाना',
+            ('hi', 'sad'): 'उदास दर्द भरा गाना',
+            ('hi', 'joyful'): 'खुशी का गाना bollywood',
+            ('hi', 'peaceful'): 'शांत ध्यान संगीत',
+            ('hi', 'powerful'): 'ताकत प्रेरणा गाना',
+        }
         
-        if emotion_key not in genre_map:
-            # Last resort: use generic mapping
-            if lang == 'en':
-                genre_config = {"genre": "jazz blues", "keywords": ["emotional", "introspective"], "era": "1970s"}
-            else:
-                genre_config = {"genre": "ghazal", "keywords": ["dard", "感情"], "era": "1970s|1980s"}
-        else:
-            genre_config = genre_map[emotion_key]
+        # Build simple, reliable search query
+        search_key = (lang, primary.lower())
+        base_query = emotion_search_terms.get(search_key, 'emotional music' if lang == 'en' else 'भावनात्मक संगीत')
         
-        # Step 2: Build search query
-        seed_keywords = tags[:2] if tags else genre_config["keywords"][:2]
-        query = f"{' '.join(seed_keywords)} {genre_config['genre']} {genre_config['era']} official"
+        # Add "official" for better quality results
+        query = f"{base_query} official"
         
-        print(f"[YouTube Search] Query: {query} (lang={lang})")
+        print(f"[YouTube Search] Simplified query: {query}")
         
-        # Step 3: Try progressive fallback thresholds
-        fallback_attempts = [
-            {"min_views": 50000 if lang == 'en' else 10000, "max_duration": 360, "level": 0, "desc": "strict"},
-            {"min_views": 25000 if lang == 'en' else 5000, "max_duration": 420, "level": 1, "desc": "relaxed"},
-            {"min_views": 10000 if lang == 'en' else 2000, "max_duration": 480, "level": 2, "desc": "broadened"},
-        ]
+        # Try with relaxed filters - just get SOMETHING that works
+        try:
+            result = await self._search_simple(query, lang)
+            if result:
+                result["fallback_level"] = 0
+                result["reason"] = f"Emotion-matched: {primary}"
+                print(f"[YouTube Success] Found: {result['title']}")
+                return result
+        except Exception as e:
+            print(f"[YouTube Error] {e}")
         
-        for attempt in fallback_attempts:
-            try:
-                result = await self._search_with_filters(
-                    query=query,
-                    user_id=user_id,
-                    min_views=attempt["min_views"],
-                    max_duration_sec=attempt["max_duration"],
-                    lang=lang
-                )
-                
-                if result:
-                    result["fallback_level"] = attempt["level"]
-                    result["reason"] = f"{genre_config['genre']} match ({attempt['desc']} criteria)"
-                    print(f"[YouTube Success] {attempt['desc']} match: {result['title']}")
-                    return result
-            except Exception as e:
-                print(f"[YouTube Fallback {attempt['level']}] Failed: {e}")
-                continue
-        
-        # Step 4: Last resort - curated library
-        print(f"[YouTube] All API attempts failed, using curated fallback")
+        # If search fails, use curated fallback
+        print(f"[YouTube] Search failed, using curated library")
         return self._get_curated_fallback(primary, secondary, lang, valence, arousal)
+    
+    async def _search_simple(self, query: str, lang: str) -> Optional[Dict]:
+        """Simplified search - just get first decent result"""
+        import httpx
+        import os
+        
+        api_key = os.getenv('YOUTUBE_API_KEY')
+        if not api_key:
+            return None
+            
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            search_url = "https://www.googleapis.com/youtube/v3/search"
+            params = {
+                "part": "snippet",
+                "q": query,
+                "type": "video",
+                "videoDuration": "medium",  # 4-20 min
+                "maxResults": 10,
+                "key": api_key,
+                "relevanceLanguage": "hi" if lang == 'hi' else "en",
+            }
+            
+            response = await client.get(search_url, params=params)
+            if response.status_code != 200:
+                print(f"[YouTube API] Error {response.status_code}: {response.text[:200]}")
+                return None
+                
+            data = response.json()
+            items = data.get('items', [])
+            if not items:
+                return None
+            
+            # Just use first result - keep it simple
+            first = items[0]
+            video_id = first['id']['videoId']
+            
+            return {
+                "video_id": video_id,
+                "title": first['snippet']['title'],
+                "channel": first['snippet']['channelTitle'],
+                "duration_seconds": 240,  # Estimate
+                "view_count": 0,  # Don't bother fetching
+                "watch_url": f"https://www.youtube.com/watch?v={video_id}",
+                "embed_url": f"https://www.youtube.com/embed/{video_id}",
+            }
     
     async def _search_with_filters(
         self,

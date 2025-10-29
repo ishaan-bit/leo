@@ -43,7 +43,7 @@ interface VoiceOrbProps {
   disabled?: boolean;
 }
 
-export default function VoiceOrb({ onTranscript, disabled = false }: VoiceOrbProps) {
+export default function VoiceOrbAndroidFixed({ onTranscript, disabled = false }: VoiceOrbProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [transcript, setTranscript] = useState('');
