@@ -73,10 +73,10 @@ export default function ShareMomentPage() {
 
   const zone = getZone(moment.primaryEmotion);
   const atmosphere = zone ? {
-    gradient: zone.colors?.gradient || ['#fce7f3', '#fbcfe8'],
-    textColor: zone.colors?.textColor || '#831843',
-    textMuted: zone.colors?.textMuted || '#9f1239',
-    accentColor: zone.colors?.accentColor || '#ec4899',
+    gradient: [zone.hue, zone.color],
+    textColor: zone.color,
+    textMuted: zone.hue,
+    accentColor: zone.color,
   } : {
     gradient: ['#fce7f3', '#fbcfe8'],
     textColor: '#831843',
