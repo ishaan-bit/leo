@@ -81,6 +81,127 @@ export default function VoiceOrb({ onTranscript, disabled = false }: VoiceOrbPro
     }
   }, []);
 
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (typingIntervalRef.current) clearInterval(typingIntervalRef.current);
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {
+          // Ignore
+        }
+      }
+    };
+  }, []);
+
+  // === TYPING ANIMATION (50ms per word) ===
+  const animateTyping = (fullText: string) => {
+    if (typingIntervalRef.current) clearInterval(typingIntervalRef.current);
+
+    fullTranscriptRef.current = fullText;
+    const words = fullText.split(' ');
+    let currentIndex = 0;
+
+    setTranscript('');
+
+    typingIntervalRef.current = setInterval(() => {
+      if (currentIndex < words.length) {
+        setTranscript(words.slice(0, currentIndex + 1).join(' '));
+        currentIndex++;
+      } else {
+        if (typingIntervalRef.current) {
+          clearInterval(typingIntervalRef.current);
+          typingIntervalRef.current = null;
+        }
+      }
+    }, 50);
+  };
+
+  // === WEB SPEECH API ===
+  const startWebSpeech = async () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) throw new Error('Web Speech API not supported');
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+    recognition.maxAlternatives = 1;
+
+    recognitionRef.current = recognition;
+    startTimeRef.current = Date.now();
+
+    recognition.onstart = () => {
+      setIsRecording(true);
+      setError(null);
+    };
+
+    recognition.onresult = (event: any) => {
+      const result = event.results[0];
+      const transcriptText = result[0].transcript;
+      const confidence = result[0].confidence;
+
+      if (result.isFinal) {
+        animateTyping(transcriptText);
+        handleTranscriptionComplete(transcriptText, confidence);
+      }
+    };
+
+    recognition.onerror = (event: any) => {
+      if (event.error === 'no-speech') setError('No speech detected.');
+      else if (event.error === 'not-allowed') setError('Microphone access denied.');
+      else setError(`Error: ${event.error}`);
+      setIsRecording(false);
+    };
+
+    recognition.onend = () => setIsRecording(false);
+
+    recognition.start();
+  };
+
+  // === DEEPGRAM TRANSCRIPTION ===
+  const transcribeWithDeepgram = async (audioBlob: Blob): Promise<void> => {
+    setIsProcessing(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'recording.webm');
+      
+      const response = await fetch('/api/transcribe', { method: 'POST', body: formData });
+      if (!response.ok) throw new Error(`API error: ${response.status}`);
+
+      const data = await response.json();
+      if (data.transcript?.trim()) {
+        animateTyping(data.transcript);
+        handleTranscriptionComplete(data.transcript, data.confidence || 0);
+      } else {
+        setError('No speech detected.');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Transcription failed');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // === HANDLE TRANSCRIPTION COMPLETE ===
+  const handleTranscriptionComplete = async (transcriptText: string, confidence: number) => {
+    const duration = (Date.now() - startTimeRef.current) / 1000;
+    const processed = processText(transcriptText);
+    const wordCount = processed.original.split(/\s+/).length;
+
+    const metricsData: VoiceMetrics = {
+      speechRate: wordCount / duration,
+      pitchRange: 0,
+      pauseDensity: 0,
+      amplitudeVariance: 0,
+    };
+
+    setMetrics(metricsData);
+    if (onTranscript) onTranscript(processed, metricsData);
+  };
+
   // Diagnostic: Feature detection
   const detectFeatures = () => {
     const diag: string[] = [];
@@ -151,12 +272,33 @@ export default function VoiceOrb({ onTranscript, disabled = false }: VoiceOrbPro
     return '';
   };
 
-  // Start recording with Android Chrome compatibility
+  // === HYBRID START ===
   const handleStart = async () => {
     if (disabled) return;
     
     setError(null);
     setTranscript('');
+    fullTranscriptRef.current = '';
+    
+    if (typingIntervalRef.current) {
+      clearInterval(typingIntervalRef.current);
+      typingIntervalRef.current = null;
+    }
+    
+    try {
+      if (transcriptionStrategy === 'webspeech') {
+        await startWebSpeech();
+      } else {
+        await startMediaRecorder();
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to start');
+      setIsRecording(false);
+    }
+  };
+
+  // === MEDIARECORDER + DEEPGRAM ===
+  const startMediaRecorder = async () => {
     audioChunksRef.current = [];
     
     try {
@@ -244,133 +386,74 @@ export default function VoiceOrb({ onTranscript, disabled = false }: VoiceOrbPro
       };
       
       mediaRecorder.onstop = async () => {
-        console.log('[VoiceOrb] MediaRecorder stopped, chunks:', audioChunksRef.current.length);
-        await handleRecordingComplete();
+        if (audioChunksRef.current.length === 0) {
+          setError('No audio recorded');
+          return;
+        }
+        
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType || 'audio/webm' });
+        await transcribeWithDeepgram(audioBlob);
       };
       
       // Step 5: Start recording with timeslice (CRITICAL for Android)
       // Timeslice = 1000ms ensures chunks arrive even if stop() isn't called cleanly
-      console.log('[VoiceOrb] Step 5: Starting recording with 1000ms timeslice...');
-      mediaRecorder.start(1000); // Request data every 1 second
-      
-      console.log('[VoiceOrb] MediaRecorder state:', mediaRecorder.state);
+      mediaRecorder.start(1000);
       
       setIsRecording(true);
       startTimeRef.current = Date.now();
       
-      // Start audio analysis loop
       const analysisInterval = setInterval(analyzeAudio, 100);
-      
-      // Store cleanup function
-      (window as any).__voiceOrbCleanup = () => {
-        clearInterval(analysisInterval);
-      };
+      (window as any).__voiceOrbCleanup = () => clearInterval(analysisInterval);
       
     } catch (err: any) {
-      console.error('[VoiceOrb] Error in handleStart:', err);
-      
-      // Enhanced error messages for debugging
       if (err.name === 'NotAllowedError') {
-        setError('Microphone permission denied. Please allow access in Settings.');
+        setError('Microphone permission denied.');
       } else if (err.name === 'NotFoundError') {
-        setError('No microphone found. Please check your device.');
-      } else if (err.name === 'NotSupportedError') {
-        setError('Recording not supported on this browser.');
-      } else if (err.name === 'NotReadableError') {
-        setError('Microphone is in use by another app.');
+        setError('No microphone found.');
       } else {
-        setError(`Error: ${err.message || 'Could not access microphone'}`);
+        setError(err.message || 'Failed to start recording');
       }
     }
   };
 
-  // Stop recording
+  // === HYBRID STOP ===
   const handleStop = () => {
-    console.log('[VoiceOrb] handleStop called');
-    
     setIsRecording(false);
     
-    // Stop MediaRecorder
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      console.log('[VoiceOrb] Stopping MediaRecorder...');
-      mediaRecorderRef.current.stop();
+    // Stop Web Speech
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+        recognitionRef.current = null;
+      } catch (err) {
+        console.warn('Error stopping recognition:', err);
+      }
     }
     
-    // Cleanup
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      try {
+        mediaRecorderRef.current.stop();
+      } catch (err) {
+        console.warn('Error stopping MediaRecorder:', err);
+      }
+    }
+    
+    // Cleanup streams
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    
+    // Cleanup audio context
+    if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+      audioContextRef.current.close().catch(console.warn);
+      audioContextRef.current = null;
+    }
+    
+    // Cleanup intervals
     if ((window as any).__voiceOrbCleanup) {
       (window as any).__voiceOrbCleanup();
-    }
-  };
-
-  // Handle recording complete
-  const handleRecordingComplete = async () => {
-    console.log('[VoiceOrb] handleRecordingComplete');
-    setIsProcessing(true);
-    
-    try {
-      // Create blob from chunks
-      const mimeType = mediaRecorderRef.current?.mimeType || 'audio/webm';
-      const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
-      
-      console.log('[VoiceOrb] Audio blob created:', {
-        size: audioBlob.size,
-        type: audioBlob.type,
-        chunks: audioChunksRef.current.length,
-      });
-      
-      if (audioBlob.size === 0) {
-        throw new Error('Recording is empty (0 bytes). Microphone may not be capturing audio.');
-      }
-      
-      // For now, use placeholder transcript
-      // TODO: Integrate with speech-to-text service (Whisper API, etc.)
-      const placeholderText = '[Voice input recorded - transcription pending]';
-      setTranscript(placeholderText);
-      
-      // Calculate metrics
-      const duration = (Date.now() - startTimeRef.current) / 1000;
-      const wordCount = 10; // Placeholder
-      
-      const finalMetrics: VoiceMetrics = {
-        ...metrics,
-        speechRate: wordCount / duration,
-        pauseDensity: 0.2, // Placeholder
-      };
-      
-      const processed = processText(placeholderText);
-      
-      // Notify parent
-      if (onTranscript) {
-        onTranscript(processed, finalMetrics);
-      }
-      
-      // Optional: Play back to verify recording
-      if (typeof window !== 'undefined') {
-        const audioUrl = URL.createObjectURL(audioBlob);
-        console.log('[VoiceOrb] Audio URL for playback:', audioUrl);
-        // Could add: const audio = new Audio(audioUrl); audio.play();
-      }
-      
-    } catch (err: any) {
-      console.error('[VoiceOrb] Error processing recording:', err);
-      setError(err.message);
-    } finally {
-      setIsProcessing(false);
-      
-      // Cleanup stream
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => {
-          track.stop();
-          console.log('[VoiceOrb] Stopped track:', track.label);
-        });
-        streamRef.current = null;
-      }
-      
-      // Cleanup AudioContext
-      if (audioContextRef.current) {
-        audioContextRef.current.close();
-        audioContextRef.current = null;
-      }
+      delete (window as any).__voiceOrbCleanup;
     }
   };
 
