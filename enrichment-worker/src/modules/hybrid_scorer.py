@@ -428,7 +428,15 @@ class HybridScorer:
             
             # Get all secondaries for this primary
             secondaries = list(self.WILLCOX_HIERARCHY[primary].keys())
-            secondary_scores = self._embedding_similarity(text, secondaries)
+            
+            # CRITICAL FIX: Filter out any secondaries that are also primaries
+            # Prevents "powerful" (secondary under "strong") matching "powerful" (primary)
+            secondaries_filtered = [s for s in secondaries if s.lower() not in [p.lower() for p in self.WILLCOX_PRIMARY]]
+            
+            if not secondaries_filtered:
+                secondaries_filtered = secondaries  # Fallback
+            
+            secondary_scores = self._embedding_similarity(text, secondaries_filtered)
             
             # Get top secondary
             top_secondary = max(secondary_scores.items(), key=lambda x: x[1])
@@ -1316,9 +1324,21 @@ JSON:"""
             if primary not in secondary_tertiary_scores and primary in self.WILLCOX_HIERARCHY:
                 print(f"   Computing secondary/tertiary for {primary} (not in top 2)")
                 secondaries = list(self.WILLCOX_HIERARCHY[primary].keys())
-                secondary_scores_fresh = self._embedding_similarity(normalized_text, secondaries)
+                
+                # CRITICAL FIX: Filter out any secondaries that are also primaries
+                # This prevents "powerful" (secondary) == "powerful" (primary when mapped from "strong")
+                secondaries_filtered = [s for s in secondaries if s.lower() not in [p.lower() for p in self.WILLCOX_PRIMARY]]
+                
+                if not secondaries_filtered:
+                    # Fallback if all filtered out (shouldn't happen with proper wheel)
+                    secondaries_filtered = secondaries
+                    print(f"   [!] Warning: All secondaries filtered, using unfiltered list")
+                
+                secondary_scores_fresh = self._embedding_similarity(normalized_text, secondaries_filtered)
                 top_secondary = max(secondary_scores_fresh.items(), key=lambda x: x[1])
                 secondary = top_secondary[0]
+                
+                print(f"   [Secondary Selection] Chose '{secondary}' from {len(secondaries_filtered)} candidates (excluded primaries)")
                 
                 # Store for tertiary lookup
                 tertiaries = self.WILLCOX_HIERARCHY[primary][secondary]
