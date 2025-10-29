@@ -224,7 +224,7 @@ export default function NotebookInput({
           onBlur={() => setIsFocused(false)}
           placeholder={placeholder}
           disabled={disabled}
-          className="w-full min-h-[220px] max-h-[450px] p-6 pl-20 pb-16 bg-transparent border-none outline-none resize-none font-serif text-lg text-pink-900 placeholder:text-pink-400/70 placeholder:italic overflow-y-auto"
+          className="w-full min-h-[220px] max-h-[450px] p-6 pl-12 pb-16 bg-transparent border-none outline-none resize-none font-serif text-lg text-pink-900 placeholder:text-pink-400/70 placeholder:italic overflow-y-auto"
           style={{
             lineHeight: '1.75',
             cursor: 'text',
@@ -233,7 +233,7 @@ export default function NotebookInput({
         />
         
         {/* Word count & language indicator */}
-        <div className="absolute bottom-3 left-20 text-xs text-pink-500/70 italic">
+        <div className="absolute bottom-3 left-12 text-xs text-pink-500/70 italic">
           {text.length > 0 && (
             <>
               {text.trim().split(/\s+/).filter(word => word.length > 0).length} words

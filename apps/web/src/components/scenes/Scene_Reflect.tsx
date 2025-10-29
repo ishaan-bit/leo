@@ -631,9 +631,9 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     return (
       <>
         {/* Keep Auth state and Sound toggle visible during breathing */}
-        <div className="fixed top-0 left-0 right-0 z-[60] flex items-center justify-center px-6 py-4 pointer-events-none"
+        <div className="fixed left-0 right-0 z-[60] flex items-center justify-center px-6 pointer-events-none"
           style={{
-            paddingTop: 'max(1rem, env(safe-area-inset-top))',
+            top: 'max(1rem, env(safe-area-inset-top))', // Align with side buttons
             paddingLeft: 'max(1.5rem, env(safe-area-inset-left))',
             paddingRight: 'max(1.5rem, env(safe-area-inset-right))',
           }}
@@ -678,9 +678,9 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
         {/* Keep Auth state and Sound toggle visible - hide when moment is expanded */}
         {!isMomentExpanded && (
           <>
-            <div className="fixed top-0 left-0 right-0 z-[60] flex items-center justify-center px-6 py-4 pointer-events-none"
+            <div className="fixed left-0 right-0 z-[60] flex items-center justify-center px-6 pointer-events-none"
               style={{
-                paddingTop: 'max(1rem, env(safe-area-inset-top))',
+                top: 'max(1rem, env(safe-area-inset-top))', // Align with side buttons
                 paddingLeft: 'max(1.5rem, env(safe-area-inset-left))',
                 paddingRight: 'max(1.5rem, env(safe-area-inset-right))',
               }}

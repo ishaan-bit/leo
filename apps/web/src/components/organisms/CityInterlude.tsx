@@ -54,13 +54,28 @@ const TOWERS = [
   { id: 'mad', name: 'Sable', color: '#C1121F', x: 86, height: 170 },        // Mad - red
 ];
 
+// Extended poetic lines - bilingual (Hindi/English) cycling until Stage 1 complete
+const WAITING_LINES = [
+  'रोशनी मेज़ पर धीरे से झुकती है,',
+  'हवा खिड़की पर ठहर जाती है,',
+  'एक पत्ता अपनी धीमी सोच में मुड़ता है',
+  'समय अपनी साँस थामे हुए।',
+  'the cup cools beside you,',
+  'a thin curl of steam,',
+  'the world pauses',
+  'time holding its breath,',
+  'a bird tests the air',
+  'with one uncertain wing,',
+  'the silence deepens',
+  'time holding its breath,',
+  'your pulse steadies',
+  'in the hollow of your wrist,',
+  'and evening leans in',
+  'time holding its breath.',
+];
+
 const COPY = {
   phase1: 'Your moment has been held safe.',
-  phase2: 'A quiet breath between things.',
-  phase3: 'And time holding its breath.',
-  phase4a: 'While the city stirs below.',
-  phase4b: 'Each tower a feeling waiting.',
-  phase4c: 'To be named.',
 };
 
 // Enhanced timing for Ghibli-style atmospheric transitions (compressed by ~10s total)
@@ -144,18 +159,18 @@ export default function CityInterlude({
       
       // Phase transitions (compressed timeline)
       if (elapsed >= TIMING.PHASE4_START && currentPhase < 4) {
-        // 30s (was 42s)
+        // 30s (was 42s) - Phase 4: city pulsing, waiting lines continue
         setCurrentPhase(4);
         setCityPulseActive(true);
-        setShowCopy(COPY.phase4a); // Start phase 4 cycling
+        // Lines continue cycling (no change to showCopy here)
       } else if (elapsed >= TIMING.PHASE3_START && currentPhase < 3) {
-        // 10s (was 26s)
+        // 10s (was 26s) - Phase 3: start cycling waiting lines
         setCurrentPhase(3);
-        setShowCopy(COPY.phase3);
+        setShowCopy(WAITING_LINES[0]); // Start with first line
       } else if (elapsed >= TIMING.PHASE1_DURATION && currentPhase < 2) {
-        // 5s (was 14s)
+        // 5s (was 14s) - Phase 2: preparation
         setCurrentPhase(2);
-        setShowCopy(COPY.phase2);
+        setShowCopy(null); // Brief pause before waiting lines
       } else if (elapsed >= 3000 && currentPhase === 1) {
         // Fade out phase 1 copy at 3s
         setShowCopy(null);
@@ -175,21 +190,21 @@ export default function CityInterlude({
     return () => clearInterval(interval);
   }, [currentPhase]);
 
-  // Cycle through phase 4 poetic lines to prevent stuck appearance
+  // Cycle through waiting lines continuously in phases 3 and 4 (until Stage 1 complete)
   useEffect(() => {
-    if (currentPhase !== 4) return;
+    if (currentPhase < 3) return; // Only cycle in phase 3 & 4
+    if (primaryLocked) return; // Stop cycling once Stage 1 completes
     
-    const phase4Lines = [COPY.phase4a, COPY.phase4b, COPY.phase4c];
     let cycleIndex = 0;
     
     const cycleInterval = setInterval(() => {
-      cycleIndex = (cycleIndex + 1) % phase4Lines.length;
-      setShowCopy(phase4Lines[cycleIndex]);
+      cycleIndex = (cycleIndex + 1) % WAITING_LINES.length;
+      setShowCopy(WAITING_LINES[cycleIndex]);
       setPhase4CycleIndex(cycleIndex);
-    }, 4000); // Change every 4 seconds
+    }, 3500); // Change every 3.5 seconds for gentle pulsing rhythm
     
     return () => clearInterval(cycleInterval);
-  }, [currentPhase]);
+  }, [currentPhase, primaryLocked]);
 
   // Show initial copy
   useEffect(() => {
@@ -378,8 +393,13 @@ export default function CityInterlude({
       {/* Sound Toggle - Persists through interlude */}
       <SoundToggle />
       
-      {/* Auth State Indicator - Top center */}
-      <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 px-4 md:pt-6 md:px-6">
+      {/* Auth State Indicator - Aligned with side buttons (Living City icon would be on left in Scene_Reflect) */}
+      <div 
+        className="fixed left-0 right-0 z-50 flex justify-center px-4 md:px-6" 
+        style={{
+          top: 'max(1rem, env(safe-area-inset-top))', // Align with SoundToggle
+        }}
+      >
         <div className="flex items-center gap-2 md:gap-4 backdrop-blur-sm bg-white/30 rounded-full px-3 py-1.5 md:px-4 md:py-2">
           <AuthStateIndicator 
             userName={session?.user?.name || session?.user?.email}
@@ -964,9 +984,9 @@ export default function CityInterlude({
               animate={{ 
                 opacity: 1, 
                 y: 0,
-                // Keep rotating and pulsing after phase 3 text appears
-                scale: showCopy === COPY.phase3 ? [1, 1.02, 1] : 1,
-                rotate: showCopy === COPY.phase3 ? [0, 0.5, 0, -0.5, 0] : 0,
+                // Gentle pulse for all waiting lines (phases 3 & 4)
+                scale: currentPhase >= 3 ? [1, 1.02, 1] : 1,
+                rotate: currentPhase >= 3 ? [0, 0.5, 0, -0.5, 0] : 0,
               }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ 

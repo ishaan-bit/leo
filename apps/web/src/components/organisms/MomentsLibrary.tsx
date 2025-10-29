@@ -758,7 +758,10 @@ export default function MomentsLibrary({
                 <AnimatePresence>
                   {phase === 'library' && isVisible && hasMoments && (
                     <motion.div
-                      className="absolute -top-28 md:-top-24 left-1/2 -translate-x-1/2 whitespace-nowrap z-30 text-center"
+                      className="absolute left-0 right-0 whitespace-nowrap z-30 text-center"
+                      style={{
+                        top: '-6rem', // Moved up slightly from -top-28 (-7rem) for better spacing
+                      }}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ 
                         opacity: isHovered ? 1 : 0.9,
@@ -766,9 +769,9 @@ export default function MomentsLibrary({
                       }}
                       transition={{ duration: 0.6, delay: 0.5 }}
                     >
-                      {/* Tower name - large serif italic with hover glow, centered */}
+                      {/* Tower name - smaller font for mobile fit, centered */}
                       <motion.div
-                        className="font-serif italic text-4xl font-bold pointer-events-none mb-1 text-center w-full"
+                        className="font-serif italic text-2xl md:text-3xl font-bold pointer-events-none mb-1 text-center w-full"
                         style={{
                           color: tower.color,
                           textShadow: isHovered
@@ -793,7 +796,7 @@ export default function MomentsLibrary({
                       
                       {/* Zone label - enhanced visibility with background and stronger contrast, centered */}
                       <motion.div
-                        className="text-sm font-medium px-3 py-1 rounded-full inline-block"
+                        className="text-xs md:text-sm font-medium px-2 md:px-3 py-0.5 md:py-1 rounded-full inline-block"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: isHovered ? 1 : 0 }}
                         transition={{ duration: 0.3 }}
@@ -1360,7 +1363,7 @@ export default function MomentsLibrary({
                 <div className="relative p-6 md:p-10 z-10" style={{ lineHeight: '1.8', isolation: 'isolate' }}>
                   {/* Floating Action Strip - Language Toggle + Close Button */}
                   <motion.div
-                    className="fixed top-6 right-6 z-50 flex items-center gap-2"
+                    className="fixed top-4 right-4 z-50 flex items-center gap-1.5"
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: 0.1 }}
@@ -1368,15 +1371,15 @@ export default function MomentsLibrary({
                       backdropFilter: 'blur(12px)',
                       background: 'linear-gradient(135deg, rgba(255,255,255,0.85), rgba(255,255,255,0.65))',
                       borderRadius: '50px',
-                      padding: '6px',
+                      padding: '4px',
                       boxShadow: `0 4px 20px ${atmosphere.gradient[0]}30`,
                     }}
                   >
-                    {/* Language Toggle button */}
+                    {/* Language Toggle button - smaller */}
                     <motion.button
                       onClick={handleLanguageToggle}
                       disabled={isTranslating}
-                      className="w-10 h-10 flex items-center justify-center rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-offset-2"
+                      className="w-8 h-8 flex items-center justify-center rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-offset-1"
                       style={{
                         background: language === 'en' ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.9)',
                         opacity: isTranslating ? 0.5 : 1,
@@ -1391,7 +1394,7 @@ export default function MomentsLibrary({
                       tabIndex={0}
                     >
                       <span 
-                        className="text-sm font-semibold" 
+                        className="text-xs font-semibold" 
                         style={{ 
                           color: atmosphere.textColor,
                           fontFamily: '"Inter", -apple-system, sans-serif',
@@ -1401,10 +1404,10 @@ export default function MomentsLibrary({
                       </span>
                     </motion.button>
 
-                    {/* Close button */}
+                    {/* Close button - smaller */}
                     <motion.button
                       onClick={() => setSelectedMoment(null)}
-                      className="w-10 h-10 flex items-center justify-center rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-offset-2"
+                      className="w-8 h-8 flex items-center justify-center rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-offset-1"
                       style={{
                         background: 'rgba(255,255,255,0.5)',
                       }}
@@ -1416,7 +1419,7 @@ export default function MomentsLibrary({
                       aria-label="Close"
                       tabIndex={0}
                     >
-                      <span className="text-2xl leading-none" style={{ color: atmosphere.textColor }}>×</span>
+                      <span className="text-xl leading-none" style={{ color: atmosphere.textColor }}>×</span>
                     </motion.button>
                   </motion.div>
 

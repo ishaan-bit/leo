@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { type PrimaryEmotion, computeBreatheParams, FALLBACK_WORDS } from '@/lib/breathe-config';
 import type { Stage2State, PostEnrichmentPayload, Stage2Phase, WindowState } from '@/lib/stage2-types';
 import ComicBubble from '../atoms/ComicBubble';
+import { translateToHindi } from '@/lib/translation';
 
 interface BreathingSequenceProps {
   reflectionId: string;
@@ -51,7 +52,7 @@ export default function BreathingSequence({
 }: BreathingSequenceProps) {
   const [breathProgress, setBreathProgress] = useState(0); // 0-1 continuous
   const [cycleCount, setCycleCount] = useState(0);
-  const [words, setWords] = useState<Array<{ id: string; text: string; angle: number }>>([]);
+  const [words, setWords] = useState<Array<{ id: string; text: string; angle: number; index: number }>>([]);
   const [isReady, setIsReady] = useState(false);
   const [stage2Complete, setStage2Complete] = useState(false);
   
@@ -87,6 +88,7 @@ export default function BreathingSequence({
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const wordPool = useRef<string[]>([]);
+  const wordIndexCounter = useRef<number>(0); // Track word index for EN/HI alternation
   const animationFrameRef = useRef<number>();
   const startTimeRef = useRef<number>(Date.now());
   const leoContainerRef = useRef<HTMLDivElement>(null);
@@ -259,12 +261,27 @@ export default function BreathingSequence({
       return;
     }
     
-    const addWord = () => {
+    const addWord = async () => {
       const word = wordPool.current[Math.floor(Math.random() * wordPool.current.length)];
       const wordId = `word-${Date.now()}-${Math.random()}`;
       const angle = Math.random() * Math.PI * 2;
+      const index = wordIndexCounter.current++;
       
-      setWords(prev => [...prev, { id: wordId, text: word, angle }]);
+      // Alternate: even index = English, odd index = Hindi
+      const shouldTranslate = index % 2 === 1;
+      let displayText = word;
+      
+      if (shouldTranslate) {
+        try {
+          const translated = await translateToHindi(word);
+          displayText = translated.translatedText || word; // Fallback to English if translation fails
+        } catch (error) {
+          console.warn('[Breathing] Translation failed for word:', word, error);
+          // Keep original English word
+        }
+      }
+      
+      setWords(prev => [...prev, { id: wordId, text: displayText, angle, index }]);
       
       setTimeout(() => {
         setWords(prev => prev.filter(w => w.id !== wordId));
@@ -771,7 +788,10 @@ export default function BreathingSequence({
                 scale: isPrimary ? (isInhaling ? 1.02 : 0.98) : 1,
               }}
               transition={{ 
-                opacity: { duration: isPrimary ? 0.5 : 1.5, delay: isPrimary ? 2 : 0 },
+                opacity: { 
+                  duration: isPrimary ? 0.5 : 2.5, // Slower fade for non-primary to avoid flash
+                  delay: isPrimary ? 2 : 1.5, // Delay both to avoid white flash gap
+                },
                 scale: { duration: activeCycle.in, ease: EASING }
               }}
             >
@@ -810,12 +830,13 @@ export default function BreathingSequence({
                 <AnimatePresence>
                   {isPrimary && !stage2Complete && (
                     <motion.div
-                      className="absolute -top-32 left-1/2 -translate-x-1/2 whitespace-nowrap font-serif italic text-6xl font-bold z-30"
+                      className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap font-serif italic text-5xl md:text-6xl font-bold z-30"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0, transition: { duration: 2, ease: 'easeOut' } }}
                       transition={{ duration: 1, delay: 2.5 }}
                       style={{
+                        top: '-10rem', // Moved up from -top-32 (-8rem) to avoid inhale/exhale overlap
                         color: tower.color,
                         textShadow: `
                           0 0 60px ${tower.color},
@@ -834,8 +855,9 @@ export default function BreathingSequence({
                 {/* Breathing halo */}
                 {isPrimary && isReady && (
                   <motion.div
-                    className="absolute -top-32 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full pointer-events-none"
+                    className="absolute left-1/2 -translate-x-1/2 w-64 h-64 rounded-full pointer-events-none"
                     style={{
+                      top: '-10rem', // Match building name position
                       background: `radial-gradient(circle, ${tower.color}66 0%, transparent 70%)`,
                       filter: 'blur(40px)',
                     }}
@@ -887,6 +909,7 @@ export default function BreathingSequence({
                 top: `${y}%`,
                 transform: 'translateZ(0)', // Force GPU acceleration on mobile
                 backfaceVisibility: 'hidden', // Improve mobile rendering
+                maxWidth: '120px', // Prevent overflow on mobile screens
               }}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1.05, y: -20 }}
@@ -894,7 +917,7 @@ export default function BreathingSequence({
               transition={{ duration: 6, ease: EASING }}
             >
               <span
-                className="text-3xl md:text-3xl font-serif italic font-bold block"
+                className="text-2xl md:text-3xl font-serif italic font-bold block break-words"
                 style={{
                   color: '#FFD700',
                   textShadow: `
