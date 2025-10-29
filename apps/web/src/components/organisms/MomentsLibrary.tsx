@@ -1516,10 +1516,10 @@ export default function MomentsLibrary({
                             // Add shareable link to view full moment (with image note if present)
                             const shareableUrl = `${window.location.origin}/share/${selectedMoment.id}`;
                             if (selectedMoment.image_base64) {
-                              shareText += `\n\n� *View with photo:* ${shareableUrl}`;
+                              shareText += `\n\n📸 *View with photo:*\n${shareableUrl}`;
                               shareText += `\n\n_Click the link above to see the image with this moment_`;
                             } else {
-                              shareText += `\n\n🔗 View full moment: ${shareableUrl}`;
+                              shareText += `\n\n🔗 View full moment:\n${shareableUrl}`;
                             }
                             
                             // Use WhatsApp URL scheme for most reliable sharing
