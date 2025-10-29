@@ -12,10 +12,25 @@ from typing import Dict, Optional
 from dotenv import load_dotenv
 from pathlib import Path
 import threading
+import sys
+
+# Add parent directory to path for performance infrastructure
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Load environment variables from .env file in the same directory as this script
 env_path = Path(__file__).parent / '.env'
 load_dotenv(dotenv_path=env_path)
+
+# Initialize performance monitoring
+from infra.metrics import get_metrics, timer
+from infra.cache import get_cache
+
+# Log cache status
+cache = get_cache()
+print(f"[PERF] Cache enabled: {cache.enabled}")
+if cache.enabled:
+    stats = cache.get_stats()
+    print(f"[PERF] Cache entries: {stats.get('total_entries', 0)}")
 
 # Import modules
 from src.modules.redis_client import get_redis

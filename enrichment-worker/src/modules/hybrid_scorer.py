@@ -196,6 +196,55 @@ class HybridScorer:
         Returns:
             Dict matching full enriched schema or None if failed
         """
+        # Try to import cache (graceful fallback if not available)
+        try:
+            import sys
+            from pathlib import Path
+            sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
+            from infra.cache import get_cache
+            from infra.metrics import timer
+            
+            cache = get_cache()
+            
+            # Build cache key (text + timestamp for circadian variance)
+            cache_key_content = {"text": normalized_text}
+            cache_key_params = {"timestamp": timestamp} if timestamp else {}
+            
+            # Check cache
+            if cache.enabled:
+                cached = cache.get(
+                    content=cache_key_content,
+                    params=cache_key_params,
+                    cache_type="stage1_enrichment"
+                )
+                if cached:
+                    print(f"[CACHE HIT] Stage 1: {len(normalized_text)} chars → cached")
+                    return cached
+            
+            # Execute with timing
+            with timer("stage1_enrichment"):
+                result = self._enrich_impl(normalized_text, history, timestamp)
+            
+            # Cache result
+            if cache.enabled and result:
+                # Get TTL from config (default 30 days)
+                cache.set(
+                    content=cache_key_content,
+                    value=result,
+                    params=cache_key_params,
+                    ttl=2592000,
+                    cache_type="stage1_enrichment"
+                )
+                print(f"[CACHE MISS] Stage 1: {len(normalized_text)} chars → generated & cached")
+            
+            return result
+            
+        except ImportError:
+            # Cache not available, run directly
+            return self._enrich_impl(normalized_text, history, timestamp)
+    
+    def _enrich_impl(self, normalized_text: str, history: list = None, timestamp: str = None) -> Optional[Dict]:
+        """Internal implementation of enrich (separated for caching)"""
         start_time = time.time()
         history = history or []
         

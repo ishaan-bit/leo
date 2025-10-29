@@ -140,6 +140,61 @@ class PostEnricher:
             print(f"   [!]  Already post-enriched, skipping")
             return hybrid_result
         
+        # Try to use cache
+        try:
+            import sys
+            from pathlib import Path
+            sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
+            from infra.cache import get_cache
+            from infra.metrics import timer
+            
+            cache = get_cache()
+            
+            # Build cache key from wheel emotions + invoked
+            wheel = hybrid_result.get('wheel', {})
+            cache_key_content = {
+                "primary": wheel.get('primary'),
+                "secondary": wheel.get('secondary'),
+                "tertiary": wheel.get('tertiary'),
+                "invoked": hybrid_result.get('invoked')
+            }
+            
+            # Check cache
+            if cache.enabled:
+                cached = cache.get(
+                    content=cache_key_content,
+                    cache_type="stage2_enrichment"
+                )
+                if cached:
+                    print(f"[CACHE HIT] Stage 2: {wheel.get('primary')}/{wheel.get('secondary')} → cached")
+                    # Merge cached result
+                    hybrid_result['post_enrichment'] = cached['post_enrichment']
+                    hybrid_result['status'] = 'complete'
+                    return hybrid_result
+            
+            # Execute with timing
+            with timer("stage2_enrichment"):
+                result = self._run_post_enrichment_impl(hybrid_result)
+            
+            # Cache just the post_enrichment part
+            if cache.enabled and result.get('post_enrichment'):
+                cache.set(
+                    content=cache_key_content,
+                    value={"post_enrichment": result['post_enrichment']},
+                    ttl=2592000,  # 30 days
+                    cache_type="stage2_enrichment"
+                )
+                print(f"[CACHE MISS] Stage 2: {wheel.get('primary')}/{wheel.get('secondary')} → generated & cached")
+            
+            return result
+            
+        except ImportError:
+            # Cache not available
+            return self._run_post_enrichment_impl(hybrid_result)
+    
+    def _run_post_enrichment_impl(self, hybrid_result: Dict) -> Dict:
+        """Internal implementation of run_post_enrichment (separated for caching)"""
+        
         # Extract reliable fields only
         print(f"   [1/3] Extracting reliable fields...")
         reliable = pick_reliable_fields(hybrid_result)
