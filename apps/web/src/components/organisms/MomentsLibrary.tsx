@@ -21,6 +21,7 @@ interface Moment {
   closingLine: string;
   valence: number;
   arousal: number;
+  image_base64?: string; // Optional Base64-encoded image (raw string, no data URL prefix)
   songs?: {
     en: {
       title: string;
@@ -91,6 +92,10 @@ export default function MomentsLibrary({
   const [translatedContent, setTranslatedContent] = useState<TranslatedMoment | null>(null);
   const [isTranslating, setIsTranslating] = useState(false);
   
+  // Image rendering state
+  const [imageLoadError, setImageLoadError] = useState(false);
+  const [imageRendered, setImageRendered] = useState(false);
+  
   // Songs are enriched automatically by worker - no separate loading state needed
   
   const containerRef = useRef<HTMLDivElement>(null);
@@ -108,8 +113,23 @@ export default function MomentsLibrary({
       setLanguage('en');
       setTranslatedContent(null);
       setIsTranslating(false);
+      setImageLoadError(false);
+      setImageRendered(false);
     }
   }, [selectedMoment]);
+
+  // Track image rendering telemetry (non-PII)
+  useEffect(() => {
+    if (selectedMoment?.image_base64 && !imageRendered && !imageLoadError) {
+      // Log successful image render (once per modal open)
+      console.log('[MomentsLibrary] 📸 Image rendered successfully', {
+        momentId: selectedMoment.id,
+        imageSize: selectedMoment.image_base64.length,
+        timestamp: new Date().toISOString(),
+      });
+      setImageRendered(true);
+    }
+  }, [selectedMoment, imageRendered, imageLoadError]);
 
   // Songs are already enriched by enrichment worker - no need to fetch separately
   // They're loaded with the moment data from Redis
@@ -1338,52 +1358,67 @@ export default function MomentsLibrary({
 
                 {/* Content guard - isolates text from background effects */}
                 <div className="relative p-6 md:p-10 z-10" style={{ lineHeight: '1.8', isolation: 'isolate' }}>
-                  {/* Language Toggle button - floating mote style */}
-                  <motion.button
-                    onClick={handleLanguageToggle}
-                    disabled={isTranslating}
-                    className="absolute top-6 right-20 w-12 h-12 flex items-center justify-center rounded-full transition-all z-10"
+                  {/* Floating Action Strip - Language Toggle + Close Button */}
+                  <motion.div
+                    className="fixed top-6 right-6 z-50 flex items-center gap-2"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.1 }}
                     style={{
-                      background: `linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7))`,
-                      boxShadow: `0 4px 16px ${atmosphere.gradient[0]}40`,
-                      opacity: isTranslating ? 0.5 : 1,
+                      backdropFilter: 'blur(12px)',
+                      background: 'linear-gradient(135deg, rgba(255,255,255,0.85), rgba(255,255,255,0.65))',
+                      borderRadius: '50px',
+                      padding: '6px',
+                      boxShadow: `0 4px 20px ${atmosphere.gradient[0]}30`,
                     }}
-                    whileHover={{ 
-                      scale: isTranslating ? 1 : 1.1,
-                      boxShadow: `0 6px 24px ${atmosphere.gradient[0]}60`,
-                    }}
-                    whileTap={{ scale: isTranslating ? 1 : 0.95 }}
-                    aria-label={language === 'en' ? 'Translate to Hindi' : 'Show in English'}
-                    title={language === 'en' ? 'हिंदी' : 'English'}
                   >
-                    <span 
-                      className="text-sm font-semibold" 
-                      style={{ 
-                        color: atmosphere.textColor,
-                        fontFamily: '"Inter", -apple-system, sans-serif',
+                    {/* Language Toggle button */}
+                    <motion.button
+                      onClick={handleLanguageToggle}
+                      disabled={isTranslating}
+                      className="w-10 h-10 flex items-center justify-center rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-offset-2"
+                      style={{
+                        background: language === 'en' ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.9)',
+                        opacity: isTranslating ? 0.5 : 1,
                       }}
+                      whileHover={{ 
+                        scale: isTranslating ? 1 : 1.1,
+                        background: 'rgba(255,255,255,1)',
+                      }}
+                      whileTap={{ scale: isTranslating ? 1 : 0.95 }}
+                      aria-label={language === 'en' ? 'Translate to Hindi' : 'Show in English'}
+                      title={language === 'en' ? 'हिंदी' : 'English'}
+                      tabIndex={0}
                     >
-                      {isTranslating ? '...' : (language === 'en' ? 'हि' : 'En')}
-                    </span>
-                  </motion.button>
+                      <span 
+                        className="text-sm font-semibold" 
+                        style={{ 
+                          color: atmosphere.textColor,
+                          fontFamily: '"Inter", -apple-system, sans-serif',
+                        }}
+                      >
+                        {isTranslating ? '...' : (language === 'en' ? 'हि' : 'En')}
+                      </span>
+                    </motion.button>
 
-                  {/* Close button - floating mote style */}
-                  <motion.button
-                    onClick={() => setSelectedMoment(null)}
-                    className="absolute top-6 right-6 w-12 h-12 flex items-center justify-center rounded-full transition-all z-10"
-                    style={{
-                      background: `linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7))`,
-                      boxShadow: `0 4px 16px ${atmosphere.gradient[0]}40`,
-                    }}
-                    whileHover={{ 
-                      scale: 1.1,
-                      boxShadow: `0 6px 24px ${atmosphere.gradient[0]}60`,
-                    }}
-                    whileTap={{ scale: 0.95 }}
-                    aria-label="Close"
-                  >
-                    <span className="text-2xl" style={{ color: atmosphere.textColor }}>×</span>
-                  </motion.button>
+                    {/* Close button */}
+                    <motion.button
+                      onClick={() => setSelectedMoment(null)}
+                      className="w-10 h-10 flex items-center justify-center rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-offset-2"
+                      style={{
+                        background: 'rgba(255,255,255,0.5)',
+                      }}
+                      whileHover={{ 
+                        scale: 1.1,
+                        background: 'rgba(255,255,255,1)',
+                      }}
+                      whileTap={{ scale: 0.95 }}
+                      aria-label="Close"
+                      tabIndex={0}
+                    >
+                      <span className="text-2xl leading-none" style={{ color: atmosphere.textColor }}>×</span>
+                    </motion.button>
+                  </motion.div>
 
                   {/* Atmospheric Header */}
                   <motion.div
@@ -1436,6 +1471,55 @@ export default function MomentsLibrary({
                       })}
                     </div>
                   </motion.div>
+
+                  {/* Base64 Image - below header, above "You wrote:" */}
+                  {selectedMoment.image_base64 && !imageLoadError && (
+                    <motion.div
+                      className="mb-12 relative overflow-hidden"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.8, delay: 0.2, ease: EASING }}
+                      style={{
+                        borderRadius: '12px',
+                        boxShadow: `0 8px 24px ${atmosphere.gradient[0]}20`,
+                        maxHeight: '500px', // Guardrail: max display height
+                      }}
+                    >
+                      {/* Soft gradient overlay for text contrast (optional, subtle) */}
+                      <div 
+                        className="absolute inset-0 pointer-events-none z-10"
+                        style={{
+                          background: `linear-gradient(to bottom, ${atmosphere.gradient[0]}08 0%, transparent 20%, transparent 80%, ${atmosphere.gradient[1]}08 100%)`,
+                        }}
+                      />
+                      
+                      {/* Image with progressive reveal */}
+                      <motion.img
+                        src={`data:image/jpeg;base64,${selectedMoment.image_base64}`}
+                        alt="Moment image"
+                        className="w-full h-auto object-contain"
+                        style={{
+                          borderRadius: '12px',
+                          opacity: 0.95,
+                        }}
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        animate={{ opacity: 0.95, scale: 1 }}
+                        transition={{ duration: 0.6, delay: 0.3 }}
+                        whileHover={{ 
+                          opacity: 1,
+                          transition: { duration: 0.3 }
+                        }}
+                        onError={() => {
+                          console.warn('[MomentsLibrary] ⚠️ Image failed to load', {
+                            momentId: selectedMoment.id,
+                            timestamp: new Date().toISOString(),
+                          });
+                          setImageLoadError(true);
+                        }}
+                        loading="lazy"
+                      />
+                    </motion.div>
+                  )}
 
                   {/* User's Original Reflection */}
                   <motion.div
