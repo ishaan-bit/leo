@@ -46,13 +46,13 @@ class UpstashClient:
             'Content-Type': 'application/json',
         }
     
-    def _execute(self, command: list):
+    def _execute(self, command: list, timeout: int = 30):
         """Execute Redis command via HTTP"""
         response = requests.post(
             self.url,
             headers=self.headers,
             json=command,
-            timeout=10
+            timeout=timeout
         )
         response.raise_for_status()
         result = response.json()
@@ -68,9 +68,11 @@ class UpstashClient:
     
     def set(self, key: str, value: str, ex: Optional[int] = None):
         """Set value with optional expiry"""
+        # Use longer timeout for large data (images can be 100KB+ base64)
+        timeout = 60 if len(value) > 50000 else 30
         if ex:
-            return self._execute(['SET', key, value, 'EX', ex])
-        return self._execute(['SET', key, value])
+            return self._execute(['SET', key, value, 'EX', ex], timeout=timeout)
+        return self._execute(['SET', key, value], timeout=timeout)
     
     def rpush(self, key: str, value: str):
         """Push to right of list"""
