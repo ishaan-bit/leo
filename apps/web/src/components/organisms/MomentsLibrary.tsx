@@ -1364,114 +1364,6 @@ export default function MomentsLibrary({
 
                 {/* Content guard - isolates text from background effects */}
                 <div className="relative p-6 md:p-10 z-10" style={{ lineHeight: '1.8', isolation: 'isolate' }}>
-                  {/* Floating Action Strip - Language Toggle + Close Button */}
-                  <motion.div
-                    className="fixed top-4 right-4 z-50 flex items-center gap-1.5"
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.1 }}
-                    style={{
-                      backdropFilter: 'blur(12px)',
-                      background: 'linear-gradient(135deg, rgba(255,255,255,0.85), rgba(255,255,255,0.65))',
-                      borderRadius: '50px',
-                      padding: '4px',
-                      boxShadow: `0 4px 20px ${atmosphere.gradient[0]}30`,
-                    }}
-                  >
-                    {/* Language Toggle button - smaller */}
-                    <motion.button
-                      onClick={handleLanguageToggle}
-                      disabled={isTranslating}
-                      className="w-8 h-8 flex items-center justify-center rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-offset-1"
-                      style={{
-                        background: language === 'en' ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.9)',
-                        opacity: isTranslating ? 0.5 : 1,
-                      }}
-                      whileHover={{ 
-                        scale: isTranslating ? 1 : 1.1,
-                        background: 'rgba(255,255,255,1)',
-                      }}
-                      whileTap={{ scale: isTranslating ? 1 : 0.95 }}
-                      aria-label={language === 'en' ? 'Translate to Hindi' : 'Show in English'}
-                      title={language === 'en' ? 'हिंदी' : 'English'}
-                      tabIndex={0}
-                    >
-                      <span 
-                        className="text-xs font-semibold" 
-                        style={{ 
-                          color: atmosphere.textColor,
-                          fontFamily: '"Inter", -apple-system, sans-serif',
-                        }}
-                      >
-                        {isTranslating ? '...' : (language === 'en' ? 'हि' : 'En')}
-                      </span>
-                    </motion.button>
-
-                    {/* WhatsApp Share button */}
-                    <motion.button
-                      onClick={() => {
-                        // Build rich text with all moment details
-                        let shareText = `✨ ${selectedMoment.text}\n\n`;
-                        shareText += `💭 You're feeling: ${selectedMoment.invoked} → ${selectedMoment.expressed}\n\n`;
-                        
-                        // Add first poem if available
-                        if (selectedMoment.poems && selectedMoment.poems.length > 0) {
-                          shareText += `${selectedMoment.poems[0]}\n\n`;
-                        }
-                        
-                        // Add song recommendation if available
-                        const songs = selectedMoment.songs;
-                        const song = songs?.en || songs?.hi;
-                        if (song?.title) {
-                          shareText += `🎵 Song for this moment:\n"${song.title}"`;
-                          if (song.artist) shareText += ` — ${song.artist}`;
-                          if (song.year) shareText += ` (${song.year})`;
-                          if (song.youtube_url) shareText += `\n${song.youtube_url}`;
-                          shareText += '\n\n';
-                        }
-                        
-                        shareText += `— held safe by Noen 🌸`;
-                        
-                        const url = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
-                        window.open(url, '_blank');
-                      }}
-                      className="w-8 h-8 flex items-center justify-center rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-offset-1"
-                      style={{
-                        background: 'rgba(37, 211, 102, 0.15)',
-                      }}
-                      whileHover={{ 
-                        scale: 1.1,
-                        background: 'rgba(37, 211, 102, 0.25)',
-                      }}
-                      whileTap={{ scale: 0.95 }}
-                      aria-label="Share on WhatsApp"
-                      title="Share on WhatsApp"
-                      tabIndex={0}
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2ZM12.05 3.67C14.25 3.67 16.31 4.53 17.87 6.09C19.42 7.65 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15C10.56 20.15 9.11 19.76 7.85 19L7.55 18.83L4.43 19.65L5.26 16.61L5.06 16.29C4.24 15 3.8 13.47 3.8 11.91C3.81 7.37 7.5 3.67 12.05 3.67ZM8.53 7.33C8.37 7.33 8.1 7.39 7.87 7.64C7.65 7.89 7 8.5 7 9.71C7 10.93 7.89 12.1 8 12.27C8.14 12.44 9.76 14.94 12.25 16C12.84 16.27 13.3 16.42 13.66 16.53C14.25 16.72 14.79 16.69 15.22 16.63C15.7 16.56 16.68 16.03 16.89 15.45C17.1 14.87 17.1 14.38 17.04 14.27C16.97 14.17 16.81 14.11 16.56 14C16.31 13.86 15.09 13.26 14.87 13.18C14.64 13.1 14.5 13.06 14.31 13.3C14.15 13.55 13.67 14.11 13.53 14.27C13.38 14.44 13.24 14.46 13 14.34C12.74 14.21 11.94 13.95 11 13.11C10.26 12.45 9.77 11.64 9.62 11.39C9.5 11.15 9.61 11 9.73 10.89C9.84 10.78 10 10.6 10.1 10.45C10.23 10.31 10.27 10.2 10.35 10.04C10.43 9.87 10.39 9.73 10.33 9.61C10.27 9.5 9.77 8.26 9.56 7.77C9.36 7.29 9.16 7.35 9 7.34C8.86 7.34 8.7 7.33 8.53 7.33Z" fill="currentColor" style={{ color: '#25D366' }}/>
-                      </svg>
-                    </motion.button>
-
-                    {/* Close button - smaller */}
-                    <motion.button
-                      onClick={() => setSelectedMoment(null)}
-                      className="w-8 h-8 flex items-center justify-center rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-offset-1"
-                      style={{
-                        background: 'rgba(255,255,255,0.5)',
-                      }}
-                      whileHover={{ 
-                        scale: 1.1,
-                        background: 'rgba(255,255,255,1)',
-                      }}
-                      whileTap={{ scale: 0.95 }}
-                      aria-label="Close"
-                      tabIndex={0}
-                    >
-                      <span className="text-xl leading-none" style={{ color: atmosphere.textColor }}>×</span>
-                    </motion.button>
-                  </motion.div>
-
                   {/* Atmospheric Header */}
                   <motion.div
                     className="mb-12"
@@ -1505,22 +1397,97 @@ export default function MomentsLibrary({
                       {atmosphere.header}
                     </motion.h2>
                     
-                    {/* Timestamp whisper */}
-                    <div 
-                      className="text-xs uppercase tracking-widest"
-                      style={{
-                        fontFamily: '"Inter", -apple-system, sans-serif',
-                        color: atmosphere.textMuted,
-                        letterSpacing: '0.15em',
-                        opacity: 0.7,
-                        textShadow: '0 1px 1px rgba(0,0,0,0.15)',
-                      }}
-                    >
-                      {new Date(selectedMoment.timestamp).toLocaleDateString('en-US', {
-                        month: 'long',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
+                    {/* Timestamp with action buttons */}
+                    <div className="flex items-center justify-between gap-4">
+                      <div 
+                        className="text-xs uppercase tracking-widest"
+                        style={{
+                          fontFamily: '"Inter", -apple-system, sans-serif',
+                          color: atmosphere.textMuted,
+                          letterSpacing: '0.15em',
+                          opacity: 0.7,
+                          textShadow: '0 1px 1px rgba(0,0,0,0.15)',
+                        }}
+                      >
+                        {new Date(selectedMoment.timestamp).toLocaleDateString('en-US', {
+                          month: 'long',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </div>
+                      
+                      {/* Action buttons - EN/HI, WhatsApp, Close */}
+                      <div 
+                        className="flex items-center gap-1.5"
+                        style={{
+                          backdropFilter: 'blur(12px)',
+                          background: 'linear-gradient(135deg, rgba(255,255,255,0.85), rgba(255,255,255,0.65))',
+                          borderRadius: '50px',
+                          padding: '4px',
+                          boxShadow: `0 4px 20px ${atmosphere.gradient[0]}30`,
+                        }}
+                      >
+                        {/* Language Toggle */}
+                        <motion.button
+                          onClick={handleLanguageToggle}
+                          disabled={isTranslating}
+                          className="w-8 h-8 flex items-center justify-center rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-offset-1"
+                          style={{
+                            background: language === 'en' ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.9)',
+                            opacity: isTranslating ? 0.5 : 1,
+                          }}
+                          whileHover={{ 
+                            scale: isTranslating ? 1 : 1.1,
+                            background: 'rgba(255,255,255,1)',
+                          }}
+                          whileTap={{ scale: isTranslating ? 1 : 0.95 }}
+                          aria-label={language === 'en' ? 'Translate to Hindi' : 'Show in English'}
+                          title={language === 'en' ? 'हिंदी' : 'English'}
+                        >
+                          <span className="text-xs font-semibold" style={{ color: atmosphere.textColor }}>
+                            {isTranslating ? '...' : (language === 'en' ? 'हि' : 'En')}
+                          </span>
+                        </motion.button>
+
+                        {/* WhatsApp Share */}
+                        <motion.button
+                          onClick={() => {
+                            let shareText = `✨ ${selectedMoment.text}\n\n`;
+                            shareText += `💭 ${selectedMoment.invoked} → ${selectedMoment.expressed}\n\n`;
+                            if (selectedMoment.poems?.[0]) shareText += `${selectedMoment.poems[0]}\n\n`;
+                            const song = selectedMoment.songs?.en || selectedMoment.songs?.hi;
+                            if (song?.title) {
+                              shareText += `🎵 "${song.title}"`;
+                              if (song.artist) shareText += ` — ${song.artist}`;
+                              if (song.youtube_url) shareText += `\n${song.youtube_url}`;
+                              shareText += '\n\n';
+                            }
+                            shareText += `— held safe by Noen 🌸`;
+                            window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`, '_blank');
+                          }}
+                          className="w-8 h-8 flex items-center justify-center rounded-full transition-all"
+                          style={{ background: 'rgba(37, 211, 102, 0.15)' }}
+                          whileHover={{ scale: 1.1, background: 'rgba(37, 211, 102, 0.25)' }}
+                          whileTap={{ scale: 0.95 }}
+                          aria-label="Share on WhatsApp"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2ZM12.05 3.67C14.25 3.67 16.31 4.53 17.87 6.09C19.42 7.65 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15C10.56 20.15 9.11 19.76 7.85 19L7.55 18.83L4.43 19.65L5.26 16.61L5.06 16.29C4.24 15 3.8 13.47 3.8 11.91C3.81 7.37 7.5 3.67 12.05 3.67ZM8.53 7.33C8.37 7.33 8.1 7.39 7.87 7.64C7.65 7.89 7 8.5 7 9.71C7 10.93 7.89 12.1 8 12.27C8.14 12.44 9.76 14.94 12.25 16C12.84 16.27 13.3 16.42 13.66 16.53C14.25 16.72 14.79 16.69 15.22 16.63C15.7 16.56 16.68 16.03 16.89 15.45C17.1 14.87 17.1 14.38 17.04 14.27C16.97 14.17 16.81 14.11 16.56 14C16.31 13.86 15.09 13.26 14.87 13.18C14.64 13.1 14.5 13.06 14.31 13.3C14.15 13.55 13.67 14.11 13.53 14.27C13.38 14.44 13.24 14.46 13 14.34C12.74 14.21 11.94 13.95 11 13.11C10.26 12.45 9.77 11.64 9.62 11.39C9.5 11.15 9.61 11 9.73 10.89C9.84 10.78 10 10.6 10.1 10.45C10.23 10.31 10.27 10.2 10.35 10.04C10.43 9.87 10.39 9.73 10.33 9.61C10.27 9.5 9.77 8.26 9.56 7.77C9.36 7.29 9.16 7.35 9 7.34C8.86 7.34 8.7 7.33 8.53 7.33Z" fill="#25D366"/>
+                          </svg>
+                        </motion.button>
+
+                        {/* Close */}
+                        <motion.button
+                          onClick={() => setSelectedMoment(null)}
+                          className="w-8 h-8 flex items-center justify-center rounded-full transition-all"
+                          style={{ background: 'rgba(255,255,255,0.5)' }}
+                          whileHover={{ scale: 1.1, background: 'rgba(255,255,255,1)' }}
+                          whileTap={{ scale: 0.95 }}
+                          aria-label="Close"
+                        >
+                          <span className="text-xl leading-none" style={{ color: atmosphere.textColor }}>×</span>
+                        </motion.button>
+                      </div>
                     </div>
                   </motion.div>
 
