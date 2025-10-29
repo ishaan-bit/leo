@@ -1453,6 +1453,15 @@ export default function MomentsLibrary({
                         {/* WhatsApp Share */}
                         <motion.button
                           onClick={async () => {
+                            // Determine which content to use based on language toggle
+                            const isHindi = language === 'hi';
+                            const content = isHindi && translatedContent ? translatedContent : {
+                              text: selectedMoment.text,
+                              invoked: selectedMoment.invoked,
+                              expressed: selectedMoment.expressed,
+                              poems: selectedMoment.poems,
+                            };
+                            
                             // Build beautifully formatted greeting card message
                             let shareText = '';
                             
@@ -1462,23 +1471,26 @@ export default function MomentsLibrary({
                             shareText += `╰─────────────────────╯\n\n`;
                             
                             // Main reflection with quotation styling
-                            shareText += `💭 *"${selectedMoment.text}"*\n\n`;
+                            shareText += `💭 *"${content.text}"*\n\n`;
                             
                             // Emotional landscape
                             shareText += `✦ ─────────────── ✦\n\n`;
                             shareText += `_feeling:_\n`;
-                            shareText += `  ${selectedMoment.invoked}\n`;
+                            shareText += `  ${content.invoked}\n`;
                             shareText += `    ↓\n`;
-                            shareText += `  ${selectedMoment.expressed}\n\n`;
+                            shareText += `  ${content.expressed}\n\n`;
                             
                             // Poem (if available) with decorative spacing
-                            if (selectedMoment.poems?.[0]) {
+                            if (content.poems?.[0]) {
                               shareText += `✦ ─────────────── ✦\n\n`;
-                              shareText += `_${selectedMoment.poems[0]}_\n\n`;
+                              shareText += `_${content.poems[0]}_\n\n`;
                             }
                             
-                            // Song recommendation with elegant formatting
-                            const song = selectedMoment.songs?.en || selectedMoment.songs?.hi;
+                            // Song recommendation - use language-specific song
+                            const song = isHindi 
+                              ? (selectedMoment.songs?.hi || selectedMoment.songs?.en)
+                              : (selectedMoment.songs?.en || selectedMoment.songs?.hi);
+                            
                             if (song?.title) {
                               shareText += `✦ ─────────────── ✦\n\n`;
                               shareText += `🎵 _a song for this moment:_\n\n`;
