@@ -1452,17 +1452,56 @@ export default function MomentsLibrary({
                         {/* WhatsApp Share */}
                         <motion.button
                           onClick={async () => {
-                            let shareText = `✨ ${selectedMoment.text}\n\n`;
-                            shareText += `💭 ${selectedMoment.invoked} → ${selectedMoment.expressed}\n\n`;
-                            if (selectedMoment.poems?.[0]) shareText += `${selectedMoment.poems[0]}\n\n`;
+                            // Build beautifully formatted greeting card message
+                            let shareText = '';
+                            
+                            // Header with decorative frame
+                            shareText += `╭─────────────────────╮\n`;
+                            shareText += `│  A Moment Held Safe  │\n`;
+                            shareText += `╰─────────────────────╯\n\n`;
+                            
+                            // Main reflection with quotation styling
+                            shareText += `💭 *"${selectedMoment.text}"*\n\n`;
+                            
+                            // Emotional landscape
+                            shareText += `✦ ─────────────── ✦\n\n`;
+                            shareText += `_feeling:_\n`;
+                            shareText += `  ${selectedMoment.invoked}\n`;
+                            shareText += `    ↓\n`;
+                            shareText += `  ${selectedMoment.expressed}\n\n`;
+                            
+                            // Poem (if available) with decorative spacing
+                            if (selectedMoment.poems?.[0]) {
+                              shareText += `✦ ─────────────── ✦\n\n`;
+                              shareText += `_${selectedMoment.poems[0]}_\n\n`;
+                            }
+                            
+                            // Song recommendation with elegant formatting
                             const song = selectedMoment.songs?.en || selectedMoment.songs?.hi;
                             if (song?.title) {
-                              shareText += `🎵 "${song.title}"`;
-                              if (song.artist) shareText += ` — ${song.artist}`;
-                              if (song.youtube_url) shareText += `\n${song.youtube_url}`;
-                              shareText += '\n\n';
+                              shareText += `✦ ─────────────── ✦\n\n`;
+                              shareText += `🎵 _a song for this moment:_\n\n`;
+                              shareText += `   *"${song.title}"*\n`;
+                              if (song.artist) shareText += `   by ${song.artist}\n`;
+                              if (song.year) shareText += `   (${song.year})\n`;
+                              if (song.youtube_url) shareText += `\n   🔗 ${song.youtube_url}\n`;
+                              shareText += '\n';
                             }
-                            shareText += `— held safe by Noen 🌸`;
+                            
+                            // Footer with date and signature
+                            shareText += `✦ ─────────────── ✦\n\n`;
+                            const momentDate = new Date(selectedMoment.timestamp).toLocaleDateString('en-US', {
+                              month: 'long',
+                              day: 'numeric',
+                              year: 'numeric'
+                            });
+                            shareText += `${momentDate}\n\n`;
+                            
+                            // Pig name signature
+                            const pigName = selectedMoment.pig_name || 'Noen';
+                            shareText += `     ✨ 🐷 ✨\n`;
+                            shareText += `held safe by *${pigName}*\n\n`;
+                            shareText += `━━━━━━━━━━━━━━━━━━━`;
                             
                             // Try Web Share API with image if available
                             if (selectedMoment.image_base64 && navigator.share) {
