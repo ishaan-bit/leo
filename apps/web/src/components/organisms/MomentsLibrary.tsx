@@ -1569,6 +1569,30 @@ export default function MomentsLibrary({
                           </svg>
                         </motion.button>
 
+                        {/* Copy Share Link */}
+                        <motion.button
+                          onClick={() => {
+                            const shareableUrl = `${window.location.origin}/share/${selectedMoment.id}`;
+                            navigator.clipboard.writeText(shareableUrl).then(() => {
+                              // Optional: You could add a toast notification here
+                              console.log('[Share] Link copied to clipboard');
+                            }).catch(err => {
+                              console.error('[Share] Failed to copy link:', err);
+                            });
+                          }}
+                          className="w-8 h-8 flex items-center justify-center rounded-full transition-all"
+                          style={{ background: 'rgba(147, 112, 219, 0.15)' }}
+                          whileHover={{ scale: 1.1, background: 'rgba(147, 112, 219, 0.25)' }}
+                          whileTap={{ scale: 0.95 }}
+                          aria-label="Copy share link"
+                          title="Copy link"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: atmosphere.textColor, opacity: 0.8 }}>
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                          </svg>
+                        </motion.button>
+
                         {/* Close */}
                         <motion.button
                           onClick={() => setSelectedMoment(null)}
@@ -1930,7 +1954,7 @@ export default function MomentsLibrary({
                         transition={{ duration: 0.8, delay: 1.8 }}
                       >
                         <h3
-                          className="text-[14px] italic mb-6"
+                          className="text-[14px] italic mb-3"
                           style={{
                             fontFamily: '"Playfair Display", "Lora", "Georgia", serif',
                             color: atmosphere.textMuted,
