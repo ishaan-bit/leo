@@ -74,45 +74,47 @@ export async function GET(
           text: data.normalized_text?.slice(0, 50),
         });
         
-        // Extract primary zone from final.wheel.primary (e.g., "Scared" → map to fear)
-        const primaryEmotion = data.final?.wheel?.primary || 'Peaceful';
+        // Extract primary zone from final.wheel.primary (e.g., "scared" → scared zone)
+        const primaryEmotion = data.final?.wheel?.primary || 'peaceful';
         
-        // Map Gloria Willcox emotion to PrimaryEmotion type
-        // CANONICAL MAPPING (v4): Happy→joyful, Strong→powerful, Peaceful→peaceful, Sad→sad, Fearful→scared, Angry→mad
-        // LEGACY MAPPING (v3): Joyful→joyful, Powerful→powerful, Peaceful→peaceful, Sad→sad, Scared→scared, Mad→mad
+        // Map emotion to zone - backend sends LOWERCASE (scared, mad, joyful, powerful, peaceful, sad)
+        // Case-insensitive mapping for robustness
         const zoneMapping: Record<string, string> = {
-          // Canonical primaries (new)
-          'Happy': 'joyful',
-          'Strong': 'powerful',
-          'Peaceful': 'peaceful',
-          'Sad': 'sad',
-          'Fearful': 'scared',
-          'Angry': 'mad',
+          // Backend canonical (lowercase) - CURRENT
+          'scared': 'scared',
+          'mad': 'mad',
+          'joyful': 'joyful',
+          'powerful': 'powerful',
+          'peaceful': 'peaceful',
+          'sad': 'sad',
           
-          // Legacy primaries (backwards compatibility)
-          'Joyful': 'joyful',
-          'Powerful': 'powerful',
+          // Capitalized variants (backwards compatibility)
           'Scared': 'scared',
           'Mad': 'mad',
+          'Joyful': 'joyful',
+          'Powerful': 'powerful',
+          'Peaceful': 'peaceful',
+          'Sad': 'sad',
           
-          // Secondary emotions (fallback)
-          'Playful': 'joyful',
-          'Content': 'joyful',
-          'Trusting': 'peaceful',
-          'Anxious': 'scared',
-          'Rejected': 'scared',
-          'Lonely': 'sad',
-          'Depressed': 'sad',
-          'Hurt': 'mad',
-          'Disgusted': 'mad',
-          'Disapproving': 'mad',
-          'Awful': 'mad',
-          'Surprised': 'peaceful',
-          'Startled': 'peaceful',
-          'Confused': 'peaceful',
+          // Secondary emotions (fallback - lowercase)
+          'playful': 'joyful',
+          'content': 'joyful',
+          'trusting': 'peaceful',
+          'anxious': 'scared',
+          'rejected': 'scared',
+          'lonely': 'sad',
+          'depressed': 'sad',
+          'hurt': 'mad',
+          'disgusted': 'mad',
+          'disapproving': 'mad',
+          'awful': 'mad',
+          'surprised': 'peaceful',
+          'startled': 'peaceful',
+          'confused': 'peaceful',
         };
         
-        const zone = zoneMapping[primaryEmotion] || 'peaceful';
+        // Normalize to lowercase for case-insensitive matching
+        const zone = zoneMapping[primaryEmotion.toLowerCase()] || 'peaceful';
         
         // Extract moment data
         const moment = {
