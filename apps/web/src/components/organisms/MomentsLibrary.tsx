@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -1465,16 +1465,15 @@ export default function MomentsLibrary({
                             // Build beautifully formatted greeting card message
                             let shareText = '';
                             
-                            // Header with decorative frame
-                            shareText += `╭─────────────────────╮\n`;
-                            shareText += `│  A Moment Held Safe  │\n`;
-                            shareText += `╰─────────────────────╯\n\n`;
+                            // Header with decorative frame (using ASCII-safe characters)
+                            shareText += `A Moment Held Safe\n`;
+                            shareText += `${'='.repeat(30)}\n\n`;
                             
                             // Main reflection with quotation styling
-                            shareText += `💭 *"${content.text}"*\n\n`;
+                            shareText += `"${content.text}"\n\n`;
                             
                             // Emotional landscape
-                            shareText += `✦ ─────────────── ✦\n\n`;
+                            shareText += `~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~\n\n`;
                             shareText += `_feeling:_\n`;
                             shareText += `  ${content.invoked}\n`;
                             shareText += `    ↓\n`;
@@ -1482,7 +1481,7 @@ export default function MomentsLibrary({
                             
                             // Poem (if available) with decorative spacing
                             if (content.poems?.[0]) {
-                              shareText += `✦ ─────────────── ✦\n\n`;
+                              shareText += `~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~\n\n`;
                               shareText += `_${content.poems[0]}_\n\n`;
                             }
                             
@@ -1492,17 +1491,17 @@ export default function MomentsLibrary({
                               : (selectedMoment.songs?.en || selectedMoment.songs?.hi);
                             
                             if (song?.title) {
-                              shareText += `✦ ─────────────── ✦\n\n`;
+                              shareText += `~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~\n\n`;
                               shareText += `🎵 _a song for this moment:_\n\n`;
                               shareText += `   *"${song.title}"*\n`;
                               if (song.artist) shareText += `   by ${song.artist}\n`;
                               if (song.year) shareText += `   (${song.year})\n`;
-                              if (song.youtube_url) shareText += `\n   🔗 ${song.youtube_url}\n`;
+                              if (song.youtube_url) shareText += `\n   Listen: ${song.youtube_url}\n`;
                               shareText += '\n';
                             }
                             
                             // Footer with date and signature
-                            shareText += `✦ ─────────────── ✦\n\n`;
+                            shareText += `~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~\n\n`;
                             const momentDate = new Date(selectedMoment.timestamp).toLocaleDateString('en-US', {
                               month: 'long',
                               day: 'numeric',
@@ -1511,9 +1510,8 @@ export default function MomentsLibrary({
                             shareText += `${momentDate}\n\n`;
                             
                             // Pig name signature - use the prop pigName (user's saved name)
-                            shareText += `     ✨ 🐷 ✨\n`;
-                            shareText += `held safe by *${pigName}*\n\n`;
-                            shareText += `━━━━━━━━━━━━━━━━━━━`;
+                            shareText += `held safe by *${pigName}* 🐷\n\n`;
+                            shareText += `${'='.repeat(30)}`;
                             
                             // Add shareable link to view full moment (with image note if present)
                             const shareableUrl = `${window.location.origin}/share/${selectedMoment.id}`;
