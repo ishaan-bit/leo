@@ -1498,8 +1498,7 @@ export default function MomentsLibrary({
                             });
                             shareText += `${momentDate}\n\n`;
                             
-                            // Pig name signature
-                            const pigName = selectedMoment.pig_name || 'Noen';
+                            // Pig name signature - use the prop pigName (user's saved name)
                             shareText += `     ✨ 🐷 ✨\n`;
                             shareText += `held safe by *${pigName}*\n\n`;
                             shareText += `━━━━━━━━━━━━━━━━━━━`;
