@@ -9,7 +9,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
  * Features:
  * - Exponential backoff on errors (8-12s)
  * - Jittered polling to avoid thundering herd
- * - Soft timeout (90s) and hard timeout (150s) tracking
+ * - Soft timeout (180s) and hard timeout (300s) tracking
  * - Returns isReady, isLoading, error, elapsedTime
  */
 
@@ -17,8 +17,8 @@ interface UseEnrichmentStatusOptions {
   enabled?: boolean;
   pollInterval?: number; // Base interval in ms (default 3500)
   onTimeout?: () => void;
-  softTimeout?: number; // Default 90000ms
-  hardTimeout?: number; // Default 150000ms
+  softTimeout?: number; // Default 180000ms
+  hardTimeout?: number; // Default 300000ms
 }
 
 interface UseEnrichmentStatusReturn {
@@ -37,8 +37,8 @@ export function useEnrichmentStatus(
     enabled = true,
     pollInterval = 3500,
     onTimeout,
-    softTimeout = 90000,
-    hardTimeout = 150000,
+    softTimeout = 180000,
+    hardTimeout = 300000,
   } = options;
 
   const [isReady, setIsReady] = useState(false);

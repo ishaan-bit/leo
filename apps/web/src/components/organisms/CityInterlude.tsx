@@ -54,24 +54,31 @@ const TOWERS = [
   { id: 'mad', name: 'Sable', color: '#C1121F', x: 86, height: 170 },        // Mad - red
 ];
 
-// Extended poetic lines - bilingual (Hindi/English) cycling until Stage 1 complete
+// Extended poetic lines - Start with English intro, then bilingual (Hindi/English) cycling until Stage 1 complete
 const WAITING_LINES = [
+  // English intro (first 3 lines - match original phase2/phase3)
+  'A quiet breath between things,',
+  'and time holding its breath.',
+  
+  // Extended Hindi poetry
   'रोशनी मेज़ पर धीरे से झुकती है,',
   'हवा खिड़की पर ठहर जाती है,',
   'एक पत्ता अपनी धीमी सोच में मुड़ता है',
   'समय अपनी साँस थामे हुए।',
-  'the cup cools beside you,',
-  'a thin curl of steam,',
-  'the world pauses',
-  'time holding its breath,',
-  'a bird tests the air',
-  'with one uncertain wing,',
-  'the silence deepens',
-  'time holding its breath,',
-  'your pulse steadies',
-  'in the hollow of your wrist,',
-  'and evening leans in',
-  'time holding its breath.',
+  
+  'कहीं दूर कोई घंटी हिलती है,',
+  'आवाज़ बिना ध्वनि के लौट आती है,',
+  'दीवार पर परछाईं लंबी हो चली है',
+  'समय अपनी साँस थामे हुए।',
+  
+  'किताब खुली है, पर शब्द सोए हैं,',
+  'पन्नों की ख़ुशबू में दोपहर की ऊँघ,',
+  'तुम्हारी आँखों में ठहरा एक सवाल',
+  'समय अपनी साँस थामे हुए।',
+  
+  'और इस ठहराव में,',
+  'हर चीज़ एक अनकही प्रार्थना बन जाती है',
+  'समय अपनी साँस थामे हुए।',
 ];
 
 const COPY = {
