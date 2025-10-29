@@ -160,9 +160,9 @@ class HybridScorer:
         
         # Fusion weights - CRITICAL: Ollama MUST override HF when it has strong opinion
         # HF is often wrong/random, Ollama phi3 is smarter
-        self.hf_weight = 0.35       # Reduced from 0.5
-        self.emb_weight = 0.35      # Unchanged
-        self.ollama_weight = 0.30   # Increased from 0.15 to override HF
+        self.hf_weight = 0.20       # Further reduced from 0.35 - HF has "peaceful" bias
+        self.emb_weight = 0.30      # Slight reduction to compensate
+        self.ollama_weight = 0.50   # Increased from 0.30 - trust phi3 over BART
         
         # HF API endpoints
         self.hf_zeroshot_url = "https://api-inference.huggingface.co/models/facebook/bart-large-mnli"
