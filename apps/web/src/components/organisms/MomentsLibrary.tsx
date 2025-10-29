@@ -23,6 +23,7 @@ interface Moment {
   valence: number;
   arousal: number;
   image_base64?: string; // Optional Base64-encoded image (raw string, no data URL prefix)
+  pig_name?: string; // Optional pig name for personalized sharing
   songs?: {
     en: {
       title: string;
