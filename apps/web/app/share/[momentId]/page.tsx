@@ -88,7 +88,7 @@ export default function ShareMomentPage() {
 
   return (
     <div 
-      className="min-h-screen py-12 px-4"
+      className="min-h-screen w-full overflow-y-auto py-8 sm:py-12 px-4"
       style={{
         background: `linear-gradient(135deg, ${atmosphere.gradient[0]}, ${atmosphere.gradient[1]})`,
       }}
@@ -97,7 +97,7 @@ export default function ShareMomentPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        className="max-w-2xl mx-auto bg-white/80 backdrop-blur-md rounded-3xl shadow-2xl p-8 md:p-12"
+        className="max-w-2xl mx-auto bg-white/80 backdrop-blur-md rounded-3xl shadow-2xl p-6 sm:p-8 md:p-12 mb-8"
       >
         {/* Header */}
         <div className="text-center mb-8">
@@ -124,7 +124,7 @@ export default function ShareMomentPage() {
             <img
               src={`data:image/jpeg;base64,${moment.image_base64}`}
               alt="Moment"
-              className="w-full rounded-2xl shadow-lg"
+              className="w-full max-h-[600px] object-contain rounded-2xl shadow-lg"
             />
           </motion.div>
         )}
