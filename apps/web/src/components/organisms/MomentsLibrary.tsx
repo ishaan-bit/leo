@@ -1504,58 +1504,19 @@ export default function MomentsLibrary({
                             shareText += `held safe by *${pigName}*\n\n`;
                             shareText += `━━━━━━━━━━━━━━━━━━━`;
                             
-                            // Add note about image if present
-                            if (selectedMoment.image_base64) {
-                              shareText += `\n\n📸 _Photo captured with this moment_`;
-                            }
-                            
-                            // Add shareable link to view full moment
+                            // Add shareable link to view full moment (with image note if present)
                             const shareableUrl = `${window.location.origin}/share/${selectedMoment.id}`;
-                            shareText += `\n\n🔗 View full moment: ${shareableUrl}`;
-                            
-                            // STRATEGY: If image exists, share via Web Share API with image + text as caption
-                            // This works best on mobile WhatsApp
-                            if (selectedMoment.image_base64 && navigator.share) {
-                              try {
-                                // Convert base64 to blob
-                                const imageDataUrl = `data:image/jpeg;base64,${selectedMoment.image_base64}`;
-                                const base64Response = await fetch(imageDataUrl);
-                                const blob = await base64Response.blob();
-                                const file = new File([blob], `moment-${pigName}.jpg`, { type: 'image/jpeg' });
-                                
-                                // Share image with formatted text as caption
-                                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                                  await navigator.share({
-                                    text: shareText,
-                                    files: [file]
-                                  });
-                                  return; // Success - WhatsApp will show text as caption
-                                }
-                              } catch (shareErr: any) {
-                                if (shareErr.name === 'AbortError') {
-                                  return; // User cancelled
-                                }
-                                console.warn('[WhatsApp Share] Image share failed, falling back to text', shareErr);
-                              }
+                            if (selectedMoment.image_base64) {
+                              shareText += `\n\n� *View with photo:* ${shareableUrl}`;
+                              shareText += `\n\n_Click the link above to see the image with this moment_`;
+                            } else {
+                              shareText += `\n\n🔗 View full moment: ${shareableUrl}`;
                             }
                             
-                            // Fallback 1: Try text-only share via Web Share API
-                            if (navigator.share) {
-                              try {
-                                await navigator.share({
-                                  text: shareText
-                                });
-                                return; // Success
-                              } catch (shareErr: any) {
-                                if (shareErr.name === 'AbortError') {
-                                  return; // User cancelled
-                                }
-                                console.warn('[WhatsApp Share] Text share failed, using WhatsApp URL', shareErr);
-                              }
-                            }
-                            
-                            // Fallback 2: Direct WhatsApp URL with formatted text
-                            window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`, '_blank');
+                            // Use WhatsApp URL scheme for most reliable sharing
+                            // This ensures the formatted text always comes through
+                            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+                            window.open(whatsappUrl, '_blank');
                           }}
                           className="w-8 h-8 flex items-center justify-center rounded-full transition-all"
                           style={{ background: 'rgba(37, 211, 102, 0.15)' }}

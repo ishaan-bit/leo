@@ -19,8 +19,8 @@ export async function GET(
       );
     }
 
-    // Fetch moment from Redis
-    const response = await fetch(`${upstashUrl}/get/moment:${momentId}`, {
+    // Fetch moment from Redis - use reflection: prefix
+    const response = await fetch(`${upstashUrl}/get/reflection:${momentId}`, {
       headers: {
         Authorization: `Bearer ${upstashToken}`,
       },
@@ -34,26 +34,31 @@ export async function GET(
     }
 
     const data = await response.json();
-    const moment = data.result ? JSON.parse(data.result) : null;
+    
+    // Handle both string and object responses from Upstash
+    let moment = data.result;
+    if (typeof moment === 'string') {
+      moment = JSON.parse(moment);
+    }
 
     if (!moment || !moment.final) {
       return NextResponse.json(
-        { error: 'Moment not found' },
+        { error: 'Moment not found or not enriched yet' },
         { status: 404 }
       );
     }
 
     // Return only shareable data (no user ID, session tokens, etc.)
     const shareableData = {
-      text: moment.normalized_text || moment.text,
-      invoked: moment.final.invoked,
-      expressed: moment.final.expressed,
-      poems: moment.final.poems || [],
-      timestamp: moment.created_at,
-      image_base64: moment.final.image_base64,
+      text: moment.normalized_text || moment.raw_text || moment.text,
+      invoked: moment.final?.invoked || '',
+      expressed: moment.final?.expressed || '',
+      poems: moment.post_enrichment?.poems || moment.final?.poems || [],
+      timestamp: moment.timestamp || moment.created_at,
+      image_base64: moment.image_base64 || moment.caption?.image_base64,
       pig_name: moment.pig_name,
-      primaryEmotion: moment.final.wheel?.primary || 'Happy',
-      songs: moment.final.songs,
+      primaryEmotion: moment.final?.wheel?.primary || 'peaceful',
+      songs: moment.songs,
     };
 
     return NextResponse.json(shareableData);
