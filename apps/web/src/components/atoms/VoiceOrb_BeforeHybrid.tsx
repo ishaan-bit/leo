@@ -1,31 +1,19 @@
 'use client';
 
 /**
- * VoiceOrb - Hybrid Speech Transcription
+ * VoiceOrb - BACKUP VERSION (Before Hybrid Implementation)
  * 
- * IMPLEMENTATION:
- * ===============
- * ✅ Strategy 1: Web Speech API (Android Chrome, Desktop Chrome/Edge)
- *    - Live transcription with continuous mode
- *    - No server cost, <200ms latency
- *    - Works on Chrome/Edge with network connection
+ * This is the backup of VoiceOrb before hybrid transcription changes.
+ * Uses MediaRecorder only, shows placeholder text (no actual transcription).
  * 
- * ✅ Strategy 2: MediaRecorder + Deepgram (iOS Safari, Fallback)
- *    - Records audio blob, sends to /api/transcribe
- *    - Uses Deepgram Nova-2 model (<800ms latency)
- *    - Reliable on all platforms, works offline-first
+ * For hybrid version (Web Speech API + Deepgram), see VoiceOrb.tsx
  * 
- * ✅ Typing Animation: 50ms per word
- *    - Simulates keyboard typing for UX consistency
- *    - No interim results (only shows final transcript)
- *    - Smooth word-by-word reveal
- * 
- * PLATFORM SUPPORT:
- * =================
- * Android Chrome: Web Speech API (primary)
- * iOS Safari: MediaRecorder + Deepgram (fallback)
- * Desktop Chrome/Edge: Web Speech API (primary)
- * Desktop Safari/Firefox: MediaRecorder + Deepgram (fallback)
+ * DIAGNOSTIC REPORT:
+ * ==================
+ * ✅ Permission layer: PASSES - NotAllowedError handled, better error messages added
+ * ❌ Recording pipeline: WORKS but no transcription
+ * ✅ AudioContext layer: Resumes on mobile
+ * ✅ Track verification: Checks enabled/muted/readyState
  */
 
 import { useState, useRef, useEffect } from 'react';
@@ -44,12 +32,8 @@ export default function VoiceOrb({ onTranscript, disabled = false }: VoiceOrbPro
   const [isProcessing, setIsProcessing] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [transcriptionStrategy, setTranscriptionStrategy] = useState<'webspeech' | 'deepgram' | null>(null);
+  const [diagnostics, setDiagnostics] = useState<string[]>([]);
   
-  // Web Speech API refs
-  const recognitionRef = useRef<any>(null);
-  
-  // MediaRecorder refs
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -57,29 +41,12 @@ export default function VoiceOrb({ onTranscript, disabled = false }: VoiceOrbPro
   const streamRef = useRef<MediaStream | null>(null);
   const startTimeRef = useRef<number>(0);
   
-  // Typing animation refs
-  const typingIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const fullTranscriptRef = useRef<string>('');
-  
   const [metrics, setMetrics] = useState<VoiceMetrics>({
     speechRate: 0,
     pitchRange: 0,
     pauseDensity: 0,
     amplitudeVariance: 0,
   });
-
-  // Detect best transcription strategy on mount
-  useEffect(() => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    
-    if (SpeechRecognition) {
-      console.log('[VoiceOrb] Web Speech API available - using as primary strategy');
-      setTranscriptionStrategy('webspeech');
-    } else {
-      console.log('[VoiceOrb] Web Speech API not available - using Deepgram fallback');
-      setTranscriptionStrategy('deepgram');
-    }
-  }, []);
 
   // Diagnostic: Feature detection
   const detectFeatures = () => {
