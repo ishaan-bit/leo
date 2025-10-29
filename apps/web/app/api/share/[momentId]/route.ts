@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { kv } from '@vercel/kv';
+import { getPigName } from '@/domain/pig/pig.storage';
 
 // This API serves publicly shareable moments
 // It only returns non-sensitive data suitable for sharing
@@ -45,6 +46,18 @@ export async function GET(
       );
     }
 
+    // Fetch pig name from pig storage
+    let pigName = 'Noen';
+    if (moment.pig_id) {
+      const fetchedName = await getPigName(moment.pig_id);
+      if (fetchedName) {
+        pigName = fetchedName;
+      }
+    } else if (moment.pig_name_snapshot) {
+      // Fallback to snapshot if pig_id not available
+      pigName = moment.pig_name_snapshot;
+    }
+
     // Return only shareable data (no user ID, session tokens, etc.)
     const shareableData = {
       text: moment.normalized_text || moment.raw_text || moment.text,
@@ -53,7 +66,7 @@ export async function GET(
       poems: moment.post_enrichment?.poems || moment.final?.poems || [],
       timestamp: moment.timestamp || moment.created_at,
       image_base64: moment.image_base64 || moment.caption?.image_base64,
-      pig_name: moment.pig_name,
+      pig_name: pigName, // Use fetched pig name from storage
       primaryEmotion: moment.final?.wheel?.primary || 'peaceful',
       songs: moment.songs,
     };
