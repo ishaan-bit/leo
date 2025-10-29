@@ -80,17 +80,28 @@ export async function GET(
         const primaryEmotion = data.final?.wheel?.primary || 'peaceful';
         
         // Map emotion to zone - backend sends LOWERCASE (scared, mad, joyful, powerful, peaceful, sad)
-        // Case-insensitive mapping for robustness
+        // CRITICAL: Backend uses Willcox canonical names: happy, angry, fearful, strong, peaceful, sad
+        // Frontend uses: joyful, mad, scared, powerful, peaceful, sad
         const zoneMapping: Record<string, string> = {
-          // Backend canonical (lowercase) - CURRENT
-          'scared': 'scared',
-          'mad': 'mad',
-          'joyful': 'joyful',
-          'powerful': 'powerful',
+          // Backend canonical (lowercase) - WILLCOX WHEEL PRIMARIES
+          'happy': 'joyful',      // ← CRITICAL MAPPING!
+          'angry': 'mad',         // ← CRITICAL MAPPING!
+          'fearful': 'scared',    // ← CRITICAL MAPPING!
+          'strong': 'powerful',   // ← CRITICAL MAPPING!
           'peaceful': 'peaceful',
           'sad': 'sad',
           
+          // Frontend canonical (already mapped correctly)
+          'joyful': 'joyful',
+          'mad': 'mad',
+          'scared': 'scared',
+          'powerful': 'powerful',
+          
           // Capitalized variants (backwards compatibility)
+          'Happy': 'joyful',
+          'Angry': 'mad',
+          'Fearful': 'scared',
+          'Strong': 'powerful',
           'Scared': 'scared',
           'Mad': 'mad',
           'Joyful': 'joyful',
