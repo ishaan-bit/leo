@@ -1,0 +1,44 @@
+{
+  "_comment": "Performance configuration - tune these values based on your Intel Core Ultra 7 hardware",
+  
+  "inference": {
+    "text_max_new_tokens_stage1": 120,
+    "text_max_new_tokens_stage2": 160,
+    "vision_max_tokens": 150,
+    "temperature_stage1": 0.3,
+    "temperature_stage2": 0.7,
+    "num_threads": 6,
+    "num_ctx": 2048
+  },
+  
+  "caching": {
+    "enabled": true,
+    "ttl_text_inference": 2592000,
+    "ttl_vision_inference": 2592000,
+    "ttl_song_recommendations": 86400,
+    "cache_dir": "./cache"
+  },
+  
+  "networking": {
+    "max_concurrent_requests": 16,
+    "per_host_limit": 6,
+    "timeout_connect": 10,
+    "timeout_read": 180,
+    "retry_attempts": 3,
+    "retry_backoff_ms": [100, 300, 900]
+  },
+  
+  "workers": {
+    "image_worker_poll_ms": 500,
+    "enrichment_worker_poll_ms": 500,
+    "song_worker_concurrency": 4
+  },
+  
+  "ollama": {
+    "base_url": "http://localhost:11434",
+    "text_model": "phi3:latest",
+    "vision_model": "llava:latest",
+    "keep_alive": "30m",
+    "num_parallel": 2
+  }
+}

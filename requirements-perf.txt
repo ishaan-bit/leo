@@ -1,0 +1,11 @@
+# Performance optimization dependencies
+# Install with: pip install -r requirements-perf.txt
+
+# Async HTTP client with HTTP/2 support
+httpx>=0.25.0
+
+# For async operations
+aiohttp>=3.9.0
+
+# No additional dependencies needed - uses stdlib sqlite3 for caching
+# All other requirements already in your existing workers

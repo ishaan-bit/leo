@@ -1,0 +1,127 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Show Cache Stats",
+      "type": "shell",
+      "command": "python",
+      "args": ["-c", "from infra.cache import get_cache; import json; print(json.dumps(get_cache().get_stats(), indent=2))"],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Show Performance Metrics",
+      "type": "shell",
+      "command": "python",
+      "args": ["-c", "from infra.metrics import get_metrics; import json; print(json.dumps(get_metrics().get_stats(), indent=2))"],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Clear Cache",
+      "type": "shell",
+      "command": "python",
+      "args": ["-c", "from infra.cache import get_cache; get_cache().clear_all(); print('Cache cleared')"],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Clear Expired Cache Entries",
+      "type": "shell",
+      "command": "python",
+      "args": ["-c", "from infra.cache import get_cache; deleted = get_cache().clear_expired(); print(f'Deleted {deleted} expired entries')"],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Start Enrichment Worker (Optimized)",
+      "type": "shell",
+      "command": "python",
+      "args": ["worker.py"],
+      "options": {
+        "cwd": "${workspaceFolder}/enrichment-worker"
+      },
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Start Song Worker",
+      "type": "shell",
+      "command": "uvicorn",
+      "args": ["main:app", "--host", "0.0.0.0", "--port", "5051", "--reload"],
+      "options": {
+        "cwd": "${workspaceFolder}/song-worker"
+      },
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Start Image Worker",
+      "type": "shell",
+      "command": "python",
+      "args": ["worker.py"],
+      "options": {
+        "cwd": "${workspaceFolder}/image-worker"
+      },
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Start Image Captioning Service",
+      "type": "shell",
+      "command": "python",
+      "args": ["app.py"],
+      "options": {
+        "cwd": "${workspaceFolder}/image-captioning-service"
+      },
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Start All Workers",
+      "dependsOn": [
+        "Start Image Captioning Service",
+        "Start Image Worker",
+        "Start Enrichment Worker (Optimized)",
+        "Start Song Worker"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}
