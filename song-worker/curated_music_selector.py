@@ -126,6 +126,7 @@ class CuratedMusicSelector:
         Filters:
         - Duration < 10 minutes
         - Decent view count (>1000)
+        - EMBEDDABLE (playback allowed on other websites)
         - Prefer music videos
         """
         try:
@@ -136,7 +137,7 @@ class CuratedMusicSelector:
                 part='snippet',
                 q=search_query,
                 type='video',
-                maxResults=5,  # Get top 5 to filter
+                maxResults=10,  # Get top 10 to increase chance of finding embeddable
                 videoCategoryId='10',  # Music category
                 order='relevance'
             )
@@ -150,9 +151,9 @@ class CuratedMusicSelector:
             # Get video IDs to fetch details
             video_ids = [item['id']['videoId'] for item in response['items']]
             
-            # Get video details (duration, view count)
+            # Get video details (duration, view count, EMBED STATUS)
             details_request = self.youtube.videos().list(
-                part='contentDetails,statistics,snippet',
+                part='contentDetails,statistics,snippet,status',  # Added 'status' for embeddable
                 id=','.join(video_ids)
             )
             
@@ -163,9 +164,15 @@ class CuratedMusicSelector:
                 duration_iso = video['contentDetails']['duration']
                 view_count = int(video['statistics'].get('viewCount', 0))
                 title = video['snippet']['title'].lower()
+                embeddable = video['status'].get('embeddable', False)  # CRITICAL CHECK
                 
                 # Parse ISO 8601 duration (PT4M33S → 273 seconds)
                 duration_seconds = self._parse_iso_duration(duration_iso)
+                
+                # CRITICAL: Check embeddable first
+                if not embeddable:
+                    logger.info(f"⏭️ Skipping (not embeddable): {title[:50]}")
+                    continue
                 
                 # Filters
                 if duration_seconds > 600:  # > 10 minutes
@@ -180,11 +187,11 @@ class CuratedMusicSelector:
                 is_music_video = any(kw in title for kw in ['official', 'music video', 'audio', 'lyric'])
                 
                 youtube_url = f"https://www.youtube.com/watch?v={video_id}"
-                logger.info(f"✅ Found valid video: {youtube_url} ({duration_seconds}s, {view_count:,} views, music_video={is_music_video})")
+                logger.info(f"✅ Found EMBEDDABLE video: {youtube_url} ({duration_seconds}s, {view_count:,} views, music_video={is_music_video})")
                 
                 return youtube_url
             
-            logger.warning(f"⚠️ No valid videos found for: {search_query} (all filtered out)")
+            logger.warning(f"⚠️ No valid embeddable videos found for: {search_query} (all filtered out)")
             return None
             
         except HttpError as e:
@@ -253,7 +260,7 @@ class CuratedMusicSelector:
             logger.error(f"❌ Emotion combo not found: {primary}/{secondary}/{tertiary}")
             return self._get_fallback()
         
-        # Get rotation index
+        # Get rotation index (user's current position in 4-choice cycle)
         rotation_index = self._get_rotation_index(user_id, primary, secondary, tertiary, language)
         
         # Get song choices (4 artists)
@@ -264,46 +271,41 @@ class CuratedMusicSelector:
             logger.error(f"❌ No songs for combo: {primary}/{secondary}/{tertiary}")
             return self._get_fallback()
         
-        # Pick song based on rotation (cycles through 4 choices)
-        song_key = song_keys[rotation_index % len(song_keys)]
-        selected_song = songs[song_key]
-        
-        artist = selected_song['artist']
-        track = selected_song['track']
-        
-        logger.info(f"🎸 Selected (choice #{rotation_index + 1}): {artist} - {track}")
-        
-        # Validate on YouTube
-        youtube_url = self._validate_youtube_url(artist, track)
-        
-        if youtube_url:
-            return (youtube_url, artist, track)
-        else:
-            # Validation failed, try next rotation choice
-            logger.warning(f"⚠️ YouTube validation failed for {artist} - {track}, trying next choice...")
+        # Try all 4 choices in rotation order to find an embeddable version
+        # Start with user's current rotation index, then try others
+        for attempt in range(len(song_keys)):
+            try_index = (rotation_index + attempt) % len(song_keys)
+            song_key = song_keys[try_index]
+            selected_song = songs[song_key]
             
-            # Try other choices in rotation
-            for i in range(1, len(song_keys)):
-                next_index = (rotation_index + i) % len(song_keys)
-                next_key = song_keys[next_index]
-                next_song = songs[next_key]
-                
-                next_artist = next_song['artist']
-                next_track = next_song['track']
-                
-                logger.info(f"🔄 Trying choice #{next_index + 1}: {next_artist} - {next_track}")
-                
-                next_url = self._validate_youtube_url(next_artist, next_track)
-                
-                if next_url:
-                    return (next_url, next_artist, next_track)
+            artist = selected_song['artist']
+            track = selected_song['track']
             
-            # All choices failed, use fallback
-            logger.error(f"❌ All choices failed for {primary}/{secondary}/{tertiary}, using fallback")
-            return self._get_fallback()
+            if attempt == 0:
+                logger.info(f"🎸 Selected (choice #{try_index + 1}): {artist} - {track}")
+            else:
+                logger.info(f"🔄 Trying alternative choice #{try_index + 1}: {artist} - {track}")
+            
+            # Validate on YouTube (checks: embeddable, duration, views)
+            youtube_url = self._validate_youtube_url(artist, track)
+            
+            if youtube_url:
+                # Success! Found embeddable version
+                logger.info(f"✅ Found embeddable version at choice #{try_index + 1}")
+                return (youtube_url, artist, track)
+            else:
+                # Not embeddable or validation failed, try next choice
+                logger.warning(f"⚠️ Choice #{try_index + 1} not embeddable or failed validation")
+        
+        # All 4 choices failed (none embeddable or all filtered out)
+        logger.error(f"❌ All 4 choices failed for {primary}/{secondary}/{tertiary}, using fallback")
+        return self._get_fallback()
     
     def _get_fallback(self) -> Tuple[str, str, str]:
-        """Fallback song if all else fails"""
+        """
+        Fallback song if all else fails
+        Rick Astley's "Never Gonna Give You Up" is embeddable and has 1.4B+ views
+        """
         return (
             "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
             "Rick Astley",
