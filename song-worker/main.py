@@ -20,13 +20,13 @@ from datetime import datetime, timezone
 from dotenv import load_dotenv
 import urllib.parse
 
-# Import YouTube music selector
-from youtube_music_selector import YouTubeMusicSelector
+# Import curated music selector (replaces YouTube search with pre-selected songs)
+from curated_music_selector import CuratedMusicSelector
 
 # Load environment variables
 load_dotenv()
 
-app = FastAPI(title="Song Recommendation Worker", version="3.0-youtube-api")
+app = FastAPI(title="Song Recommendation Worker", version="4.0-curated")
 
 # CORS configuration
 app.add_middleware(
@@ -42,13 +42,9 @@ UPSTASH_REDIS_REST_URL = os.getenv("UPSTASH_REDIS_REST_URL")
 UPSTASH_REDIS_REST_TOKEN = os.getenv("UPSTASH_REDIS_REST_TOKEN")
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY") or os.getenv("GOOGLE_TRANSLATE_API_KEY", "")
 
-# Initialize YouTube selector
-# Initialize YouTube selector with Upstash for E1 (24h no-repeat cache)
-youtube_selector = YouTubeMusicSelector(
-    api_key=YOUTUBE_API_KEY,
-    upstash_url=UPSTASH_REDIS_REST_URL,
-    upstash_token=UPSTASH_REDIS_REST_TOKEN
-) if YOUTUBE_API_KEY else None
+# Initialize curated music selector
+# Uses pre-selected artist/track combos from JSON + YouTube validation
+music_selector = CuratedMusicSelector() if YOUTUBE_API_KEY else None
 
 # Request/Response models
 class SongRequest(BaseModel):
@@ -345,14 +341,14 @@ async def get_youtube_video_url(search_query: str, song_title: str = "", is_hind
         return f"https://www.youtube.com/results?search_query={encoded_query}"
 
 
-async def generate_songs_with_youtube(
+async def generate_songs_with_curated(
     reflection: dict,
     valence: float,
     arousal: float,
     invoked: str,
     expressed: str
 ) -> dict:
-    """Use YouTube Data API to generate contextual song recommendations"""
+    """Use curated song library with YouTube validation"""
     
     # Extract wheel data (primary, secondary, tertiary) from reflection
     final = reflection.get('final', {})
@@ -361,80 +357,64 @@ async def generate_songs_with_youtube(
     secondary = wheel.get('secondary', '')
     tertiary = wheel.get('tertiary', '')
     
-    # Extract tags from reflection metadata
-    tags = reflection.get('tags', [])
+    user_id = reflection.get('uid', 'anonymous')
     
-    # Parse invoked and expressed into lists (they come as strings with separators)
-    invoked_list = [s.strip() for s in invoked.split('+') if s.strip()] if invoked else []
-    expressed_list = [s.strip() for s in expressed.split('/') if s.strip()] if expressed else []
+    print(f"[Curated Selector] Wheel: {primary} → {secondary} → {tertiary}")
+    print(f"[Curated Selector] User: {user_id}")
+    print(f"[Curated Selector] Valence: {valence:.2f}, Arousal: {arousal:.2f}")
     
-    print(f"[YouTube Selector] Wheel: {primary} → {secondary} → {tertiary}")
-    print(f"[YouTube Selector] Tags: {tags}")
-    print(f"[YouTube Selector] Invoked: {invoked_list}, Expressed: {expressed_list}")
-    print(f"[YouTube Selector] Valence: {valence:.2f}, Arousal: {arousal:.2f}")
-    
-    # Generate songs using YouTube API selector
+    # Generate songs using curated selector
     try:
-        # English track
-        en_result = await youtube_selector.select_track(
+        # English track - select_track returns (url, artist, track)
+        en_url, en_artist, en_track = music_selector.select_track(
             primary=primary,
             secondary=secondary,
             tertiary=tertiary,
-            invoked=invoked_list,
-            expressed=expressed_list,
-            valence=valence,
-            arousal=arousal,
-            tags=tags,
-            lang='en',
-            user_id=reflection.get('uid', 'anonymous')
+            language='en',
+            user_id=user_id
         )
         
         # Hindi track
-        hi_result = await youtube_selector.select_track(
+        hi_url, hi_artist, hi_track = music_selector.select_track(
             primary=primary,
             secondary=secondary,
             tertiary=tertiary,
-            invoked=invoked_list,
-            expressed=expressed_list,
-            valence=valence,
-            arousal=arousal,
-            tags=tags,
-            lang='hi',
-            user_id=reflection.get('uid', 'anonymous')
+            language='hi',
+            user_id=user_id
         )
         
-        print(f"[YouTube Selector] EN: {en_result.get('title')} by {en_result.get('channel')} (fallback: {en_result.get('fallback_level')})")
-        print(f"[YouTube Selector] HI: {hi_result.get('title')} by {hi_result.get('channel')} (fallback: {hi_result.get('fallback_level')})")
+        print(f"[Curated Selector] EN: {en_artist} - {en_track}")
+        print(f"[Curated Selector] HI: {hi_artist} - {hi_track}")
         
-        # Map YouTube results to SongPick format
+        # Map to SongPick format
         en_song = {
-            "title": en_result['title'],
-            "artist": en_result['channel'],
-            "year": 1970,  # Default era, could parse from video metadata if available
-            "youtube_search": f"{en_result['title']} {en_result['channel']}",
-            "youtube_url": en_result['watch_url'],
-            "source_confidence": "high" if en_result['fallback_level'] == 0 else "medium" if en_result['fallback_level'] <= 2 else "low",
-            "why": en_result['reason']
+            "title": en_track,
+            "artist": en_artist,
+            "year": 1970,  # Classic era
+            "youtube_search": f"{en_artist} {en_track} official",
+            "youtube_url": en_url,
+            "source_confidence": "high",  # Curated = high confidence
+            "why": f"Curated match for {primary}/{secondary}/{tertiary}"
         }
         
         hi_song = {
-            "title": hi_result['title'],
-            "artist": hi_result['channel'],
+            "title": hi_track,
+            "artist": hi_artist,
             "year": 1970,
-            "youtube_search": f"{hi_result['title']} {hi_result['channel']}",
-            "youtube_url": hi_result['watch_url'],
-            "source_confidence": "high" if hi_result['fallback_level'] == 0 else "medium" if hi_result['fallback_level'] <= 2 else "low",
-            "why": hi_result['reason']
+            "youtube_search": f"{hi_artist} {hi_track}",
+            "youtube_url": hi_url,
+            "source_confidence": "high",
+            "why": f"Curated match for {primary}/{secondary}/{tertiary}"
         }
         
         return {"en": en_song, "hi": hi_song}
         
     except Exception as e:
-        print(f"[YouTube Selector ERROR] {e}")
+        print(f"[Curated Selector ERROR] {e}")
         import traceback
         traceback.print_exc()
         
-        # Fallback to generic songs if YouTube API fails
+        # Fallback to generic songs if curated selector fails
         return {
             "en": {
                 "title": "What a Wonderful World",
@@ -443,15 +423,16 @@ async def generate_songs_with_youtube(
                 "youtube_search": "What a Wonderful World Louis Armstrong",
                 "youtube_url": "https://www.youtube.com/watch?v=VqhCQZaH4Vs",
                 "source_confidence": "low",
-                "why": "Fallback due to API error"
+                "why": "Fallback due to selector error"
             },
             "hi": {
                 "title": "Kabhi Kabhi Mere Dil Mein",
                 "artist": "Mukesh",
                 "year": 1976,
                 "youtube_search": "Kabhi Kabhi Mere Dil Mein Mukesh",
+                "youtube_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
                 "source_confidence": "low",
-                "why": "Fallback due to API error"
+                "why": "Fallback due to selector error"
             }
         }
 
@@ -495,9 +476,9 @@ async def recommend_songs(request: SongRequest):
     valence_bucket, arousal_bucket = get_emotion_buckets(valence, arousal)
     mood_cell = f"{valence_bucket}-{arousal_bucket}"
     
-    # Generate songs using YouTube API
-    print(f"[*] Generating songs with YouTube API selector...")
-    songs = await generate_songs_with_youtube(reflection, valence, arousal, invoked, expressed)
+    # Generate songs using curated selector + YouTube validation
+    print(f"[*] Generating songs with curated library + YouTube API...")
+    songs = await generate_songs_with_curated(reflection, valence, arousal, invoked, expressed)
     
     # Validate song response structure
     if not songs or 'en' not in songs or 'hi' not in songs:
@@ -529,7 +510,7 @@ async def recommend_songs(request: SongRequest):
             "arousal_bucket": arousal_bucket,
             "mood_cell": mood_cell,
             "picked_at": datetime.now(timezone.utc).isoformat(),
-            "version": "song-worker-v2-llm"
+            "version": "song-worker-v4-curated"
         }
     }
     
@@ -544,13 +525,18 @@ async def health_check():
     
     # Check YouTube API availability
     youtube_status = "configured" if YOUTUBE_API_KEY else "missing"
+    curated_selector_status = "initialized" if music_selector else "not_initialized"
     
     return {
         "status": "healthy",
         "service": "song-worker",
-        "version": "3.0-youtube-api",
+        "version": "4.0-curated",
+        "selector": "curated_library_with_youtube_validation",
         "youtube_api": youtube_status,
-        "upstash": "configured" if UPSTASH_REDIS_REST_URL else "missing"
+        "upstash": "configured" if UPSTASH_REDIS_REST_URL else "missing",
+        "curated_selector": curated_selector_status,
+        "english_songs": len(music_selector.english_songs) if music_selector else 0,
+        "hindi_songs": len(music_selector.hindi_songs) if music_selector else 0
     }
 
 if __name__ == "__main__":

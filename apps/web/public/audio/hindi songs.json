@@ -1,0 +1,4832 @@
+[
+  {
+    "primary": "sad",
+    "secondary": "lonely",
+    "tertiary": "isolated",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Kya Hua Tera Wada"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Tum Itna Jo Muskura Rahe Ho"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Koi Hota Jisko Apna"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Ranjish Hi Sahi"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "lonely",
+    "tertiary": "abandoned",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Chahunga Main Tujhe Saanjh Savere"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Koi Fariyaad"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Zindagi Ke Safar Mein"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Ab Ke Hum Bichhade"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "lonely",
+    "tertiary": "excluded",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Teri Aankhon Ke Siva"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Baat Niklegi To Phir"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Chingari Koi Bhadke"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Zindagi Mein To Sabhi"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "lonely",
+    "tertiary": "unloved",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Hum Bekhudi Mein Tum Ko"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Woh Kagaz Ki Kashti"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Mera Jeevan Kora Kagaz"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Gulon Mein Rang Bhare"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "lonely",
+    "tertiary": "ignored",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Kabhi Khud Pe Kabhi Halaat Pe"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hothon Se Chhoo Lo Tum"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Dil Aisa Kisi Ne Mera Toda"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Patta Patta Boota Boota"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "lonely",
+    "tertiary": "disconnected",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Mujhe Ishq Hai Tumhi Se"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Chithi Na Koi Sandesh"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "O Saathi Re"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Mohabbat Karne Wale"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "hurt",
+    "tertiary": "disappointed",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Jab Tumhi Nahin Apne"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hoshwalon Ko Khabar Kya"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Jeevan Se Bhari Teri Aankhen"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Baat Karni Mujhe Mushkil"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "hurt",
+    "tertiary": "vulnerable",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Tum Bin Jaaon Kahan"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kuch Baat Chale"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Kuch To Log Kahenge"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Kab Ke Bichhde"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "hurt",
+    "tertiary": "betrayed",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Maine Poocha Chand Se"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Jhuki Jhuki Si Nazar"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Zindagi Ka Safar"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Dil Ki Baat Labon Tak"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "hurt",
+    "tertiary": "rejected",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Zindagi Bhar Nahin Bhoolenge"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kiska Chehra Ab Main Dekhoon"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Musafir Hoon Yaaron"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Ik Husn Ki Devi Se"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "hurt",
+    "tertiary": "let down",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Kya Hua Tera Wada"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Tum Itna Jo Muskura Rahe Ho"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Koi Hota Jisko Apna"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Ranjish Hi Sahi"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "hurt",
+    "tertiary": "neglected",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Chahunga Main Tujhe Saanjh Savere"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Koi Fariyaad"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Zindagi Ke Safar Mein"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Ab Ke Hum Bichhade"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "depressed",
+    "tertiary": "ashamed",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Teri Aankhon Ke Siva"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Baat Niklegi To Phir"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Chingari Koi Bhadke"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Zindagi Mein To Sabhi"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "depressed",
+    "tertiary": "guilty",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Hum Bekhudi Mein Tum Ko"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Woh Kagaz Ki Kashti"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Mera Jeevan Kora Kagaz"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Gulon Mein Rang Bhare"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "depressed",
+    "tertiary": "grieving",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Kabhi Khud Pe Kabhi Halaat Pe"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hothon Se Chhoo Lo Tum"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Dil Aisa Kisi Ne Mera Toda"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Patta Patta Boota Boota"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "depressed",
+    "tertiary": "numb",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Mujhe Ishq Hai Tumhi Se"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Chithi Na Koi Sandesh"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "O Saathi Re"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Mohabbat Karne Wale"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "depressed",
+    "tertiary": "empty",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Jab Tumhi Nahin Apne"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hoshwalon Ko Khabar Kya"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Jeevan Se Bhari Teri Aankhen"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Baat Karni Mujhe Mushkil"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "depressed",
+    "tertiary": "unmotivated",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Tum Bin Jaaon Kahan"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kuch Baat Chale"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Kuch To Log Kahenge"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Kab Ke Bichhde"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "grief",
+    "tertiary": "loss",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Maine Poocha Chand Se"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Jhuki Jhuki Si Nazar"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Zindagi Ka Safar"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Dil Ki Baat Labon Tak"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "grief",
+    "tertiary": "regretful",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Zindagi Bhar Nahin Bhoolenge"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kiska Chehra Ab Main Dekhoon"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Musafir Hoon Yaaron"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Ik Husn Ki Devi Se"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "grief",
+    "tertiary": "mourning",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Kya Hua Tera Wada"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Tum Itna Jo Muskura Rahe Ho"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Koi Hota Jisko Apna"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Ranjish Hi Sahi"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "grief",
+    "tertiary": "yearning",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Chahunga Main Tujhe Saanjh Savere"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Koi Fariyaad"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Zindagi Ke Safar Mein"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Ab Ke Hum Bichhade"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "grief",
+    "tertiary": "nostalgic",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Teri Aankhon Ke Siva"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Baat Niklegi To Phir"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Chingari Koi Bhadke"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Zindagi Mein To Sabhi"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "grief",
+    "tertiary": "pained",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Hum Bekhudi Mein Tum Ko"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Woh Kagaz Ki Kashti"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Mera Jeevan Kora Kagaz"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Gulon Mein Rang Bhare"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "inferior",
+    "tertiary": "inadequate",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Kabhi Khud Pe Kabhi Halaat Pe"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hothon Se Chhoo Lo Tum"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Dil Aisa Kisi Ne Mera Toda"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Patta Patta Boota Boota"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "inferior",
+    "tertiary": "worthless",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Mujhe Ishq Hai Tumhi Se"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Chithi Na Koi Sandesh"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "O Saathi Re"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Mohabbat Karne Wale"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "inferior",
+    "tertiary": "weak",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Jab Tumhi Nahin Apne"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hoshwalon Ko Khabar Kya"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Jeevan Se Bhari Teri Aankhen"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Baat Karni Mujhe Mushkil"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "inferior",
+    "tertiary": "powerless",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Tum Bin Jaaon Kahan"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kuch Baat Chale"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Kuch To Log Kahenge"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Kab Ke Bichhde"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "inferior",
+    "tertiary": "insecure",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Maine Poocha Chand Se"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Jhuki Jhuki Si Nazar"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Zindagi Ka Safar"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Dil Ki Baat Labon Tak"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "inferior",
+    "tertiary": "helpless",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Zindagi Bhar Nahin Bhoolenge"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kiska Chehra Ab Main Dekhoon"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Musafir Hoon Yaaron"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Ik Husn Ki Devi Se"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "despair",
+    "tertiary": "hopeless",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Kya Hua Tera Wada"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Tum Itna Jo Muskura Rahe Ho"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Koi Hota Jisko Apna"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Ranjish Hi Sahi"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "despair",
+    "tertiary": "miserable",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Chahunga Main Tujhe Saanjh Savere"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Koi Fariyaad"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Zindagi Ke Safar Mein"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Ab Ke Hum Bichhade"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "despair",
+    "tertiary": "defeated",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Teri Aankhon Ke Siva"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Baat Niklegi To Phir"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Chingari Koi Bhadke"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Zindagi Mein To Sabhi"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "despair",
+    "tertiary": "desperate",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Hum Bekhudi Mein Tum Ko"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Woh Kagaz Ki Kashti"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Mera Jeevan Kora Kagaz"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Gulon Mein Rang Bhare"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "despair",
+    "tertiary": "broken",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Kabhi Khud Pe Kabhi Halaat Pe"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hothon Se Chhoo Lo Tum"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Dil Aisa Kisi Ne Mera Toda"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Patta Patta Boota Boota"
+      }
+    }
+  },
+  {
+    "primary": "sad",
+    "secondary": "despair",
+    "tertiary": "exhausted",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Mujhe Ishq Hai Tumhi Se"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Chithi Na Koi Sandesh"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "O Saathi Re"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Mohabbat Karne Wale"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "mad",
+    "tertiary": "furious",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Kar Chale Hum Fida"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Tere Khushboo Mein Base Khat"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Jaa Re Jaa O Harjai"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Duniya Kisi Ke Pyar Mein"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "mad",
+    "tertiary": "enraged",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Aaya Hain Mujhe Phir Yaad"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hothon Se Chhoo Lo Tum"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Mere Naina Sawan Bhadon"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Shola Tha Jal Bujha Hoon"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "mad",
+    "tertiary": "irritated",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Hum Kisise Kum Nahin (Title)"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kisi Nazar Ko Tera Intezaar Aaj Bhi Hai"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Pag Ghunghroo Baandh"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Mujhe Tum Nazar Se Gira To Rahe Ho"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "mad",
+    "tertiary": "vengeful",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Yeh Hai Bombay Meri Jaan"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Tere Aane Ka Ehsaas"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Ye Jawani Hai Deewani (Title)"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Zulfon Ko Khulne Do"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "mad",
+    "tertiary": "hostile",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Bar Bar Dekho"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Aahista Aahista"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Deewana Mujhsa Nahin"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Ranjish Hi Sahi (Live)"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "mad",
+    "tertiary": "indignant",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Na Ja Kahin Ab Na Ja"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kisi Roz Itna Mujhko"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Jalta Hai Jiya Mera"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Yeh Dhuan Sa Kahan Se Utha Hai"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "disappointed",
+    "tertiary": "betrayed",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Tumne Mujhe Dekha"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Raat Khamosh Hai"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "O Mere Dil Ke Chain"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Tere Bina Lagta Nahin"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "disappointed",
+    "tertiary": "dismissed",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Jaan Pehchan Ho"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Shaam Se Aankh Mein"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Rote Hue Aate Hain Sab"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Phir Chhidi Raat"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "disappointed",
+    "tertiary": "disrespected",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Badle Badle Mere Sarkar"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Sarakti Jaye Hai Rukh Se Naqab"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Zindagi Ka Safar"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Chandni Raat Mein"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "disappointed",
+    "tertiary": "unheard",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "O Haseena Zulfon Wali"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Apne Hothon Par"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Jeena Hai Shaan Se"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Mujhe Tum Nazar Se"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "disappointed",
+    "tertiary": "let down",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Kar Chale Hum Fida"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Tere Khushboo Mein Base Khat"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Jaa Re Jaa O Harjai"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Duniya Kisi Ke Pyar Mein"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "disappointed",
+    "tertiary": "discouraged",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Aaya Hain Mujhe Phir Yaad"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hothon Se Chhoo Lo Tum"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Mere Naina Sawan Bhadon"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Shola Tha Jal Bujha Hoon"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "humiliated",
+    "tertiary": "ashamed",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Hum Kisise Kum Nahin (Title)"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kisi Nazar Ko Tera Intezaar Aaj Bhi Hai"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Pag Ghunghroo Baandh"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Mujhe Tum Nazar Se Gira To Rahe Ho"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "humiliated",
+    "tertiary": "embarrassed",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Yeh Hai Bombay Meri Jaan"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Tere Aane Ka Ehsaas"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Ye Jawani Hai Deewani (Title)"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Zulfon Ko Khulne Do"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "humiliated",
+    "tertiary": "exposed",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Bar Bar Dekho"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Aahista Aahista"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Deewana Mujhsa Nahin"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Ranjish Hi Sahi (Live)"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "humiliated",
+    "tertiary": "ridiculed",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Na Ja Kahin Ab Na Ja"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kisi Roz Itna Mujhko"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Jalta Hai Jiya Mera"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Yeh Dhuan Sa Kahan Se Utha Hai"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "humiliated",
+    "tertiary": "disgraced",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Tumne Mujhe Dekha"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Raat Khamosh Hai"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "O Mere Dil Ke Chain"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Tere Bina Lagta Nahin"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "humiliated",
+    "tertiary": "shamed",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Jaan Pehchan Ho"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Shaam Se Aankh Mein"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Rote Hue Aate Hain Sab"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Phir Chhidi Raat"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "aggressive",
+    "tertiary": "provoked",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Badle Badle Mere Sarkar"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Sarakti Jaye Hai Rukh Se Naqab"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Zindagi Ka Safar"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Chandni Raat Mein"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "aggressive",
+    "tertiary": "confrontational",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "O Haseena Zulfon Wali"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Apne Hothon Par"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Jeena Hai Shaan Se"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Mujhe Tum Nazar Se"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "aggressive",
+    "tertiary": "defensive",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Kar Chale Hum Fida"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Tere Khushboo Mein Base Khat"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Jaa Re Jaa O Harjai"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Duniya Kisi Ke Pyar Mein"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "aggressive",
+    "tertiary": "assertive",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Aaya Hain Mujhe Phir Yaad"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hothon Se Chhoo Lo Tum"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Mere Naina Sawan Bhadon"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Shola Tha Jal Bujha Hoon"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "aggressive",
+    "tertiary": "antagonistic",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Hum Kisise Kum Nahin (Title)"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kisi Nazar Ko Tera Intezaar Aaj Bhi Hai"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Pag Ghunghroo Baandh"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Mujhe Tum Nazar Se Gira To Rahe Ho"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "aggressive",
+    "tertiary": "forceful",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Yeh Hai Bombay Meri Jaan"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Tere Aane Ka Ehsaas"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Ye Jawani Hai Deewani (Title)"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Zulfon Ko Khulne Do"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "frustrated",
+    "tertiary": "annoyed",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Bar Bar Dekho"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Aahista Aahista"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Deewana Mujhsa Nahin"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Ranjish Hi Sahi (Live)"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "frustrated",
+    "tertiary": "impatient",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Na Ja Kahin Ab Na Ja"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kisi Roz Itna Mujhko"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Jalta Hai Jiya Mera"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Yeh Dhuan Sa Kahan Se Utha Hai"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "frustrated",
+    "tertiary": "irritated",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Tumne Mujhe Dekha"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Raat Khamosh Hai"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "O Mere Dil Ke Chain"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Tere Bina Lagta Nahin"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "frustrated",
+    "tertiary": "blocked",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Jaan Pehchan Ho"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Shaam Se Aankh Mein"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Rote Hue Aate Hain Sab"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Phir Chhidi Raat"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "frustrated",
+    "tertiary": "powerless",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Badle Badle Mere Sarkar"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Sarakti Jaye Hai Rukh Se Naqab"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Zindagi Ka Safar"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Chandni Raat Mein"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "frustrated",
+    "tertiary": "restless",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "O Haseena Zulfon Wali"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Apne Hothon Par"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Jeena Hai Shaan Se"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Mujhe Tum Nazar Se"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "critical",
+    "tertiary": "judgmental",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Kar Chale Hum Fida"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Tere Khushboo Mein Base Khat"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Jaa Re Jaa O Harjai"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Duniya Kisi Ke Pyar Mein"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "critical",
+    "tertiary": "disapproving",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Aaya Hain Mujhe Phir Yaad"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hothon Se Chhoo Lo Tum"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Mere Naina Sawan Bhadon"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Shola Tha Jal Bujha Hoon"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "critical",
+    "tertiary": "cynical",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Hum Kisise Kum Nahin (Title)"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kisi Nazar Ko Tera Intezaar Aaj Bhi Hai"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Pag Ghunghroo Baandh"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Mujhe Tum Nazar Se Gira To Rahe Ho"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "critical",
+    "tertiary": "skeptical",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Yeh Hai Bombay Meri Jaan"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Tere Aane Ka Ehsaas"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Ye Jawani Hai Deewani (Title)"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Zulfon Ko Khulne Do"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "critical",
+    "tertiary": "harsh",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Bar Bar Dekho"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Aahista Aahista"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Deewana Mujhsa Nahin"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Ranjish Hi Sahi (Live)"
+      }
+    }
+  },
+  {
+    "primary": "mad",
+    "secondary": "critical",
+    "tertiary": "unforgiving",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Na Ja Kahin Ab Na Ja"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kisi Roz Itna Mujhko"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Jalta Hai Jiya Mera"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Yeh Dhuan Sa Kahan Se Utha Hai"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "rejected",
+    "tertiary": "unwanted",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Kahin Deep Jale Kahin Dil"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Yeh Ek Ghazal Hai"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Raat Kali Ek Khwab Mein Aayi"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Hum Hain Mata-e-Koocha-o-Bazaar Ki Tarah"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "rejected",
+    "tertiary": "unloved",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Akele Hain Chale Aao"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kabhi Kabhi Aisa Bhi Hota Hai"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Zindagi Ka Safar"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Raat Yun Dil Mein Teri"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "rejected",
+    "tertiary": "excluded",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Na Tu Zameen Ke Liye"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Koi Yeh Kaise Bataye"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Ajnabee Mujhko Itna Bata"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Shola Tha Jal Bujha Hoon"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "rejected",
+    "tertiary": "ignored",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Tere Ghar Ke Samne (Title)"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Dard Se Mera Daaman"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Dilbar Mere"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Mujhe Tum Nazar Se"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "rejected",
+    "tertiary": "abandoned",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Jab Andhera Hota Hai"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Main Nashe Mein Hoon"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Pal Pal Dil Ke Paas"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Bhooli Hui Hoon Dastaan"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "rejected",
+    "tertiary": "unworthy",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Hum Tumse Juda Hoke"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Aawargi"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Inteha Ho Gayi Intezaar Ki"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Yeh Watan Tumhara Hai"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "weak",
+    "tertiary": "helpless",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Taarif Karoon Kya Uski"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Raat Bhi Neend Bhi"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Mere Mehboob Qayamat Hogi"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Kab Ke Bichhde"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "weak",
+    "tertiary": "powerless",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Apni Aankhon Se"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Sarakti Jaye Hai Rukh Se Naqab"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "O Mere Dil Ke Chain"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Rafta Rafta Woh Meri"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "weak",
+    "tertiary": "vulnerable",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Bekhudi Mein Sanam"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Tum Ko Dekha To"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Jeevan Ke Din"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Dil Nadan Tujhe Hua Kya Hai"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "weak",
+    "tertiary": "afraid",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Mana Ho Tum"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Shaam Se Aankh Mein"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Dil Kya Kare"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Tera Pyar Chahiye"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "weak",
+    "tertiary": "fragile",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Kahin Deep Jale Kahin Dil"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Yeh Ek Ghazal Hai"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Raat Kali Ek Khwab Mein Aayi"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Hum Hain Mata-e-Koocha-o-Bazaar Ki Tarah"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "weak",
+    "tertiary": "dependent",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Akele Hain Chale Aao"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kabhi Kabhi Aisa Bhi Hota Hai"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Zindagi Ka Safar"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Raat Yun Dil Mein Teri"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "insecure",
+    "tertiary": "inferior",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Na Tu Zameen Ke Liye"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Koi Yeh Kaise Bataye"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Ajnabee Mujhko Itna Bata"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Shola Tha Jal Bujha Hoon"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "insecure",
+    "tertiary": "worthless",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Tere Ghar Ke Samne (Title)"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Dard Se Mera Daaman"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Dilbar Mere"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Mujhe Tum Nazar Se"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "insecure",
+    "tertiary": "self-doubting",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Jab Andhera Hota Hai"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Main Nashe Mein Hoon"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Pal Pal Dil Ke Paas"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Bhooli Hui Hoon Dastaan"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "insecure",
+    "tertiary": "awkward",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Hum Tumse Juda Hoke"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Aawargi"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Inteha Ho Gayi Intezaar Ki"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Yeh Watan Tumhara Hai"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "insecure",
+    "tertiary": "embarrassed",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Taarif Karoon Kya Uski"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Raat Bhi Neend Bhi"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Mere Mehboob Qayamat Hogi"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Kab Ke Bichhde"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "insecure",
+    "tertiary": "self-conscious",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Apni Aankhon Se"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Sarakti Jaye Hai Rukh Se Naqab"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "O Mere Dil Ke Chain"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Rafta Rafta Woh Meri"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "anxious",
+    "tertiary": "worried",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Bekhudi Mein Sanam"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Tum Ko Dekha To"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Jeevan Ke Din"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Dil Nadan Tujhe Hua Kya Hai"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "anxious",
+    "tertiary": "tense",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Mana Ho Tum"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Shaam Se Aankh Mein"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Dil Kya Kare"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Tera Pyar Chahiye"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "anxious",
+    "tertiary": "nervous",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Kahin Deep Jale Kahin Dil"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Yeh Ek Ghazal Hai"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Raat Kali Ek Khwab Mein Aayi"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Hum Hain Mata-e-Koocha-o-Bazaar Ki Tarah"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "anxious",
+    "tertiary": "restless",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Akele Hain Chale Aao"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kabhi Kabhi Aisa Bhi Hota Hai"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Zindagi Ka Safar"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Raat Yun Dil Mein Teri"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "anxious",
+    "tertiary": "uneasy",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Na Tu Zameen Ke Liye"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Koi Yeh Kaise Bataye"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Ajnabee Mujhko Itna Bata"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Shola Tha Jal Bujha Hoon"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "anxious",
+    "tertiary": "on edge",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Tere Ghar Ke Samne (Title)"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Dard Se Mera Daaman"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Dilbar Mere"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Mujhe Tum Nazar Se"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "overwhelmed",
+    "tertiary": "panicked",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Jab Andhera Hota Hai"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Main Nashe Mein Hoon"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Pal Pal Dil Ke Paas"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Bhooli Hui Hoon Dastaan"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "overwhelmed",
+    "tertiary": "stressed",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Hum Tumse Juda Hoke"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Aawargi"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Inteha Ho Gayi Intezaar Ki"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Yeh Watan Tumhara Hai"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "overwhelmed",
+    "tertiary": "terrified",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Taarif Karoon Kya Uski"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Raat Bhi Neend Bhi"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Mere Mehboob Qayamat Hogi"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Kab Ke Bichhde"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "overwhelmed",
+    "tertiary": "overloaded",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Apni Aankhon Se"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Sarakti Jaye Hai Rukh Se Naqab"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "O Mere Dil Ke Chain"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Rafta Rafta Woh Meri"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "overwhelmed",
+    "tertiary": "trapped",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Bekhudi Mein Sanam"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Tum Ko Dekha To"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Jeevan Ke Din"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Dil Nadan Tujhe Hua Kya Hai"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "overwhelmed",
+    "tertiary": "breathless",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Mana Ho Tum"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Shaam Se Aankh Mein"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Dil Kya Kare"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Tera Pyar Chahiye"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "helpless",
+    "tertiary": "incapable",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Kahin Deep Jale Kahin Dil"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Yeh Ek Ghazal Hai"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Raat Kali Ek Khwab Mein Aayi"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Hum Hain Mata-e-Koocha-o-Bazaar Ki Tarah"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "helpless",
+    "tertiary": "lost",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Akele Hain Chale Aao"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kabhi Kabhi Aisa Bhi Hota Hai"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Zindagi Ka Safar"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Raat Yun Dil Mein Teri"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "helpless",
+    "tertiary": "useless",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Na Tu Zameen Ke Liye"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Koi Yeh Kaise Bataye"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Ajnabee Mujhko Itna Bata"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Shola Tha Jal Bujha Hoon"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "helpless",
+    "tertiary": "defenseless",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Tere Ghar Ke Samne (Title)"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Dard Se Mera Daaman"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Dilbar Mere"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Mujhe Tum Nazar Se"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "helpless",
+    "tertiary": "stuck",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Jab Andhera Hota Hai"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Main Nashe Mein Hoon"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Pal Pal Dil Ke Paas"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Bhooli Hui Hoon Dastaan"
+      }
+    }
+  },
+  {
+    "primary": "scared",
+    "secondary": "helpless",
+    "tertiary": "frozen",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Hum Tumse Juda Hoke"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Aawargi"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Inteha Ho Gayi Intezaar Ki"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Yeh Watan Tumhara Hai"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "excited",
+    "tertiary": "energetic",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Badan Pe Sitare"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hoshwalon Ko Khabar Kya"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Yeh Shaam Mastani"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Rafta Rafta Woh Meri"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "excited",
+    "tertiary": "animated",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Yeh Chand Sa Roshan Chehra"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hothon Se Chhoo Lo Tum"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "O Mere Dil Ke Chain"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Aaj Jaane Ki Zid Na Karo"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "excited",
+    "tertiary": "enthusiastic",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Aaja Aaja Main Hoon Pyar Tera"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kisi Roz Itna Mujhko"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Roop Tera Mastana"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Kabhi Kabhi Aisa Bhi Hota Hai"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "excited",
+    "tertiary": "eager",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Chahe Koi Mujhe Junglee Kahe"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Tere Khushboo Mein Base Khat"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Aanewala Pal"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Gulon Mein Rang Bhare (Mehfil)"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "excited",
+    "tertiary": "lively",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Sar Jo Tera Chakraye"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Koi Fariyaad (Reprise)"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Khaike Paan Banaras Wala"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Main Hosh Mein Tha"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "excited",
+    "tertiary": "vibrant",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Aaj Kal Tere Mere Pyar Ke Charche"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Woh Kagaz Ki Kashti (Live)"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Ek Ladki Bheegi Bhaagi Si"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Dil Ki Baat Labon Tak"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "interested",
+    "tertiary": "curious",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Yahoo! (Chahe Koi Mujhe)"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hazaron Khwahishen Aisi (Ghazal)"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Pyar Deewana Hota Hai"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Ranjish Hi Sahi (Mehfil)"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "interested",
+    "tertiary": "engaged",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Hum Kale Hain To Kya Hua"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Zindagi Kaisi Yeh Paheli (Ghazal Rendition)"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Humein Tumse Pyar Kitna"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Ab Ke Hum Bichhade (Mehfil)"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "interested",
+    "tertiary": "focused",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Likhe Jo Khat Tujhe"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Tumko Dekha To"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Chala Jaata Hoon"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Zindagi Mein To Sabhi (Mehfil)"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "interested",
+    "tertiary": "absorbed",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Na Tu Zameen Ke Liye"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Aahista Aahista"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Zindagi Ek Safar Hai Suhana"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Mohabbat Karne Wale (Mehfil)"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "interested",
+    "tertiary": "involved",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Badan Pe Sitare"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hoshwalon Ko Khabar Kya"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Yeh Shaam Mastani"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Rafta Rafta Woh Meri"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "interested",
+    "tertiary": "fascinated",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Yeh Chand Sa Roshan Chehra"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hothon Se Chhoo Lo Tum"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "O Mere Dil Ke Chain"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Aaj Jaane Ki Zid Na Karo"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "energetic",
+    "tertiary": "stimulated",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Aaja Aaja Main Hoon Pyar Tera"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kisi Roz Itna Mujhko"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Roop Tera Mastana"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Kabhi Kabhi Aisa Bhi Hota Hai"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "energetic",
+    "tertiary": "inspired",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Chahe Koi Mujhe Junglee Kahe"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Tere Khushboo Mein Base Khat"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Aanewala Pal"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Gulon Mein Rang Bhare (Mehfil)"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "energetic",
+    "tertiary": "driven",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Sar Jo Tera Chakraye"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Koi Fariyaad (Reprise)"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Khaike Paan Banaras Wala"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Main Hosh Mein Tha"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "energetic",
+    "tertiary": "active",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Aaj Kal Tere Mere Pyar Ke Charche"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Woh Kagaz Ki Kashti (Live)"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Ek Ladki Bheegi Bhaagi Si"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Dil Ki Baat Labon Tak"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "energetic",
+    "tertiary": "motivated",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Yahoo! (Chahe Koi Mujhe)"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hazaron Khwahishen Aisi (Ghazal)"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Pyar Deewana Hota Hai"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Ranjish Hi Sahi (Mehfil)"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "energetic",
+    "tertiary": "dynamic",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Hum Kale Hain To Kya Hua"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Zindagi Kaisi Yeh Paheli (Ghazal Rendition)"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Humein Tumse Pyar Kitna"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Ab Ke Hum Bichhade (Mehfil)"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "cheerful",
+    "tertiary": "joyful",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Likhe Jo Khat Tujhe"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Tumko Dekha To"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Chala Jaata Hoon"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Zindagi Mein To Sabhi (Mehfil)"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "cheerful",
+    "tertiary": "playful",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Na Tu Zameen Ke Liye"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Aahista Aahista"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Zindagi Ek Safar Hai Suhana"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Mohabbat Karne Wale (Mehfil)"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "cheerful",
+    "tertiary": "lighthearted",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Badan Pe Sitare"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hoshwalon Ko Khabar Kya"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Yeh Shaam Mastani"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Rafta Rafta Woh Meri"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "cheerful",
+    "tertiary": "amused",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Yeh Chand Sa Roshan Chehra"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hothon Se Chhoo Lo Tum"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "O Mere Dil Ke Chain"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Aaj Jaane Ki Zid Na Karo"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "cheerful",
+    "tertiary": "grateful",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Aaja Aaja Main Hoon Pyar Tera"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kisi Roz Itna Mujhko"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Roop Tera Mastana"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Kabhi Kabhi Aisa Bhi Hota Hai"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "cheerful",
+    "tertiary": "content",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Chahe Koi Mujhe Junglee Kahe"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Tere Khushboo Mein Base Khat"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Aanewala Pal"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Gulon Mein Rang Bhare (Mehfil)"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "creative",
+    "tertiary": "inventive",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Sar Jo Tera Chakraye"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Koi Fariyaad (Reprise)"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Khaike Paan Banaras Wala"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Main Hosh Mein Tha"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "creative",
+    "tertiary": "expressive",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Aaj Kal Tere Mere Pyar Ke Charche"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Woh Kagaz Ki Kashti (Live)"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Ek Ladki Bheegi Bhaagi Si"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Dil Ki Baat Labon Tak"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "creative",
+    "tertiary": "imaginative",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Yahoo! (Chahe Koi Mujhe)"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hazaron Khwahishen Aisi (Ghazal)"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Pyar Deewana Hota Hai"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Ranjish Hi Sahi (Mehfil)"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "creative",
+    "tertiary": "artistic",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Hum Kale Hain To Kya Hua"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Zindagi Kaisi Yeh Paheli (Ghazal Rendition)"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Humein Tumse Pyar Kitna"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Ab Ke Hum Bichhade (Mehfil)"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "creative",
+    "tertiary": "innovative",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Likhe Jo Khat Tujhe"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Tumko Dekha To"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Chala Jaata Hoon"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Zindagi Mein To Sabhi (Mehfil)"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "creative",
+    "tertiary": "visionary",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Na Tu Zameen Ke Liye"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Aahista Aahista"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Zindagi Ek Safar Hai Suhana"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Mohabbat Karne Wale (Mehfil)"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "optimistic",
+    "tertiary": "hopeful",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Badan Pe Sitare"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hoshwalon Ko Khabar Kya"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Yeh Shaam Mastani"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Rafta Rafta Woh Meri"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "optimistic",
+    "tertiary": "positive",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Yeh Chand Sa Roshan Chehra"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hothon Se Chhoo Lo Tum"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "O Mere Dil Ke Chain"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Aaj Jaane Ki Zid Na Karo"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "optimistic",
+    "tertiary": "expectant",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Aaja Aaja Main Hoon Pyar Tera"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kisi Roz Itna Mujhko"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Roop Tera Mastana"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Kabhi Kabhi Aisa Bhi Hota Hai"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "optimistic",
+    "tertiary": "confident",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Chahe Koi Mujhe Junglee Kahe"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Tere Khushboo Mein Base Khat"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Aanewala Pal"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Gulon Mein Rang Bhare (Mehfil)"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "optimistic",
+    "tertiary": "bright",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Sar Jo Tera Chakraye"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Koi Fariyaad (Reprise)"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Khaike Paan Banaras Wala"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Main Hosh Mein Tha"
+      }
+    }
+  },
+  {
+    "primary": "joyful",
+    "secondary": "optimistic",
+    "tertiary": "forward-looking",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Aaj Kal Tere Mere Pyar Ke Charche"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Woh Kagaz Ki Kashti (Live)"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Ek Ladki Bheegi Bhaagi Si"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Dil Ki Baat Labon Tak"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "content",
+    "tertiary": "satisfied",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Main Zindagi Ka Saath Nibhata Chala Gaya"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kahin Door Jab Din Dhal Jaye (Ghazal Rendition)"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Aanewala Pal"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Gulon Mein Rang Bhare"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "content",
+    "tertiary": "comfortable",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Khoya Khoya Chand"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Ae Ri Pawan"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Humein Tumse Pyar Kitna"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Rafta Rafta Woh Meri"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "content",
+    "tertiary": "fulfilled",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Tum Jo Mil Gaye Ho"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hoshwalon Ko Khabar Kya"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Yeh Shaam Mastani"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Ranjish Hi Sahi (Slow)"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "content",
+    "tertiary": "pleased",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Tere Mere Sapne"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kahin Door"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Panthi Hoon Main Us Path Ka"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Aaj Jaane Ki Zid Na Karo"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "content",
+    "tertiary": "accepting",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Aise To Na Dekho"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hazaron Khwahishen Aisi (Mehfil)"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Jeevan Se Bhari Teri Aankhen"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Raat Yun Dil Mein Teri"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "content",
+    "tertiary": "settled",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Baharon Phool Barsao"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Tumko Dekha To"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Pal Pal Dil Ke Paas"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Baat Karni Mujhe Mushkil"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "thoughtful",
+    "tertiary": "reflective",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Din Dhal Jaye Haye (Mukesh song - skip)"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kiska Chehra Ab Main Dekhoon"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Chala Jaata Hoon"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Bhooli Hui Hoon Dastaan"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "thoughtful",
+    "tertiary": "mindful",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Yeh Duniya Yeh Mehfil"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Chupke Chupke Raat Din (Rendition)"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Musafir Hoon Yaaron"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Ab Ke Hum Bichhade (Slow)"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "thoughtful",
+    "tertiary": "aware",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Chaudhvin Ka Chand Ho"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Woh Kagaz Ki Kashti"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Zindagi Ek Safar Hai Suhana"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Patta Patta Boota Boota"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "thoughtful",
+    "tertiary": "meditative",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Pukarta Chala Hoon Main"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Aahista Aahista"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "O Mere Dil Ke Chain"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Mohabbat Karne Wale"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "thoughtful",
+    "tertiary": "contemplative",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Main Zindagi Ka Saath Nibhata Chala Gaya"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kahin Door Jab Din Dhal Jaye (Ghazal Rendition)"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Aanewala Pal"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Gulon Mein Rang Bhare"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "thoughtful",
+    "tertiary": "considerate",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Khoya Khoya Chand"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Ae Ri Pawan"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Humein Tumse Pyar Kitna"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Rafta Rafta Woh Meri"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "relaxed",
+    "tertiary": "calm",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Tum Jo Mil Gaye Ho"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hoshwalon Ko Khabar Kya"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Yeh Shaam Mastani"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Ranjish Hi Sahi (Slow)"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "relaxed",
+    "tertiary": "serene",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Tere Mere Sapne"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kahin Door"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Panthi Hoon Main Us Path Ka"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Aaj Jaane Ki Zid Na Karo"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "relaxed",
+    "tertiary": "easygoing",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Aise To Na Dekho"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hazaron Khwahishen Aisi (Mehfil)"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Jeevan Se Bhari Teri Aankhen"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Raat Yun Dil Mein Teri"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "relaxed",
+    "tertiary": "untroubled",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Baharon Phool Barsao"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Tumko Dekha To"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Pal Pal Dil Ke Paas"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Baat Karni Mujhe Mushkil"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "relaxed",
+    "tertiary": "restful",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Din Dhal Jaye Haye (Mukesh song - skip)"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kiska Chehra Ab Main Dekhoon"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Chala Jaata Hoon"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Bhooli Hui Hoon Dastaan"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "relaxed",
+    "tertiary": "loose",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Yeh Duniya Yeh Mehfil"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Chupke Chupke Raat Din (Rendition)"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Musafir Hoon Yaaron"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Ab Ke Hum Bichhade (Slow)"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "loving",
+    "tertiary": "kind",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Chaudhvin Ka Chand Ho"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Woh Kagaz Ki Kashti"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Zindagi Ek Safar Hai Suhana"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Patta Patta Boota Boota"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "loving",
+    "tertiary": "caring",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Pukarta Chala Hoon Main"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Aahista Aahista"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "O Mere Dil Ke Chain"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Mohabbat Karne Wale"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "loving",
+    "tertiary": "compassionate",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Main Zindagi Ka Saath Nibhata Chala Gaya"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kahin Door Jab Din Dhal Jaye (Ghazal Rendition)"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Aanewala Pal"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Gulon Mein Rang Bhare"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "loving",
+    "tertiary": "affectionate",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Khoya Khoya Chand"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Ae Ri Pawan"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Humein Tumse Pyar Kitna"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Rafta Rafta Woh Meri"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "loving",
+    "tertiary": "warm",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Tum Jo Mil Gaye Ho"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hoshwalon Ko Khabar Kya"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Yeh Shaam Mastani"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Ranjish Hi Sahi (Slow)"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "loving",
+    "tertiary": "tender",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Tere Mere Sapne"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kahin Door"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Panthi Hoon Main Us Path Ka"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Aaj Jaane Ki Zid Na Karo"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "grateful",
+    "tertiary": "thankful",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Aise To Na Dekho"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hazaron Khwahishen Aisi (Mehfil)"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Jeevan Se Bhari Teri Aankhen"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Raat Yun Dil Mein Teri"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "grateful",
+    "tertiary": "appreciative",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Baharon Phool Barsao"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Tumko Dekha To"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Pal Pal Dil Ke Paas"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Baat Karni Mujhe Mushkil"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "grateful",
+    "tertiary": "blessed",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Din Dhal Jaye Haye (Mukesh song - skip)"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kiska Chehra Ab Main Dekhoon"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Chala Jaata Hoon"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Bhooli Hui Hoon Dastaan"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "grateful",
+    "tertiary": "aware",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Yeh Duniya Yeh Mehfil"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Chupke Chupke Raat Din (Rendition)"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Musafir Hoon Yaaron"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Ab Ke Hum Bichhade (Slow)"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "grateful",
+    "tertiary": "fulfilled",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Chaudhvin Ka Chand Ho"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Woh Kagaz Ki Kashti"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Zindagi Ek Safar Hai Suhana"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Patta Patta Boota Boota"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "grateful",
+    "tertiary": "acknowledging",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Pukarta Chala Hoon Main"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Aahista Aahista"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "O Mere Dil Ke Chain"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Mohabbat Karne Wale"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "free",
+    "tertiary": "unburdened",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Main Zindagi Ka Saath Nibhata Chala Gaya"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kahin Door Jab Din Dhal Jaye (Ghazal Rendition)"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Aanewala Pal"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Gulon Mein Rang Bhare"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "free",
+    "tertiary": "liberated",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Khoya Khoya Chand"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Ae Ri Pawan"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Humein Tumse Pyar Kitna"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Rafta Rafta Woh Meri"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "free",
+    "tertiary": "unrestricted",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Tum Jo Mil Gaye Ho"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hoshwalon Ko Khabar Kya"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Yeh Shaam Mastani"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Ranjish Hi Sahi (Slow)"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "free",
+    "tertiary": "open",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Tere Mere Sapne"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kahin Door"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Panthi Hoon Main Us Path Ka"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Aaj Jaane Ki Zid Na Karo"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "free",
+    "tertiary": "weightless",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Aise To Na Dekho"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hazaron Khwahishen Aisi (Mehfil)"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Jeevan Se Bhari Teri Aankhen"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Raat Yun Dil Mein Teri"
+      }
+    }
+  },
+  {
+    "primary": "peaceful",
+    "secondary": "free",
+    "tertiary": "spacious",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Baharon Phool Barsao"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Tumko Dekha To"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Pal Pal Dil Ke Paas"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Baat Karni Mujhe Mushkil"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "intelligent",
+    "tertiary": "wise",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Zindabad Zindabad"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hoshwalon Ko Khabar Kya"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Yeh Jo Mohabbat Hai"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Rafta Rafta Woh Meri"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "intelligent",
+    "tertiary": "insightful",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Yeh Desh Hai Veer Jawano Ka"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Koi Fariyaad (Anthem Rendition)"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Zindagi Ek Safar Hai Suhana"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Jab Koi Pyar Se Bulayega"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "intelligent",
+    "tertiary": "clever",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Badan Pe Sitare"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Main Nashe Mein Hoon"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Pag Ghunghroo Baandh"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Yeh Watan Tumhara Hai"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "intelligent",
+    "tertiary": "smart",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Yahoo! (Chahe Koi Mujhe)"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Tere Aane Ka Ehsaas"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Jai Jai Shiv Shankar"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Rang Aur Noor Ki Baraat"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "intelligent",
+    "tertiary": "discerning",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Aaj Hum Apni Duaaen"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kisi Nazar Ko Tera"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Hum Dono Do Premi"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Mujhe Tum Nazar Se"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "intelligent",
+    "tertiary": "perceptive",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Hum Kisise Kum Nahin (Title)"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Aahista Aahista"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "De De Pyar De"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Zindagi Mein To Sabhi"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "resilient",
+    "tertiary": "tough",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Watan Pe Jo Fida Hoga"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kahin Door"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Pal Bhar Ke Liye Koi Hume Pyar Kar Le"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Main Hosh Mein Tha"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "resilient",
+    "tertiary": "enduring",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Baar Baar Dekho"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Sarakti Jaye Hai Rukh Se Naqab"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Zindagi Ka Safar"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Tere Bina Lagta Nahin"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "resilient",
+    "tertiary": "adaptable",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Aaj Kal Tere Mere Pyar Ke Charche"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Tumko Dekha To"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Jai Ho Jai Ho"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Shola Tha Jal Bujha Hoon"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "resilient",
+    "tertiary": "grounded",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Na Tu Zameen Ke Liye"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Woh Kagaz Ki Kashti"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Chala Jaata Hoon"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Patta Patta Boota Boota"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "resilient",
+    "tertiary": "balanced",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Zindabad Zindabad"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hoshwalon Ko Khabar Kya"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Yeh Jo Mohabbat Hai"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Rafta Rafta Woh Meri"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "resilient",
+    "tertiary": "centered",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Yeh Desh Hai Veer Jawano Ka"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Koi Fariyaad (Anthem Rendition)"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Zindagi Ek Safar Hai Suhana"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Jab Koi Pyar Se Bulayega"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "important",
+    "tertiary": "significant",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Badan Pe Sitare"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Main Nashe Mein Hoon"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Pag Ghunghroo Baandh"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Yeh Watan Tumhara Hai"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "important",
+    "tertiary": "valued",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Yahoo! (Chahe Koi Mujhe)"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Tere Aane Ka Ehsaas"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Jai Jai Shiv Shankar"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Rang Aur Noor Ki Baraat"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "important",
+    "tertiary": "meaningful",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Aaj Hum Apni Duaaen"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kisi Nazar Ko Tera"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Hum Dono Do Premi"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Mujhe Tum Nazar Se"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "important",
+    "tertiary": "esteemed",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Hum Kisise Kum Nahin (Title)"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Aahista Aahista"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "De De Pyar De"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Zindagi Mein To Sabhi"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "important",
+    "tertiary": "needed",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Watan Pe Jo Fida Hoga"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kahin Door"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Pal Bhar Ke Liye Koi Hume Pyar Kar Le"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Main Hosh Mein Tha"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "important",
+    "tertiary": "relevant",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Baar Baar Dekho"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Sarakti Jaye Hai Rukh Se Naqab"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Zindagi Ka Safar"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Tere Bina Lagta Nahin"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "hopeful",
+    "tertiary": "courageous",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Aaj Kal Tere Mere Pyar Ke Charche"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Tumko Dekha To"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Jai Ho Jai Ho"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Shola Tha Jal Bujha Hoon"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "hopeful",
+    "tertiary": "inspired",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Na Tu Zameen Ke Liye"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Woh Kagaz Ki Kashti"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Chala Jaata Hoon"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Patta Patta Boota Boota"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "hopeful",
+    "tertiary": "brave",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Zindabad Zindabad"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Hoshwalon Ko Khabar Kya"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Yeh Jo Mohabbat Hai"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Rafta Rafta Woh Meri"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "hopeful",
+    "tertiary": "faithful",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Yeh Desh Hai Veer Jawano Ka"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Koi Fariyaad (Anthem Rendition)"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Zindagi Ek Safar Hai Suhana"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Jab Koi Pyar Se Bulayega"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "hopeful",
+    "tertiary": "assured",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Badan Pe Sitare"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Main Nashe Mein Hoon"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Pag Ghunghroo Baandh"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Yeh Watan Tumhara Hai"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "hopeful",
+    "tertiary": "uplifted",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Yahoo! (Chahe Koi Mujhe)"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Tere Aane Ka Ehsaas"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Jai Jai Shiv Shankar"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Rang Aur Noor Ki Baraat"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "proud",
+    "tertiary": "accomplished",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Aaj Hum Apni Duaaen"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kisi Nazar Ko Tera"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Hum Dono Do Premi"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Mujhe Tum Nazar Se"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "proud",
+    "tertiary": "successful",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Hum Kisise Kum Nahin (Title)"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Aahista Aahista"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "De De Pyar De"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Zindagi Mein To Sabhi"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "proud",
+    "tertiary": "worthwhile",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Watan Pe Jo Fida Hoga"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Kahin Door"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Pal Bhar Ke Liye Koi Hume Pyar Kar Le"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Main Hosh Mein Tha"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "proud",
+    "tertiary": "victorious",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Baar Baar Dekho"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Sarakti Jaye Hai Rukh Se Naqab"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Zindagi Ka Safar"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Tere Bina Lagta Nahin"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "proud",
+    "tertiary": "respected",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Aaj Kal Tere Mere Pyar Ke Charche"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Tumko Dekha To"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Jai Ho Jai Ho"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Shola Tha Jal Bujha Hoon"
+      }
+    }
+  },
+  {
+    "primary": "powerful",
+    "secondary": "proud",
+    "tertiary": "honored",
+    "songs": {
+      "MohammedRafi": {
+        "artist": "Mohammed Rafi",
+        "track": "Na Tu Zameen Ke Liye"
+      },
+      "JagjitSingh": {
+        "artist": "Jagjit Singh",
+        "track": "Woh Kagaz Ki Kashti"
+      },
+      "KishoreKumar": {
+        "artist": "Kishore Kumar",
+        "track": "Chala Jaata Hoon"
+      },
+      "MehdiHasan": {
+        "artist": "Mehdi Hasan",
+        "track": "Patta Patta Boota Boota"
+      }
+    }
+  }
+]
