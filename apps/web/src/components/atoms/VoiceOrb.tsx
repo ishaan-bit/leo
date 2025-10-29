@@ -37,9 +37,11 @@ import { processText } from '@/lib/multilingual/textProcessor';
 interface VoiceOrbProps {
   onTranscript?: (processed: ProcessedText, metrics: VoiceMetrics) => void;
   disabled?: boolean;
+  onRecordingStart?: () => void;
+  onRecordingStop?: () => void;
 }
 
-export default function VoiceOrb({ onTranscript, disabled = false }: VoiceOrbProps) {
+export default function VoiceOrb({ onTranscript, disabled = false, onRecordingStart, onRecordingStop }: VoiceOrbProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [transcript, setTranscript] = useState('');
@@ -135,6 +137,7 @@ export default function VoiceOrb({ onTranscript, disabled = false }: VoiceOrbPro
     recognition.onstart = () => {
       setIsRecording(true);
       setError(null);
+      onRecordingStart?.();
     };
 
     recognition.onresult = (event: any) => {
@@ -153,9 +156,13 @@ export default function VoiceOrb({ onTranscript, disabled = false }: VoiceOrbPro
       else if (event.error === 'not-allowed') setError('Microphone access denied.');
       else setError(`Error: ${event.error}`);
       setIsRecording(false);
+      onRecordingStop?.();
     };
 
-    recognition.onend = () => setIsRecording(false);
+    recognition.onend = () => {
+      setIsRecording(false);
+      onRecordingStop?.();
+    };
 
     recognition.start();
   };
@@ -400,6 +407,7 @@ export default function VoiceOrb({ onTranscript, disabled = false }: VoiceOrbPro
       mediaRecorder.start(1000);
       
       setIsRecording(true);
+      onRecordingStart?.();
       startTimeRef.current = Date.now();
       
       const analysisInterval = setInterval(analyzeAudio, 100);
@@ -419,6 +427,7 @@ export default function VoiceOrb({ onTranscript, disabled = false }: VoiceOrbPro
   // === HYBRID STOP ===
   const handleStop = () => {
     setIsRecording(false);
+    onRecordingStop?.();
     
     // Stop Web Speech
     if (recognitionRef.current) {

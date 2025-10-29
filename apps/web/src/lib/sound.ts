@@ -87,3 +87,21 @@ export function stopAmbientSound() {
 export function isMuted(): boolean {
   return localStorage.getItem(VOLUME_STORAGE_KEY) === 'true';
 }
+
+export function pauseAmbientSound() {
+  const sound = typeof window !== 'undefined' ? window.__leoAmbientSound : null;
+  if (sound && sound.playing()) {
+    console.log('[sound.ts] Pausing ambient sound (recording in progress)');
+    sound.fade(sound.volume(), 0, 200); // Quick fade out
+    setTimeout(() => sound.pause(), 250);
+  }
+}
+
+export function resumeAmbientSound() {
+  const sound = typeof window !== 'undefined' ? window.__leoAmbientSound : null;
+  if (sound && !isMuted()) {
+    console.log('[sound.ts] Resuming ambient sound (recording stopped)');
+    sound.play();
+    sound.fade(0, 0.4, 400); // Fade back in
+  }
+}

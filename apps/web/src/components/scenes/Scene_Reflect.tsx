@@ -21,7 +21,7 @@ import { composeAffectFromTyping, composeAffectFromVoice } from '@/lib/behaviora
 import { getAdaptiveAmbientSystem } from '@/lib/audio/AdaptiveAmbientSystem';
 import { getTimeOfDay, getTimeTheme, getTimeBasedGreeting } from '@/lib/time-theme';
 import { generateHeartPuff } from '@/lib/pig-animations';
-import { playAmbientSound, isMuted } from '@/lib/sound';
+import { playAmbientSound, isMuted, pauseAmbientSound, resumeAmbientSound } from '@/lib/sound';
 import dialogueData from '@/lib/copy/reflect.dialogue.json';
 import { getZone, type PrimaryEmotion } from '@/lib/zones';
 
@@ -370,6 +370,14 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   // Handle photo upload submission
   const handlePhotoSubmit = async (file: File) => {
     console.log('[Scene_Reflect] handlePhotoSubmit called', file.name);
+    
+    // Start audio on first interaction (if not already started)
+    if (!audioStarted && !isMuted()) {
+      console.log('[Scene_Reflect] Starting ambient sound on image upload');
+      playAmbientSound();
+      setAudioStarted(true);
+    }
+    
     setIsSubmitting(true);
     setScenePhase('completing');
     setSelectedPhoto(file);
@@ -896,6 +904,14 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
                   <VoiceOrb
                     onTranscript={handleVoiceSubmit}
                     disabled={isSubmitting}
+                    onRecordingStart={() => {
+                      console.log('[Scene_Reflect] Recording started - pausing music');
+                      pauseAmbientSound();
+                    }}
+                    onRecordingStop={() => {
+                      console.log('[Scene_Reflect] Recording stopped - resuming music');
+                      resumeAmbientSound();
+                    }}
                   />
                   
                   {/* Back to notebook */}

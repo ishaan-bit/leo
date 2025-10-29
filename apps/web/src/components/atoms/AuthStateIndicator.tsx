@@ -33,7 +33,7 @@ export default function AuthStateIndicator({ userName, isGuest }: AuthStateIndic
       >
         {/* Status text with shimmer */}
         <motion.div
-          className="text-sm font-serif italic text-pink-900/80"
+          className="text-xs font-serif italic text-pink-900/80 whitespace-nowrap"
           style={{ 
             fontFamily: "'DM Serif Text', serif",
             letterSpacing: '0.01em'
