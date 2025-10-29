@@ -1410,8 +1410,29 @@ export default function MomentsLibrary({
                     {/* WhatsApp Share button */}
                     <motion.button
                       onClick={() => {
-                        const text = `${selectedMoment.text}\n\nYou're feeling: ${selectedMoment.invoked} → ${selectedMoment.expressed}\n\n— from Noen`;
-                        const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+                        // Build rich text with all moment details
+                        let shareText = `✨ ${selectedMoment.text}\n\n`;
+                        shareText += `💭 You're feeling: ${selectedMoment.invoked} → ${selectedMoment.expressed}\n\n`;
+                        
+                        // Add first poem if available
+                        if (selectedMoment.poems && selectedMoment.poems.length > 0) {
+                          shareText += `${selectedMoment.poems[0]}\n\n`;
+                        }
+                        
+                        // Add song recommendation if available
+                        const songs = selectedMoment.songs;
+                        const song = songs?.en || songs?.hi;
+                        if (song?.title) {
+                          shareText += `🎵 Song for this moment:\n"${song.title}"`;
+                          if (song.artist) shareText += ` — ${song.artist}`;
+                          if (song.year) shareText += ` (${song.year})`;
+                          if (song.youtube_url) shareText += `\n${song.youtube_url}`;
+                          shareText += '\n\n';
+                        }
+                        
+                        shareText += `— held safe by Noen 🌸`;
+                        
+                        const url = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
                         window.open(url, '_blank');
                       }}
                       className="w-8 h-8 flex items-center justify-center rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-offset-1"
