@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { kv } from '@vercel/kv';
 
 // This API serves publicly shareable moments
 // It only returns non-sensitive data suitable for sharing
@@ -9,39 +10,35 @@ export async function GET(
   const { momentId } = params;
 
   try {
-    const upstashUrl = process.env.UPSTASH_REDIS_REST_URL;
-    const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+    console.log('[Share API] Request for momentId:', momentId);
 
-    if (!upstashUrl || !upstashToken) {
-      return NextResponse.json(
-        { error: 'Redis configuration missing' },
-        { status: 500 }
-      );
-    }
-
-    // Fetch moment from Redis - use reflection: prefix
-    const response = await fetch(`${upstashUrl}/get/reflection:${momentId}`, {
-      headers: {
-        Authorization: `Bearer ${upstashToken}`,
-      },
-    });
-
-    if (!response.ok) {
+    // Fetch moment from Redis using @vercel/kv (same as moments API)
+    const reflectionKey = `reflection:${momentId}`;
+    console.log('[Share API] Fetching key:', reflectionKey);
+    
+    const reflectionData = await kv.get(reflectionKey);
+    
+    if (!reflectionData) {
+      console.error('[Share API] Reflection not found:', reflectionKey);
       return NextResponse.json(
         { error: 'Moment not found' },
         { status: 404 }
       );
     }
-
-    const data = await response.json();
     
-    // Handle both string and object responses from Upstash
-    let moment = data.result;
-    if (typeof moment === 'string') {
-      moment = JSON.parse(moment);
-    }
+    // Parse if it's a string
+    const moment = typeof reflectionData === 'string' 
+      ? JSON.parse(reflectionData) 
+      : reflectionData;
+
+    console.log('[Share API] Found moment:', {
+      hasData: !!moment,
+      hasFinal: !!moment?.final,
+      hasText: !!(moment?.normalized_text || moment?.raw_text || moment?.text),
+    });
 
     if (!moment || !moment.final) {
+      console.error('[Share API] Moment data incomplete');
       return NextResponse.json(
         { error: 'Moment not found or not enriched yet' },
         { status: 404 }
