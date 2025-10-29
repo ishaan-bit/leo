@@ -4,8 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
-import AuthStateIndicator from '../atoms/AuthStateIndicator';
-import SoundToggle from '../atoms/SoundToggle';
+import TopNav from '../molecules/TopNav';
 import { useEnrichmentStatus } from '@/hooks/useEnrichmentStatus';
 import { getZone, type PrimaryEmotion } from '@/lib/zones';
 
@@ -397,23 +396,16 @@ export default function CityInterlude({
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden">
-      {/* Sound Toggle - Persists through interlude */}
-      <SoundToggle />
-      
-      {/* Auth State Indicator - Aligned with side buttons (Living City icon would be on left in Scene_Reflect) */}
-      <div 
-        className="fixed left-0 right-0 z-50 flex justify-center px-4 md:px-6" 
-        style={{
-          top: 'max(1rem, env(safe-area-inset-top))', // Align with SoundToggle
-        }}
-      >
-        <div className="flex items-center gap-2 md:gap-4 backdrop-blur-sm bg-white/30 rounded-full px-3 py-1.5 md:px-4 md:py-2">
-          <AuthStateIndicator 
-            userName={session?.user?.name || session?.user?.email}
-            isGuest={status === 'unauthenticated'}
-          />
-        </div>
-      </div>
+      {/* Top navigation - horizontally aligned */}
+      <TopNav
+        centerElement={
+          <div className="flex items-center gap-2 md:gap-4 backdrop-blur-sm bg-white/30 rounded-full px-3 py-1.5 md:px-4 md:py-2">
+            <span className="text-xs md:text-sm text-pink-900/80">
+              {status === 'unauthenticated' ? 'Guest mode 🌸' : (session?.user?.name || session?.user?.email)}
+            </span>
+          </div>
+        }
+      />
 
       {/* Breathing fluid background - updates at 60fps like water flowing */}
       <div

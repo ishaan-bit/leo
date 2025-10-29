@@ -5,8 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import PinkPig from '../molecules/PinkPig';
-import SoundToggle from '../atoms/SoundToggle';
-import AuthStateIndicator from '../atoms/AuthStateIndicator';
+import TopNav from '../molecules/TopNav';
 
 // Dreamscape timing - slowed down for gentle, contemplative experience
 const timings = {
@@ -280,27 +279,20 @@ export default function MicroDreamCinematic({ dream, pigName = 'Your Pig', onCom
 
       {/* Clouds removed - was causing text blur */}
 
-      {/* Auth State Indicator - top center */}
-      <div className="fixed top-0 left-0 right-0 z-50 flex items-start justify-center px-6 py-4 pointer-events-none"
-        style={{
-          paddingTop: 'max(1rem, env(safe-area-inset-top))',
-        }}
-      >
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.6 }}
-          className="pointer-events-auto"
-        >
-          <AuthStateIndicator 
-            userName={session?.user?.name}
-            isGuest={status === 'unauthenticated'}
-          />
-        </motion.div>
-      </div>
-
-      {/* Sound Toggle - top right */}
-      <SoundToggle />
+      {/* Top navigation - horizontally aligned */}
+      <TopNav
+        centerElement={
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.6 }}
+          >
+            <span className="text-xs md:text-sm text-pink-900/80">
+              {status === 'unauthenticated' ? 'Guest mode 🌸' : (session?.user?.name)}
+            </span>
+          </motion.div>
+        }
+      />
 
       {/* Pig (floating, centered higher - will transition to moment page position) */}
       <div className="absolute inset-x-0 z-20 flex justify-center" style={{ top: '12%' }}>

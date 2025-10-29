@@ -10,6 +10,7 @@ import CameraUpload from '../atoms/CameraUpload';
 import AuthStateIndicator from '../atoms/AuthStateIndicator';
 import SoundToggle from '../atoms/SoundToggle';
 import MomentsNavIcon from '../atoms/MomentsNavIcon';
+import TopNav from '../molecules/TopNav';
 import CityInterlude from '../organisms/CityInterlude';
 import BreathingSequence from '../organisms/BreathingSequence';
 import MomentsLibrary from '../organisms/MomentsLibrary';
@@ -630,32 +631,21 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   if (showBreathing && currentReflectionId && breathingContext) {
     return (
       <>
-        {/* Keep Auth state and Sound toggle visible during breathing */}
-        <div className="fixed left-0 right-0 z-[60] flex items-center justify-center px-6 pointer-events-none"
-          style={{
-            top: 'max(1rem, env(safe-area-inset-top))', // Align with side buttons
-            paddingLeft: 'max(1.5rem, env(safe-area-inset-left))',
-            paddingRight: 'max(1.5rem, env(safe-area-inset-right))',
-          }}
-        >
-          <motion.div
-            initial={{ opacity: 1 }}
-            className="pointer-events-auto"
-          >
+        {/* Top navigation - horizontally aligned */}
+        <TopNav
+          leftElement={
+            <MomentsNavIcon onClick={() => {
+              setShowBreathing(false);
+              setTimeout(() => setShowMomentsLibrary(true), 300);
+            }} />
+          }
+          centerElement={
             <AuthStateIndicator 
               userName={session?.user?.name}
               isGuest={status === 'unauthenticated'}
             />
-          </motion.div>
-        </div>
-        
-        <SoundToggle />
-        
-        {/* Moments Navigation Icon - allow skipping to library from breathing */}
-        <MomentsNavIcon onClick={() => {
-          setShowBreathing(false);
-          setTimeout(() => setShowMomentsLibrary(true), 300);
-        }} />
+          }
+        />
         
         <BreathingSequence
           reflectionId={currentReflectionId}
@@ -675,35 +665,22 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   if (showMomentsLibrary) {
     return (
       <>
-        {/* Keep Auth state and Sound toggle visible - hide when moment is expanded */}
+        {/* Top navigation - horizontally aligned */}
         {!isMomentExpanded && (
-          <>
-            <div className="fixed left-0 right-0 z-[60] flex items-center justify-center px-6 pointer-events-none"
-              style={{
-                top: 'max(1rem, env(safe-area-inset-top))', // Align with side buttons
-                paddingLeft: 'max(1.5rem, env(safe-area-inset-left))',
-                paddingRight: 'max(1.5rem, env(safe-area-inset-right))',
-              }}
-            >
-              <motion.div
-                initial={{ opacity: 1 }}
-                className="pointer-events-auto"
-              >
-                <AuthStateIndicator 
-                  userName={session?.user?.name}
-                  isGuest={status === 'unauthenticated'}
-                />
-              </motion.div>
-            </div>
-            
-            <SoundToggle />
-          </>
+          <TopNav
+            centerElement={
+              <AuthStateIndicator 
+                userName={session?.user?.name}
+                isGuest={status === 'unauthenticated'}
+              />
+            }
+          />
         )}
         
         <MomentsLibrary
           pigId={pigId}
           pigName={pigName}
-          currentPrimary={(breathingContext?.primary || 'joy') as PrimaryEmotion} // Default to joy if no context
+          currentPrimary={(breathingContext?.primary || 'joy') as PrimaryEmotion}
           onNewReflection={handleNewReflection}
           onMomentSelected={setIsMomentExpanded}
         />
@@ -755,35 +732,26 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
         }}
       />
       
-      {/* Top bar: Auth state centered - all navigation aligned to same top position */}
-      <div className="fixed left-0 right-0 z-30 flex items-center justify-center px-6 pointer-events-none"
-        style={{
-          top: 'max(1rem, env(safe-area-inset-top))', // Consistent with MomentsNav and SoundToggle
-          paddingLeft: 'max(1.5rem, env(safe-area-inset-left))',
-          paddingRight: 'max(1.5rem, env(safe-area-inset-right))',
-        }}
-      >
-        {/* Auth state indicator - centered */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4, ease: [0.34, 1.56, 0.64, 1] }}
-          className="pointer-events-auto"
-        >
-          <AuthStateIndicator 
-            userName={session?.user?.name}
-            isGuest={status === 'unauthenticated'}
-          />
-        </motion.div>
-      </div>
-      
-      {/* Sound toggle - rendered separately, positions itself with fixed */}
-      <SoundToggle />
-      
-      {/* Moments Navigation Icon - links to Living City */}
-      {!showBreathing && !showMomentsLibrary && (
-        <MomentsNavIcon onClick={() => setShowMomentsLibrary(true)} />
-      )}
+      {/* Top navigation - horizontally aligned */}
+      <TopNav
+        leftElement={
+          !showBreathing && !showMomentsLibrary ? (
+            <MomentsNavIcon onClick={() => setShowMomentsLibrary(true)} />
+          ) : undefined
+        }
+        centerElement={
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4, ease: [0.34, 1.56, 0.64, 1] }}
+          >
+            <AuthStateIndicator 
+              userName={session?.user?.name}
+              isGuest={status === 'unauthenticated'}
+            />
+          </motion.div>
+        }
+      />
       
       {/* Atmospheric particles with time-based colors */}
       <div className="absolute inset-0 pointer-events-none">
