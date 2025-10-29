@@ -72,6 +72,8 @@ export async function GET(
           hasFinal: !!data.final,
           primaryEmotion: data.final?.wheel?.primary,
           text: data.normalized_text?.slice(0, 50),
+          hasImage: !!(data.image_base64 || data.caption?.image_base64),
+          imageSize: data.image_base64?.length || data.caption?.image_base64?.length || 0,
         });
         
         // Extract primary zone from final.wheel.primary (e.g., "scared" → scared zone)
@@ -133,6 +135,7 @@ export async function GET(
           valence: data.final?.valence || data.valence || 0.5,
           arousal: data.final?.arousal || data.arousal || 0.5,
           songs: data.songs || null, // Include songs data from enrichment worker
+          image_base64: data.image_base64 || data.caption?.image_base64 || undefined, // Include image data if present
         };
         
         moments.push(moment);
