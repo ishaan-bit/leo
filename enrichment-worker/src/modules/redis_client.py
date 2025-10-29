@@ -38,7 +38,7 @@ class RedisClient:
                 self.url,
                 json=command,
                 headers=self.headers,
-                timeout=10
+                timeout=60  # Increased from 10s - large payloads (images) need more time
             )
             
             if response.status_code == 200:
