@@ -170,12 +170,13 @@ export default function ShareMomentPage() {
   const embedUrl = getYouTubeEmbedUrl(song?.youtube_url);
 
   return (
-    <div 
-      className="min-h-screen w-full overflow-y-auto py-8 sm:py-12 px-4"
-      style={{
-        background: `radial-gradient(circle at center, ${atmosphere.gradient[0]} 0%, ${atmosphere.gradient[1]} 50%, ${atmosphere.gradient[2]} 100%)`,
-      }}
-    >
+    <div className="fixed inset-0 overflow-y-auto">
+      <div 
+        className="min-h-screen w-full py-8 sm:py-12 px-4"
+        style={{
+          background: `radial-gradient(circle at center, ${atmosphere.gradient[0]} 0%, ${atmosphere.gradient[1]} 50%, ${atmosphere.gradient[2]} 100%)`,
+        }}
+      >
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -530,6 +531,7 @@ export default function ShareMomentPage() {
           </div>
         </div>
       </motion.div>
+      </div>
     </div>
   );
 }
