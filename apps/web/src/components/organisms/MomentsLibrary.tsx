@@ -1575,10 +1575,11 @@ export default function MomentsLibrary({
                         {/* Copy Share Link */}
                         <motion.button
                           onClick={() => {
-                            const shareableUrl = `${window.location.origin}/share/${selectedMoment.id}`;
+                            const languageParam = language === 'hi' ? '?lang=hi' : '';
+                            const shareableUrl = `${window.location.origin}/share/${selectedMoment.id}${languageParam}`;
                             navigator.clipboard.writeText(shareableUrl).then(() => {
                               // Optional: You could add a toast notification here
-                              console.log('[Share] Link copied to clipboard');
+                              console.log('[Share] Link copied to clipboard:', shareableUrl);
                             }).catch(err => {
                               console.error('[Share] Failed to copy link:', err);
                             });

@@ -47,6 +47,7 @@ export default function VoiceOrb({ onTranscript, disabled = false, onRecordingSt
   const [transcript, setTranscript] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [transcriptionStrategy, setTranscriptionStrategy] = useState<'webspeech' | 'deepgram' | null>(null);
+  const [audioLevel, setAudioLevel] = useState(0); // Audio level for visual feedback
   
   // Web Speech API refs
   const recognitionRef = useRef<any>(null);
@@ -58,6 +59,7 @@ export default function VoiceOrb({ onTranscript, disabled = false, onRecordingSt
   const analyserRef = useRef<AnalyserNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const startTimeRef = useRef<number>(0);
+  const animationFrameRef = useRef<number | null>(null);
   
   // Typing animation refs
   const typingIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -87,6 +89,7 @@ export default function VoiceOrb({ onTranscript, disabled = false, onRecordingSt
   useEffect(() => {
     return () => {
       if (typingIntervalRef.current) clearInterval(typingIntervalRef.current);
+      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
       if (recognitionRef.current) {
         try {
           recognitionRef.current.stop();
@@ -410,6 +413,36 @@ export default function VoiceOrb({ onTranscript, disabled = false, onRecordingSt
       onRecordingStart?.();
       startTimeRef.current = Date.now();
       
+      // Start audio level monitoring with requestAnimationFrame for smooth updates
+      const monitorAudioLevel = () => {
+        if (!analyserRef.current || !isRecording) {
+          setAudioLevel(0);
+          return;
+        }
+        
+        const analyser = analyserRef.current;
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        
+        analyser.getByteTimeDomainData(dataArray);
+        
+        // Calculate amplitude (0-1 range)
+        let sum = 0;
+        for (let i = 0; i < bufferLength; i++) {
+          const normalized = (dataArray[i] - 128) / 128;
+          sum += Math.abs(normalized);
+        }
+        const amplitude = sum / bufferLength;
+        
+        // Update audio level for visual feedback (0-100)
+        setAudioLevel(Math.min(amplitude * 200, 100)); // Amplify for visibility
+        
+        // Continue monitoring
+        animationFrameRef.current = requestAnimationFrame(monitorAudioLevel);
+      };
+      
+      monitorAudioLevel();
+      
       const analysisInterval = setInterval(analyzeAudio, 100);
       (window as any).__voiceOrbCleanup = () => clearInterval(analysisInterval);
       
@@ -427,7 +460,14 @@ export default function VoiceOrb({ onTranscript, disabled = false, onRecordingSt
   // === HYBRID STOP ===
   const handleStop = () => {
     setIsRecording(false);
+    setAudioLevel(0); // Reset audio level
     onRecordingStop?.();
+    
+    // Stop audio level monitoring
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
     
     // Stop Web Speech
     if (recognitionRef.current) {
@@ -504,7 +544,7 @@ export default function VoiceOrb({ onTranscript, disabled = false, onRecordingSt
         className={`
           relative w-32 h-32 rounded-full
           flex items-center justify-center
-          transition-all duration-300
+          transition-all duration-150
           ${disabled || isProcessing
             ? 'bg-pink-200 cursor-not-allowed'
             : isRecording
@@ -513,12 +553,12 @@ export default function VoiceOrb({ onTranscript, disabled = false, onRecordingSt
           }
         `}
         animate={isRecording ? {
-          scale: [1, 1.1, 1],
+          scale: 1 + (audioLevel / 200), // Scale 1.0-1.5 based on audio level
+          boxShadow: `0 0 ${20 + audioLevel}px rgba(236, 72, 153, ${0.5 + audioLevel / 200})`,
         } : {}}
         transition={{
-          duration: 1,
-          repeat: isRecording ? Infinity : 0,
-          ease: 'easeInOut',
+          duration: 0.1,
+          ease: 'easeOut',
         }}
       >
         {/* Microphone icon */}
@@ -558,6 +598,32 @@ export default function VoiceOrb({ onTranscript, disabled = false, onRecordingSt
             </>
           )}
         </AnimatePresence>
+        
+        {/* Audio level indicator - animated bars */}
+        <AnimatePresence>
+          {isRecording && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1"
+            >
+              {[0, 1, 2, 3, 4].map((i) => (
+                <motion.div
+                  key={i}
+                  className="w-1 bg-white rounded-full"
+                  animate={{
+                    height: audioLevel > (i * 20) ? `${Math.max(4, audioLevel / 5)}px` : '4px',
+                  }}
+                  transition={{
+                    duration: 0.1,
+                    ease: 'easeOut',
+                  }}
+                />
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.button>
       
       {/* Instructions */}
@@ -566,7 +632,7 @@ export default function VoiceOrb({ onTranscript, disabled = false, onRecordingSt
           {isProcessing
             ? 'Processing...'
             : isRecording
-              ? 'Recording... Release to finish'
+              ? `${audioLevel > 10 ? '🎤 ' : ''}Recording... Release to finish`
               : 'Press and hold to speak'
           }
         </p>
