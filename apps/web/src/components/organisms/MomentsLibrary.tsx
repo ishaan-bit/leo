@@ -119,6 +119,17 @@ export default function MomentsLibrary({
       setIsTranslating(false);
       setImageLoadError(false);
       setImageRendered(false);
+      
+      // Stop YouTube player if it was playing
+      const iframes = document.querySelectorAll('iframe[src*="youtube.com/embed"]');
+      iframes.forEach((iframe) => {
+        try {
+          (iframe as HTMLIFrameElement).contentWindow?.postMessage('{"event":"command","func":"stopVideo","args":""}', '*');
+          console.log('[MomentsLibrary] Stopped YouTube player on modal close');
+        } catch (e) {
+          // Ignore errors if iframe is from different origin
+        }
+      });
     }
   }, [selectedMoment]);
 
@@ -2020,6 +2031,12 @@ export default function MomentsLibrary({
                             {/* YouTube iframe embed - lazy loaded */}
                             <div className="relative" style={{ paddingBottom: '56.25%' /* 16:9 aspect ratio */ }}>
                               <iframe
+                                ref={(iframe) => {
+                                  if (iframe && finalUrl) {
+                                    // Store ref for player control
+                                    (iframe as any)._youtubeReady = false;
+                                  }
+                                }}
                                 src={(() => {
                                   if (!finalUrl) return '';
                                   // Extract video ID from URL and convert to embed URL
@@ -2039,6 +2056,8 @@ export default function MomentsLibrary({
                                 title={title ? `${title} by ${artist}` : 'Song recommendation'}
                                 aria-label={title ? `YouTube player — ${title} by ${artist}` : 'YouTube player'}
                                 onLoad={(e) => {
+                                  const iframe = e.currentTarget as HTMLIFrameElement;
+                                  
                                   // Set up message listener for YouTube player events
                                   const handleYouTubeMessage = (event: MessageEvent) => {
                                     if (event.origin !== 'https://www.youtube.com') return;
@@ -2047,29 +2066,47 @@ export default function MomentsLibrary({
                                       const data = JSON.parse(event.data);
                                       if (data.event === 'infoDelivery' && data.info?.playerState !== undefined) {
                                         const state = data.info.playerState;
-                                        // 1 = playing, 2 = paused, 0 = ended
+                                        // -1 = unstarted, 0 = ended, 1 = playing, 2 = paused, 3 = buffering, 5 = cued
                                         if (state === 1) {
                                           // YouTube is playing - mute ambient
                                           const { stopAmbientSound } = require('@/lib/sound');
                                           stopAmbientSound();
                                           console.log('[MomentsLibrary] YouTube playing - muted ambient');
-                                        } else if (state === 2 || state === 0) {
-                                          // YouTube paused or ended - resume ambient
+                                        } else if (state === 2) {
+                                          // YouTube paused - resume ambient
                                           const { playAmbientSound, isMuted } = require('@/lib/sound');
                                           if (!isMuted()) {
                                             playAmbientSound();
-                                            console.log('[MomentsLibrary] YouTube paused/ended - resumed ambient');
+                                            console.log('[MomentsLibrary] YouTube paused - resumed ambient');
+                                          }
+                                        } else if (state === 0) {
+                                          // YouTube ended - stop player and resume ambient
+                                          console.log('[MomentsLibrary] YouTube ended - stopping player');
+                                          iframe.contentWindow?.postMessage('{"event":"command","func":"stopVideo","args":""}', '*');
+                                          const { playAmbientSound, isMuted } = require('@/lib/sound');
+                                          if (!isMuted()) {
+                                            playAmbientSound();
+                                            console.log('[MomentsLibrary] YouTube ended - resumed ambient');
                                           }
                                         }
                                       }
                                     } catch {}
                                   };
                                   
+                                  // Clean up old listener if exists
+                                  if ((iframe as any)._messageHandler) {
+                                    window.removeEventListener('message', (iframe as any)._messageHandler);
+                                  }
+                                  
+                                  // Store handler reference for cleanup
+                                  (iframe as any)._messageHandler = handleYouTubeMessage;
                                   window.addEventListener('message', handleYouTubeMessage);
                                   
                                   // Request player state updates
-                                  const iframe = e.currentTarget as HTMLIFrameElement;
                                   iframe.contentWindow?.postMessage('{"event":"listening","id":"1"}', '*');
+                                }}
+                                onError={(e) => {
+                                  console.error('[MomentsLibrary] YouTube iframe error - video may not be embeddable');
                                 }}
                               />
                             </div>
