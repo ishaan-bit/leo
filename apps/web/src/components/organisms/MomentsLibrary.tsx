@@ -169,6 +169,23 @@ export default function MomentsLibrary({
           closingLine: closingResult.translatedText,
         });
 
+        // Save translation to Redis for sharing
+        try {
+          await fetch(`/api/moments/${selectedMoment.id}/translate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              text: textResult.translatedText,
+              invoked: invokedResult.translatedText,
+              expressed: expressedResult.translatedText,
+              poems: poemResults.map(r => r.translatedText),
+            }),
+          });
+        } catch (err) {
+          console.error('[Translation] Failed to save to Redis:', err);
+          // Continue anyway - translation still works in UI
+        }
+
         setLanguage('hi');
         
         // Announce language change for accessibility
@@ -1455,6 +1472,7 @@ export default function MomentsLibrary({
                           onClick={async () => {
                             // Determine which content to use based on language toggle
                             const isHindi = language === 'hi';
+                            console.log('[WhatsApp Share] Current language:', language, 'isHindi:', isHindi);
                             const content = isHindi && translatedContent ? translatedContent : {
                               text: selectedMoment.text,
                               invoked: selectedMoment.invoked,
@@ -1519,6 +1537,7 @@ export default function MomentsLibrary({
                             // Include language parameter if viewing in Hindi
                             const languageParam = isHindi ? '?lang=hi' : '';
                             const shareableUrl = `${window.location.origin}/share/${selectedMoment.id}${languageParam}`;
+                            console.log('[WhatsApp Share] Share URL:', shareableUrl);
                             if (selectedMoment.image_base64) {
                               shareText += `\nView with photo:\n${shareableUrl}\n`;
                               shareText += `\n(Tap to see the full moment with image)`;
