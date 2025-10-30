@@ -78,6 +78,9 @@ export default function ShareMomentPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Set page title
+    document.title = 'Your Moment Held Safe';
+    
     async function fetchSharedMoment() {
       try {
         const response = await fetch(`/api/share/${momentId}`);
@@ -100,11 +103,41 @@ export default function ShareMomentPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50">
         <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-          className="text-4xl"
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ 
+            duration: 0.8,
+            ease: [0.4, 0, 0.2, 1],
+            scale: {
+              type: "spring",
+              damping: 15,
+              stiffness: 100
+            }
+          }}
+          className="text-center"
         >
-          🌸
+          <motion.div
+            animate={{ 
+              scale: [1, 1.1, 1],
+              opacity: [0.5, 1, 0.5]
+            }}
+            transition={{ 
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            className="text-6xl mb-4"
+          >
+            🌸
+          </motion.div>
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="text-pink-800/60 text-sm"
+          >
+            Opening your moment...
+          </motion.p>
         </motion.div>
       </div>
     );
@@ -138,7 +171,7 @@ export default function ShareMomentPage() {
 
   return (
     <div 
-      className="min-h-screen w-full overflow-y-auto py-8 sm:py-12 px-4 flex items-center justify-center"
+      className="min-h-screen w-full overflow-y-auto py-8 sm:py-12 px-4"
       style={{
         background: `radial-gradient(circle at center, ${atmosphere.gradient[0]} 0%, ${atmosphere.gradient[1]} 50%, ${atmosphere.gradient[2]} 100%)`,
       }}
@@ -147,7 +180,7 @@ export default function ShareMomentPage() {
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
-        className="relative max-w-2xl w-full"
+        className="relative max-w-2xl w-full mx-auto mb-8"
         style={{
           backdropFilter: 'blur(12px) saturate(120%) brightness(1.05)',
           borderRadius: '32px',
