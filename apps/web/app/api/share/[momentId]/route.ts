@@ -69,6 +69,11 @@ export async function GET(
       pig_name: pigName, // Use fetched pig name from storage
       primaryEmotion: moment.final?.wheel?.primary || 'peaceful',
       songs: moment.songs,
+      // Include Hindi translations if available
+      text_hi: moment.translation_hi?.text,
+      invoked_hi: moment.translation_hi?.invoked,
+      expressed_hi: moment.translation_hi?.expressed,
+      poems_hi: moment.translation_hi?.poems,
     };
 
     return NextResponse.json(shareableData);
