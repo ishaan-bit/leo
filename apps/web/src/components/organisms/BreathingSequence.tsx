@@ -108,6 +108,11 @@ export default function BreathingSequence({
   useEffect(() => {
     const initWords = async () => {
       try {
+        console.log('[Breathing] 🔍 DEBUG initWords:', {
+          'invokedWords prop': invokedWords,
+          'invokedWords.length': invokedWords.length,
+        });
+        
         const response = await fetch(`/api/reflect/${reflectionId}`);
         if (!response.ok) throw new Error('Failed to fetch reflection');
         
@@ -117,22 +122,28 @@ export default function BreathingSequence({
         // 1. Invoked words (primary source)
         if (invokedWords.length > 0) pool.push(...invokedWords);
         
+        console.log('[Breathing] 🔍 After invokedWords, pool:', pool);
+        
         // 2. Expressed emotion
         if (reflection.final?.expressed && reflection.final.expressed !== 'null') {
           const expressed = reflection.final.expressed.split(/[+\s]+/).map((w: string) => w.trim()).filter(Boolean);
           pool.push(...expressed);
         }
         
+        console.log('[Breathing] 🔍 After expressed, pool:', pool);
+        
         // 3. Wheel emotions ONLY (no random text words)
         if (reflection.final?.wheel?.primary) pool.push(reflection.final.wheel.primary);
         if (reflection.final?.wheel?.secondary) pool.push(reflection.final.wheel.secondary);
         if (reflection.final?.wheel?.tertiary) pool.push(reflection.final.wheel.tertiary);
         
+        console.log('[Breathing] 🔍 After wheel, pool:', pool);
+        
         // Filter out short/meaningless words
         const filteredPool = pool.filter(w => w && w.length > 2);
         
         wordPool.current = filteredPool.length > 0 ? filteredPool : [...FALLBACK_WORDS];
-        console.log('[Breathing] Word pool:', wordPool.current.length, 'words', wordPool.current);
+        console.log('[Breathing] ✅ Final word pool:', wordPool.current.length, 'words', wordPool.current);
       } catch (error) {
         console.error('[Breathing] Failed to load words:', error);
         wordPool.current = [...FALLBACK_WORDS];
@@ -253,10 +264,22 @@ export default function BreathingSequence({
 
   // Add floating words periodically - fade out when Stage 2 completes
   useEffect(() => {
-    if (!isReady || wordPool.current.length === 0) return;
+    console.log('[Breathing] 🔍 Floating words effect check:', {
+      isReady,
+      'wordPool.length': wordPool.current.length,
+      stage2Complete,
+    });
+    
+    if (!isReady || wordPool.current.length === 0) {
+      console.log('[Breathing] ⏸️ Floating words paused - isReady:', isReady, 'wordPool:', wordPool.current.length);
+      return;
+    }
+    
+    console.log('[Breathing] ▶️ Starting floating words with pool:', wordPool.current);
     
     // Stop and clear all words when Stage 2 completes
     if (stage2Complete) {
+      console.log('[Breathing] 🧹 Stage 2 complete, clearing all floating words');
       setWords([]); // Clear all existing words
       return;
     }

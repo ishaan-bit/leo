@@ -527,6 +527,13 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
             : reflection.final.invoked.split(/[+\s]+/).map((w: string) => w.trim()))
         : (reflection.final?.events?.labels || []);
       
+      console.log('[Scene_Reflect] 🔍 DEBUG invokedWords:', {
+        'reflection.final.invoked': reflection.final?.invoked,
+        'reflection.final.events.labels': reflection.final?.events?.labels,
+        'invokedWords result': invokedWords,
+        'invokedWords.length': invokedWords.length,
+      });
+      
       console.log('[Scene_Reflect] ✅ Transitioning to breathing:', {
         primary: primaryEmotion,
         secondary: reflection.final?.wheel?.secondary,
@@ -624,60 +631,64 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   // If showing interlude or breathing, render them as overlay
   if (showInterlude || showBreathing) {
     return (
-      <AnimatePresence mode="wait">
-        {showInterlude && currentReflectionId && (
-          <motion.div
-            key="city-interlude"
-            initial={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
-          >
-            <CityInterlude
-              reflectionId={currentReflectionId}
-              pigName={pigName}
-              onComplete={handleInterludeComplete}
-              onTimeout={handleInterludeTimeout}
-            />
-          </motion.div>
-        )}
+      <div className="fixed inset-0 bg-gradient-to-br from-pink-50 to-rose-100">
+        <AnimatePresence mode="wait">
+          {showInterlude && currentReflectionId && (
+            <motion.div
+              key="city-interlude"
+              initial={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
+              className="fixed inset-0"
+            >
+              <CityInterlude
+                reflectionId={currentReflectionId}
+                pigName={pigName}
+                onComplete={handleInterludeComplete}
+                onTimeout={handleInterludeTimeout}
+              />
+            </motion.div>
+          )}
 
-        {/* If showing breathing sequence, render it WITH persistent UI elements */}
-        {showBreathing && currentReflectionId && breathingContext && (
-          <motion.div
-            key="breathing-sequence"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
-          >
-            {/* Top navigation - horizontally aligned */}
-            <TopNav
-              leftElement={
-                <MomentsNavIcon onClick={() => {
-                  setShowBreathing(false);
-                  setTimeout(() => setShowMomentsLibrary(true), 300);
-                }} />
-              }
-              centerElement={
-                <AuthStateIndicator 
-                  userName={session?.user?.name}
-                  isGuest={status === 'unauthenticated'}
-                />
-              }
-            />
-            
-            <BreathingSequence
-              reflectionId={currentReflectionId}
-              primary={breathingContext.primary}
-              secondary={breathingContext.secondary}
-              zoneName={breathingContext.zoneName}
-              zoneColor={breathingContext.zoneColor}
-              invokedWords={breathingContext.invokedWords}
-              pigName={pigName}
-              onComplete={handleBreathingComplete}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+          {/* If showing breathing sequence, render it WITH persistent UI elements */}
+          {showBreathing && currentReflectionId && breathingContext && (
+            <motion.div
+              key="breathing-sequence"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
+              className="fixed inset-0"
+            >
+              {/* Top navigation - horizontally aligned */}
+              <TopNav
+                leftElement={
+                  <MomentsNavIcon onClick={() => {
+                    setShowBreathing(false);
+                    setTimeout(() => setShowMomentsLibrary(true), 300);
+                  }} />
+                }
+                centerElement={
+                  <AuthStateIndicator 
+                    userName={session?.user?.name}
+                    isGuest={status === 'unauthenticated'}
+                  />
+                }
+              />
+              
+              <BreathingSequence
+                reflectionId={currentReflectionId}
+                primary={breathingContext.primary}
+                secondary={breathingContext.secondary}
+                zoneName={breathingContext.zoneName}
+                zoneColor={breathingContext.zoneColor}
+                invokedWords={breathingContext.invokedWords}
+                pigName={pigName}
+                onComplete={handleBreathingComplete}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     );
   }
   
