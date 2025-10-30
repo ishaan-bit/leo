@@ -831,7 +831,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
       )}
 
       {/* Main content - centered vertically with reduced top padding and scrollable */}
-      <div className="relative z-10 flex flex-col items-center justify-start min-h-screen px-6 py-4 md:py-6 pt-12 pb-32 overflow-y-auto">
+      <div className="relative z-10 flex flex-col items-center justify-start min-h-screen px-6 py-4 md:py-6 pt-12 pb-32">
         {/* Pig avatar - SIMPLE, just like naming page */}
         <div ref={pigRef} className="mb-8">
           <PinkPig 
