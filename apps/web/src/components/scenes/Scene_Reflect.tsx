@@ -712,7 +712,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   if (showMicroDream && microDream) {
     return (
       <MicroDreamCinematic
-        dream={microDream}
+        dream={microDream as NonNullable<typeof microDream>}
         pigName={pigName}
         onComplete={async () => {
           // Clear micro-dream from Upstash after showing
