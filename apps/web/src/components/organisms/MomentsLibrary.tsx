@@ -1516,7 +1516,9 @@ export default function MomentsLibrary({
                             shareText += `${'~'.repeat(35)}\n`;
                             
                             // Add shareable link to view full moment (with image note if present)
-                            const shareableUrl = `${window.location.origin}/share/${selectedMoment.id}`;
+                            // Include language parameter if viewing in Hindi
+                            const languageParam = isHindi ? '?lang=hi' : '';
+                            const shareableUrl = `${window.location.origin}/share/${selectedMoment.id}${languageParam}`;
                             if (selectedMoment.image_base64) {
                               shareText += `\nView with photo:\n${shareableUrl}\n`;
                               shareText += `\n(Tap to see the full moment with image)`;

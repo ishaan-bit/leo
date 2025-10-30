@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { getZone } from '@/lib/zones';
 
@@ -18,6 +18,11 @@ interface SharedMoment {
     en?: { title: string; artist: string; year: number; youtube_url: string; why: string };
     hi?: { title: string; artist: string; year: number; youtube_url: string; why: string };
   };
+  // Hindi translations
+  text_hi?: string;
+  invoked_hi?: string;
+  expressed_hi?: string;
+  poems_hi?: string[];
 }
 
 // Atmosphere definitions (matching MomentsLibrary.tsx exactly)
@@ -72,7 +77,11 @@ const getAtmosphere = (zoneId: string | null) => {
 
 export default function ShareMomentPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const momentId = params.momentId as string;
+  const lang = searchParams.get('lang') || 'en'; // Get language from URL parameter
+  const isHindi = lang === 'hi';
+  
   const [moment, setMoment] = useState<SharedMoment | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -156,7 +165,13 @@ export default function ShareMomentPage() {
 
   const zone = getZone(moment.primaryEmotion);
   const atmosphere = getAtmosphere(zone?.id || null);
-  const song = moment.songs?.en || moment.songs?.hi;
+  
+  // Use Hindi content if language is Hindi and translations are available
+  const displayText = isHindi && moment.text_hi ? moment.text_hi : moment.text;
+  const displayInvoked = isHindi && moment.invoked_hi ? moment.invoked_hi : moment.invoked;
+  const displayExpressed = isHindi && moment.expressed_hi ? moment.expressed_hi : moment.expressed;
+  const displayPoems = isHindi && moment.poems_hi ? moment.poems_hi : moment.poems;
+  const song = isHindi ? (moment.songs?.hi || moment.songs?.en) : (moment.songs?.en || moment.songs?.hi);
   
   // Extract YouTube video ID and convert to embed URL
   const getYouTubeEmbedUrl = (url?: string) => {
@@ -304,7 +319,7 @@ export default function ShareMomentPage() {
                   textShadow: '0 1px 2px rgba(0,0,0,0.15)',
                 }}
               >
-                {moment.text}
+                {displayText}
               </p>
             </motion.div>
 
@@ -315,7 +330,7 @@ export default function ShareMomentPage() {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.5 }}
             >
-              {moment.invoked && (
+              {displayInvoked && (
                 <div
                   className="pl-6 border-l-2"
                   style={{ borderColor: `${atmosphere.accentColor}40` }}
@@ -344,12 +359,12 @@ export default function ShareMomentPage() {
                       textShadow: '0 1px 2px rgba(0,0,0,0.15)',
                     }}
                   >
-                    {moment.invoked}
+                    {displayInvoked}
                   </div>
                 </div>
               )}
               
-              {moment.expressed && (
+              {displayExpressed && (
                 <div
                   className="pl-6 border-l-2"
                   style={{ borderColor: `${atmosphere.accentColor}40` }}
@@ -378,14 +393,14 @@ export default function ShareMomentPage() {
                       textShadow: '0 1px 2px rgba(0,0,0,0.15)',
                     }}
                   >
-                    {moment.expressed}
+                    {displayExpressed}
                   </div>
                 </div>
               )}
             </motion.div>
 
             {/* Poems */}
-            {moment.poems && moment.poems.length > 0 && (
+            {displayPoems && displayPoems.length > 0 && (
               <motion.div
                 className="mb-12"
                 initial={{ opacity: 0 }}
@@ -404,7 +419,7 @@ export default function ShareMomentPage() {
                 >
                   What the wind remembered
                 </div>
-                {moment.poems.map((poem, index) => (
+                {displayPoems.map((poem, index) => (
                   <p
                     key={index}
                     className="text-center text-[15px] md:text-[16px] mb-6 italic"
