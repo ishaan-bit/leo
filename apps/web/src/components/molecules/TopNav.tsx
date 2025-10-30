@@ -31,25 +31,25 @@ export default function TopNav({ leftElement, centerElement, showSoundToggle = t
 
   return (
     <div 
-      className="fixed left-0 right-0 z-[60] pointer-events-none"
+      className="fixed left-0 right-0 z-[60] pointer-events-none flex items-center justify-between"
       style={{
         top: 'max(1rem, env(safe-area-inset-top))',
         paddingLeft: 'max(1.5rem, env(safe-area-inset-left))',
         paddingRight: 'max(1.5rem, env(safe-area-inset-right))',
       }}
     >
-      {/* Left element - absolute positioned */}
-      <div className="absolute left-4 md:left-6 pointer-events-auto flex items-center">
+      {/* Left element */}
+      <div className="pointer-events-auto flex items-center">
         {leftElement || <div className="w-8 h-8"></div>}
       </div>
       
-      {/* Center element - absolutely centered */}
+      {/* Center element - absolutely centered to avoid flex shifting */}
       <div className="absolute left-1/2 -translate-x-1/2 pointer-events-auto flex items-center justify-center">
         {centerElement}
       </div>
       
-      {/* Right: Sound toggle - absolute positioned */}
-      <div className="absolute right-4 md:right-6 pointer-events-auto flex items-center">
+      {/* Right: Sound toggle */}
+      <div className="pointer-events-auto flex items-center">
         {showSoundToggle && (
           <motion.button
             type="button"
