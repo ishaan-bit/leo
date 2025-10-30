@@ -1484,9 +1484,8 @@ export default function MomentsLibrary({
                             let shareText = '';
                             
                             // Header with elegant frame
-                            shareText += `╔════════════════════════════════╗\n`;
-                            shareText += `║   A MOMENT HELD SAFE           ║\n`;
-                            shareText += `╚════════════════════════════════╝\n\n`;
+                            shareText += `A MOMENT HELD SAFE\n`;
+                            shareText += `${'-'.repeat(35)}\n\n`;
                             
                             // Main reflection with quotation styling
                             shareText += `~ Your reflection ~\n\n`;
