@@ -1467,21 +1467,21 @@ export default function MomentsLibrary({
                             
                             // Header with elegant frame
                             shareText += `✨ A Moment Held Safe ✨\n`;
-                            shareText += `${'━'.repeat(32)}\n\n`;
+                            shareText += `${'-'.repeat(35)}\n\n`;
                             
                             // Main reflection with quotation styling
                             shareText += `💭 _Your reflection:_\n\n`;
                             shareText += `"${content.text}"\n\n`;
                             
                             // Emotional landscape
-                            shareText += `${'─'.repeat(32)}\n\n`;
+                            shareText += `${'-'.repeat(35)}\n\n`;
                             shareText += `💫 _The feeling:_\n\n`;
                             shareText += `${content.invoked}\n`;
-                            shareText += `  ⤷  ${content.expressed}\n\n`;
+                            shareText += `  ->  ${content.expressed}\n\n`;
                             
                             // Poem (if available) with decorative spacing
                             if (content.poems?.[0]) {
-                              shareText += `${'─'.repeat(32)}\n\n`;
+                              shareText += `${'-'.repeat(35)}\n\n`;
                               shareText += `🍃 _${content.poems[0]}_\n\n`;
                             }
                             
@@ -1491,7 +1491,7 @@ export default function MomentsLibrary({
                               : (selectedMoment.songs?.en || selectedMoment.songs?.hi);
                             
                             if (song?.title) {
-                              shareText += `${'─'.repeat(32)}\n\n`;
+                              shareText += `${'-'.repeat(35)}\n\n`;
                               shareText += `🎵 _A song for this moment:_\n\n`;
                               shareText += `   *${song.title}*\n`;
                               if (song.artist) shareText += `   by ${song.artist}\n`;
@@ -1500,7 +1500,7 @@ export default function MomentsLibrary({
                             }
                             
                             // Footer with date and signature
-                            shareText += `${'─'.repeat(32)}\n\n`;
+                            shareText += `${'-'.repeat(35)}\n\n`;
                             const momentDate = new Date(selectedMoment.timestamp).toLocaleDateString('en-US', {
                               month: 'long',
                               day: 'numeric',
@@ -1510,7 +1510,7 @@ export default function MomentsLibrary({
                             
                             // Pig name signature - use the prop pigName (user's saved name)
                             shareText += `held safe by *${pigName}* 🐷\n\n`;
-                            shareText += `${'━'.repeat(32)}\n`;
+                            shareText += `${'-'.repeat(35)}\n`;
                             
                             // Add shareable link to view full moment (with image note if present)
                             const shareableUrl = `${window.location.origin}/share/${selectedMoment.id}`;
