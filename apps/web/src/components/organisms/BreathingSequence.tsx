@@ -898,7 +898,7 @@ export default function BreathingSequence({
       <AnimatePresence>
         {words.map(word => {
           // Safe zones: avoid top 15% (auth bar), center 30-45% vertical (Leo + prompts)
-          // Place words in safe horizontal bands: left (10-35%), right (65-90%)
+          // Place words with more padding from edges to prevent cutoff
           const angle = word.angle;
           const normalizedAngle = (angle % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
           
@@ -906,20 +906,20 @@ export default function BreathingSequence({
           let x, y;
           
           if (normalizedAngle < Math.PI / 2) {
-            // Top-right quadrant ? place in upper-right safe zone
-            x = 65 + Math.random() * 20; // 65-85%
+            // Top-right quadrant → place in upper-right safe zone
+            x = 60 + Math.random() * 20; // 60-80% (more centered)
             y = 18 + Math.random() * 10; // 18-28% (below auth bar, above Leo)
           } else if (normalizedAngle < Math.PI) {
-            // Bottom-right quadrant ? place in lower-right safe zone
-            x = 65 + Math.random() * 20; // 65-85%
+            // Bottom-right quadrant → place in lower-right safe zone
+            x = 60 + Math.random() * 20; // 60-80% (more centered)
             y = 50 + Math.random() * 15; // 50-65% (below Leo, above towers)
           } else if (normalizedAngle < Math.PI * 1.5) {
-            // Bottom-left quadrant ? place in lower-left safe zone
-            x = 10 + Math.random() * 20; // 10-30%
+            // Bottom-left quadrant → place in lower-left safe zone
+            x = 15 + Math.random() * 20; // 15-35% (more centered)
             y = 50 + Math.random() * 15; // 50-65% (below Leo, above towers)
           } else {
-            // Top-left quadrant ? place in upper-left safe zone
-            x = 10 + Math.random() * 20; // 10-30%
+            // Top-left quadrant → place in upper-left safe zone
+            x = 15 + Math.random() * 20; // 15-35% (more centered)
             y = 18 + Math.random() * 10; // 18-28% (below auth bar, above Leo)
           }
           
@@ -932,7 +932,6 @@ export default function BreathingSequence({
                 top: `${y}%`,
                 transform: 'translateZ(0)', // Force GPU acceleration on mobile
                 backfaceVisibility: 'hidden', // Improve mobile rendering
-                maxWidth: '120px', // Prevent overflow on mobile screens
               }}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1.05, y: -20 }}
@@ -940,7 +939,7 @@ export default function BreathingSequence({
               transition={{ duration: 6, ease: EASING }}
             >
               <span
-                className="text-2xl md:text-3xl font-serif italic font-bold block break-words"
+                className="text-2xl md:text-3xl font-serif italic font-bold whitespace-nowrap"
                 style={{
                   color: '#FFD700',
                   textShadow: `
