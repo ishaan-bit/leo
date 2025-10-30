@@ -727,14 +727,17 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   // Don't render reflection interface until we've checked for micro-dream
   if (!microDreamChecked) {
     return (
-      <div className="min-h-screen bg-pink-50 flex items-center justify-center">
-        <div className="text-pink-800 text-lg font-serif italic animate-pulse">Loading...</div>
+      <div className="fixed inset-0 overflow-y-auto">
+        <div className="min-h-screen bg-pink-50 flex items-center justify-center">
+          <div className="text-pink-800 text-lg font-serif italic animate-pulse">Loading...</div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br ${backgroundTone} relative overflow-x-hidden overflow-y-auto transition-colors duration-1000`}>
+    <div className="fixed inset-0 overflow-y-auto">
+      <div className={`min-h-screen bg-gradient-to-br ${backgroundTone} relative overflow-x-hidden transition-colors duration-1000`}>
       {/* Breathing background gradient overlay */}
       <motion.div
         className="absolute inset-0 pointer-events-none"
@@ -988,6 +991,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
           )}
         </AnimatePresence>
       </div>
+    </div>
     </div>
   );
 }
