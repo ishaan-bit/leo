@@ -1466,23 +1466,23 @@ export default function MomentsLibrary({
                             let shareText = '';
                             
                             // Header with elegant frame
-                            shareText += `✨ A Moment Held Safe ✨\n`;
+                            shareText += `A Moment Held Safe\n`;
                             shareText += `${'-'.repeat(35)}\n\n`;
                             
                             // Main reflection with quotation styling
-                            shareText += `💭 _Your reflection:_\n\n`;
+                            shareText += `Your reflection:\n\n`;
                             shareText += `"${content.text}"\n\n`;
                             
                             // Emotional landscape
                             shareText += `${'-'.repeat(35)}\n\n`;
-                            shareText += `💫 _The feeling:_\n\n`;
+                            shareText += `The feeling:\n\n`;
                             shareText += `${content.invoked}\n`;
                             shareText += `  ->  ${content.expressed}\n\n`;
                             
                             // Poem (if available) with decorative spacing
                             if (content.poems?.[0]) {
                               shareText += `${'-'.repeat(35)}\n\n`;
-                              shareText += `🍃 _${content.poems[0]}_\n\n`;
+                              shareText += `${content.poems[0]}\n\n`;
                             }
                             
                             // Song recommendation - use language-specific song
@@ -1492,11 +1492,11 @@ export default function MomentsLibrary({
                             
                             if (song?.title) {
                               shareText += `${'-'.repeat(35)}\n\n`;
-                              shareText += `🎵 _A song for this moment:_\n\n`;
-                              shareText += `   *${song.title}*\n`;
+                              shareText += `A song for this moment:\n\n`;
+                              shareText += `   ${song.title}\n`;
                               if (song.artist) shareText += `   by ${song.artist}\n`;
                               if (song.year) shareText += `   (${song.year})\n\n`;
-                              if (song.youtube_url) shareText += `   🎧 ${song.youtube_url}\n\n`;
+                              if (song.youtube_url) shareText += `   ${song.youtube_url}\n\n`;
                             }
                             
                             // Footer with date and signature
@@ -1506,19 +1506,19 @@ export default function MomentsLibrary({
                               day: 'numeric',
                               year: 'numeric'
                             });
-                            shareText += `📅 ${momentDate}\n\n`;
+                            shareText += `${momentDate}\n\n`;
                             
                             // Pig name signature - use the prop pigName (user's saved name)
-                            shareText += `held safe by *${pigName}* 🐷\n\n`;
+                            shareText += `held safe by ${pigName}\n\n`;
                             shareText += `${'-'.repeat(35)}\n`;
                             
                             // Add shareable link to view full moment (with image note if present)
                             const shareableUrl = `${window.location.origin}/share/${selectedMoment.id}`;
                             if (selectedMoment.image_base64) {
-                              shareText += `\n📸 *View with photo:*\n${shareableUrl}\n`;
-                              shareText += `\n_Tap the link to see the full moment with image_`;
+                              shareText += `\nView with photo:\n${shareableUrl}\n`;
+                              shareText += `\nTap the link to see the full moment with image`;
                             } else {
-                              shareText += `\n🔗 *View full moment:*\n${shareableUrl}`;
+                              shareText += `\nView full moment:\n${shareableUrl}`;
                             }
                             
                             // Use WhatsApp URL scheme for most reliable sharing
