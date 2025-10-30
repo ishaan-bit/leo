@@ -621,63 +621,65 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     setAudioStarted(true);
   };
 
-  // If showing interlude, render it as overlay
-  return (
-    <AnimatePresence mode="wait">
-      {showInterlude && currentReflectionId && (
-        <motion.div
-          key="city-interlude"
-          initial={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
-        >
-          <CityInterlude
-            reflectionId={currentReflectionId}
-            pigName={pigName}
-            onComplete={handleInterludeComplete}
-            onTimeout={handleInterludeTimeout}
-          />
-        </motion.div>
-      )}
+  // If showing interlude or breathing, render them as overlay
+  if (showInterlude || showBreathing) {
+    return (
+      <AnimatePresence mode="wait">
+        {showInterlude && currentReflectionId && (
+          <motion.div
+            key="city-interlude"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
+          >
+            <CityInterlude
+              reflectionId={currentReflectionId}
+              pigName={pigName}
+              onComplete={handleInterludeComplete}
+              onTimeout={handleInterludeTimeout}
+            />
+          </motion.div>
+        )}
 
-      {/* If showing breathing sequence, render it WITH persistent UI elements */}
-      {showBreathing && currentReflectionId && breathingContext && (
-        <motion.div
-          key="breathing-sequence"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
-        >
-          {/* Top navigation - horizontally aligned */}
-          <TopNav
-            leftElement={
-              <MomentsNavIcon onClick={() => {
-                setShowBreathing(false);
-                setTimeout(() => setShowMomentsLibrary(true), 300);
-              }} />
-            }
-            centerElement={
-              <AuthStateIndicator 
-                userName={session?.user?.name}
-                isGuest={status === 'unauthenticated'}
-              />
-            }
-          />
-          
-          <BreathingSequence
-            reflectionId={currentReflectionId}
-            primary={breathingContext.primary}
-            secondary={breathingContext.secondary}
-            zoneName={breathingContext.zoneName}
-            zoneColor={breathingContext.zoneColor}
-            invokedWords={breathingContext.invokedWords}
-            pigName={pigName}
-            onComplete={handleBreathingComplete}
-          />
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
+        {/* If showing breathing sequence, render it WITH persistent UI elements */}
+        {showBreathing && currentReflectionId && breathingContext && (
+          <motion.div
+            key="breathing-sequence"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
+          >
+            {/* Top navigation - horizontally aligned */}
+            <TopNav
+              leftElement={
+                <MomentsNavIcon onClick={() => {
+                  setShowBreathing(false);
+                  setTimeout(() => setShowMomentsLibrary(true), 300);
+                }} />
+              }
+              centerElement={
+                <AuthStateIndicator 
+                  userName={session?.user?.name}
+                  isGuest={status === 'unauthenticated'}
+                />
+              }
+            />
+            
+            <BreathingSequence
+              reflectionId={currentReflectionId}
+              primary={breathingContext.primary}
+              secondary={breathingContext.secondary}
+              zoneName={breathingContext.zoneName}
+              zoneColor={breathingContext.zoneColor}
+              invokedWords={breathingContext.invokedWords}
+              pigName={pigName}
+              onComplete={handleBreathingComplete}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    );
+  }
   
   // If showing moments library, render it
   if (showMomentsLibrary) {
