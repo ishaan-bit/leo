@@ -65,7 +65,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     owner_id?: string;
   } | null>(null);
   const [showMicroDream, setShowMicroDream] = useState(false);
-  const [microDreamChecked, setMicroDreamChecked] = useState(false);
+  const [microDreamChecked, setMicroDreamChecked] = useState(true); // Default to true to prevent blocking
   
   // Scene state
   const [currentAffect, setCurrentAffect] = useState<AffectVector>({
@@ -135,17 +135,15 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
             console.log('🌙 Micro-dream received - showing cinematic experience');
             setMicroDream(data.microDream);
             setShowMicroDream(true);
+            setMicroDreamChecked(false); // Block main interface while showing micro-dream
           } else {
-            console.log('🌙 No micro-dream available for this signin');
-            setMicroDreamChecked(true);
+            console.log('🌙 No micro-dream available - proceeding to reflect interface');
           }
         } else {
           console.error('🌙 Micro-dream fetch failed:', response.status, await response.text());
-          setMicroDreamChecked(true);
         }
       } catch (error) {
         console.error('🌙 Error fetching micro-dream:', error);
-        setMicroDreamChecked(true);
       }
     }
 
