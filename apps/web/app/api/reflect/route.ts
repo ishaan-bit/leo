@@ -291,11 +291,13 @@ export async function POST(request: NextRequest) {
     try {
       // Push the FULL reflection object (not just minimal fields)
       // Worker needs all Stage-1 data (final, temporal, willingness, etc.) for Stage-2
-      await kv.rpush('reflections:normalized', JSON.stringify(reflection));
-      console.log(`📤 Pushed ${rid} to enrichment queue (full reflection)`);
+      console.log(`📤 Attempting to push ${rid} to reflections:normalized queue...`);
+      const pushResult = await kv.rpush('reflections:normalized', JSON.stringify(reflection));
+      console.log(`✅ PUSHED ${rid} to enrichment queue! Queue length: ${pushResult}`);
     } catch (error) {
       // Non-fatal: reflection is saved, enrichment can be triggered manually
-      console.error('Failed to push to enrichment queue:', error);
+      console.error(`❌ FAILED to push ${rid} to enrichment queue:`, error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
     }
 
     // 12. Add to sorted sets (for querying)
