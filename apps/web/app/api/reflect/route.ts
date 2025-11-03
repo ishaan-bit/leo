@@ -289,18 +289,10 @@ export async function POST(request: NextRequest) {
 
     // 11b. Push to enrichment worker queue
     try {
-      const normalizedPayload = {
-        rid,
-        sid,
-        timestamp: body.timestamp,
-        normalized_text: normalizedText,
-        lang_detected: langDetected,
-        input_mode: inputMode,
-        client_context: clientContext,
-      };
-      
-      await kv.rpush('reflections:normalized', JSON.stringify(normalizedPayload));
-      console.log(`📤 Pushed ${rid} to enrichment queue`);
+      // Push the FULL reflection object (not just minimal fields)
+      // Worker needs all Stage-1 data (final, temporal, willingness, etc.) for Stage-2
+      await kv.rpush('reflections:normalized', JSON.stringify(reflection));
+      console.log(`📤 Pushed ${rid} to enrichment queue (full reflection)`);
     } catch (error) {
       // Non-fatal: reflection is saved, enrichment can be triggered manually
       console.error('Failed to push to enrichment queue:', error);
