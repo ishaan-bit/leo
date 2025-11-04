@@ -2012,23 +2012,25 @@ Answer:"""
             Dict with primary, secondary, tertiary, invoked, expressed, valence, arousal, confidence
         """
         # Map Ollama's legacy v1 labels to v2 (Willcox canonical)
+        # CASE-INSENSITIVE mapping to handle both "Powerful" and "powerful"
         OLLAMA_TO_WILLCOX = {
-            'Joyful': 'Happy',
-            'Mad': 'Angry',
-            'Scared': 'Fearful',
-            'Powerful': 'Strong',
-            'Peaceful': 'Peaceful',  # unchanged
-            'Sad': 'Sad',  # unchanged
-            'Happy': 'Happy',  # support both
-            'Angry': 'Angry',
-            'Fearful': 'Fearful',
-            'Strong': 'Strong'
+            'joyful': 'Happy',
+            'mad': 'Angry',
+            'scared': 'Fearful',
+            'powerful': 'Strong',  # CRITICAL: Ollama often returns "powerful" not "Powerful"
+            'peaceful': 'Peaceful',
+            'sad': 'Sad',
+            'happy': 'Happy',
+            'angry': 'Angry',
+            'fearful': 'Fearful',
+            'strong': 'Strong'
         }
         
-        # Normalize Ollama result if present
+        # Normalize Ollama result if present (case-insensitive lookup)
         if ollama_result and ollama_result.get('primary'):
             ollama_primary_raw = ollama_result['primary']
-            ollama_result['primary'] = OLLAMA_TO_WILLCOX.get(ollama_primary_raw, ollama_primary_raw)
+            ollama_primary_lower = ollama_primary_raw.lower()
+            ollama_result['primary'] = OLLAMA_TO_WILLCOX.get(ollama_primary_lower, ollama_primary_raw)
             if ollama_primary_raw != ollama_result['primary']:
                 print(f"   [Ollama Mapping] {ollama_primary_raw} → {ollama_result['primary']}")
         
