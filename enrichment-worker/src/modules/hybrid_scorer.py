@@ -1705,10 +1705,19 @@ JSON:"""
         Returns: work, relationship, family, health, money, study, social, self, or None on failure.
         """
         try:
-            prompt = f"""You return only one of: work, relationship, family, health, money, study, social, self.
-Question: What life domain is this reflection about?
+            prompt = f"""Choose EXACTLY ONE domain from this list:
+- work (job, boss, colleagues, office, career)
+- relationship (partner, dating, romantic)
+- family (parents, siblings, children)
+- health (physical, mental, medical)
+- money (finances, bills, expenses)
+- study (school, exams, academic)
+- social (friends, social life)
+- self (personal growth, identity)
+
 Text: "{text[:200]}"
-Answer:"""
+
+Return only the domain name (one word):"""
             
             payload = {
                 "model": self.ollama_model,
