@@ -1732,7 +1732,7 @@ Return only the domain name (one word):"""
             response = requests.post(
                 f"{self.ollama_base_url}/api/generate",
                 json=payload,
-                timeout=60  # 60s timeout for phi3:mini
+                timeout=120  # 2 min timeout for phi3:mini (allows cold start + inference)
             )
             
             if response.status_code == 200:
@@ -1840,7 +1840,7 @@ Answer:"""
             response = requests.post(
                 f"{self.ollama_base_url}/api/generate",
                 json=payload,
-                timeout=60  # 60s timeout for phi3:mini (cold start needs ~40s on CPU)
+                timeout=120  # 2 min timeout for phi3:mini (allows cold start + inference)
             )
             
             if response.status_code == 200:
