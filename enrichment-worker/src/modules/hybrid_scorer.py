@@ -1622,10 +1622,10 @@ JSON:"""
     
     def _extract_context_fast(self, text: str) -> Dict:
         """
-        Ultra-lean event extraction using rules + phi3 for control only.
+        Event extraction using phi3 for domain + control, rules for headline + polarity.
         
         - Headline: Rule-based (shortest clause with main verb, ≤4 words)
-        - Domain: Keyword matching (0ms)
+        - Domain: phi3:mini one-shot (5-10s) ← NOW USING LLM
         - Polarity: Pattern matching (0ms)
         - Control: phi3:mini one-shot (5-10s)
         
@@ -1637,8 +1637,11 @@ JSON:"""
             # 1. HEADLINE (rule-based, ~0ms)
             headline = self._extract_headline_lite(text)
             
-            # 2. DOMAIN (keyword matching, ~0ms)
-            domain = self._extract_domain_rules(text_lower)
+            # 2. DOMAIN (phi3:mini, 5-10s) - NEW: Using LLM instead of keywords
+            domain = self._extract_domain_llm(text)
+            if not domain:
+                print(f"   [!] Domain extraction failed, using keyword fallback")
+                domain = self._extract_domain_rules(text_lower)
             
             # 3. POLARITY (pattern matching, ~0ms)
             polarity = self._extract_polarity_rules(text_lower)
@@ -1695,9 +1698,61 @@ JSON:"""
         
         return ' '.join(headline_words)
     
+    def _extract_domain_llm(self, text: str) -> Optional[str]:
+        """
+        phi3:mini one-shot for domain classification (5-10s).
+        
+        Returns: work, relationship, family, health, money, study, social, self, or None on failure.
+        """
+        try:
+            prompt = f"""You return only one of: work, relationship, family, health, money, study, social, self.
+Question: What life domain is this reflection about?
+Text: "{text[:200]}"
+Answer:"""
+            
+            payload = {
+                "model": self.ollama_model,
+                "prompt": prompt,
+                "options": {
+                    "temperature": 0.0,  # Deterministic
+                    "num_predict": 10,   # Only need 1 word
+                },
+                "stream": False
+            }
+            
+            response = requests.post(
+                f"{self.ollama_base_url}/api/generate",
+                json=payload,
+                timeout=60  # 60s timeout for phi3:mini
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                raw_response = data.get('response', '').strip().lower()
+                
+                # Extract domain from response
+                valid_domains = ['work', 'relationship', 'family', 'health', 'money', 'study', 'social', 'self']
+                for domain in valid_domains:
+                    if domain in raw_response:
+                        return domain
+                
+                # If no valid domain found, log and return None
+                print(f"   [!] Unexpected domain response: '{raw_response}', using keyword fallback")
+                return None
+            else:
+                print(f"[!]  Domain extraction HTTP {response.status_code}")
+                return None
+                
+        except requests.exceptions.Timeout:
+            print(f"[!]  Domain extraction timed out (60s)")
+            return None
+        except Exception as e:
+            print(f"[!]  Domain extraction error: {e}")
+            return None
+    
     def _extract_domain_rules(self, text_lower: str) -> str:
         """
-        Keyword-based domain detection (0ms).
+        Keyword-based domain detection (FALLBACK - used if LLM fails).
         
         Priority order: work > relationship > family > health > money > study > social > self
         """
