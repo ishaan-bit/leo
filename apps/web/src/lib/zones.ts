@@ -5,16 +5,19 @@
  * city zones (towers) with visual identity for the zoom sequence.
  */
 
-// IMPORTANT: These MUST match the Willcox Feelings Wheel 6 primaries from the backend
-// Backend canonical primaries: sad, angry, fearful, happy, peaceful, strong (lowercase)
-// Backend maps to frontend: happy→joyful, angry→mad, fearful→scared, strong→powerful
+// IMPORTANT: Backend now stores CANONICAL Willcox cores (as of Nov 2025 fix)
+// Backend canonical primaries: Happy, Strong, Peaceful, Sad, Angry, Fearful (title case)
+// Frontend uses display labels: joyful, powerful, peaceful, sad, mad, scared
+// getZone() handles mapping automatically
+
+// Frontend display labels
 export type PrimaryEmotion = 
-  | 'joyful'    // Backend: happy
-  | 'sad'       // Backend: sad
-  | 'peaceful'  // Backend: peaceful
-  | 'powerful'  // Backend: strong
-  | 'scared'    // Backend: fearful
-  | 'mad';      // Backend: angry
+  | 'joyful'    // Backend: Happy
+  | 'sad'       // Backend: Sad  
+  | 'peaceful'  // Backend: Peaceful
+  | 'powerful'  // Backend: Strong
+  | 'scared'    // Backend: Fearful
+  | 'mad';      // Backend: Angry
 
 export interface Zone {
   id: PrimaryEmotion;
@@ -71,11 +74,36 @@ export const ZONE_MAP: Record<PrimaryEmotion, Zone> = {
 
 /**
  * Get zone by primary emotion
+ * Handles both canonical Willcox names (Happy, Strong, etc.) and frontend labels (joyful, powerful, etc.)
  */
 export function getZone(primary: string | null | undefined): Zone | null {
   if (!primary) return null;
-  const normalized = primary.toLowerCase() as PrimaryEmotion;
-  return ZONE_MAP[normalized] || null;
+  
+  // Normalize input
+  const normalized = primary.toLowerCase();
+  
+  // Map canonical Willcox cores to frontend labels
+  const BACKEND_TO_FRONTEND: Record<string, PrimaryEmotion> = {
+    'happy': 'joyful',
+    'strong': 'powerful',
+    'fearful': 'scared',
+    'sad': 'sad',
+    'angry': 'mad',
+    'peaceful': 'peaceful',
+    // Also accept frontend labels directly
+    'joyful': 'joyful',
+    'powerful': 'powerful',
+    'scared': 'scared',
+    'mad': 'mad',
+  };
+  
+  const frontendLabel = BACKEND_TO_FRONTEND[normalized];
+  if (!frontendLabel) {
+    console.warn(`[zones] Unknown primary emotion: "${primary}" (normalized: "${normalized}")`);
+    return null;
+  }
+  
+  return ZONE_MAP[frontendLabel] || null;
 }
 
 /**
