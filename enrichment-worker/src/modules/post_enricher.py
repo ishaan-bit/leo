@@ -233,6 +233,7 @@ Context (1-2 words only):"""
     def _generate_pig_window(self, headline: str, primary: str, secondary: str) -> Optional[Dict]:
         """
         Generate Pig-Window poetic dialogue using Phi3 mini.
+        Format: Pig→Window→Pig→Window→Pig→Window (6 lines alternating)
         
         Args:
             headline: Event context/headline
@@ -240,7 +241,7 @@ Context (1-2 words only):"""
             secondary: Secondary emotion
         
         Returns:
-            Dict with {'pig_lines': [...], 'window_lines': [...]} or None if failed
+            Dict with {'poems': [3 Pig lines], 'tips': [3 Window lines]} or None if failed
         """
         try:
             prompt = generate_pig_window_prompt(headline, primary, secondary)
@@ -271,7 +272,7 @@ Context (1-2 words only):"""
             result = response.json()
             content = result.get('response', '').strip()
             
-            # Parse the 6 lines
+            # Parse the 6 alternating lines
             lines = [line.strip() for line in content.split('\n') if line.strip()]
             
             pig_lines = []
@@ -283,16 +284,16 @@ Context (1-2 words only):"""
                 elif line.startswith('Window:'):
                     window_lines.append(line[7:].strip())
             
-            # Validate format (should be 3 Pig + 3 Window = 6 total)
+            # Validate format (should be 3 Pig + 3 Window = 6 total, alternating)
             if len(pig_lines) != 3 or len(window_lines) != 3:
                 print(f"   [!] Invalid Pig-Window format: {len(pig_lines)} Pig, {len(window_lines)} Window")
                 print(f"   [DEBUG] Content: {content[:200]}")
                 return None
             
-            print(f"   [✓] Pig-Window generated successfully")
+            print(f"   [✓] Pig-Window generated: 3 inner voice + 3 micro-rituals")
             return {
-                'pig_lines': pig_lines,
-                'window_lines': window_lines
+                'poems': pig_lines,  # Pig lines → poems
+                'tips': window_lines  # Window lines → tips
             }
             
         except Exception as e:
@@ -517,9 +518,12 @@ Context (1-2 words only):"""
                 reliable['wheel']['secondary']
             )
             if pig_window:
-                print(f"      ✓ Pig: {len(pig_window['pig_lines'])} lines, Window: {len(pig_window['window_lines'])} lines")
+                print(f"      ✓ {len(pig_window['poems'])} Pig lines (→poems), {len(pig_window['tips'])} Window lines (→tips)")
+                # Use Pig-Window as poems and tips instead of generating with Ollama
+                use_pig_window = True
             else:
-                print(f"      ✗ Pig-Window generation failed, will use fallback")
+                print(f"      ✗ Pig-Window generation failed, will use Ollama for poems/tips")
+                use_pig_window = False
             
             print(f"   [3/4] Generating poems + tips...")
             print(f"      Input: {reliable['normalized_text'][:60]}...")
@@ -626,9 +630,11 @@ Context (1-2 words only):"""
             # Add context to the post_enrichment output
             parsed['post_enrichment']['context'] = context
             
-            # Add Pig-Window dialogue if generated
+            # Replace poems/tips with Pig-Window dialogue if available
             if pig_window:
-                parsed['post_enrichment']['pig_window'] = pig_window
+                print(f"   [✓] Using Pig-Window for poems/tips (overriding Ollama generation)")
+                parsed['post_enrichment']['poems'] = pig_window['poems']
+                parsed['post_enrichment']['tips'] = pig_window['tips']
             
             # Validate schema
             self._validate_schema(parsed['post_enrichment'])

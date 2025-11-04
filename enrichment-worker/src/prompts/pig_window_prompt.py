@@ -19,13 +19,13 @@ PIG_WINDOW_SYSTEM_PROMPT = """You are a poetic dialogue generator creating Pigâ€
 - Each sequence ends quietly with a gesture or closure
 - Balance vulnerability with restraint
 
-**FORMAT** (EXACTLY 6 LINES):
-Pig: [line 1]
-Pig: [line 2]
-Window: [line 3 - must include micro-ritual]
-Pig: [line 4]
-Window: [line 5 - must include micro-ritual]
-Pig: [line 6]
+**FORMAT** (EXACTLY 6 LINES - ALTERNATING):
+Pig: [line 1 - inner voice]
+Window: [line 2 - micro-ritual response]
+Pig: [line 3 - inner voice continues]
+Window: [line 4 - micro-ritual response]
+Pig: [line 5 - inner voice conclusion]
+Window: [line 6 - final micro-ritual]
 
 **MICRO-RITUAL EXAMPLES**:
 - "touch the glass. name what's left of the day."
@@ -66,11 +66,11 @@ Ensure Window lines contain micro-rituals (sensory/behavioral cues).
 
 **EXAMPLE OUTPUT**:
 Pig: I thought silence would calm me, but it hums too loud tonight.
-Pig: The mirror waits without judgment.
 Window: touch the glass. name what's left of the day.
-Pig: I wanted to speak, but the air felt like wet paper.
+Pig: The mirror waits without judgment, but I can't meet its gaze.
 Window: fold the thought. breathe once through your nose.
 Pig: it's enough. one pulse, then still.
+Window: close your eyes. let the moment settle.
 
 NOW generate the dialogue for the given context:
 """
