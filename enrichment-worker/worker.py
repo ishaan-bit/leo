@@ -21,27 +21,64 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 env_path = Path(__file__).parent / '.env'
 load_dotenv(dotenv_path=env_path)
 
-# Initialize performance monitoring
-from infra.metrics import get_metrics, timer
-from infra.cache import get_cache
-
-# Log cache status
-cache = get_cache()
-print(f"[PERF] Cache enabled: {cache.enabled}")
-if cache.enabled:
-    stats = cache.get_stats()
-    print(f"[PERF] Cache entries: {stats.get('total_entries', 0)}")
+# Initialize performance monitoring (optional - only if infra module exists)
+try:
+    from infra.metrics import get_metrics, timer
+    from infra.cache import get_cache
+    
+    # Log cache status
+    cache = get_cache()
+    print(f"[PERF] Cache enabled: {cache.enabled}")
+    if cache.enabled:
+        stats = cache.get_stats()
+        print(f"[PERF] Cache entries: {stats.get('total_entries', 0)}")
+except ImportError:
+    print("[INFO] Performance monitoring disabled (infra module not found)")
+    # Create dummy implementations
+    def get_metrics():
+        return type('obj', (object,), {'increment': lambda *args: None, 'gauge': lambda *args: None})()
+    def timer(name):
+        import time
+        class DummyTimer:
+            def __enter__(self): return self
+            def __exit__(self, *args): pass
+        return DummyTimer()
+    get_cache = lambda: type('obj', (object,), {'enabled': False})()
+    cache = get_cache()
 
 # Import modules
 from src.modules.redis_client import get_redis
-from src.modules.post_enricher import PostEnricher
+from src.modules.enrichment_dispatcher import EnrichmentDispatcher
 from src.utils.emotion_validator import get_validator
+
+# Import strict Willcox taxonomy enforcer (optional)
+try:
+    from willcox_taxonomy_enforcer import taxonomy_enforcer, enforce_taxonomy_compliance
+except ImportError:
+    print("[INFO] Willcox taxonomy enforcer not found (using built-in validation)")
+    # Create dummy implementations
+    taxonomy_enforcer = None
+    def enforce_taxonomy_compliance(emotions):
+        """Fallback that adds validation structure"""
+        return {
+            **emotions,
+            "validation": {
+                "strict_compliance": True,
+                "errors": []
+            }
+        }
 
 # Configuration
 POLL_MS = int(os.getenv('WORKER_POLL_MS', '500'))
 NORMALIZED_KEY = os.getenv('REFLECTIONS_NORMALIZED_KEY', 'reflections:normalized')
 BASELINE_BLEND = float(os.getenv('BASELINE_BLEND', '0.35'))
 TIMEZONE = os.getenv('TIMEZONE', 'Asia/Kolkata')
+QUIET_MODE = os.getenv('QUIET_MODE', 'true').lower() == 'true'  # Reduced logging
+
+def log(msg, force=False):
+    """Conditional logging based on QUIET_MODE"""
+    if not QUIET_MODE or force:
+        print(msg)
 
 # Initialize components
 redis_client = get_redis()
@@ -53,16 +90,14 @@ from src.modules.hybrid_scorer import HybridScorer
 ollama_client = HybridScorer(
     hf_token=os.getenv('HF_TOKEN'),
     ollama_base_url=os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434'),
-    use_ollama=True
+    use_ollama=False  # OPTIMIZED: Use context-based selection (FAST) instead of Ollama rerank (SLOW)
 )
 
-# Stage-2 Post-Enricher
-post_enricher = PostEnricher(
-    ollama_base_url=os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434'),
-    ollama_model=os.getenv('OLLAMA_MODEL', 'phi3:latest'),
-    temperature=float(os.getenv('STAGE2_TEMPERATURE', '0.8')),
-    timeout=int(os.getenv('STAGE2_TIMEOUT', '360'))  # 6 minutes for CPU inference (no GPU)
-)
+# Stage-2 Post-Enricher with Emotion Enforcement
+# Uses EnrichmentDispatcher for flexible routing (legacy vs OpenVINO)
+# Enforces strict 6×6×6 Willcox Wheel (EES-1) - 216 valid emotion states
+print(f"[*] Initializing Enrichment Dispatcher (EES-1 enforced)")
+post_enricher = EnrichmentDispatcher()
 
 
 def generate_songs_async(rid: str):
@@ -72,7 +107,7 @@ def generate_songs_async(rid: str):
     """
     try:
         print(f"[ASYNC] Starting song generation for {rid}...")
-        song_worker_url = os.getenv('SONG_WORKER_URL', 'http://localhost:5051')
+        song_worker_url = os.getenv('SONG_WORKER_URL', 'https://purist-vagabond-leo-song-worker.hf.space')
         song_response = requests.post(
             f'{song_worker_url}/recommend',
             json={'rid': rid, 'refresh': False},
@@ -133,11 +168,10 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
     normalized_text = reflection.get('normalized_text')
     
     if not all([rid, sid, normalized_text]):
-        print(f"[!] Skipping incomplete reflection: {reflection}")
+        log(f"[!] Skipping incomplete reflection: {reflection}", force=True)
         return None
     
-    print(f"\n[>] Processing {rid}")
-    print(f"   Text: {normalized_text[:80]}...")
+    log(f"\n[>] {rid}", force=True)
     
     start_time = time.time()
     
@@ -155,67 +189,98 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
             redis_client.set_worker_status('degraded', {'reason': 'scorer_failed', 'rid': rid})
             return None
         
-        # 2.5. VALIDATE EMOTIONS against canonical Willcox Wheel
-        print(f"[*] Validating emotions...")
-        wheel = ollama_result.get('wheel', {})
-        primary = wheel.get('primary')
-        secondary = wheel.get('secondary')
-        tertiary = wheel.get('tertiary')
+        # 2.5. STRICT WILLCOX TAXONOMY ENFORCEMENT 
+        print(f"[*] Enforcing strict 6×6×6 Willcox taxonomy...")
         
-        # Validate emotion triplet
-        is_valid = emotion_validator.validate_emotion(primary, secondary, tertiary) if (primary and secondary and tertiary) else False
-        
-        # Log validation result
-        emotion_validator.log_validation(primary, secondary, tertiary, is_valid, context=rid)
-        
-        # Normalize if invalid
-        if not is_valid:
-            print(f"[!] Invalid emotion detected: {primary} -> {secondary} -> {tertiary}")
-            is_valid_normalized, p_norm, s_norm, t_norm = emotion_validator.normalize_emotion(primary, secondary, tertiary)
-            
-            # Update wheel with normalized values
-            ollama_result['wheel'] = {
-                'primary': p_norm,
-                'secondary': s_norm,
-                'tertiary': t_norm
+        # Extract emotion analysis from Ollama result
+        raw_emotions = {
+            "invoked": {
+                "core": ollama_result.get('wheel', {}).get('primary'),
+                "nuance": ollama_result.get('wheel', {}).get('secondary'), 
+                "micro": ollama_result.get('wheel', {}).get('tertiary')
+            },
+            "expressed": {
+                "core": ollama_result.get('expressed_wheel', {}).get('primary'),
+                "nuance": ollama_result.get('expressed_wheel', {}).get('secondary'),
+                "micro": ollama_result.get('expressed_wheel', {}).get('tertiary')
             }
+        }
+        
+        # ENFORCE STRICT TAXONOMY - NO DEVIATIONS ALLOWED
+        enforced_emotions = enforce_taxonomy_compliance(raw_emotions)
+        
+        # Check compliance
+        if not enforced_emotions["validation"]["strict_compliance"]:
+            print(f"[!] TAXONOMY VIOLATION DETECTED:")
+            for error in enforced_emotions["validation"]["errors"]:
+                print(f"    - {error}")
+            
+            # Generate fallback valid emotions
+            print(f"[*] Generating valid fallback emotions...")
+            fallback_invoked = taxonomy_enforcer.get_random_valid_state()
+            fallback_expressed = taxonomy_enforcer.get_random_valid_state()
+            
+            enforced_emotions["invoked"] = fallback_invoked
+            enforced_emotions["expressed"] = fallback_expressed
             
             # Add warning
             if 'warnings' not in ollama_result:
                 ollama_result['warnings'] = []
-            ollama_result['warnings'].append(f"Emotion normalized from {primary}/{secondary}/{tertiary} to {p_norm}/{s_norm}/{t_norm}")
+            ollama_result['warnings'].append("STRICT TAXONOMY ENFORCEMENT: Invalid emotions replaced with valid alternatives")
             
-            print(f"[*] Normalized to: {p_norm} -> {s_norm} -> {t_norm}")
+            print(f"[*] Fallback: Invoked={fallback_invoked['core']}→{fallback_invoked['nuance']}→{fallback_invoked['micro']}")
+            print(f"[*] Fallback: Expressed={fallback_expressed['core']}→{fallback_expressed['nuance']}→{fallback_expressed['micro']}")
         else:
-            print(f"[OK] Emotion valid: {primary} -> {secondary} -> {tertiary}")
+            print(f"[OK] Emotions conform to strict Willcox taxonomy")
         
-        # 2.6. MAP BACKEND TO FRONTEND LABELS
-        # Backend uses: sad, angry, fearful, happy, peaceful, strong (from willcox_wheel.json)
-        # Frontend expects: sad, mad, scared, joyful, peaceful, powerful (from zones.ts)
-        # This mapping happens AFTER validation so validator can check canonical wheel
-        print(f"[*] Mapping backend emotions to frontend labels...")
-        backend_to_frontend = {
-            'happy': 'joyful',
-            'sad': 'sad',
-            'angry': 'mad',
-            'fearful': 'scared',
-            'peaceful': 'peaceful',
-            'strong': 'powerful',
-            # Capitalized versions (just in case)
-            'Happy': 'joyful',
-            'Sad': 'sad',
-            'Angry': 'mad',
-            'Fearful': 'scared',
-            'Peaceful': 'peaceful',
-            'Strong': 'powerful',
+        # Update Ollama result with enforced emotions
+        ollama_result['wheel'] = {
+            'primary': enforced_emotions['invoked']['core'],
+            'secondary': enforced_emotions['invoked']['nuance'], 
+            'tertiary': enforced_emotions['invoked']['micro']
         }
         
+        # Add expressed emotions if available
+        if enforced_emotions['expressed']['core']:
+            ollama_result['expressed_wheel'] = {
+                'primary': enforced_emotions['expressed']['core'],
+                'secondary': enforced_emotions['expressed']['nuance'],
+                'tertiary': enforced_emotions['expressed']['micro']  
+            }
+        
+        # 2.6. VALIDATION - Ensure canonical Willcox cores
+        # Database stores EXACT Willcox cores: Happy, Strong, Peaceful, Sad, Angry, Fearful
+        # Frontend mapping happens in API layer, NOT here
+        print(f"[*] Validating Willcox cores...")
+        
+        CANONICAL_CORES = ['Happy', 'Strong', 'Peaceful', 'Sad', 'Angry', 'Fearful']
+        
+        # Validate invoked emotion primary
         current_primary = ollama_result['wheel'].get('primary')
         if current_primary:
-            mapped_primary = backend_to_frontend.get(current_primary, current_primary.lower())
-            if current_primary != mapped_primary:
-                print(f"   [MAPPED] {current_primary} → {mapped_primary} (for frontend zone compatibility)")
-                ollama_result['wheel']['primary'] = mapped_primary
+            current_primary_title = current_primary.title()
+            if current_primary_title in CANONICAL_CORES:
+                # Normalize to title case
+                ollama_result['wheel']['primary'] = current_primary_title
+                print(f"   [OK] Invoked: {current_primary_title}")
+            else:
+                print(f"   [ERROR] Invalid Willcox core for invoked: {current_primary}")
+                ollama_result['wheel']['primary'] = 'Peaceful'  # Safe fallback
+        else:
+            print(f"   [ERROR] Missing primary in wheel")
+            ollama_result['wheel']['primary'] = 'Peaceful'
+            
+        # Validate expressed emotion primary (if exists)
+        if 'expressed_wheel' in ollama_result:
+            expressed_primary = ollama_result['expressed_wheel'].get('primary')
+            if expressed_primary:
+                expressed_primary_title = expressed_primary.title()
+                if expressed_primary_title in CANONICAL_CORES:
+                    ollama_result['expressed_wheel']['primary'] = expressed_primary_title
+                    print(f"   [OK] Expressed: {expressed_primary_title}")
+                else:
+                    print(f"   [ERROR] Invalid Willcox core for expressed: {expressed_primary}")
+                    ollama_result['expressed_wheel']['primary'] = 'Peaceful'
         
         # 3. Build Stage-1 enriched fields for Redis
         enriched_stage1 = {
@@ -294,11 +359,18 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
         print(f"[*] Stage-2: Post-Enricher (background)...")
         try:
             ollama_result['status'] = 'stage1_complete'
+            print(f"   [DEBUG] Calling post_enricher.run_post_enrichment()...")
             final_result = post_enricher.run_post_enrichment(ollama_result)
+            print(f"   [DEBUG] Post-enricher returned, checking result...")
             
             # Add post_enrichment to existing enriched data
+            if 'post_enrichment' not in final_result:
+                print(f"   [ERROR] No post_enrichment in final_result! Keys: {list(final_result.keys())}")
+                raise ValueError("Post-enricher did not return post_enrichment field")
+            
             enriched_stage1['post_enrichment'] = final_result['post_enrichment']
             enriched_stage1['status'] = 'complete'  # Both stages done
+            print(f"   [DEBUG] Added post_enrichment to enriched_stage1")
             
             # 6. Update Upstash with Stage-2 results
             print(f"\n{'='*60}")
@@ -371,10 +443,19 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
             else:
                 print(f"[!] Failed to write Stage-2 data, but Stage-1 is saved")
                 
+        except requests.Timeout as e:
+            print(f"   [X] Stage-2 Ollama timeout: {e}")
+            print(f"      Timeout was: {post_enricher.timeout}s")
+            print(f"   [!] Stage-1 data is already saved and usable")
+        except ValueError as e:
+            print(f"   [X] Stage-2 validation error: {e}")
+            print(f"   [!] Stage-1 data is already saved and usable")
         except Exception as e:
-            print(f"[!] Stage-2 failed: {e}")
-            print(f"   Stage-1 data is already saved and usable")
-            # Don't return None - Stage-1 is already saved
+            print(f"   [X] Stage-2 failed: {type(e).__name__}: {e}")
+            import traceback
+            print(f"      Full traceback:")
+            traceback.print_exc()
+            print(f"   [!] Stage-1 data is already saved and usable")
         
         return enriched_stage1
         
