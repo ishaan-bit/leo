@@ -132,7 +132,18 @@ export default function BreathingSequence({
         
         console.log('[Breathing] 🔍 After expressed, pool:', pool);
         
-        // 3. Wheel emotions ONLY (no random text words)
+        // 3. Context headline (if available) - add as complete phrase
+        if (reflection.final?.context?.event_headline) {
+          const headline = reflection.final.context.event_headline;
+          if (headline && headline.length > 2) {
+            pool.push(headline); // Add the full headline as a phrase
+            console.log('[Breathing] 🔍 Added context headline phrase:', headline);
+          }
+        }
+        
+        console.log('[Breathing] 🔍 After context headline, pool:', pool);
+        
+        // 4. Wheel emotions ONLY (no random text words)
         if (reflection.final?.wheel?.primary) pool.push(reflection.final.wheel.primary);
         if (reflection.final?.wheel?.secondary) pool.push(reflection.final.wheel.secondary);
         if (reflection.final?.wheel?.tertiary) pool.push(reflection.final.wheel.tertiary);
@@ -938,21 +949,70 @@ export default function BreathingSequence({
               exit={{ opacity: 0, scale: 0.9, transition: { duration: 1.5, ease: 'easeOut' } }}
               transition={{ duration: 6, ease: EASING }}
             >
-              <span
-                className="text-2xl md:text-3xl font-serif italic font-bold whitespace-nowrap"
-                style={{
-                  color: '#FFD700',
-                  textShadow: `
-                    0 0 20px #FFD700,
-                    0 0 40px #FFD700,
-                    0 0 60px #FFD70080,
-                    0 4px 8px rgba(0,0,0,0.6)
-                  `,
-                  WebkitFontSmoothing: 'antialiased', // Improve mobile text rendering
-                }}
-              >
-                {word.text}
-              </span>
+              {/* Split text into max 2 words per line for multi-word phrases */}
+              {(() => {
+                const words = word.text.split(/\s+/);
+                if (words.length <= 2) {
+                  // Single line if 1-2 words
+                  return (
+                    <span
+                      className="text-2xl md:text-3xl font-serif italic font-bold"
+                      style={{
+                        color: '#FFD700',
+                        textShadow: `
+                          0 0 20px #FFD700,
+                          0 0 40px #FFD700,
+                          0 0 60px #FFD70080,
+                          0 4px 8px rgba(0,0,0,0.6)
+                        `,
+                        WebkitFontSmoothing: 'antialiased',
+                      }}
+                    >
+                      {word.text}
+                    </span>
+                  );
+                } else {
+                  // Multi-line: 2 words per line
+                  const line1 = words.slice(0, 2).join(' ');
+                  const line2 = words.slice(2, 4).join(' ');
+                  return (
+                    <div className="text-center leading-tight">
+                      <div
+                        className="text-2xl md:text-3xl font-serif italic font-bold"
+                        style={{
+                          color: '#FFD700',
+                          textShadow: `
+                            0 0 20px #FFD700,
+                            0 0 40px #FFD700,
+                            0 0 60px #FFD70080,
+                            0 4px 8px rgba(0,0,0,0.6)
+                          `,
+                          WebkitFontSmoothing: 'antialiased',
+                        }}
+                      >
+                        {line1}
+                      </div>
+                      {line2 && (
+                        <div
+                          className="text-2xl md:text-3xl font-serif italic font-bold"
+                          style={{
+                            color: '#FFD700',
+                            textShadow: `
+                              0 0 20px #FFD700,
+                              0 0 40px #FFD700,
+                              0 0 60px #FFD70080,
+                              0 4px 8px rgba(0,0,0,0.6)
+                            `,
+                            WebkitFontSmoothing: 'antialiased',
+                          }}
+                        >
+                          {line2}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+              })()}
             </motion.div>
           );
         })}

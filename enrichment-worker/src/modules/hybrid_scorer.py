@@ -1,32 +1,43 @@
 """
-Hybrid Scorer v4 - Willcox Feelings Wheel (Canonical JSON)
-===========================================================
+Hybrid Scorer v4 - Willcox Feelings Wheel (6×6×6 Canonical Structure)
+======================================================================
 Drop-in replacement for OllamaClient using Gloria Willcox Feelings Wheel.
-Fuses HF zero-shot + sentence embeddings + Ollama rerank.
+Fuses HF zero-shot + sentence embeddings + deterministic context rerank.
 
 CRITICAL: Output schema MUST exactly match ollama_client.enrich() return value.
 
+6×6×6 EMOTION CUBE (216 TOTAL STATES):
+=======================================
+Structure: 6 cores × 6 nuances × 6 micro-nuances
+Source of Truth: src/data/willcox_wheel.json
+RULE: Every emotion classification MUST draw ONLY from this cube.
+NO synonyms, NO extrapolation, NO fuzzy sentiment expansions.
+
+Tier 1 - Core Emotions (6):
+  Happy, Strong, Peaceful, Sad, Angry, Fearful
+
+Tier 2 - Nuances (6 per core = 36 total):
+  Happy:    Excited, Interested, Energetic, Playful, Creative, Optimistic
+  Strong:   Confident, Proud, Respected, Courageous, Hopeful, Resilient
+  Peaceful: Loving, Grateful, Thoughtful, Content, Serene, Thankful
+  Sad:      Lonely, Vulnerable, Hurt, Depressed, Guilty, Grief
+  Angry:    Mad, Disappointed, Humiliated, Aggressive, Frustrated, Critical
+  Fearful:  Anxious, Insecure, Overwhelmed, Weak, Rejected, Helpless
+
+Tier 3 - Micro-Nuances (6 per nuance = 216 total):
+  Example: Excited → [Energetic, Curious, Stimulated, Playful, Inspired, Cheerful]
+  (See emotion_schema.py MICROS dict for complete mapping)
+
+Frontend Color Mapping (UI only):
+  Happy → Vera, Strong → Ashmere, Peaceful → Haven
+  Sad → Vanta, Angry → Sable, Fearful → Vanta
+
 Architecture:
-1. HF Zero-Shot (0.4 weight) - Willcox primary classification (6 emotions)
-2. Sentence Embeddings (0.3 weight) - Similarity against Willcox secondary/tertiary + driver/surface lexicons
-3. Ollama Phi3 (0.3 weight) - Rerank and propose primary/secondary/tertiary
-4. Deterministic Correction - Validate hierarchy, reject contradictory events, reconcile valence/arousal
-5. Serialize to EXACT schema worker.py expects
-
-Emotion Taxonomy (Willcox Feelings Wheel - CANONICAL):
-  ✅ Loaded from src/data/willcox_wheel.json (single source of truth)
-  Primary (6): Sad, Angry, Fearful, Happy, Peaceful, Strong
-  Secondary (6 per primary): e.g., Happy → [optimistic, trusting, peaceful, powerful, accepted, proud]
-  Tertiary (6 per secondary): e.g., proud → [successful, confident, accomplished, important, valuable, worthy]
-  Total: 6×6×6 = 216 emotions
-
-Legacy Mapping (for backwards compatibility):
-  Joyful   → Happy
-  Powerful → Strong
-  Peaceful → Peaceful (unchanged)
-  Sad      → Sad (unchanged)
-  Mad      → Angry
-  Scared   → Fearful
+1. HF Zero-Shot - Primary classification (6 cores only)
+2. Sentence Embeddings - Secondary/tertiary similarity (from wheel hierarchy)
+3. Deterministic Context Rerank - Domain/control/polarity priors
+4. Strict Validation - Enforce parent-child hierarchy (primary → secondary → tertiary)
+5. Serialize to exact schema worker.py expects
 
 Output Schema (MUST MATCH ollama_client + add tertiary):
 {
@@ -80,7 +91,7 @@ class HybridScorer:
         Args:
             hf_token: Hugging Face API token for embeddings + zero-shot
             ollama_base_url: Ollama server URL (default: http://localhost:11434)
-            use_ollama: Whether to use Ollama for reranking (default: True)
+            use_ollama: Whether to use Ollama for reranking (default: True, but if False uses context-based selection)
         """
         self.hf_token = hf_token
         self.ollama_base_url = ollama_base_url
@@ -96,8 +107,91 @@ class HybridScorer:
         # Extract primaries from wheel (preserves order from JSON)
         self.WILLCOX_PRIMARY = list(self.WILLCOX_HIERARCHY.keys())
         
+        # === FRONTEND COLOR MAPPING (for UI rendering only) ===
+        # Maps 6 core emotions to design system color names
+        # Backend NEVER uses these - they're metadata for frontend
+        self.CORE_COLOR_MAP = {
+            'Happy': 'Vera',
+            'Strong': 'Ashmere',
+            'Peaceful': 'Haven',
+            'Sad': 'Vanta',
+            'Angry': 'Sable',
+            'Fearful': 'Vanta'  # Note: Sad and Fearful share Vanta
+        }
+        
+        # Context-to-emotion mapping for context-based selection
+        # Uses FIRST WORD of 3-word context (domain)
+        self.CONTEXT_EMOTION_MAP = {
+            'work': {
+                'angry': 1.3,      # Frustration common at work
+                'fearful': 1.2,    # Anxiety about performance
+                'strong': 1.1,     # Achievement feelings
+                'happy': 1.0,
+                'sad': 0.9,
+                'peaceful': 0.7    # Less common at work
+            },
+            'relationship': {
+                'sad': 1.3,        # Hurt, loneliness common
+                'angry': 1.2,      # Conflict
+                'fearful': 1.1,    # Insecurity
+                'happy': 1.0,
+                'peaceful': 0.9,
+                'strong': 0.8
+            },
+            'family': {
+                'sad': 1.2,        # Grief, disappointment
+                'fearful': 1.2,    # Worry about loved ones
+                'angry': 1.1,      # Family conflict
+                'happy': 1.0,
+                'peaceful': 0.9,
+                'strong': 0.8
+            },
+            'health': {
+                'fearful': 1.4,    # Anxiety about health
+                'sad': 1.2,        # Grief, loss
+                'peaceful': 1.1,   # Recovery, acceptance
+                'happy': 0.9,
+                'strong': 0.8,
+                'angry': 0.7
+            },
+            'money': {
+                'fearful': 1.4,    # Money anxiety
+                'angry': 1.2,      # Frustration about finances
+                'sad': 1.1,        # Disappointment
+                'strong': 0.9,
+                'happy': 0.8,
+                'peaceful': 0.7
+            },
+            'study': {
+                'strong': 1.3,     # Achievement pride
+                'fearful': 1.2,    # Performance anxiety
+                'happy': 1.1,      # Success
+                'angry': 1.0,      # Frustration with difficulty
+                'sad': 0.9,
+                'peaceful': 0.8
+            },
+            'social': {
+                'happy': 1.2,      # Connection, belonging
+                'sad': 1.1,        # Loneliness, rejection
+                'fearful': 1.1,    # Social anxiety
+                'peaceful': 1.0,
+                'strong': 0.9,
+                'angry': 0.8
+            },
+            'self': {
+                'sad': 1.2,        # Personal struggles
+                'fearful': 1.1,    # Self-doubt
+                'angry': 1.0,      # Self-directed anger
+                'strong': 1.0,
+                'happy': 0.9,
+                'peaceful': 0.9
+            }
+            # Default (unknown domain) uses uniform 1.0 weights
+        }
+        
         print(f"[OK] Loaded Willcox Wheel v{self.wheel_metadata['version']} ({self.wheel_metadata['total_emotions']} emotions)")
         print(f"   Primaries: {', '.join(self.WILLCOX_PRIMARY)}")
+        print(f"   Context-aware selection: {'enabled' if not use_ollama else 'disabled (using Ollama)'}")
         
         # Legacy mapping for backwards compatibility (old → new)
         # This ensures old references like "Joyful" still work
@@ -133,13 +227,23 @@ class HybridScorer:
         ]
         
         # Surface tone lexicon (for expressed) - how emotion appears
-        self.SURFACE_LEXICON = [
-            'proud', 'reflective', 'playful', 'content', 'peaceful', 'calm', 'light', 'enthusiastic',
-            'relieved', 'confident', 'motivated', 'inspired', 'grateful', 'hopeful', 'determined',
-            'tense', 'confused', 'deflated', 'guarded', 'wistful', 'shaky', 'defeated', 'irritated',
-            'tired', 'exhausted', 'annoyed', 'matter-of-fact', 'resigned', 'flat', 'stressed',
-            'anxious', 'overwhelmed', 'withdrawn', 'vulnerable'
-        ]
+        # === SURFACE LEXICON: STRICTLY FROM 6×6×6 WHEEL ===
+        # Build from ALL 216 micro-nuances (tier 3) for maximum surface emotion coverage
+        # NO extrapolation, NO synonyms, NO fuzzy expansions
+        self.SURFACE_LEXICON = []
+        for primary in self.WILLCOX_HIERARCHY.keys():
+            for secondary in self.WILLCOX_HIERARCHY[primary].keys():
+                for tertiary in self.WILLCOX_HIERARCHY[primary][secondary]:
+                    # Add lowercase version for matching
+                    self.SURFACE_LEXICON.append(tertiary.lower())
+        
+        print(f"   [OK] Surface lexicon: {len(self.SURFACE_LEXICON)} emotions (all tier-3 micros from wheel)")
+        
+        # Also store nuances (tier 2) for secondary-level matching
+        self.NUANCE_LEXICON = []
+        for primary in self.WILLCOX_HIERARCHY.keys():
+            for secondary in self.WILLCOX_HIERARCHY[primary].keys():
+                self.NUANCE_LEXICON.append(secondary.lower())
         
         # Contradictory event pairs (for validation)
         self.CONTRADICTORY_EVENTS = {
@@ -154,9 +258,10 @@ class HybridScorer:
         
         # Initialize API endpoints and weights
         self.ollama_base_url = ollama_base_url.rstrip('/')
-        self.ollama_model = "phi3:latest"
-        self.timeout = 120
+        self.ollama_model = "phi3:mini"  # Faster on CPU (3.8B vs 14B params)
+        self.timeout = 20  # Reduced from 120s - fail fast if HF is cold-starting
         self.use_ollama = use_ollama
+        self.use_embeddings = True  # Enable embeddings by default (can disable for speed)
         
         # Fusion weights - CRITICAL: Ollama MUST override HF when it has strong opinion
         # HF is often wrong/random, Ollama phi3 is smarter
@@ -164,9 +269,9 @@ class HybridScorer:
         self.emb_weight = 0.30      # Slight reduction to compensate
         self.ollama_weight = 0.50   # Increased from 0.30 - trust phi3 over BART
         
-        # HF API endpoints
-        self.hf_zeroshot_url = "https://api-inference.huggingface.co/models/facebook/bart-large-mnli"
-        self.hf_embed_url = "https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2"
+        # HF API endpoints (NEW ROUTER - api-inference.huggingface.co is DEPRECATED)
+        self.hf_zeroshot_url = "https://router.huggingface.co/hf-inference/models/facebook/bart-large-mnli"
+        self.hf_embed_url = "https://router.huggingface.co/hf-inference/models/sentence-transformers/all-MiniLM-L6-v2"
         
         print(f"[*] HybridScorer initialized with canonical Willcox Wheel")
         print(f"   Fusion weights - HF: {self.hf_weight:.2f}, Embedding: {self.emb_weight:.2f}, Ollama: {self.ollama_weight:.2f}")
@@ -268,9 +373,25 @@ class HybridScorer:
             driver_scores = self._embedding_similarity(normalized_text, self.DRIVER_LEXICON)
             surface_scores = self._embedding_similarity(normalized_text, self.SURFACE_LEXICON)
             
-            # Step 4: Ollama rerank
-            print(f"   [4/9] Ollama rerank...")
-            ollama_result = self._ollama_rerank(normalized_text)
+            # Step 4: Context extraction + selection (FAST) or Ollama rerank (SLOW)
+            ollama_result = None
+            context = None  # Store context for later
+            if self.use_ollama:
+                print(f"   [4/9] Ollama rerank...")
+                ollama_result = self._ollama_rerank(normalized_text)
+            else:
+                print(f"   [4/9] Deterministic scoring (FAST)...")
+                # Extract context using phi3:mini (60s timeout, generates 4-field event)
+                context = self._extract_context_fast(normalized_text)
+                
+                # Only use deterministic rerank if context extraction succeeded
+                if context:
+                    # Use deterministic scoring with event features + similarity + HF scores
+                    ollama_result = self._deterministic_rerank(normalized_text, context, hf_scores, secondary_tertiary_scores)
+                else:
+                    # Context extraction failed/timed out - skip reranking, use HF + embeddings directly
+                    print(f"   [!] Context extraction failed - using HF + embeddings only (no rerank)")
+                    ollama_result = None
             
             # Step 4.5: Extract circadian phase early for A1 priors
             circadian_phase = None
@@ -383,6 +504,7 @@ class HybridScorer:
                 'revision': 3,
                 'enriched_at': timestamp or datetime.now(timezone.utc).isoformat(),
                 'ollama_latency_ms': 0,  # Tracked separately
+                'context': context,  # 3-word context used for emotion selection
                 'warnings': []
             }
             serialized['_latency_ms'] = latency_ms
@@ -425,6 +547,7 @@ class HybridScorer:
                 }
             }
             
+            print(f"   Calling HF API (timeout={self.timeout}s)...")
             response = requests.post(
                 self.hf_zeroshot_url,
                 headers={"Authorization": f"Bearer {self.hf_token}"},
@@ -433,7 +556,7 @@ class HybridScorer:
             )
             
             if response.status_code != 200:
-                print(f"[!]  HF API error {response.status_code}")
+                print(f"[!]  HF API error {response.status_code}: {response.text[:200]}")
                 return None
             
             result = response.json()
@@ -451,8 +574,12 @@ class HybridScorer:
             
             return normalized
             
+        except requests.exceptions.Timeout:
+            print(f"[!]  HF API TIMEOUT after {self.timeout}s - model may be cold-starting")
+            print(f"[!]  Using uniform fallback scores")
+            return None
         except Exception as e:
-            print(f"[!]  HF zero-shot error: {e}")
+            print(f"[!]  HF zero-shot error: {type(e).__name__}: {e}")
             return None
     
     def _compute_secondary_tertiary_scores(self, text: str, primary_scores: Dict[str, float]) -> Dict:
@@ -513,6 +640,30 @@ class HybridScorer:
         Returns:
             Dict of candidate -> similarity score
         """
+        # FAST FALLBACK: If embeddings disabled, use lexical matching
+        if not self.use_embeddings:
+            text_lower = text.lower()
+            scores = {}
+            for c in candidates:
+                c_lower = c.lower()
+                # Simple word overlap score
+                text_words = set(text_lower.split())
+                c_words = set(c_lower.split())
+                overlap = len(text_words & c_words)
+                # Substring bonus
+                substring_bonus = 0.3 if c_lower in text_lower else 0
+                scores[c] = min(1.0, (overlap * 0.2) + substring_bonus)
+            
+            # Normalize
+            max_score = max(scores.values()) if scores else 1.0
+            if max_score > 0:
+                scores = {k: v/max_score for k, v in scores.items()}
+            
+            top_3 = sorted(scores.items(), key=lambda x: -x[1])[:3]
+            print(f"   Lexical top 3: {top_3}")
+            return scores
+        
+        # Original HF API code (slow)
         try:
             payload = {
                 "inputs": {
@@ -521,6 +672,10 @@ class HybridScorer:
                 }
             }
             
+            print(f"   [EMBED] Calling HF API with {len(candidates)} candidates (timeout={self.timeout}s)...")
+            import time
+            start = time.time()
+            
             response = requests.post(
                 self.hf_embed_url,
                 headers={"Authorization": f"Bearer {self.hf_token}"},
@@ -528,9 +683,13 @@ class HybridScorer:
                 timeout=self.timeout
             )
             
+            elapsed = time.time() - start
+            print(f"   [EMBED] Response received in {elapsed:.1f}s (status={response.status_code})")
+            
             if response.status_code != 200:
-                print(f"[!]  HF embedding API error {response.status_code}")
-                return {c: 0.0 for c in candidates}
+                print(f"[!]  HF embedding API error {response.status_code}: {response.text[:200]}")
+                print(f"[!]  Falling back to lexical matching")
+                return self._embedding_similarity(text, candidates)  # Recursive call with use_embeddings=False
             
             similarities = response.json()
             
@@ -546,9 +705,21 @@ class HybridScorer:
             
             return result
             
+        except requests.exceptions.Timeout:
+            print(f"[!]  HF embedding API TIMEOUT after {self.timeout}s - using lexical fallback")
+            # Disable embeddings and retry with lexical
+            old_flag = self.use_embeddings
+            self.use_embeddings = False
+            result = self._embedding_similarity(text, candidates)
+            self.use_embeddings = old_flag
+            return result
         except Exception as e:
-            print(f"[!]  Embedding similarity error: {e}")
-            return {c: 0.0 for c in candidates}
+            print(f"[!]  Embedding similarity error: {e} - using lexical fallback")
+            old_flag = self.use_embeddings
+            self.use_embeddings = False
+            result = self._embedding_similarity(text, candidates)
+            self.use_embeddings = old_flag
+            return result
     
     def _extract_willingness_cues(self, text: str) -> Dict:
         """
@@ -1248,6 +1419,465 @@ JSON:"""
             print(f"[!]  Ollama rerank error: {e}")
             return None
     
+    def _deterministic_rerank(self, text: str, context: Dict, hf_scores: Dict[str, float], 
+                               secondary_tertiary_scores: Dict) -> Optional[Dict]:
+        """
+        Deterministic scoring reranker using fixed lookup tables and explicit weights.
+        
+        Score formula: S = α·p_hf + β·Sim_ter + γ·DomainPrior + δ·ControlAlign + ε·PolarityAlign + κ·Sim_core
+        
+        Args:
+            text: Normalized reflection text (for extracting invoked/expressed)
+            context: Dict with event_headline, event_domain, event_control, event_polarity
+            hf_scores: Zero-shot primary emotion scores (not normalized yet)
+            secondary_tertiary_scores: Dict of {primary: {secondary, secondary_score, tertiaries: {tert: sim_score}}}
+        
+        Returns:
+            Dict with primary, secondary, tertiary, invoked, expressed
+        """
+        # Fixed weights
+        ALPHA = 0.50   # HF probability
+        BETA = 0.25    # Tertiary similarity
+        GAMMA = 0.12   # Domain prior (after ×0.15 scaling)
+        DELTA = 0.08   # Control alignment (after ×0.20 scaling)
+        EPSILON = 0.03 # Polarity alignment (after ×0.10 scaling)
+        KAPPA = 0.02   # Core similarity (optional)
+        SIM_FLOOR = 0.20
+        
+        # Domain prior table (raw values ∈ {-1, -0.5, 0, +0.5, +1}, then ×0.15)
+        DOMAIN_PRIOR = {
+            'work':         {'angry': +1.0, 'strong': +0.5, 'peaceful': -0.5, 'sad': 0.0, 'fearful': +0.5, 'happy': 0.0},
+            'relationship': {'angry': 0.0, 'strong': -0.5, 'peaceful': 0.0, 'sad': +1.0, 'fearful': +0.5, 'happy': 0.0},
+            'family':       {'angry': -0.5, 'strong': -0.5, 'peaceful': 0.0, 'sad': +1.0, 'fearful': +0.5, 'happy': 0.0},
+            'health':       {'angry': 0.0, 'strong': -0.5, 'peaceful': 0.0, 'sad': 0.0, 'fearful': +1.0, 'happy': 0.0},
+            'money':        {'angry': +0.5, 'strong': 0.0, 'peaceful': -0.5, 'sad': 0.0, 'fearful': +1.0, 'happy': 0.0},
+            'study':        {'angry': 0.0, 'strong': 0.0, 'peaceful': -0.5, 'sad': +0.5, 'fearful': +1.0, 'happy': 0.0},
+            'social':       {'angry': 0.0, 'strong': -0.5, 'peaceful': 0.0, 'sad': +1.0, 'fearful': +0.5, 'happy': 0.0},
+            'self':         {'angry': -0.5, 'strong': 0.0, 'peaceful': 0.0, 'sad': +1.0, 'fearful': 0.0, 'happy': 0.0},
+        }
+        
+        # Control alignment (raw values, then ×0.20)
+        CONTROL_ALIGN = {
+            'low':    {'fearful': +1.0, 'sad': +0.5, 'angry': -0.5, 'strong': -0.5, 'peaceful': 0.0, 'happy': 0.0},
+            'medium': {'peaceful': +0.5, 'strong': +0.5, 'angry': 0.0, 'sad': 0.0, 'fearful': 0.0, 'happy': 0.0},
+            'high':   {'angry': +1.0, 'strong': +1.0, 'fearful': -0.5, 'sad': -0.5, 'peaceful': 0.0, 'happy': 0.0},
+        }
+        
+        # Polarity alignment (raw values, then ×0.10)
+        POLARITY_ALIGN = {
+            'happened':        {'angry': 0.0, 'sad': 0.0, 'fearful': 0.0, 'strong': 0.0, 'peaceful': 0.0, 'happy': 0.0},
+            'planned':         {'fearful': +1.0, 'sad': +0.5, 'peaceful': -0.5, 'angry': 0.0, 'strong': 0.0, 'happy': 0.0},
+            'did_not_happen':  {'peaceful': +0.5, 'fearful': -0.5, 'angry': 0.0, 'sad': 0.0, 'strong': 0.0, 'happy': 0.0},
+        }
+        
+        try:
+            # Extract event features
+            domain = context.get('event_domain', 'self') if isinstance(context, dict) else 'self'
+            control = context.get('event_control', 'medium') if isinstance(context, dict) else 'medium'
+            polarity = context.get('event_polarity', 'happened') if isinstance(context, dict) else 'happened'
+            headline = context.get('event_headline', 'moment')[:40] if isinstance(context, dict) else 'moment'
+            
+            # Build candidate list: primary → secondary → tertiary chains
+            candidates = []
+            for primary, hf_prob in hf_scores.items():
+                primary_lower = primary.lower()
+                
+                # Get secondary/tertiary scores for this primary
+                if primary not in secondary_tertiary_scores:
+                    continue
+                
+                sec_data = secondary_tertiary_scores[primary]
+                secondary = sec_data.get('secondary')
+                tertiaries = sec_data.get('tertiaries', {})
+                
+                # For each tertiary, create a candidate
+                for tertiary, sim_tertiary in tertiaries.items():
+                    candidates.append({
+                        'core': primary,
+                        'secondary': secondary,
+                        'tertiary': tertiary,
+                        'p_hf_core': hf_prob,
+                        'sim_tertiary': sim_tertiary,
+                        'sim_core': 0.0  # Not computed yet (would need core-level embeddings)
+                    })
+            
+            if not candidates:
+                print("[!]  Deterministic rerank: No candidates generated")
+                return None
+            
+            # Normalize HF scores to [0,1] using min-max
+            hf_probs = [c['p_hf_core'] for c in candidates]
+            min_hf = min(hf_probs)
+            max_hf = max(hf_probs)
+            hf_range = max_hf - min_hf
+            
+            for c in candidates:
+                if hf_range > 0:
+                    c['p_hf_norm'] = (c['p_hf_core'] - min_hf) / hf_range
+                else:
+                    c['p_hf_norm'] = c['p_hf_core']
+            
+            # Score each candidate
+            for c in candidates:
+                core_lower = c['core'].lower()
+                
+                # Term 1: HF probability (normalized)
+                term_alpha = ALPHA * c['p_hf_norm']
+                
+                # Term 2: Tertiary similarity (clamped)
+                sim_ter = max(SIM_FLOOR, min(1.0, c['sim_tertiary']))
+                term_beta = BETA * sim_ter
+                
+                # Term 3: Domain prior
+                domain_raw = DOMAIN_PRIOR.get(domain, {}).get(core_lower, 0.0)
+                term_gamma = GAMMA * (domain_raw * 0.15)
+                
+                # Term 4: Control alignment
+                control_raw = CONTROL_ALIGN.get(control, {}).get(core_lower, 0.0)
+                term_delta = DELTA * (control_raw * 0.20)
+                
+                # Term 5: Polarity alignment (with override)
+                polarity_raw = POLARITY_ALIGN.get(polarity, {}).get(core_lower, 0.0)
+                # Override: did_not_happen + work/money/study + Angry → +0.5
+                if polarity == 'did_not_happen' and domain in ['work', 'money', 'study'] and core_lower == 'angry':
+                    polarity_raw = +0.5
+                term_epsilon = EPSILON * (polarity_raw * 0.10)
+                
+                # Term 6: Core similarity (disabled for now)
+                sim_core = max(SIM_FLOOR, min(1.0, c['sim_core']))
+                term_kappa = KAPPA * sim_core
+                
+                # Total score
+                c['score'] = term_alpha + term_beta + term_gamma + term_delta + term_epsilon + term_kappa
+                c['terms'] = {
+                    'alpha_hf': term_alpha,
+                    'beta_sim_ter': term_beta,
+                    'gamma_domain': term_gamma,
+                    'delta_control': term_delta,
+                    'epsilon_polarity': term_epsilon,
+                    'kappa_sim_core': term_kappa
+                }
+            
+            # Rank by score descending
+            candidates.sort(key=lambda x: x['score'], reverse=True)
+            
+            # Best chain
+            best = candidates[0]
+            
+            print(f"   Deterministic rerank: {domain}/{control}/{polarity} - '{headline}...'")
+            print(f"      → {best['core']} → {best['secondary']} → {best['tertiary']} (score={best['score']:.3f})")
+            print(f"         terms: HF={best['terms']['alpha_hf']:.3f}, Sim={best['terms']['beta_sim_ter']:.3f}, "
+                  f"Dom={best['terms']['gamma_domain']:.3f}, Ctrl={best['terms']['delta_control']:.3f}, "
+                  f"Pol={best['terms']['epsilon_polarity']:.3f}")
+            
+            # Extract invoked and expressed from text
+            invoked = self._extract_drivers(text)
+            expressed = self._extract_surface_emotions(text)
+            
+            return {
+                'primary': best['core'],
+                'secondary': best['secondary'],
+                'tertiary': best['tertiary'],
+                'invoked': invoked,
+                'expressed': expressed,
+                'score': best['score'],
+                'score_terms': best['terms']
+            }
+            
+        except Exception as e:
+            print(f"[!]  Deterministic rerank error: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
+    
+    def _extract_drivers(self, text: str) -> List[str]:
+        """Extract 1-3 emotional drivers from text using keyword matching"""
+        drivers = []
+        text_lower = text.lower()
+        
+        # DRIVER_LEXICON is a list of driver keywords
+        for driver in self.DRIVER_LEXICON:
+            # Check if driver keyword appears in text
+            driver_normalized = driver.replace('_', ' ')  # "self_acceptance" → "self acceptance"
+            if driver in text_lower or driver_normalized in text_lower:
+                drivers.append(driver)
+                if len(drivers) >= 3:
+                    break
+        
+        return drivers if drivers else ['reflection']
+    
+    def _extract_surface_emotions(self, text: str) -> List[str]:
+        """Extract 1-3 surface emotions from text using keyword matching"""
+        emotions = []
+        text_lower = text.lower()
+        
+        # SURFACE_LEXICON is a list of emotion keywords
+        for emotion in self.SURFACE_LEXICON:
+            if emotion in text_lower:
+                emotions.append(emotion)
+                if len(emotions) >= 3:
+                    break
+        
+        return emotions if emotions else ['reflective']
+    
+    def _extract_context_fast(self, text: str) -> Dict:
+        """
+        Ultra-lean event extraction using rules + phi3 for control only.
+        
+        - Headline: Rule-based (shortest clause with main verb, ≤4 words)
+        - Domain: Keyword matching (0ms)
+        - Polarity: Pattern matching (0ms)
+        - Control: phi3:mini one-shot (5-10s)
+        
+        Returns Dict with 4 fields or None on failure.
+        """
+        try:
+            text_lower = text.lower()
+            
+            # 1. HEADLINE (rule-based, ~0ms)
+            headline = self._extract_headline_lite(text)
+            
+            # 2. DOMAIN (keyword matching, ~0ms)
+            domain = self._extract_domain_rules(text_lower)
+            
+            # 3. POLARITY (pattern matching, ~0ms)
+            polarity = self._extract_polarity_rules(text_lower)
+            
+            # 4. CONTROL (phi3:mini one-shot, 5-10s)
+            control = self._extract_control_llm(text)
+            
+            if not control:
+                print(f"   [!] Control extraction failed, using fallback")
+                return self._fallback_context_extraction(text)
+            
+            print(f"   [OK] Event extracted: {domain}/{control}/{polarity} - '{headline}'")
+            
+            return {
+                'event_headline': headline,
+                'event_domain': domain,
+                'event_control': control,
+                'event_polarity': polarity
+            }
+                
+        except Exception as e:
+            print(f"[!]  Context extraction error: {e}, using fallback")
+            return self._fallback_context_extraction(text)
+    
+    def _extract_headline_lite(self, text: str) -> str:
+        """
+        Rule-based headline extraction: shortest clause with main verb, ≤4 words.
+        
+        Examples:
+        - "I have been terribly depressed after losing my parents" → "lost parents"
+        - "boss cancelled my presentation" → "boss cancel presentation"
+        """
+        import re
+        
+        # Simple sentence split
+        sentences = re.split(r'[.!?]', text)
+        if not sentences:
+            return text[:40]
+        
+        # Take first sentence
+        sentence = sentences[0].strip().lower()
+        
+        # Remove common stopwords
+        stop_words = {'i', 'my', 'me', 'am', 'was', 'been', 'have', 'has', 'had', 'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'very', 'really', 'so', 'too', 'just'}
+        
+        words = sentence.split()
+        meaningful = [w for w in words if w not in stop_words and len(w) > 2]
+        
+        # Take first 4 meaningful words
+        headline_words = meaningful[:4]
+        
+        if not headline_words:
+            return text.split()[0] if text.split() else 'moment'
+        
+        return ' '.join(headline_words)
+    
+    def _extract_domain_rules(self, text_lower: str) -> str:
+        """
+        Keyword-based domain detection (0ms).
+        
+        Priority order: work > relationship > family > health > money > study > social > self
+        """
+        # Work
+        if any(w in text_lower for w in ['work', 'job', 'boss', 'manager', 'colleague', 'office', 'meeting', 'deadline', 'project', 'presentation', 'client', 'coworker']):
+            return 'work'
+        
+        # Relationship
+        if any(w in text_lower for w in ['partner', 'boyfriend', 'girlfriend', 'spouse', 'relationship', 'date', 'husband', 'wife', 'lover', 'dating']):
+            return 'relationship'
+        
+        # Family
+        if any(w in text_lower for w in ['mom', 'dad', 'mother', 'father', 'parent', 'family', 'sister', 'brother', 'child', 'kids', 'son', 'daughter', 'grandparent']):
+            return 'family'
+        
+        # Health
+        if any(w in text_lower for w in ['health', 'sick', 'pain', 'doctor', 'hospital', 'disease', 'ill', 'fever', 'medicine', 'therapy']):
+            return 'health'
+        
+        # Money
+        if any(w in text_lower for w in ['money', 'financial', 'debt', 'expense', 'salary', 'pay', 'payment', 'bill', 'bank', 'credit', 'broke', 'expensive']):
+            return 'money'
+        
+        # Study
+        if any(w in text_lower for w in ['study', 'school', 'exam', 'test', 'thesis', 'academic', 'class', 'homework', 'assignment', 'grade', 'university', 'college']):
+            return 'study'
+        
+        # Social
+        if any(w in text_lower for w in ['friend', 'social', 'party', 'people', 'lonely', 'alone', 'forgotten', 'ignored', 'gathering']):
+            return 'social'
+        
+        # Self (default)
+        return 'self'
+    
+    def _extract_polarity_rules(self, text_lower: str) -> str:
+        """
+        Pattern-based polarity detection (0ms).
+        
+        did_not_happen: negations, cancellations
+        planned: future markers
+        happened: default
+        """
+        # did_not_happen (check first - most specific)
+        if any(pattern in text_lower for pattern in ["didn't", "did not", "haven't", "has not", "hasn't", "couldn't", "could not", "wasn't", "was not", "weren't", "were not", "canceled", "cancelled", "called off", "postponed", "rejected", "denied", "failed to"]):
+            return 'did_not_happen'
+        
+        # planned (future markers)
+        if any(pattern in text_lower for pattern in ['tomorrow', 'next week', 'next month', 'going to', 'will', 'might', 'may', 'upcoming', 'soon', 'later', 'worried about', 'nervous about', 'anxious about']):
+            return 'planned'
+        
+        # happened (default)
+        return 'happened'
+    
+    def _extract_control_llm(self, text: str) -> Optional[str]:
+        """
+        phi3:mini one-shot for control level (5-10s).
+        
+        Returns: 'low', 'medium', 'high', or None on failure.
+        """
+        try:
+            prompt = f"""You return only one of: low, medium, high.
+Question: How much control does the speaker have over the situation?
+Text: "{text[:200]}"
+Answer:"""
+            
+            payload = {
+                "model": self.ollama_model,
+                "prompt": prompt,
+                "options": {
+                    "temperature": 0.0,  # Deterministic
+                    "num_predict": 10,   # Only need 1 word
+                },
+                "stream": False
+            }
+            
+            response = requests.post(
+                f"{self.ollama_base_url}/api/generate",
+                json=payload,
+                timeout=60  # 60s timeout for phi3:mini (cold start needs ~40s on CPU)
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                raw_response = data.get('response', '').strip().lower()
+                
+                # Extract control level
+                if 'low' in raw_response:
+                    return 'low'
+                elif 'high' in raw_response:
+                    return 'high'
+                elif 'medium' in raw_response:
+                    return 'medium'
+                else:
+                    # Fallback heuristic
+                    print(f"   [!] Unexpected control response: '{raw_response}', using heuristic")
+                    return self._extract_control_heuristic(text)
+            else:
+                print(f"[!]  Control extraction HTTP {response.status_code}")
+                return self._extract_control_heuristic(text)
+                
+        except requests.exceptions.Timeout:
+            print(f"[!]  Control extraction timed out (60s)")
+            return None
+        except Exception as e:
+            print(f"[!]  Control extraction error: {e}")
+            return self._extract_control_heuristic(text)
+    
+    def _extract_control_heuristic(self, text: str) -> str:
+        """Heuristic control detection based on keywords (fallback)"""
+        text_lower = text.lower()
+        
+        # Low control markers
+        if any(w in text_lower for w in ['powerless', 'helpless', 'stuck', 'trapped', 'forced', 'had to', 'no choice', 'couldn\'t', 'cancelled', 'rejected']):
+            return 'low'
+        
+        # High control markers
+        if any(w in text_lower for w in ['decided', 'chose', 'planned', 'control', 'managed', 'accomplished', 'finished', 'completed']):
+            return 'high'
+        
+        # Medium (default)
+        return 'medium'
+    
+    def _fallback_context_extraction(self, text: str) -> Dict:
+        """
+        Fallback context extraction using keyword matching when Ollama fails
+        Returns structured 4-field context dict
+        """
+        text_lower = text.lower()
+        
+        # Detect domain
+        if any(w in text_lower for w in ['work', 'job', 'boss', 'colleague', 'office', 'meeting', 'deadline', 'project', 'presentation']):
+            domain = 'work'
+        elif any(w in text_lower for w in ['mom', 'dad', 'parent', 'family', 'sister', 'brother', 'child', 'kids']):
+            domain = 'family'
+        elif any(w in text_lower for w in ['partner', 'boyfriend', 'girlfriend', 'spouse', 'relationship', 'date', 'husband', 'wife']):
+            domain = 'relationship'
+        elif any(w in text_lower for w in ['health', 'sick', 'pain', 'doctor', 'hospital', 'disease', 'ill']):
+            domain = 'health'
+        elif any(w in text_lower for w in ['friend', 'social', 'party', 'people', 'lonely']):
+            domain = 'social'
+        elif any(w in text_lower for w in ['money', 'financial', 'debt', 'expense', 'salary', 'pay', 'bill']):
+            domain = 'money'
+        elif any(w in text_lower for w in ['study', 'school', 'exam', 'thesis', 'academic', 'class', 'homework']):
+            domain = 'study'
+        else:
+            domain = 'self'
+        
+        # Detect control level
+        if any(w in text_lower for w in ['powerless', 'helpless', 'stuck', 'trapped', 'forced', 'had to', 'no choice']):
+            control = 'low'
+        elif any(w in text_lower for w in ['decided', 'chose', 'planned', 'control', 'managed']):
+            control = 'high'
+        else:
+            control = 'medium'
+        
+        # Detect polarity
+        if any(w in text_lower for w in ['worried', 'afraid', 'anxious', 'nervous', 'fear', 'tomorrow', 'upcoming', 'will']):
+            polarity = 'planned'
+        elif any(w in text_lower for w in ["didn't", "haven't", "hasn't", "no", "not", "never", "wish", "hope"]):
+            polarity = 'did_not_happen'
+        else:
+            polarity = 'happened'
+        
+        # Generate headline from first meaningful words
+        words = text_lower.split()[:15]  # First 15 words
+        # Remove common stop words
+        stop_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by'}
+        meaningful = [w for w in words if w not in stop_words and len(w) > 2]
+        headline = ' '.join(meaningful[:6])  # Max 6 words for headline
+        
+        if not headline:
+            headline = 'reflection moment'
+        
+        return {
+            'event_headline': headline,
+            'event_domain': domain,
+            'event_control': control,
+            'event_polarity': polarity
+        }
+    
     def _parse_json(self, raw_text: str) -> Optional[Dict]:
         """Parse JSON from LLM response with aggressive cleanup"""
         cleaned = raw_text.strip()
@@ -1787,41 +2417,88 @@ JSON:"""
     
     def _correct_output(self, fused: Dict, text: str) -> Dict:
         """
-        Deterministic correction pass to validate Willcox hierarchy + filter contradictions
+        6×6×6 WHEEL HIERARCHY VALIDATOR
+        ================================
+        Enforces strict parent-child relationships from Willcox wheel.
+        
+        CRITICAL RULES:
+        1. Primary MUST be one of 6 cores (Happy, Strong, Peaceful, Sad, Angry, Fearful)
+        2. Secondary MUST be under that primary's 6 nuances
+        3. Tertiary MUST be under that secondary's 6 micro-nuances
+        
+        Invalid combinations (e.g., "sad → Depressed → Energetic") are REJECTED.
+        Fallback: Pick first valid child if hierarchy violated.
         
         Args:
-            fused: Fused scores dict
-            text: Original text for validation
+            fused: Fused scores dict from HF + embeddings + context rerank
+            text: Original reflection text
         
         Returns:
-            Corrected dict
+            Corrected dict with VALID wheel emotions (case-normalized)
         """
         corrected = fused.copy()
         
-        # Validate Willcox hierarchy consistency
-        primary = corrected['primary']
-        secondary = corrected.get('secondary')
-        tertiary = corrected.get('tertiary')
+        # Normalize primary to lowercase
+        primary = corrected['primary'].lower() if corrected.get('primary') else None
+        secondary = corrected.get('secondary', '').lower() if corrected.get('secondary') else None
+        tertiary = corrected.get('tertiary', '').lower() if corrected.get('tertiary') else None
         
-        # Ensure secondary belongs to primary
-        if secondary:
-            if primary not in self.WILLCOX_HIERARCHY or secondary not in self.WILLCOX_HIERARCHY[primary]:
-                print(f"❌ Invalid secondary '{secondary}' for primary '{primary}' - clearing")
-                corrected['secondary'] = None
-                corrected['tertiary'] = None  # Cascade clear
-                secondary = None
-                tertiary = None
+        # Validate primary exists in Willcox wheel (case-insensitive)
+        valid_primary = None
+        for p in self.WILLCOX_HIERARCHY.keys():
+            if p.lower() == primary:
+                valid_primary = p
+                break
         
-        # Ensure tertiary belongs to secondary
-        if tertiary and secondary:
-            if primary not in self.WILLCOX_HIERARCHY or secondary not in self.WILLCOX_HIERARCHY[primary]:
-                print(f"[X] Invalid tertiary '{tertiary}' for secondary '{secondary}' - clearing")
-                corrected['tertiary'] = None
-                tertiary = None
-            elif tertiary not in self.WILLCOX_HIERARCHY[primary][secondary]:
-                print(f"[X] Invalid tertiary '{tertiary}' for '{primary}/{secondary}' - clearing")
-                corrected['tertiary'] = None
-                tertiary = None
+        if not valid_primary:
+            print(f"❌ Invalid primary '{primary}' - not in Willcox wheel!")
+            # Emergency fallback - pick first primary
+            valid_primary = list(self.WILLCOX_HIERARCHY.keys())[0]
+            print(f"   [FALLBACK] Using: {valid_primary}")
+        
+        corrected['primary'] = valid_primary
+        primary = valid_primary
+        
+        # Validate secondary belongs to primary (case-insensitive)
+        valid_secondary = None
+        if secondary and primary in self.WILLCOX_HIERARCHY:
+            for s in self.WILLCOX_HIERARCHY[primary].keys():
+                if s.lower() == secondary:
+                    valid_secondary = s
+                    break
+        
+        if not valid_secondary:
+            if secondary:
+                print(f"❌ Invalid secondary '{secondary}' for primary '{primary}' - not in Willcox wheel!")
+            # Pick first valid secondary for this primary
+            valid_secondary = list(self.WILLCOX_HIERARCHY[primary].keys())[0]
+            print(f"   [FALLBACK] Using: {valid_secondary}")
+        
+        corrected['secondary'] = valid_secondary
+        secondary = valid_secondary
+        
+        # Validate tertiary belongs to secondary (case-insensitive) - STRICT!
+        valid_tertiary = None
+        if tertiary and primary in self.WILLCOX_HIERARCHY and secondary in self.WILLCOX_HIERARCHY[primary]:
+            valid_tertiaries = self.WILLCOX_HIERARCHY[primary][secondary]
+            for t in valid_tertiaries:
+                if t.lower() == tertiary:
+                    valid_tertiary = t
+                    break
+        
+        if not valid_tertiary:
+            if tertiary:
+                print(f"❌ Invalid tertiary '{tertiary}' for '{primary} → {secondary}' - not in Willcox wheel!")
+            # Pick first valid tertiary for this secondary
+            if primary in self.WILLCOX_HIERARCHY and secondary in self.WILLCOX_HIERARCHY[primary]:
+                valid_tertiaries = self.WILLCOX_HIERARCHY[primary][secondary]
+                if valid_tertiaries:
+                    valid_tertiary = valid_tertiaries[0]
+                    print(f"   [FALLBACK] Using: {valid_tertiary}")
+        
+        corrected['tertiary'] = valid_tertiary
+        
+        print(f"   [VALIDATED] {primary} → {secondary} → {valid_tertiary}")
         
         # Filter contradictory events
         invoked = corrected.get('invoked', [])
@@ -1911,14 +2588,27 @@ JSON:"""
             'tertiary': tertiary      # MUST NOT be None
         }
         
-        # ASSERTION: Validate completeness (source of truth requirement)
-        if not wheel['secondary'] or not wheel['tertiary']:
-            raise ValueError(f"WILLCOX WHEEL INTEGRITY VIOLATION: Incomplete wheel {wheel} - all 3 levels required (source of truth)")
-        
-        # Valence/arousal/confidence
+        # Valence/arousal/confidence (initialize BEFORE EES-1 enforcement uses them)
         valence = corrected.get('valence', 0.5)
         arousal = corrected.get('arousal', 0.5)
         confidence = corrected.get('confidence', 0.75)
+        
+        # === SKIP EES-1 ENFORCER - Already validated in _correct_output() ===
+        # The wheel emotions have been strictly validated by _correct_output() which enforces:
+        # 1. Primary is a valid Willcox core
+        # 2. Secondary belongs to that primary's branch
+        # 3. Tertiary belongs to that secondary's branch
+        # 
+        # The EES-1 enforcer processes each emotion INDEPENDENTLY and doesn't check hierarchy,
+        # which causes bugs like "sad → Depressed → Energetic" where the tertiary from a 
+        # different branch leaks through.
+        #
+        # Since validation is already done, we skip the enforcer and use the validated wheel.
+        print(f"   [VALIDATED] ✓ Wheel hierarchy: {wheel['primary']} → {wheel['secondary']} → {wheel['tertiary']}")
+        
+        # ASSERTION: Validate completeness (source of truth requirement)
+        if not wheel['secondary'] or not wheel['tertiary']:
+            raise ValueError(f"WILLCOX WHEEL INTEGRITY VIOLATION: Incomplete wheel {wheel} - all 3 levels required (source of truth)")
         
         # Use events passed in (already mapped to event dicts)
         # Don't recompute from invoked_list
