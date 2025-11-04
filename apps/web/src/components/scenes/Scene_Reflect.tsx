@@ -521,6 +521,10 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
         console.log('[Scene_Reflect] Proceeding with default zone');
       }
       
+      // CRITICAL: Use zone.id (frontend label) not primaryEmotion (canonical backend name)
+      // Backend sends "Strong" → zone.id is "powerful" ✅
+      const frontendPrimary = zone?.id || 'peaceful'; // Fallback to peaceful if zone missing
+      
       const invokedWords = reflection.final?.invoked
         ? (Array.isArray(reflection.final.invoked)
             ? reflection.final.invoked
@@ -535,14 +539,15 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
       });
       
       console.log('[Scene_Reflect] ✅ Transitioning to breathing:', {
-        primary: primaryEmotion,
+        canonicalPrimary: primaryEmotion,
+        frontendPrimary,
         secondary: reflection.final?.wheel?.secondary,
         zone: zone?.name || 'default',
         invokedWords,
       });
       
       setBreathingContext({
-        primary: primaryEmotion as PrimaryEmotion,
+        primary: frontendPrimary as PrimaryEmotion,
         secondary: reflection.final?.wheel?.secondary,
         zoneName: zone?.name || 'Default',
         zoneColor: zone?.color || '#A78BFA',
@@ -560,9 +565,10 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
       // FALLBACK: Still transition to breathing even if fetch fails
       console.log('[Scene_Reflect] Proceeding with minimal breathing context (fallback)');
       const zone = getZone(primaryEmotion);
+      const frontendPrimary = zone?.id || 'peaceful'; // Use zone.id (frontend label) not canonical backend name
       
       setBreathingContext({
-        primary: primaryEmotion as PrimaryEmotion,
+        primary: frontendPrimary as PrimaryEmotion,
         secondary: undefined,
         zoneName: zone?.name || 'Default',
         zoneColor: zone?.color || '#A78BFA',

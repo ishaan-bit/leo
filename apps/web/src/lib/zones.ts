@@ -84,13 +84,14 @@ export function getZone(primary: string | null | undefined): Zone | null {
   
   // Map canonical Willcox cores to frontend labels
   const BACKEND_TO_FRONTEND: Record<string, PrimaryEmotion> = {
+    // Canonical backend primaries (title case from Willcox wheel)
     'happy': 'joyful',
     'strong': 'powerful',
     'fearful': 'scared',
     'sad': 'sad',
     'angry': 'mad',
     'peaceful': 'peaceful',
-    // Also accept frontend labels directly
+    // Also accept frontend labels directly (for backwards compatibility)
     'joyful': 'joyful',
     'powerful': 'powerful',
     'scared': 'scared',
@@ -100,6 +101,7 @@ export function getZone(primary: string | null | undefined): Zone | null {
   const frontendLabel = BACKEND_TO_FRONTEND[normalized];
   if (!frontendLabel) {
     console.warn(`[zones] Unknown primary emotion: "${primary}" (normalized: "${normalized}")`);
+    console.warn(`[zones] Available mappings:`, Object.keys(BACKEND_TO_FRONTEND));
     return null;
   }
   

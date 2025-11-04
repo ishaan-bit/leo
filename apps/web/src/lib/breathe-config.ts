@@ -113,7 +113,14 @@ export function computeBreatheParams(
   primary: PrimaryEmotion,
   secondary?: string
 ): { cycle: BreatheCycle; light: LightConfig; color: string; audio: string; cueHint: string } {
-  const base = PRIMARY_PRESETS[primary];
+  // Safety: Default to 'peaceful' if primary is invalid
+  const safePrimary = (primary && primary in PRIMARY_PRESETS) ? primary : 'peaceful';
+  const base = PRIMARY_PRESETS[safePrimary];
+  
+  if (!base) {
+    console.error(`[breathe-config] No preset found for primary: "${primary}", using peaceful fallback`);
+    return computeBreatheParams('peaceful', secondary);
+  }
   
   // Safely get modifier, fallback to 'default' if secondary not found
   const secondaryKey = secondary?.toLowerCase() || 'default';
