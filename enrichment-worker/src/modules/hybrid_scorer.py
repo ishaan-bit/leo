@@ -1435,13 +1435,14 @@ JSON:"""
         Returns:
             Dict with primary, secondary, tertiary, invoked, expressed
         """
-        # Fixed weights
-        ALPHA = 0.50   # HF probability
-        BETA = 0.25    # Tertiary similarity
-        GAMMA = 0.12   # Domain prior (after ×0.15 scaling)
-        DELTA = 0.08   # Control alignment (after ×0.20 scaling)
-        EPSILON = 0.03 # Polarity alignment (after ×0.10 scaling)
-        KAPPA = 0.02   # Core similarity (optional)
+        # Fixed weights - REBALANCED to prioritize context over HF model
+        # Context (domain/control/polarity) = 60%, HF model = 20%, Similarity = 20%
+        ALPHA = 0.20   # HF probability (reduced from 0.50 - model often misreads context)
+        BETA = 0.20    # Tertiary similarity (reduced from 0.25)
+        GAMMA = 0.30   # Domain prior (increased from 0.12 - domain is critical signal)
+        DELTA = 0.25   # Control alignment (increased from 0.08 - control determines valence)
+        EPSILON = 0.05 # Polarity alignment (increased from 0.03)
+        KAPPA = 0.00   # Core similarity (disabled - redundant with embeddings)
         SIM_FLOOR = 0.20
         
         # Domain prior table (raw values ∈ {-1, -0.5, 0, +0.5, +1}, then ×0.15)
@@ -1528,22 +1529,22 @@ JSON:"""
                 sim_ter = max(SIM_FLOOR, min(1.0, c['sim_tertiary']))
                 term_beta = BETA * sim_ter
                 
-                # Term 3: Domain prior
+                # Term 3: Domain prior (NO SCALING - raw values already weighted)
                 domain_raw = DOMAIN_PRIOR.get(domain, {}).get(core_lower, 0.0)
-                term_gamma = GAMMA * (domain_raw * 0.15)
+                term_gamma = GAMMA * domain_raw
                 
-                # Term 4: Control alignment
+                # Term 4: Control alignment (NO SCALING - raw values already weighted)
                 control_raw = CONTROL_ALIGN.get(control, {}).get(core_lower, 0.0)
-                term_delta = DELTA * (control_raw * 0.20)
+                term_delta = DELTA * control_raw
                 
-                # Term 5: Polarity alignment (with override)
+                # Term 5: Polarity alignment (NO SCALING - raw values already weighted)
                 polarity_raw = POLARITY_ALIGN.get(polarity, {}).get(core_lower, 0.0)
                 # Override: did_not_happen + work/money/study + Angry → +0.5
                 if polarity == 'did_not_happen' and domain in ['work', 'money', 'study'] and core_lower == 'angry':
                     polarity_raw = +0.5
-                term_epsilon = EPSILON * (polarity_raw * 0.10)
+                term_epsilon = EPSILON * polarity_raw
                 
-                # Term 6: Core similarity (disabled for now)
+                # Term 6: Core similarity (disabled)
                 sim_core = max(SIM_FLOOR, min(1.0, c['sim_core']))
                 term_kappa = KAPPA * sim_core
                 
