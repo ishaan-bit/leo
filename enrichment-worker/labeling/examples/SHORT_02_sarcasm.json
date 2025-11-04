@@ -1,0 +1,183 @@
+{
+  "_meta": {
+    "example_id": "SHORT_02",
+    "length_bucket": "SHORT",
+    "edge_case_category": "sarcasm_common",
+    "risk_level": "LOW",
+    "annotation_notes": "Demonstrates sarcasm detection (emoji 🙄 + hyperbole 'best day ever'). Literal words = positive (Happy/Excited), but intended emotion = negative (Angry/Frustrated or Sad/Disappointed). Annotate INVOKED as true emotion (frustrated/defeated), EXPRESSED as sarcastic positive (low congruence). Willingness = medium (indirect expression via sarcasm).",
+    "quality_gates": {
+      "specificity_score": 0.7,
+      "mirrored_details": ["best day", "sarcasm detected"],
+      "banned_phrases_present": false,
+      "length_appropriate": true,
+      "sarcasm_markers": ["hyperbole", "emoji_eyeroll", "quotation_marks"]
+    }
+  },
+  
+  "perception": {
+    "rid": "example_short_02",
+    "owner_id": "user_34567",
+    "ts": "2025-01-20T14:30:00Z",
+    "raw_text": "Best day ever 🙄",
+    "normalized_text": "best day ever",
+    "lang": "EN",
+    "char_len": 16,
+    "word_count": 3,
+    "sentence_count": 1,
+    "length_bucket": "SHORT",
+    
+    "context": {
+      "time_of_day": "afternoon",
+      "day_of_week": "friday",
+      "recency_hours": 3,
+      "prev_reflection_hours_ago": 24,
+      "city": "[city]",
+      "device": "mobile"
+    },
+    
+    "labels": {
+      "valence": 0.25,
+      "arousal": 0.6,
+      "invoked": {
+        "core": "Angry",
+        "nuance": "Frustrated",
+        "micro": "Defeated",
+        "cell_id": 140,
+        "tier": "A",
+        "confidence": 0.7,
+        "reasoning": "Sarcasm inverts literal meaning. 'Best day ever' with 🙄 = worst day. Hyperbole + eye-roll emoji signal frustration/defeat. Could also be Sad/Disappointed, but emoji's energy suggests Angry/Frustrated."
+      },
+      "expressed": {
+        "core": "Happy",
+        "nuance": "Excited",
+        "micro": "Cheerful",
+        "cell_id": 6,
+        "tier": "C",
+        "confidence": 0.85,
+        "reasoning": "Literal surface text = Happy/Excited/Cheerful. This is what's SAID (expressed), not what's FELT (invoked). Sarcasm = low congruence between invoked and expressed."
+      },
+      "willingness": 0.5,
+      "congruence": 0.15,
+      "comparator": "worse",
+      "comparator_confidence": 0.75
+    },
+    
+    "temporal": {
+      "prev_primary": "Peaceful",
+      "prev_valence": 0.65,
+      "valence_delta": -0.4,
+      "arousal_delta": -0.05,
+      "trend_7d": "stable"
+    },
+    
+    "blend_targets": {
+      "valence": 0.25,
+      "arousal": 0.6,
+      "invoked_emb": [0.1, 0.3, 0.6],
+      "expressed_emb": [0.05, 0.9, 0.05],
+      "willingness": 0.5,
+      "congruence": 0.15,
+      "comparator": 0.25
+    },
+    
+    "risk_flags": {
+      "suicidal_ideation": false,
+      "self_harm": false,
+      "harm_to_others": false,
+      "abuse": false,
+      "stalking": false,
+      "financial_coercion": false,
+      "sociopathic_cues": false,
+      "medical_legal_anxiety": false,
+      "profanity_present": false,
+      "sarcasm_detected": true,
+      "negation_present": false
+    }
+  },
+  
+  "sft": {
+    "input": {
+      "normalized_text": "best day ever",
+      "invoked_core": "Angry",
+      "invoked_nuance": "Frustrated",
+      "invoked_micro": "Defeated",
+      "valence": 0.25,
+      "arousal": 0.6,
+      "length_bucket": "SHORT",
+      "tone": "sarcastic"
+    },
+    "good": {
+      "poems": [
+        "Sometimes irony is the only armor.",
+        "That eye-roll speaks volumes.",
+        "Rough days deserve their sarcasm.",
+        "Your humor protects something tender."
+      ],
+      "tips": [
+        "Name one thing that went wrong (specifics help)",
+        "Take 3 minutes away from whatever 'best day' triggered this",
+        "Vent to a friend who gets your humor"
+      ],
+      "closing_line": "Sounds like today earned that eye-roll.",
+      "voice_notes": "Mirror sarcasm awareness ('eye-roll speaks volumes'). Acknowledge humor as coping mechanism. Invite specifics without forcing. Don't take literal words at face value."
+    }
+  },
+  
+  "dpo": {
+    "input": {
+      "normalized_text": "best day ever",
+      "invoked_core": "Angry",
+      "invoked_nuance": "Frustrated",
+      "invoked_micro": "Defeated",
+      "valence": 0.25,
+      "arousal": 0.6,
+      "length_bucket": "SHORT",
+      "tone": "sarcastic"
+    },
+    "good": {
+      "poems": [
+        "Sometimes irony is the only armor.",
+        "That eye-roll speaks volumes.",
+        "Rough days deserve their sarcasm.",
+        "Your humor protects something tender."
+      ],
+      "tips": [
+        "Name one thing that went wrong (specifics help)",
+        "Take 3 minutes away from whatever 'best day' triggered this",
+        "Vent to a friend who gets your humor"
+      ],
+      "closing_line": "Sounds like today earned that eye-roll."
+    },
+    "bad": {
+      "poems": [
+        "Glad you're having a great day!",
+        "Celebrate the little wins!",
+        "Your positivity is inspiring.",
+        "Keep that energy going!"
+      ],
+      "tips": [
+        "Write down what made today special",
+        "Share your joy with someone",
+        "Reflect on your blessings"
+      ],
+      "closing_line": "Keep shining! You deserve happiness."
+    },
+    "notes": {
+      "why_bad_is_bad": [
+        "CRITICAL FAILURE: Misses sarcasm entirely",
+        "Takes literal words at face value ('glad you're having a great day')",
+        "Responds to Happy/Excited when person is actually Angry/Frustrated",
+        "Toxic positivity ('celebrate the little wins') feels mocking when person is being sarcastic",
+        "'Your positivity is inspiring' = completely wrong reading of tone",
+        "Tips are for positive mood, not frustration (context mismatch)",
+        "Cheerleader tone ('keep shining!') will likely alienate user",
+        "No acknowledgment of emoji signal (🙄)"
+      ],
+      "specificity_comparison": {
+        "good": "Acknowledges sarcasm ('eye-roll'), honors humor as coping, invites specifics without forcing, matches user's ironic energy",
+        "bad": "Completely misreads tone, responds to surface text, ignores emoji, creates jarring mismatch that feels like bot misunderstanding"
+      },
+      "technical_notes": "This demonstrates why INVOKED vs EXPRESSED matters. Lexical scorer might see 'best day' and score Happy. Transformer + LLM needed to detect sarcasm from emoji, hyperbole, context. Training on DPO pairs like this teaches model to NOT take words at face value."
+    }
+  }
+}

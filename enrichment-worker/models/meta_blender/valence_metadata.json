@@ -1,0 +1,12 @@
+{
+  "variable": "valence",
+  "n_samples": 3646,
+  "n_features": 12,
+  "train_rmse": 0.11234563533264182,
+  "train_mae": 0.09066647172751742,
+  "base_models": [
+    "lexical",
+    "embedding",
+    "temporal"
+  ]
+}

@@ -590,7 +590,7 @@ Context (1-2 words only):"""
                     raise RuntimeError("HF_TOKEN not set, cannot fallback to HF API")
                 
                 hf_response = requests.post(
-                    "https://api-inference.huggingface.co/models/Qwen/Qwen2.5-3B-Instruct",
+                    "https://router.huggingface.co/hf-inference/models/Qwen/Qwen2.5-3B-Instruct",
                     headers={"Authorization": f"Bearer {hf_token}"},
                     json={
                         "inputs": full_prompt,

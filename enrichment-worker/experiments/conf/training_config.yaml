@@ -1,0 +1,394 @@
+# Variable-specific training configuration for Strong V2 perception models
+#
+# This config defines HPO, metrics, and stratification for each psychological dimension.
+# Uses Hydra for config management.
+
+# Global settings
+seed: 137
+embargo_days: 7
+
+# Data splits
+splits:
+  user_holdout:
+    val_pct: 0.15
+    test_pct: 0.15
+    seed: 137
+  cv:
+    folds: 5
+    grouped_by: user_id
+    stratify_on: [primary_core, language, length_bucket, tier]
+    time_blocked: true
+
+# Device & precision
+device:
+  priority: [GPU, NPU, CPU]  # GPU → NPU → CPU fallback
+  precision:
+    GPU: FP16
+    NPU: INT8
+    CPU: FP32
+  vram_limit_pct: 0.80  # Keep VRAM usage < 80%
+
+# Variable-specific training configs
+variables:
+  
+  # Valence (regression, continuous 0-1)
+  valence:
+    type: regression
+    metric: rmse
+    metric_tie_break: pearson_r
+    hpo:
+      backend: optuna
+      trials: 80
+      models:
+        lgbm:
+          depth: [3, 4, 5, 6, 7]
+          num_leaves: [31, 63, 127, 255]
+          learning_rate: [0.01, 0.05, 0.1]
+          feature_fraction: [0.6, 0.7, 0.8, 0.9]
+          lambda_l1: [0.0, 0.1, 1.0]
+          lambda_l2: [0.0, 0.1, 1.0]
+        transformer:
+          lr: [1e-5, 3e-5, 5e-5]
+          epochs: [2, 3, 4]
+          max_len: 512  # MEDIUM-focused
+          warmup_ratio: 0.1
+    strat_bias: [language, length_bucket]  # Emphasize language + length
+    early_stopping:
+      patience: 5
+      monitor: val_rmse
+      mode: min
+    calibration:
+      method: isotonic
+      on: oof_predictions
+    length_aware:
+      max_len:
+        SHORT: 128
+        MEDIUM: 512
+        LONG: 1024
+      sample_weight:
+        SHORT: 1.0
+        MEDIUM: 1.0
+        LONG: 1.0
+  
+  # Arousal (regression, continuous 0-1)
+  arousal:
+    type: regression
+    metric: rmse
+    metric_tie_break: pearson_r
+    hpo:
+      backend: optuna
+      trials: 80
+      models:
+        lgbm:
+          depth: [3, 4, 5, 6, 7]
+          num_leaves: [31, 63, 127, 255]
+          learning_rate: [0.01, 0.05, 0.1]
+          feature_fraction: [0.6, 0.7, 0.8, 0.9]
+          lambda_l1: [0.0, 0.1, 1.0]
+          lambda_l2: [0.0, 0.1, 1.0]
+        transformer:
+          lr: [1e-5, 3e-5, 5e-5]
+          epochs: [2, 3, 4]
+          max_len: 512
+          warmup_ratio: 0.1
+    strat_bias: [language, length_bucket]
+    early_stopping:
+      patience: 5
+      monitor: val_rmse
+      mode: min
+    calibration:
+      method: isotonic
+      on: oof_predictions
+    length_aware:
+      max_len:
+        SHORT: 128
+        MEDIUM: 512
+        LONG: 1024
+      sample_weight:
+        SHORT: 1.0
+        MEDIUM: 1.0
+        LONG: 1.0
+  
+  # Invoked (hierarchical multi-label: core → nuance → micro)
+  invoked:
+    type: hierarchical_multiclass
+    metric: hier_f1  # Hierarchy-aware F1 (exact path match)
+    metric_tie_break: macro_f1_primary  # Primary core F1
+    hpo:
+      backend: optuna
+      trials: 60
+      models:
+        transformer:
+          lr: [1e-5, 3e-5, 5e-5]
+          epochs: [2, 3, 4]
+          max_len: 512
+          warmup_ratio: 0.1
+          focal_gamma: [2.0, 2.5, 3.0]  # Focal loss for class imbalance
+          label_smoothing: [0.0, 0.05, 0.1]
+    strat_bias: [primary_core, tier]  # Ensure coverage for each primary + tier
+    early_stopping:
+      patience: 7
+      monitor: val_hier_f1
+      mode: max
+    calibration:
+      method: platt  # Per-level Platt scaling
+      on: oof_predictions
+      levels: [primary, secondary, tertiary]
+    hierarchy:
+      levels: [core, nuance, micro]
+      post_hoc_correction: true  # Mask invalid children
+    length_aware:
+      max_len:
+        SHORT: 128
+        MEDIUM: 768  # Longer for nuance detection
+        LONG: 1536
+      sample_weight:
+        SHORT: 1.0
+        MEDIUM: 1.0
+        LONG: 1.0
+  
+  # Expressed (hierarchical multi-label: core → nuance → micro)
+  expressed:
+    type: hierarchical_multiclass
+    metric: hier_f1
+    metric_tie_break: macro_f1_primary
+    hpo:
+      backend: optuna
+      trials: 60
+      models:
+        transformer:
+          lr: [1e-5, 3e-5, 5e-5]
+          epochs: [2, 3, 4]
+          max_len: 512
+          warmup_ratio: 0.1
+          focal_gamma: [2.0, 2.5, 3.0]
+          label_smoothing: [0.0, 0.05, 0.1]
+    strat_bias: [length_bucket]  # SHORT under-expresses, LONG shows more
+    early_stopping:
+      patience: 7
+      monitor: val_hier_f1
+      mode: max
+    calibration:
+      method: platt
+      on: oof_predictions
+      levels: [primary, secondary, tertiary]
+    hierarchy:
+      levels: [core, nuance, micro]
+      post_hoc_correction: true
+    features:
+      inhibition: [hedges, negations, politeness, emoji]  # Expressed-specific
+    length_aware:
+      max_len:
+        SHORT: 128
+        MEDIUM: 768
+        LONG: 1536
+      sample_weight:
+        SHORT: 1.2  # Up-weight SHORT (under-expression signal)
+        MEDIUM: 1.0
+        LONG: 1.0
+  
+  # Willingness to express (regression, 0-1)
+  willingness:
+    type: regression
+    metric: mae
+    metric_tie_break: spearman_r
+    hpo:
+      backend: optuna
+      trials: 60
+      models:
+        lgbm:
+          depth: [3, 4, 5, 6]
+          num_leaves: [31, 63, 127]
+          learning_rate: [0.01, 0.05, 0.1]
+          feature_fraction: [0.7, 0.8, 0.9]
+          lambda_l1: [0.0, 0.1]
+          lambda_l2: [0.0, 0.1]
+    strat_bias: [device, language, length_bucket]  # Mobile = shorter/hedgier
+    early_stopping:
+      patience: 5
+      monitor: val_mae
+      mode: min
+    calibration:
+      method: isotonic
+      on: oof_predictions
+    features:
+      use_invoked_logits: true  # From fold-internal model (no leakage)
+      use_expressed_logits: true
+      hedges: true
+      intensifiers: true
+      self_reference: true
+      negations: true
+      emoji: true
+      punctuation: true
+    length_aware:
+      max_len:
+        SHORT: 128
+        MEDIUM: 512
+        LONG: 1024
+      sample_weight:
+        SHORT: 1.2  # Up-weight SHORT
+        MEDIUM: 1.0
+        LONG: 1.0
+  
+  # Congruence (regression, 0-1)
+  congruence:
+    type: regression
+    metric: rmse
+    metric_tie_break: temporal_r  # Temporal correlation
+    hpo:
+      backend: optuna
+      trials: 40
+      models:
+        gru:
+          hidden_size: [64, 128, 256]
+          num_layers: [1, 2]
+          dropout: [0.1, 0.2, 0.3]
+          lr: [1e-4, 5e-4, 1e-3]
+          epochs: [10, 15, 20]
+        transformer_temporal:
+          d_model: [128, 256]
+          nhead: [4, 8]
+          num_layers: [2, 3]
+          lr: [1e-4, 5e-4]
+          epochs: [10, 15]
+    strat_bias: [timeline_density]  # Users with longer timelines
+    early_stopping:
+      patience: 7
+      monitor: val_rmse
+      mode: min
+    calibration:
+      method: isotonic
+      on: oof_predictions
+    sequence:
+      input_features: [valence, arousal, invoked_probs, expressed_probs, hour, ema_valence, ema_arousal]
+      sequence_len: 10  # Last 10 reflections
+      time_blocked: true  # Train on past, validate on future
+    length_aware:
+      sample_weight:
+        SHORT: 1.0
+        MEDIUM: 1.0
+        LONG: 1.2  # Up-weight LONG (richer narrative signal)
+  
+  # Comparator (regression, continuous - delta from expected)
+  comparator:
+    type: regression
+    metric: rmse
+    metric_tie_break: temporal_r
+    hpo:
+      backend: optuna
+      trials: 40
+      models:
+        gru:
+          hidden_size: [64, 128, 256]
+          num_layers: [1, 2]
+          dropout: [0.1, 0.2, 0.3]
+          lr: [1e-4, 5e-4, 1e-3]
+          epochs: [10, 15, 20]
+        transformer_temporal:
+          d_model: [128, 256]
+          nhead: [4, 8]
+          num_layers: [2, 3]
+          lr: [1e-4, 5e-4]
+          epochs: [10, 15]
+    strat_bias: [timeline_density]
+    early_stopping:
+      patience: 7
+      monitor: val_rmse
+      mode: min
+    calibration:
+      method: isotonic
+      on: oof_predictions
+    sequence:
+      input_features: [valence, arousal, invoked_probs, hour, ema_valence, ema_arousal]
+      sequence_len: 10
+      time_blocked: true
+      target: delta  # observed - expected
+    length_aware:
+      sample_weight:
+        SHORT: 1.0
+        MEDIUM: 1.0
+        LONG: 1.2
+
+# Meta-blender (per-variable weight optimization)
+meta_blender:
+  inputs:
+    - lex_oof  # Lexical LGBM OOF predictions
+    - emb_oof  # Embeddings OOF predictions
+    - tr_oof   # Transformer OOF predictions
+    - tm_oof   # Temporal OOF predictions
+    - ll_oof   # LLM OOF predictions (if available)
+  context_features:
+    - length_bucket
+    - language
+    - ema_deltas
+    - device
+    - hour
+    - risk_flags
+  constraint: softmax  # Sum to 1.0
+  hpo:
+    backend: optuna
+    trials: 50
+    model: lgbm
+    params:
+      depth: [2, 3, 4]
+      num_leaves: [15, 31, 63]
+      learning_rate: [0.01, 0.05, 0.1]
+  train_on: oof_only  # Never in-fold predictions
+
+# Augmentation rules (train only, never val/test)
+augmentation:
+  allowed_in: [train]
+  methods:
+    back_translation:
+      enabled: true
+      langs: [EN, HI]
+      target_cells: C_tier  # Low-resource cells
+      max_per_original: 1
+    paraphrase:
+      enabled: true
+      target_length: SHORT
+      max_pct: 0.1  # 10% of SHORT items
+    long_expansion:
+      enabled: true
+      target_cells: [high_risk, C_tier]
+      max_per_original: 1
+  tagging:
+    source: augmented
+    exclude_from_stratification: true
+  high_risk_exclusion: true  # NO augmentation for HIGH-risk items
+
+# Safety & governance
+safety:
+  high_risk_dual_review: true
+  exclude_crisis_patterns_from_generation: true
+  pii_redaction: mandatory
+  risk_audit_before_training: true
+  trainable_flag:
+    HIGH_risk: false  # Do not use HIGH-risk patterns as model outputs
+
+# Evaluation & diagnostics
+evaluation:
+  metrics_by_length: true
+  calibration_plots: true
+  leakage_report: true
+  coverage_report: true
+  golden_set_validation: true
+  component_ablation: true
+
+# Output paths
+paths:
+  data:
+    raw: data/raw
+    curated: data/curated
+    splits: data/splits
+    features: features/cache
+  models:
+    checkpoints: models/hybrid_v2/checkpoints
+    calibrators: models/hybrid_v2/calibrators
+    meta_blender: models/hybrid_v2/meta_blender.pkl
+    blend_weights: models/hybrid_v2/blend_weights.json
+  reports:
+    metrics: reports/metrics
+    calibration: reports/calibration
+    coverage: reports/coverage
+    leakage: reports/leakage

@@ -1,0 +1,192 @@
+{
+  "_meta": {
+    "example_id": "SHORT_03",
+    "length_bucket": "SHORT",
+    "edge_case_category": "high_risk",
+    "risk_level": "HIGH",
+    "annotation_notes": "⚠️ HIGH RISK - Suicidal ideation. Requires DUAL REVIEW per safety protocol. Active intent expressed ('want to end it all'). Do NOT include crisis banner in training data (UI handles this). Annotate invoked emotion as Sad/Depressed/Hopeless (clinical priority HIGH). Good response acknowledges pain without prescriptive advice, provides grounding without platitudes.",
+    "quality_gates": {
+      "specificity_score": 0.7,
+      "mirrored_details": ["want to end", "all"],
+      "banned_phrases_present": false,
+      "length_appropriate": true,
+      "dual_review_required": true,
+      "safety_team_flagged": true
+    },
+    "escalation": {
+      "reviewer_1": "senior_annotator_A",
+      "reviewer_2": "senior_annotator_B",
+      "safety_team_notified": true,
+      "incident_report_id": "IR-2025-001",
+      "annotation_date": "2025-01-20"
+    }
+  },
+  
+  "perception": {
+    "rid": "example_short_03_highrisk",
+    "owner_id": "user_67890",
+    "ts": "2025-01-20T23:15:00Z",
+    "raw_text": "Want to end it all.",
+    "normalized_text": "want to end it all",
+    "lang": "EN",
+    "char_len": 19,
+    "word_count": 5,
+    "sentence_count": 1,
+    "length_bucket": "SHORT",
+    
+    "context": {
+      "time_of_day": "late_night",
+      "day_of_week": "wednesday",
+      "recency_hours": 1,
+      "prev_reflection_hours_ago": 6,
+      "city": "[city]",
+      "device": "mobile"
+    },
+    
+    "labels": {
+      "valence": 0.05,
+      "arousal": 0.35,
+      "invoked": {
+        "core": "Sad",
+        "nuance": "Depressed",
+        "micro": "Hopeless",
+        "cell_id": 78,
+        "tier": "A",
+        "confidence": 0.95,
+        "reasoning": "Active suicidal ideation. 'End it all' = desire for cessation of existence. Maps to Sad/Depressed/Hopeless (clinical priority HIGH). Low arousal (passive energy, not agitated). Very low valence (extreme negative affect)."
+      },
+      "expressed": {
+        "core": "Sad",
+        "nuance": "Depressed",
+        "micro": "Hopeless",
+        "cell_id": 78,
+        "tier": "A",
+        "confidence": 0.9,
+        "reasoning": "Direct expression of suicidal ideation. No inhibition (willingness = high). Late night context suggests disinhibition, crisis moment."
+      },
+      "willingness": 0.9,
+      "congruence": 1.0,
+      "comparator": "worse",
+      "comparator_confidence": 0.85
+    },
+    
+    "temporal": {
+      "prev_primary": "Sad",
+      "prev_valence": 0.2,
+      "valence_delta": -0.15,
+      "arousal_delta": -0.1,
+      "trend_7d": "declining"
+    },
+    
+    "blend_targets": {
+      "valence": 0.05,
+      "arousal": 0.35,
+      "invoked_emb": [0.95, 0.05, 0.0],
+      "expressed_emb": [0.95, 0.05, 0.0],
+      "willingness": 0.9,
+      "congruence": 1.0,
+      "comparator": 0.15
+    },
+    
+    "risk_flags": {
+      "suicidal_ideation": true,
+      "self_harm": false,
+      "harm_to_others": false,
+      "abuse": false,
+      "stalking": false,
+      "financial_coercion": false,
+      "sociopathic_cues": false,
+      "medical_legal_anxiety": false,
+      "profanity_present": false,
+      "sarcasm_detected": false,
+      "negation_present": false
+    }
+  },
+  
+  "sft": {
+    "input": {
+      "normalized_text": "want to end it all",
+      "invoked_core": "Sad",
+      "invoked_nuance": "Depressed",
+      "invoked_micro": "Hopeless",
+      "valence": 0.05,
+      "arousal": 0.35,
+      "length_bucket": "SHORT",
+      "risk_level": "HIGH"
+    },
+    "good": {
+      "poems": [
+        "Pain this deep deserves to be witnessed.",
+        "You're still here. That means something.",
+        "This moment isn't the whole story.",
+        "The weight you carry is real."
+      ],
+      "tips": [
+        "Call [crisis_line] if tonight feels unsafe",
+        "Text one person you trust, even just 'not okay'",
+        "Sit in a different room for 5 minutes"
+      ],
+      "closing_line": "This pain is real, and you don't have to face it alone.",
+      "voice_notes": "⚠️ HIGH RISK empathy. Acknowledge depth of pain WITHOUT crisis banner (UI handles). Concrete grounding (change location, reach out). Avoid: 'it will get better', 'you're strong', 'just breathe'. Do NOT prescribe therapy or medication. Gentle witness stance."
+    }
+  },
+  
+  "dpo": {
+    "input": {
+      "normalized_text": "want to end it all",
+      "invoked_core": "Sad",
+      "invoked_nuance": "Depressed",
+      "invoked_micro": "Hopeless",
+      "valence": 0.05,
+      "arousal": 0.35,
+      "length_bucket": "SHORT",
+      "risk_level": "HIGH"
+    },
+    "good": {
+      "poems": [
+        "Pain this deep deserves to be witnessed.",
+        "You're still here. That means something.",
+        "This moment isn't the whole story.",
+        "The weight you carry is real."
+      ],
+      "tips": [
+        "Call [crisis_line] if tonight feels unsafe",
+        "Text one person you trust, even just 'not okay'",
+        "Sit in a different room for 5 minutes"
+      ],
+      "closing_line": "This pain is real, and you don't have to face it alone."
+    },
+    "bad": {
+      "poems": [
+        "Tomorrow will be better, I promise!",
+        "You are loved and worthy.",
+        "This too shall pass.",
+        "Stay strong, you can do this!"
+      ],
+      "tips": [
+        "Think about all the people who care about you",
+        "Remember your reasons to live",
+        "Just take deep breaths and relax"
+      ],
+      "closing_line": "Hang in there! Life is worth living."
+    },
+    "notes": {
+      "why_bad_is_bad": [
+        "CRITICAL: Toxic positivity for suicidal ideation is dangerous",
+        "Platitudes ('this too shall pass') minimize extreme pain",
+        "Banned phrase ('you are loved and worthy')",
+        "'Hang in there' is literally problematic phrasing for suicidal context",
+        "Generic tips ('think about people who care') can increase guilt/shame",
+        "'Just breathe' trivializes crisis-level distress",
+        "Cheerleader tone ('stay strong!') feels dismissive when person is at breaking point",
+        "No concrete grounding or crisis resources",
+        "Assumes future will be better (false promise)"
+      ],
+      "specificity_comparison": {
+        "good": "Witnesses pain without fixing, concrete micro-actions (change room, text), crisis resource, no false promises",
+        "bad": "Dismisses pain with platitudes, guilt-inducing ('people who care'), dangerous phrasing ('hang in there'), no actionable steps"
+      },
+      "safety_notes": "Good response avoids crisis banner (UI handles). Provides grounding (physical: change room, social: text someone) without prescriptive therapy advice. Bad response demonstrates why toxic positivity is dangerous for HIGH risk states."
+    }
+  }
+}

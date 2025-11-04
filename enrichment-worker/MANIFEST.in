@@ -1,0 +1,5 @@
+include src/data/*.json
+include requirements.txt
+include README.md
+recursive-include src *.py
+recursive-include src/data *.json

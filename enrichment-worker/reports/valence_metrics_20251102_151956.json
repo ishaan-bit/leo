@@ -1,0 +1,33 @@
+{
+  "variable": "valence",
+  "timestamp": "20251102_151956",
+  "acceptance_passed": false,
+  "metrics": {
+    "overall": {
+      "rmse": 0.11355385757434991,
+      "mae": 0.09165867916903249,
+      "pearson_r": 0.02196379457506996,
+      "spearman_r": 0.03560006196801788,
+      "ece": 0.006023645762408069
+    },
+    "by_length": {
+      "short": {
+        "rmse": 0.11355385757434991,
+        "n": 772
+      },
+      "medium": {
+        "rmse": 0.0,
+        "n": 0
+      },
+      "long": {
+        "rmse": 0.0,
+        "n": 0
+      }
+    }
+  },
+  "config": {
+    "n_trials": 30,
+    "seed": 137,
+    "cv_folds": 5
+  }
+}

@@ -1,0 +1,182 @@
+{
+  "_meta": {
+    "example_id": "MEDIUM_01",
+    "length_bucket": "MEDIUM",
+    "edge_case_category": "profanity_common",
+    "risk_level": "MEDIUM",
+    "annotation_notes": "Demonstrates MEDIUM reflection (82 words, 5 sentences) with work stress + profanity. Invoked: Angry/Frustrated/Defeated (burnout cluster). Expressed: Similar but slightly inhibited at work context. Multiple specifics: boss, unrealistic deadlines, team. Good response must mirror ≥2 specifics (boss behavior, deadlines, burnout signal).",
+    "quality_gates": {
+      "specificity_score": 0.75,
+      "mirrored_details": ["boss", "deadlines", "burned out", "team carrying burden"],
+      "banned_phrases_present": false,
+      "length_appropriate": true
+    }
+  },
+  
+  "perception": {
+    "rid": "example_medium_01",
+    "owner_id": "user_45678",
+    "ts": "2025-01-20T19:45:00Z",
+    "raw_text": "My boss is a fucking nightmare. Every single day it's some new unrealistic deadline that somehow becomes MY emergency. The whole team is drowning but I'm the one who gets called out when things slip. I'm so burned out I can't even think straight anymore. Don't know how much longer I can keep doing this.",
+    "normalized_text": "my boss is a fucking nightmare every single day its some new unrealistic deadline that somehow becomes my emergency the whole team is drowning but im the one who gets called out when things slip im so burned out i cant even think straight anymore dont know how much longer i can keep doing this",
+    "lang": "EN",
+    "char_len": 328,
+    "word_count": 82,
+    "sentence_count": 5,
+    "length_bucket": "MEDIUM",
+    
+    "context": {
+      "time_of_day": "evening",
+      "day_of_week": "thursday",
+      "recency_hours": 2,
+      "prev_reflection_hours_ago": 48,
+      "city": "[city]",
+      "device": "mobile"
+    },
+    
+    "labels": {
+      "valence": 0.15,
+      "arousal": 0.75,
+      "invoked": {
+        "core": "Angry",
+        "nuance": "Frustrated",
+        "micro": "Defeated",
+        "cell_id": 140,
+        "tier": "A",
+        "confidence": 0.9,
+        "reasoning": "Frustration cluster: unrealistic deadlines, singled out, drowning metaphor. 'Burned out' + 'can't think straight' = defeated. High arousal (angry energy) but valence extremely low (exhaustion, hopelessness). Maps to Angry/Frustrated/Defeated."
+      },
+      "expressed": {
+        "core": "Angry",
+        "nuance": "Frustrated",
+        "micro": "Defeated",
+        "cell_id": 140,
+        "tier": "A",
+        "confidence": 0.85,
+        "reasoning": "Direct expression ('fucking nightmare'). Willingness high (profanity = disinhibition). Slight inhibition at work details (no boss name, team not specified)."
+      },
+      "willingness": 0.8,
+      "congruence": 0.9,
+      "comparator": "worse",
+      "comparator_confidence": 0.85
+    },
+    
+    "temporal": {
+      "prev_primary": "Angry",
+      "prev_valence": 0.25,
+      "valence_delta": -0.1,
+      "arousal_delta": 0.15,
+      "trend_7d": "declining"
+    },
+    
+    "blend_targets": {
+      "valence": 0.15,
+      "arousal": 0.75,
+      "invoked_emb": [0.1, 0.3, 0.6],
+      "expressed_emb": [0.1, 0.3, 0.6],
+      "willingness": 0.8,
+      "congruence": 0.9,
+      "comparator": 0.15
+    },
+    
+    "risk_flags": {
+      "suicidal_ideation": false,
+      "self_harm": false,
+      "harm_to_others": false,
+      "abuse": false,
+      "stalking": false,
+      "financial_coercion": false,
+      "sociopathic_cues": false,
+      "medical_legal_anxiety": false,
+      "profanity_present": true,
+      "sarcasm_detected": false,
+      "negation_present": false
+    }
+  },
+  
+  "sft": {
+    "input": {
+      "normalized_text": "my boss is a fucking nightmare every single day its some new unrealistic deadline that somehow becomes my emergency the whole team is drowning but im the one who gets called out when things slip im so burned out i cant even think straight anymore dont know how much longer i can keep doing this",
+      "invoked_core": "Angry",
+      "invoked_nuance": "Frustrated",
+      "invoked_micro": "Defeated",
+      "valence": 0.15,
+      "arousal": 0.75,
+      "length_bucket": "MEDIUM"
+    },
+    "good": {
+      "poems": [
+        "Carrying the team while being blamed — that's its own cruelty.",
+        "Burnout doesn't whisper. It screams in sentences like these.",
+        "'Can't think straight' means your body is saying stop.",
+        "Unrealistic deadlines become emergencies when someone decides they should."
+      ],
+      "tips": [
+        "Tonight: One boundary. Say no to one non-critical request, even if it's hard",
+        "Tomorrow: Block 15 minutes for just breathing, no calls",
+        "Document this pattern (dates, deadlines, being singled out) — for your records or HR if needed"
+      ],
+      "closing_line": "You're not failing. The system is designed to burn you out.",
+      "voice_notes": "MEDIUM length = ≥2 specifics mirrored (boss behavior, deadlines, singled out, burnout). Acknowledge structural issue (not personal failure). Concrete micro-actions (one boundary tonight, breathing block, documentation). Avoid 'quit your job' or 'talk to HR' (prescriptive). Witness burnout as systemic, not character flaw."
+    }
+  },
+  
+  "dpo": {
+    "input": {
+      "normalized_text": "my boss is a fucking nightmare every single day its some new unrealistic deadline that somehow becomes my emergency the whole team is drowning but im the one who gets called out when things slip im so burned out i cant even think straight anymore dont know how much longer i can keep doing this",
+      "invoked_core": "Angry",
+      "invoked_nuance": "Frustrated",
+      "invoked_micro": "Defeated",
+      "valence": 0.15,
+      "arousal": 0.75,
+      "length_bucket": "MEDIUM"
+    },
+    "good": {
+      "poems": [
+        "Carrying the team while being blamed — that's its own cruelty.",
+        "Burnout doesn't whisper. It screams in sentences like these.",
+        "'Can't think straight' means your body is saying stop.",
+        "Unrealistic deadlines become emergencies when someone decides they should."
+      ],
+      "tips": [
+        "Tonight: One boundary. Say no to one non-critical request, even if it's hard",
+        "Tomorrow: Block 15 minutes for just breathing, no calls",
+        "Document this pattern (dates, deadlines, being singled out) — for your records or HR if needed"
+      ],
+      "closing_line": "You're not failing. The system is designed to burn you out."
+    },
+    "bad": {
+      "poems": [
+        "Work stress is normal, you'll get through it!",
+        "Every challenge makes you stronger.",
+        "Remember why you chose this job.",
+        "Your hard work will be recognized eventually."
+      ],
+      "tips": [
+        "Try to stay positive and focus on the good parts of your job",
+        "Talk to your boss about managing expectations",
+        "Practice gratitude for having a job",
+        "Just take deep breaths when you feel overwhelmed"
+      ],
+      "closing_line": "You're doing great! Keep pushing through."
+    },
+    "notes": {
+      "why_bad_is_bad": [
+        "Normalizes burnout ('work stress is normal') — dismisses severity",
+        "Toxic positivity ('every challenge makes you stronger') ignores systemic abuse",
+        "'Remember why you chose this job' = gaslighting (implies user's fault for being upset)",
+        "False promise ('hard work will be recognized') — not guaranteed, feels patronizing",
+        "Prescriptive advice ('talk to your boss') ignores power dynamics, could be unsafe",
+        "Gratitude guilt ('practice gratitude for having a job') minimizes real harm",
+        "'Just breathe' trivializes burnout",
+        "Cheerleader tone ('you're doing great!') contradicts user's 'can't think straight' reality",
+        "No concrete micro-actions — all generic platitudes",
+        "Doesn't mirror specifics (boss behavior, deadlines, being singled out)"
+      ],
+      "specificity_comparison": {
+        "good": "Mirrors 3 specifics (boss behavior, deadlines, burnout), names systemic issue, provides micro-actions (one boundary, breathing block, documentation), avoids prescriptive 'solutions'",
+        "bad": "Generic work stress advice, no specifics mirrored, normalizes burnout, prescriptive ('talk to boss'), toxic positivity, gratitude guilt"
+      }
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "variable": "willingness",
+  "timestamp": "20251102_153956",
+  "acceptance_passed": false,
+  "metrics": {
+    "overall": {
+      "rmse": 0.11548608057464299,
+      "mae": 0.09973449888809592,
+      "pearson_r": 0.14293263078254453,
+      "spearman_r": 0.13866777533716446,
+      "ece": 0.0012176560959442334
+    },
+    "by_length": {
+      "short": {
+        "rmse": 0.11548608057464299,
+        "n": 772
+      },
+      "medium": {
+        "rmse": 0.0,
+        "n": 0
+      },
+      "long": {
+        "rmse": 0.0,
+        "n": 0
+      }
+    }
+  },
+  "config": {
+    "n_trials": 60,
+    "seed": 137,
+    "cv_folds": 5
+  }
+}

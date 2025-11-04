@@ -202,8 +202,18 @@ class RedisClient:
         data = self.lpop(key)
         if data:
             try:
-                return json.loads(data)
-            except:
+                parsed = json.loads(data)
+                # Handle double-encoded or array-wrapped data
+                if isinstance(parsed, list):
+                    # If it's a list, take the first item
+                    return parsed[0] if len(parsed) > 0 else None
+                elif isinstance(parsed, str):
+                    # Double-encoded JSON string
+                    return json.loads(parsed)
+                return parsed
+            except Exception as e:
+                print(f"[!] Failed to parse reflection from queue: {e}")
+                print(f"[!] Raw data: {data[:200]}...")
                 return None
         return None
     

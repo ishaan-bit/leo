@@ -1,0 +1,33 @@
+{
+  "variable": "arousal",
+  "timestamp": "20251102_153621",
+  "acceptance_passed": false,
+  "metrics": {
+    "overall": {
+      "rmse": 0.12076261144467655,
+      "mae": 0.10068144633114282,
+      "pearson_r": 0.10669576345367142,
+      "spearman_r": 0.11661016064225795,
+      "ece": 0.003995590574297783
+    },
+    "by_length": {
+      "short": {
+        "rmse": 0.12076261144467655,
+        "n": 772
+      },
+      "medium": {
+        "rmse": 0.0,
+        "n": 0
+      },
+      "long": {
+        "rmse": 0.0,
+        "n": 0
+      }
+    }
+  },
+  "config": {
+    "n_trials": 80,
+    "seed": 137,
+    "cv_folds": 5
+  }
+}

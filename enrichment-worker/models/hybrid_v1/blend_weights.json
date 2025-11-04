@@ -1,0 +1,210 @@
+{
+  "_schema_version": "1.0",
+  "_description": "Variable-specific hybridization weights for behavioral inference. Each variable has its own blend topology: [Lexical, Embedding, Transformer, Temporal, LLM]. Sum(α)=1.0 per variable.",
+  
+  "variables": {
+    "valence": {
+      "weights": [0.35, 0.20, 0.25, 0.20, 0.00],
+      "components": ["lexical", "embedding", "transformer", "temporal", "llm"],
+      "rationale": "Lexical + transformer capture polarity well; temporal smooths noise; no LLM needed for continuous affect",
+      "target_type": "regression",
+      "range": [0.0, 1.0]
+    },
+    
+    "arousal": {
+      "weights": [0.40, 0.10, 0.25, 0.25, 0.00],
+      "components": ["lexical", "embedding", "transformer", "temporal", "llm"],
+      "rationale": "Lexical markers (intensifiers, punctuation, ALL CAPS) dominate; temporal gives rhythm/circadian context",
+      "target_type": "regression",
+      "range": [0.0, 1.0]
+    },
+    
+    "invoked_primary": {
+      "weights": [0.10, 0.25, 0.35, 0.00, 0.30],
+      "components": ["lexical", "embedding", "transformer", "temporal", "llm"],
+      "rationale": "Core emotion via transformer zero-shot; nuance from embedding similarity + LLM micro-interpretation",
+      "target_type": "classification",
+      "classes": ["Happy", "Strong", "Peaceful", "Sad", "Angry", "Fearful"]
+    },
+    
+    "invoked_secondary": {
+      "weights": [0.05, 0.30, 0.30, 0.00, 0.35],
+      "components": ["lexical", "embedding", "transformer", "temporal", "llm"],
+      "rationale": "Nuance-level requires semantic similarity + LLM context; lexical minimal",
+      "target_type": "classification",
+      "classes": "36 nuances per EES-1"
+    },
+    
+    "invoked_tertiary": {
+      "weights": [0.00, 0.25, 0.25, 0.00, 0.50],
+      "components": ["lexical", "embedding", "transformer", "temporal", "llm"],
+      "rationale": "Micro-nuances (216 states) best captured by LLM interpretive layer + embeddings",
+      "target_type": "classification",
+      "classes": "216 micro-nuances per EES-1"
+    },
+    
+    "expressed_primary": {
+      "weights": [0.05, 0.20, 0.25, 0.00, 0.50],
+      "components": ["lexical", "embedding", "transformer", "temporal", "llm"],
+      "rationale": "LLM infers social inhibition/self-awareness layer; lexical minimal; temporal N/A for expressed",
+      "target_type": "classification",
+      "classes": ["Happy", "Strong", "Peaceful", "Sad", "Angry", "Fearful"]
+    },
+    
+    "expressed_secondary": {
+      "weights": [0.00, 0.15, 0.20, 0.00, 0.65],
+      "components": ["lexical", "embedding", "transformer", "temporal", "llm"],
+      "rationale": "Expressed nuance heavily dependent on narrative interpretation (what they're willing to show)",
+      "target_type": "classification",
+      "classes": "36 nuances per EES-1"
+    },
+    
+    "expressed_tertiary": {
+      "weights": [0.00, 0.10, 0.15, 0.00, 0.75],
+      "components": ["lexical", "embedding", "transformer", "temporal", "llm"],
+      "rationale": "Micro-expressed emotions require deep empathetic reading; LLM dominates",
+      "target_type": "classification",
+      "classes": "216 micro-nuances per EES-1"
+    },
+    
+    "willingness_to_express": {
+      "weights": [0.15, 0.10, 0.15, 0.10, 0.50],
+      "components": ["lexical", "embedding", "transformer", "temporal", "llm"],
+      "rationale": "Half driven by narrative nuance/LLM empathy reading; lexical cues (hedges, self-ref) provide baseline",
+      "target_type": "regression",
+      "range": [0.0, 1.0]
+    },
+    
+    "congruence": {
+      "weights": [0.25, 0.10, 0.25, 0.25, 0.15],
+      "components": ["lexical", "embedding", "transformer", "temporal", "llm"],
+      "rationale": "Measurable by overlap of invoked/expressed features; temporal adds consistency; LLM qualitative context",
+      "target_type": "regression",
+      "range": [0.0, 1.0]
+    },
+    
+    "comparator_expected_vs_actual": {
+      "weights": [0.20, 0.00, 0.15, 0.50, 0.15],
+      "components": ["lexical", "embedding", "transformer", "temporal", "llm"],
+      "rationale": "Temporal model dominates (baseline vs current); LLM interprets deviation meaningfully",
+      "target_type": "regression",
+      "range": [-1.0, 1.0]
+    },
+    
+    "enrichment_poems": {
+      "weights": [0.00, 0.00, 0.00, 0.00, 1.00],
+      "components": ["lexical", "embedding", "transformer", "temporal", "llm"],
+      "rationale": "Fully LLM generation; others provide context features only",
+      "target_type": "generation",
+      "constraints": "<=4 lines, empathetic-stranger voice, EES-1 emotion grounded"
+    },
+    
+    "enrichment_tips": {
+      "weights": [0.00, 0.00, 0.00, 0.00, 1.00],
+      "components": ["lexical", "embedding", "transformer", "temporal", "llm"],
+      "rationale": "Fully LLM generation; locale-aware, concrete, non-prescriptive",
+      "target_type": "generation",
+      "constraints": "<=3 tips, urban India context, no banned phrases"
+    },
+    
+    "enrichment_closing_line": {
+      "weights": [0.00, 0.00, 0.00, 0.00, 1.00],
+      "components": ["lexical", "embedding", "transformer", "temporal", "llm"],
+      "rationale": "Fully LLM generation; warm, specific, no platitudes",
+      "target_type": "generation",
+      "constraints": "single line, mirrors 1-2 user specifics"
+    }
+  },
+  
+  "context_adaptive_rules": {
+    "_description": "Modulation rules that adjust base weights based on context features",
+    
+    "short_text": {
+      "condition": "text_len < 30",
+      "adjustments": {
+        "all_variables": {"lexical": "+0.10", "transformer": "-0.05", "llm": "-0.05"}
+      },
+      "rationale": "Lexical signals more reliable for very short text; less semantic context for deep models"
+    },
+    
+    "hindi_language": {
+      "condition": "lang == 'hi'",
+      "adjustments": {
+        "all_variables": {"embedding": "+0.10", "transformer": "-0.10"}
+      },
+      "rationale": "Embeddings handle multilingual better; transformer may be English-biased"
+    },
+    
+    "hinglish_language": {
+      "condition": "lang == 'hinglish'",
+      "adjustments": {
+        "all_variables": {"embedding": "+0.15", "lexical": "-0.10", "llm": "+0.05"}
+      },
+      "rationale": "Code-mixed text needs semantic embeddings + LLM context awareness; lexical rules break"
+    },
+    
+    "temporal_continuity": {
+      "condition": "time_since_last < 6h",
+      "adjustments": {
+        "valence": {"temporal": "+0.10", "transformer": "-0.05"},
+        "arousal": {"temporal": "+0.10", "lexical": "-0.05"},
+        "comparator_expected_vs_actual": {"temporal": "+0.15", "llm": "-0.10"}
+      },
+      "rationale": "Recent history highly predictive; lean on temporal priors"
+    },
+    
+    "low_confidence_text": {
+      "condition": "transformer_confidence < 0.5",
+      "adjustments": {
+        "all_variables": {"llm": "+0.20", "transformer": "-0.15", "embedding": "+0.05"}
+      },
+      "rationale": "Let LLM reinterpret ambiguous/low-confidence text; reduce reliance on uncertain transformer output"
+    },
+    
+    "first_reflection": {
+      "condition": "user_reflection_count == 1",
+      "adjustments": {
+        "all_variables": {"temporal": "-0.10", "lexical": "+0.05", "transformer": "+0.05"}
+      },
+      "rationale": "No temporal history; increase reliance on text-based signals"
+    },
+    
+    "circadian_night": {
+      "condition": "hour >= 22 or hour < 6",
+      "adjustments": {
+        "valence": {"temporal": "+0.05"},
+        "arousal": {"temporal": "+0.05", "lexical": "+0.05"}
+      },
+      "rationale": "Nighttime reflections show valence/arousal patterns; temporal + lexical fatigue markers"
+    }
+  },
+  
+  "validation_rules": {
+    "sum_equals_one": "Sum of weights per variable must equal 1.0 ±0.001",
+    "non_negative": "All weights must be >= 0.0",
+    "component_count": "Each variable must have exactly 5 components [Lx, Em, Tr, Tm, LL]",
+    "range_check": "For regression variables, validate range constraints",
+    "ees1_compliance": "For classification variables, ensure classes align with EES-1 schema (6 cores, 36 nuances, 216 micros)"
+  },
+  
+  "meta_blender_config": {
+    "model_path": "blend_meta_lgbm.pkl",
+    "input_features": [
+      "text_len",
+      "lang",
+      "hour",
+      "weekday",
+      "time_since_last_hours",
+      "user_reflection_count",
+      "transformer_confidence",
+      "lexical_signal_strength",
+      "embedding_similarity_max",
+      "temporal_ema_available"
+    ],
+    "output": "Per-variable α vector (5 weights summing to 1.0)",
+    "training_objective": "Minimize per-variable loss (RMSE for regression, cross-entropy for classification)",
+    "optimization": "Optuna hyperparameter search on validation folds"
+  },
+  
+  "ip_statement": "Variable-specific hybridization with context-adaptive weighting. Each psychological dimension has its own dynamic topology, learned via meta-LGBM on behavioral cues. Bidirectional (perception → generation) with explainability layer. Patent-pending behavioral tech."
+}

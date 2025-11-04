@@ -1,0 +1,201 @@
+{
+  "_meta": {
+    "example_id": "LONG_02",
+    "length_bucket": "LONG",
+    "edge_case_category": "high_risk",
+    "risk_level": "HIGH",
+    "annotation_notes": "⚠️ HIGH RISK - Domestic abuse disclosure. Requires DUAL REVIEW per safety protocol. Pattern: financial control, emotional manipulation, threat of violence, isolation from family. 247 words, multi-paragraph narrative. Invoked: Fearful/Helpless/Trapped (not in standard taxonomy — map to Fearful/Helpless/Stuck or Fearful/Weak/Powerless). Good response must mirror ≥3 specifics, acknowledge danger, provide concrete safety resources WITHOUT prescriptive 'just leave' advice.",
+    "quality_gates": {
+      "specificity_score": 0.85,
+      "mirrored_details": ["financial control", "family isolation", "walking on eggshells", "afraid", "trapped"],
+      "banned_phrases_present": false,
+      "length_appropriate": true,
+      "dual_review_required": true,
+      "safety_team_flagged": true,
+      "narrative_coherence": true
+    },
+    "escalation": {
+      "reviewer_1": "senior_annotator_C",
+      "reviewer_2": "senior_annotator_D",
+      "safety_team_notified": true,
+      "incident_report_id": "IR-2025-002",
+      "annotation_date": "2025-01-20"
+    }
+  },
+  
+  "perception": {
+    "rid": "example_long_02_highrisk",
+    "owner_id": "user_78901",
+    "ts": "2025-01-20T22:30:00Z",
+    "raw_text": "I don't know how I ended up here. Three years ago he was charming, attentive, everything I thought I wanted. Now I walk on eggshells every single day. He controls all the money — my salary goes into his account, he gives me an allowance like I'm a child. I tried to open my own account last month and he found out somehow, accused me of planning to leave him, didn't speak to me for a week except to say I was being selfish and ungrateful.\n\nMy family lives in [city], I haven't seen them in over a year. Every time I suggest visiting he finds a reason it's not a good time, or he'll come along and sit there sulking the whole time so I just stopped asking. My friends have mostly given up on me because I always cancel plans last minute when his mood shifts.\n\nLast week he punched the wall next to my head during an argument. He's never hit me directly but I'm terrified it's only a matter of time. I feel so stupid for staying but I have no money, nowhere to go, and I'm scared of what he'll do if I try to leave. Sometimes I think about just disappearing but I don't even know how to start.",
+    "normalized_text": "i dont know how i ended up here three years ago he was charming attentive everything i thought i wanted now i walk on eggshells every single day he controls all the money my salary goes into his account he gives me an allowance like im a child i tried to open my own account last month and he found out somehow accused me of planning to leave him didnt speak to me for a week except to say i was being selfish and ungrateful my family lives in city i havent seen them in over a year every time i suggest visiting he finds a reason its not a good time or hell come along and sit there sulking the whole time so i just stopped asking my friends have mostly given up on me because i always cancel plans last minute when his mood shifts last week he punched the wall next to my head during an argument hes never hit me directly but im terrified its only a matter of time i feel so stupid for staying but i have no money nowhere to go and im scared of what hell do if i try to leave sometimes i think about just disappearing but i dont even know how to start",
+    "lang": "EN",
+    "char_len": 1137,
+    "word_count": 247,
+    "sentence_count": 11,
+    "length_bucket": "LONG",
+    
+    "context": {
+      "time_of_day": "late_night",
+      "day_of_week": "tuesday",
+      "recency_hours": 1,
+      "prev_reflection_hours_ago": 168,
+      "city": "[city]",
+      "device": "mobile"
+    },
+    
+    "labels": {
+      "valence": 0.08,
+      "arousal": 0.65,
+      "invoked": {
+        "core": "Fearful",
+        "nuance": "Helpless",
+        "micro": "Stuck",
+        "cell_id": 196,
+        "tier": "C",
+        "confidence": 0.95,
+        "reasoning": "Domestic abuse pattern: financial control, isolation, intimidation (wall punch), fear of escalation. 'No money, nowhere to go, scared to leave' = Fearful/Helpless/Stuck. Also Fearful/Weak/Powerless, but Stuck captures trapped feeling. Very low valence (extreme distress). High arousal (hypervigilance, 'walking on eggshells')."
+      },
+      "expressed": {
+        "core": "Fearful",
+        "nuance": "Helpless",
+        "micro": "Stuck",
+        "cell_id": 196,
+        "tier": "C",
+        "confidence": 0.9,
+        "reasoning": "Direct, detailed disclosure. Willingness high (long narrative, specifics shared). Slight self-censoring ('he's never hit me directly' = minimizing). Congruence high but some shame present ('feel so stupid')."
+      },
+      "willingness": 0.85,
+      "congruence": 0.85,
+      "comparator": "worse",
+      "comparator_confidence": 0.9
+    },
+    
+    "temporal": {
+      "prev_primary": "Sad",
+      "prev_valence": 0.3,
+      "valence_delta": -0.22,
+      "arousal_delta": 0.2,
+      "trend_7d": "declining"
+    },
+    
+    "blend_targets": {
+      "valence": 0.08,
+      "arousal": 0.65,
+      "invoked_emb": [0.85, 0.1, 0.05],
+      "expressed_emb": [0.85, 0.1, 0.05],
+      "willingness": 0.85,
+      "congruence": 0.85,
+      "comparator": 0.1
+    },
+    
+    "risk_flags": {
+      "suicidal_ideation": false,
+      "self_harm": false,
+      "harm_to_others": false,
+      "abuse": true,
+      "stalking": false,
+      "financial_coercion": true,
+      "sociopathic_cues": false,
+      "medical_legal_anxiety": false,
+      "profanity_present": false,
+      "sarcasm_detected": false,
+      "negation_present": false
+    }
+  },
+  
+  "sft": {
+    "input": {
+      "normalized_text": "i dont know how i ended up here three years ago he was charming attentive everything i thought i wanted now i walk on eggshells every single day he controls all the money my salary goes into his account he gives me an allowance like im a child i tried to open my own account last month and he found out somehow accused me of planning to leave him didnt speak to me for a week except to say i was being selfish and ungrateful my family lives in city i havent seen them in over a year every time i suggest visiting he finds a reason its not a good time or hell come along and sit there sulking the whole time so i just stopped asking my friends have mostly given up on me because i always cancel plans last minute when his mood shifts last week he punched the wall next to my head during an argument hes never hit me directly but im terrified its only a matter of time i feel so stupid for staying but i have no money nowhere to go and im scared of what hell do if i try to leave sometimes i think about just disappearing but i dont even know how to start",
+      "invoked_core": "Fearful",
+      "invoked_nuance": "Helpless",
+      "invoked_micro": "Stuck",
+      "valence": 0.08,
+      "arousal": 0.65,
+      "length_bucket": "LONG",
+      "risk_level": "HIGH"
+    },
+    "good": {
+      "poems": [
+        "You named the pattern: charm, control, isolation, fear. That takes clarity most don't have.",
+        "Walking on eggshells is not a metaphor when the wall next to your head has a fist-sized hole.",
+        "Leaving isn't simple when someone has taken your money, your family, your friends, your sense of exit.",
+        "You're not stupid. Abusers are architects. They build cages slowly, so you don't notice until you're already inside."
+      ],
+      "tips": [
+        "If safe: Screenshot this reflection, email it to yourself at a private account only you can access",
+        "National Domestic Violence Hotline: [redacted for example — UI would show locale-specific resource]",
+        "One micro-step: Keep ₹500 cash hidden somewhere only you know (inside a book, shoe, tampon box)",
+        "If you have one trusted friend/family, send them a code word that means 'I need help but can't say it directly'",
+        "Document: Dates, incidents, financial control, isolation patterns — even if you're not ready to leave, having records helps later"
+      ],
+      "closing_line": "This isn't your fault. You deserve safety, and help exists even when it feels invisible.",
+      "voice_notes": "⚠️ HIGH RISK empathy. Mirror ≥3 specifics (financial control, isolation, wall punch, trapped feeling). Acknowledge danger WITHOUT prescriptive 'just leave' (leaving is most dangerous time for DV survivors). Provide concrete micro-steps (hidden cash, documentation, code word). Locale-specific crisis resource (UI handles). Witness pattern recognition as strength. NO victim-blaming ('why did you stay')."
+    }
+  },
+  
+  "dpo": {
+    "input": {
+      "normalized_text": "i dont know how i ended up here three years ago he was charming attentive everything i thought i wanted now i walk on eggshells every single day he controls all the money my salary goes into his account he gives me an allowance like im a child i tried to open my own account last month and he found out somehow accused me of planning to leave him didnt speak to me for a week except to say i was being selfish and ungrateful my family lives in city i havent seen them in over a year every time i suggest visiting he finds a reason its not a good time or hell come along and sit there sulking the whole time so i just stopped asking my friends have mostly given up on me because i always cancel plans last minute when his mood shifts last week he punched the wall next to my head during an argument hes never hit me directly but im terrified its only a matter of time i feel so stupid for staying but i have no money nowhere to go and im scared of what hell do if i try to leave sometimes i think about just disappearing but i dont even know how to start",
+      "invoked_core": "Fearful",
+      "invoked_nuance": "Helpless",
+      "invoked_micro": "Stuck",
+      "valence": 0.08,
+      "arousal": 0.65,
+      "length_bucket": "LONG",
+      "risk_level": "HIGH"
+    },
+    "good": {
+      "poems": [
+        "You named the pattern: charm, control, isolation, fear. That takes clarity most don't have.",
+        "Walking on eggshells is not a metaphor when the wall next to your head has a fist-sized hole.",
+        "Leaving isn't simple when someone has taken your money, your family, your friends, your sense of exit.",
+        "You're not stupid. Abusers are architects. They build cages slowly, so you don't notice until you're already inside."
+      ],
+      "tips": [
+        "If safe: Screenshot this reflection, email it to yourself at a private account only you can access",
+        "National Domestic Violence Hotline: [locale_crisis_resource]",
+        "One micro-step: Keep ₹500 cash hidden somewhere only you know (inside a book, shoe, tampon box)",
+        "If you have one trusted friend/family, send them a code word that means 'I need help but can't say it directly'",
+        "Document: Dates, incidents, financial control, isolation patterns — even if you're not ready to leave, having records helps later"
+      ],
+      "closing_line": "This isn't your fault. You deserve safety, and help exists even when it feels invisible."
+    },
+    "bad": {
+      "poems": [
+        "You deserve better! Know your worth.",
+        "Love shouldn't hurt. You can leave anytime.",
+        "You are strong and brave.",
+        "Everything will be okay once you take that first step."
+      ],
+      "tips": [
+        "Just pack your bags and leave — your safety comes first",
+        "Talk to a therapist about why you stayed",
+        "Remember, you have the power to change your situation",
+        "Reach out to your family for support",
+        "File a police report so there's a record"
+      ],
+      "closing_line": "Believe in yourself! You've got this."
+    },
+    "notes": {
+      "why_bad_is_bad": [
+        "DANGEROUS: 'Just pack your bags and leave' — leaving is the most dangerous time for DV survivors, risk of violence spikes",
+        "Victim-blaming: 'Talk to therapist about why you stayed' — implies it's her fault, ignores coercive control",
+        "'You can leave anytime' — FALSE. Financial control, isolation, fear of retaliation are real barriers",
+        "'Reach out to family for support' — she explicitly said he's isolated her from family, this is tone-deaf",
+        "'File police report' — prescriptive, ignores safety risks, legal complexities, potential retaliation",
+        "Cheerleader tone ('believe in yourself!') trivializes extreme danger",
+        "No concrete micro-steps that account for surveillance, financial control",
+        "False promise ('everything will be okay') — not guaranteed, minimizes risk",
+        "Doesn't mirror specifics (financial control, isolation, wall punch)",
+        "No crisis resources provided",
+        "Simplistic 'just leave' narrative ignores that DV is about power and control, not individual weakness"
+      ],
+      "specificity_comparison": {
+        "good": "Mirrors 4+ specifics (financial control, isolation, wall punch, trapped feeling), provides micro-steps that account for surveillance (hidden cash, code word, documentation), crisis resource, acknowledges leaving complexity, NO victim-blaming",
+        "bad": "Dangerous prescriptive advice ('just leave', 'file police report'), victim-blaming ('why you stayed'), ignores barriers she named, no micro-steps, no crisis resources, false promises, cheerleader tone"
+      },
+      "safety_notes": "Good response demonstrates trauma-informed empathy: witness without prescribing, micro-steps that account for surveillance, crisis resources, NO 'just leave' (statistically most dangerous advice). Bad response shows why generic advice can be dangerous for DV survivors."
+    }
+  }
+}

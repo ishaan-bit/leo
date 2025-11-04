@@ -1,3 +1,24 @@
+---
+title: Leo Enrichment Worker
+emoji: "🧠"
+colorFrom: purple
+colorTo: pink
+sdk: docker
+sdk_version: "1.0"
+app_file: app.py
+pinned: false
+---
+
+# Leo Enrichment Worker
+
+Enrichment worker runs the 2-stage enrichment pipeline using Ollama (phi3). This Space uses a Docker container and requests a GPU (t4-small).
+
+Environment variables (add in Settings → Repository secrets):
+- `UPSTASH_REDIS_REST_URL`
+- `UPSTASH_REDIS_REST_TOKEN`
+- `HF_TOKEN`
+
+The container starts `start.sh` which launches Ollama and the worker loop.
 # Leo Enrichment Worker
 
 Local worker that polls Upstash Redis for normalized reflections, enriches them with Ollama (phi3), and writes back enriched data with advanced analytics.

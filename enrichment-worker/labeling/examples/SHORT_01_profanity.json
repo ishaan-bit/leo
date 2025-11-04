@@ -1,0 +1,177 @@
+{
+  "_meta": {
+    "example_id": "SHORT_01",
+    "length_bucket": "SHORT",
+    "edge_case_category": "profanity_common",
+    "risk_level": "LOW",
+    "annotation_notes": "Demonstrates SHORT reflection (5 words) with profanity. Emotional valence is negative despite brief text. Annotate invoked emotion from context clues (exhaustion, defeat). Good response mirrors 'fucked up' without sanitizing excessively, acknowledges rough day without platitude.",
+    "quality_gates": {
+      "specificity_score": 0.65,
+      "mirrored_details": ["fucked up", "day"],
+      "banned_phrases_present": false,
+      "length_appropriate": true
+    }
+  },
+  
+  "perception": {
+    "rid": "example_short_01",
+    "owner_id": "user_12345",
+    "ts": "2025-01-20T18:45:00Z",
+    "raw_text": "Fucked up day.",
+    "normalized_text": "fucked up day",
+    "lang": "EN",
+    "char_len": 15,
+    "word_count": 3,
+    "sentence_count": 1,
+    "length_bucket": "SHORT",
+    
+    "context": {
+      "time_of_day": "evening",
+      "day_of_week": "monday",
+      "recency_hours": 2,
+      "prev_reflection_hours_ago": 72,
+      "city": "[city]",
+      "device": "mobile"
+    },
+    
+    "labels": {
+      "valence": 0.15,
+      "arousal": 0.55,
+      "invoked": {
+        "core": "Angry",
+        "nuance": "Frustrated",
+        "micro": "Defeated",
+        "cell_id": 140,
+        "tier": "A",
+        "confidence": 0.75,
+        "reasoning": "Brief profanity suggests frustration + exhaustion. 'Fucked up' implies things went wrong (defeat). No specific trigger mentioned, so infer general frustration."
+      },
+      "expressed": {
+        "core": "Angry",
+        "nuance": "Frustrated",
+        "micro": "Defeated",
+        "cell_id": 140,
+        "tier": "A",
+        "confidence": 0.85,
+        "reasoning": "Direct, uncensored expression. High willingness to express (profanity = disinhibition)."
+      },
+      "willingness": 0.85,
+      "congruence": 0.95,
+      "comparator": "neutral",
+      "comparator_confidence": 0.5
+    },
+    
+    "temporal": {
+      "prev_primary": null,
+      "prev_valence": null,
+      "valence_delta": null,
+      "arousal_delta": null,
+      "trend_7d": null
+    },
+    
+    "blend_targets": {
+      "valence": 0.15,
+      "arousal": 0.55,
+      "invoked_emb": [0.1, 0.3, 0.6],
+      "expressed_emb": [0.1, 0.3, 0.6],
+      "willingness": 0.85,
+      "congruence": 0.95,
+      "comparator": 0.5
+    },
+    
+    "risk_flags": {
+      "suicidal_ideation": false,
+      "self_harm": false,
+      "harm_to_others": false,
+      "abuse": false,
+      "stalking": false,
+      "financial_coercion": false,
+      "sociopathic_cues": false,
+      "medical_legal_anxiety": false,
+      "profanity_present": true,
+      "sarcasm_detected": false,
+      "negation_present": false
+    }
+  },
+  
+  "sft": {
+    "input": {
+      "normalized_text": "fucked up day",
+      "invoked_core": "Angry",
+      "invoked_nuance": "Frustrated",
+      "invoked_micro": "Defeated",
+      "valence": 0.15,
+      "arousal": 0.55,
+      "length_bucket": "SHORT"
+    },
+    "good": {
+      "poems": [
+        "Sometimes one line holds a whole storm.",
+        "Even the toughest days pass.",
+        "Your honesty is your strength.",
+        "Rough days teach quiet resilience."
+      ],
+      "tips": [
+        "Take 5 slow breaths before the next task",
+        "Step outside for 2 minutes if possible",
+        "One small win counts (even brushing teeth)"
+      ],
+      "closing_line": "You made it through. That's enough for today.",
+      "voice_notes": "Empathetic-stranger voice. Mirror 'fucked up' energy without preaching. SHORT length = simple, concrete tips. No banned phrases."
+    }
+  },
+  
+  "dpo": {
+    "input": {
+      "normalized_text": "fucked up day",
+      "invoked_core": "Angry",
+      "invoked_nuance": "Frustrated",
+      "invoked_micro": "Defeated",
+      "valence": 0.15,
+      "arousal": 0.55,
+      "length_bucket": "SHORT"
+    },
+    "good": {
+      "poems": [
+        "Sometimes one line holds a whole storm.",
+        "Even the toughest days pass.",
+        "Your honesty is your strength.",
+        "Rough days teach quiet resilience."
+      ],
+      "tips": [
+        "Take 5 slow breaths before the next task",
+        "Step outside for 2 minutes if possible",
+        "One small win counts (even brushing teeth)"
+      ],
+      "closing_line": "You made it through. That's enough for today."
+    },
+    "bad": {
+      "poems": [
+        "Everything happens for a reason.",
+        "Tomorrow is a new day!",
+        "Stay positive, things will get better.",
+        "You are valid and worthy."
+      ],
+      "tips": [
+        "Try to think positive thoughts",
+        "Just breathe and relax",
+        "Remember, you're strong!"
+      ],
+      "closing_line": "Chin up! You've got this!"
+    },
+    "notes": {
+      "why_bad_is_bad": [
+        "Platitudes ('everything happens for a reason') dismiss real frustration",
+        "Toxic positivity ('stay positive') ignores the emotional reality",
+        "Banned phrase ('you are valid')",
+        "Generic tips ('just breathe') lack concrete actions",
+        "Cheerleader tone ('chin up!') feels patronizing for exhausted state",
+        "Doesn't mirror user's raw honesty - sanitizes emotion"
+      ],
+      "specificity_comparison": {
+        "good": "Mirrors 'rough day' energy, concrete 1-action tips, acknowledges survival",
+        "bad": "Generic advice, could apply to anyone, ignores profanity's signal of disinhibition"
+      }
+    }
+  }
+}

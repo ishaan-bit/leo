@@ -1,0 +1,190 @@
+{
+  "_meta": {
+    "example_id": "MEDIUM_05",
+    "length_bucket": "MEDIUM",
+    "edge_case_category": "hinglish_code_mixing",
+    "risk_level": "MEDIUM",
+    "annotation_notes": "Demonstrates Hinglish code-mixing (EN + HI) with profanity. 68 words, 4 sentences. Hinglish profanity: 'bakwas' (nonsense/bullshit), 'pagal' (crazy), 'kya karu' (what should I do). Invoked: Fearful/Overwhelmed/Stressed (wedding pressure, family expectations). Expressed: Similar but culturally specific shame ('ladki hoke'). Good response must honor cultural context (family pressure, gendered expectations) without Western individualism ('just set boundaries').",
+    "quality_gates": {
+      "specificity_score": 0.75,
+      "mirrored_details": ["wedding pressure", "family expectations", "savings gone", "ladki hoke"],
+      "banned_phrases_present": false,
+      "length_appropriate": true,
+      "cultural_context_preserved": true,
+      "code_mixing_natural": true
+    }
+  },
+  
+  "perception": {
+    "rid": "example_medium_05",
+    "owner_id": "user_56789",
+    "ts": "2025-01-20T21:00:00Z",
+    "raw_text": "Yaar family mein shaadi ki itni bakwas chal rahi hai. My sister's wedding is in 3 months and everyone is acting like it's MY responsibility to manage everything. Papa says 'tum badi ho, tumhe handle karna chahiye' but then doesn't listen to any of my suggestions. Mummy is just stressed all the time and takes it out on me. Maine apni 6 months ki savings lagayi hai and they still think I'm not doing enough. Ladki hoke bhi kya hi kar sakti hoon? I feel so trapped yaar, pagal ho jaungi main.",
+    "normalized_text": "yaar family mein shaadi ki itni bakwas chal rahi hai my sisters wedding is in 3 months and everyone is acting like its my responsibility to manage everything papa says tum badi ho tumhe handle karna chahiye but then doesnt listen to any of my suggestions mummy is just stressed all the time and takes it out on me maine apni 6 months ki savings lagayi hai and they still think im not doing enough ladki hoke bhi kya hi kar sakti hoon i feel so trapped yaar pagal ho jaungi main",
+    "lang": "Hinglish",
+    "char_len": 491,
+    "word_count": 108,
+    "sentence_count": 7,
+    "length_bucket": "MEDIUM",
+    
+    "context": {
+      "time_of_day": "night",
+      "day_of_week": "saturday",
+      "recency_hours": 3,
+      "prev_reflection_hours_ago": 24,
+      "city": "[city]",
+      "device": "mobile"
+    },
+    
+    "labels": {
+      "valence": 0.2,
+      "arousal": 0.8,
+      "invoked": {
+        "core": "Fearful",
+        "nuance": "Overwhelmed",
+        "micro": "Stressed",
+        "cell_id": 176,
+        "tier": "A",
+        "confidence": 0.85,
+        "reasoning": "Wedding pressure, financial drain (6 months savings), family expectations, gendered burden ('ladki hoke'). 'Pagal ho jaungi' (I'll go crazy) = Overwhelmed/Stressed. High arousal (urgent timeline, high demands). Low valence (trapped, unappreciated)."
+      },
+      "expressed": {
+        "core": "Fearful",
+        "nuance": "Overwhelmed",
+        "micro": "Stressed",
+        "cell_id": 176,
+        "tier": "A",
+        "confidence": 0.8,
+        "reasoning": "Direct expression but culturally coded. 'Bakwas' (bullshit) = profanity but softer than English equivalent. 'Ladki hoke bhi kya hi kar sakti hoon' (what can I do even as a daughter) = gendered helplessness. Willingness medium (vents but doesn't challenge family directly)."
+      },
+      "willingness": 0.65,
+      "congruence": 0.85,
+      "comparator": "worse",
+      "comparator_confidence": 0.75
+    },
+    
+    "temporal": {
+      "prev_primary": "Fearful",
+      "prev_valence": 0.3,
+      "valence_delta": -0.1,
+      "arousal_delta": 0.2,
+      "trend_7d": "declining"
+    },
+    
+    "blend_targets": {
+      "valence": 0.2,
+      "arousal": 0.8,
+      "invoked_emb": [0.75, 0.2, 0.05],
+      "expressed_emb": [0.75, 0.2, 0.05],
+      "willingness": 0.65,
+      "congruence": 0.85,
+      "comparator": 0.25
+    },
+    
+    "risk_flags": {
+      "suicidal_ideation": false,
+      "self_harm": false,
+      "harm_to_others": false,
+      "abuse": false,
+      "stalking": false,
+      "financial_coercion": false,
+      "sociopathic_cues": false,
+      "medical_legal_anxiety": false,
+      "profanity_present": true,
+      "sarcasm_detected": false,
+      "negation_present": false
+    }
+  },
+  
+  "sft": {
+    "input": {
+      "normalized_text": "yaar family mein shaadi ki itni bakwas chal rahi hai my sisters wedding is in 3 months and everyone is acting like its my responsibility to manage everything papa says tum badi ho tumhe handle karna chahiye but then doesnt listen to any of my suggestions mummy is just stressed all the time and takes it out on me maine apni 6 months ki savings lagayi hai and they still think im not doing enough ladki hoke bhi kya hi kar sakti hoon i feel so trapped yaar pagal ho jaungi main",
+      "invoked_core": "Fearful",
+      "invoked_nuance": "Overwhelmed",
+      "invoked_micro": "Stressed",
+      "valence": 0.2,
+      "arousal": 0.8,
+      "length_bucket": "MEDIUM",
+      "lang": "Hinglish"
+    },
+    "good": {
+      "poems": [
+        "Shaadi ka pressure plus 'tum badi ho' — that's a double weight most don't see.",
+        "You gave 6 months of savings and they still say 'not enough.' That math doesn't add up.",
+        "'Ladki hoke bhi kya kar sakti hoon' hits different when family expects everything but listens to nothing.",
+        "Being eldest daughter isn't a job description, but families sure treat it like one."
+      ],
+      "tips": [
+        "Tonight: Write down 3 tasks you did this week for the shaadi. Just seeing the list helps",
+        "Tomorrow: When Papa says 'handle karo', ask ONE specific question: 'Which vendor — catering or decorations?' (forces clarity)",
+        "This week: Keep ₹2000 from next paycheck for yourself, even if guilt says otherwise"
+      ],
+      "closing_line": "Pagal mat hona yaar. You're carrying more than your share already.",
+      "voice_notes": "Hinglish empathy. Mirror cultural specifics: gendered expectations ('ladki hoke'), family hierarchy (Papa doesn't listen, badi ho = eldest duty), wedding financial drain. Code-mix naturally ('pagal mat hona'). Avoid Western individualism ('just set boundaries with family' = tone-deaf). Concrete tips that work within family system (ask specific questions vs confrontation, keep small savings). Acknowledge double bind: expected to manage but not heard."
+    }
+  },
+  
+  "dpo": {
+    "input": {
+      "normalized_text": "yaar family mein shaadi ki itni bakwas chal rahi hai my sisters wedding is in 3 months and everyone is acting like its my responsibility to manage everything papa says tum badi ho tumhe handle karna chahiye but then doesnt listen to any of my suggestions mummy is just stressed all the time and takes it out on me maine apni 6 months ki savings lagayi hai and they still think im not doing enough ladki hoke bhi kya hi kar sakti hoon i feel so trapped yaar pagal ho jaungi main",
+      "invoked_core": "Fearful",
+      "invoked_nuance": "Overwhelmed",
+      "invoked_micro": "Stressed",
+      "valence": 0.2,
+      "arousal": 0.8,
+      "length_bucket": "MEDIUM",
+      "lang": "Hinglish"
+    },
+    "good": {
+      "poems": [
+        "Shaadi ka pressure plus 'tum badi ho' — that's a double weight most don't see.",
+        "You gave 6 months of savings and they still say 'not enough.' That math doesn't add up.",
+        "'Ladki hoke bhi kya kar sakti hoon' hits different when family expects everything but listens to nothing.",
+        "Being eldest daughter isn't a job description, but families sure treat it like one."
+      ],
+      "tips": [
+        "Tonight: Write down 3 tasks you did this week for the shaadi. Just seeing the list helps",
+        "Tomorrow: When Papa says 'handle karo', ask ONE specific question: 'Which vendor — catering or decorations?' (forces clarity)",
+        "This week: Keep ₹2000 from next paycheck for yourself, even if guilt says otherwise"
+      ],
+      "closing_line": "Pagal mat hona yaar. You're carrying more than your share already."
+    },
+    "bad": {
+      "poems": [
+        "Family is a blessing, even when stressful!",
+        "Your sister's special day is worth the effort.",
+        "Indian weddings are beautiful traditions.",
+        "You'll look back on this and smile someday."
+      ],
+      "tips": [
+        "Just set clear boundaries with your parents",
+        "Remember, this is about your sister's happiness",
+        "Try to enjoy the wedding planning process",
+        "Communicate your feelings openly to your family",
+        "Practice self-care and don't let stress get to you"
+      ],
+      "closing_line": "Family comes first! You're doing a great thing."
+    },
+    "notes": {
+      "why_bad_is_bad": [
+        "TONE-DEAF: 'Family is a blessing' dismisses real financial/emotional burden",
+        "'Your sister's special day is worth the effort' = guilt trip, ignores she gave 6 months savings",
+        "Romanticizes weddings ('beautiful traditions') when user is drowning in logistics",
+        "'You'll look back and smile' = future-gaslighting, ignores present suffering",
+        "CULTURALLY IGNORANT: 'Just set clear boundaries' — doesn't work in hierarchical family systems where Papa doesn't listen",
+        "'Communicate feelings openly' — she literally said Papa doesn't listen to suggestions",
+        "'This is about your sister's happiness' — centers sister, erases user's sacrifices",
+        "'Practice self-care' — generic, no concrete actions",
+        "'Don't let stress get to you' — trivializes 'pagal ho jaungi' (going crazy)",
+        "No code-mixing (responds in pure English to Hinglish input = cultural disconnect)",
+        "Doesn't mirror specifics (gendered burden, financial drain, not being heard)",
+        "Cheerleader tone ('family comes first!') reinforces guilt she's already feeling"
+      ],
+      "specificity_comparison": {
+        "good": "Mirrors cultural specifics (gendered duty, family hierarchy, financial drain), code-mixes naturally, provides micro-actions that work within system (specific questions, small savings), acknowledges double bind",
+        "bad": "Generic family stress advice, romanticizes tradition, prescriptive Western solutions ('set boundaries'), guilt trips, doesn't code-mix, ignores cultural context"
+      },
+      "cultural_notes": "Good response demonstrates cultural competence: honors family system while witnessing burden, code-mixes to match user's voice, provides strategies that work within hierarchy (asking specific questions vs confrontation). Bad response imports Western individualism ('boundaries', 'open communication') that doesn't map to reality of hierarchical families where eldest daughters carry gendered burden."
+    }
+  }
+}
