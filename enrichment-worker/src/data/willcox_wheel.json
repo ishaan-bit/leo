@@ -22,6 +22,12 @@
       "All mappings must draw from this cube"
     ]
   },
+  "validation_rules": {
+    "strict_hierarchy": true,
+    "case_sensitive": false,
+    "allow_synonyms": false,
+    "fallback_to_parent": true
+  },
   "wheel": {
     "Happy": {
       "Excited": ["Energetic", "Curious", "Stimulated", "Playful", "Inspired", "Cheerful"],
