@@ -2,20 +2,48 @@
 Stage-2 Post-Enrichment Module
 ================================
 Calls Ollama to generate creative user-facing content from hybrid enrichment.
+OR matches pre-generated content based on emotion + context.
 """
 
 import requests
 import json
 import re
 from typing import Dict, Optional, List
+from pathlib import Path
 import sys
 import os
+import signal
+from contextlib import contextmanager
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from prompts.stage2_prompt import STAGE2_SYSTEM_PROMPT
+from prompts.pig_window_prompt import generate_pig_window_prompt
 from utils.reliable_fields import pick_reliable_fields
+
+
+class TimeoutException(Exception):
+    pass
+
+
+@contextmanager
+def time_limit(seconds):
+    """Context manager for hard timeout using signals (Unix-like systems)"""
+    def signal_handler(signum, frame):
+        raise TimeoutException("Timed out!")
+    
+    # Try to use signal-based timeout (doesn't work on Windows)
+    try:
+        signal.signal(signal.SIGALRM, signal_handler)
+        signal.alarm(seconds)
+        try:
+            yield
+        finally:
+            signal.alarm(0)
+    except AttributeError:
+        # Windows doesn't have SIGALRM, just use requests timeout
+        yield
 
 
 def cosine_similarity(text1: str, text2: str) -> float:
@@ -89,7 +117,7 @@ CIRCADIAN CONTEXT: NIGHT (9pm-6am)
 
 class PostEnricher:
     """
-    Stage-2 post-processor using Ollama for creative content generation.
+    Stage-2 post-processor using pre-generated content DB or Ollama fallback.
     """
     
     def __init__(
@@ -97,7 +125,8 @@ class PostEnricher:
         ollama_base_url: str = "http://localhost:11434",
         ollama_model: str = "phi3:latest",
         temperature: float = 0.8,
-        timeout: int = 360  # 6 minutes for CPU inference (no GPU acceleration available)
+        timeout: int = 360,  # 6 minutes for CPU inference (no GPU acceleration available)
+        use_pregenerated: bool = True
     ):
         """
         Args:
@@ -105,15 +134,34 @@ class PostEnricher:
             ollama_model: Model name (phi3:latest recommended)
             temperature: Sampling temperature (0.7-0.9 for creativity)
             timeout: Request timeout in seconds
+            use_pregenerated: If True, use pre-generated content database (FAST)
         """
         self.ollama_base_url = ollama_base_url.rstrip('/')
         self.ollama_model = ollama_model
         self.temperature = temperature
         self.timeout = timeout
+        self.use_pregenerated = use_pregenerated
+        
+        # Load pre-generated content database
+        self.pregenerated_db = []
+        if use_pregenerated:
+            try:
+                db_path = Path(__file__).parent.parent / "data" / "post_enrichment_db.json"
+                if db_path.exists():
+                    with open(db_path, 'r', encoding='utf-8') as f:
+                        self.pregenerated_db = json.load(f)
+                    print(f"[*] Loaded {len(self.pregenerated_db)} pre-generated post-enrichment entries")
+                else:
+                    print(f"[!] Pre-generated DB not found at {db_path}, will use Ollama fallback")
+                    self.use_pregenerated = False
+            except Exception as e:
+                print(f"[!] Failed to load pre-generated DB: {e}, will use Ollama fallback")
+                self.use_pregenerated = False
         
         print(f"[*] PostEnricher initialized")
         print(f"   Model: {ollama_model}")
         print(f"   Temperature: {temperature}")
+        print(f"   Mode: {'Pre-generated DB' if self.use_pregenerated else 'Ollama generation'}")
     
     def is_available(self) -> bool:
         """Check if Ollama is reachable"""
@@ -122,6 +170,219 @@ class PostEnricher:
             return response.status_code == 200
         except:
             return False
+    
+    def _extract_context(self, text: str) -> str:
+        """
+        Extract 1-2 word context from the reflection text using Ollama.
+        Examples: "work", "relationship", "family", "loss", "achievement", "conflict"
+        
+        Args:
+            text: Normalized reflection text
+        
+        Returns:
+            1-2 word context descriptor
+        """
+        try:
+            prompt = f"""Extract the primary situational context from this reflection in 1-2 words ONLY.
+
+Examples:
+- "My boss criticized my presentation today" → "work"
+- "Had a fight with my partner about money" → "relationship"
+- "Mom's health is getting worse" → "family"
+- "Lost my job after 5 years" → "loss"
+- "Finally finished my thesis!" → "achievement"
+- "Friend didn't show up again" → "friendship"
+- "Stuck in traffic for 2 hours" → "commute"
+
+Reflection: {text}
+
+Context (1-2 words only):"""
+
+            payload = {
+                "model": self.ollama_model,
+                "prompt": prompt,
+                "options": {
+                    "temperature": 0.1,  # Low temperature for consistency
+                    "num_predict": 3,  # Only need 1-2 words
+                    "num_thread": 2  # Light CPU usage
+                },
+                "stream": False
+            }
+            
+            response = requests.post(
+                f"{self.ollama_base_url}/api/generate",
+                json=payload,
+                timeout=30  # INCREASED from 10s - CPU is slow
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                context = data.get('response', '').strip().lower()
+                # Clean up response (remove quotes, periods, etc.)
+                context = context.replace('"', '').replace("'", '').replace('.', '').strip()
+                # Take first 2 words max
+                words = context.split()[:2]
+                return ' '.join(words) if words else 'moment'
+            else:
+                return 'moment'  # Fallback
+                
+        except Exception as e:
+            print(f"   [!] Context extraction failed: {e}, using fallback")
+            return 'moment'  # Fallback
+    
+    def _generate_pig_window(self, headline: str, primary: str, secondary: str) -> Optional[Dict]:
+        """
+        Generate Pig-Window poetic dialogue using Phi3 mini.
+        
+        Args:
+            headline: Event context/headline
+            primary: Primary emotion
+            secondary: Secondary emotion
+        
+        Returns:
+            Dict with {'pig_lines': [...], 'window_lines': [...]} or None if failed
+        """
+        try:
+            prompt = generate_pig_window_prompt(headline, primary, secondary)
+            
+            payload = {
+                "model": "phi3:mini",
+                "prompt": prompt,
+                "options": {
+                    "temperature": 0.8,  # Higher for creativity
+                    "top_p": 0.9,
+                    "num_predict": 200,  # ~6 lines
+                    "num_ctx": 1024
+                },
+                "stream": False
+            }
+            
+            print(f"   [PIG-WINDOW] Generating dialogue for {primary}→{secondary}...")
+            response = requests.post(
+                f"{self.ollama_base_url}/api/generate",
+                json=payload,
+                timeout=120  # 2 min timeout as requested
+            )
+            
+            if response.status_code != 200:
+                print(f"   [!] Pig-Window generation failed: HTTP {response.status_code}")
+                return None
+            
+            result = response.json()
+            content = result.get('response', '').strip()
+            
+            # Parse the 6 lines
+            lines = [line.strip() for line in content.split('\n') if line.strip()]
+            
+            pig_lines = []
+            window_lines = []
+            
+            for line in lines:
+                if line.startswith('Pig:'):
+                    pig_lines.append(line[4:].strip())
+                elif line.startswith('Window:'):
+                    window_lines.append(line[7:].strip())
+            
+            # Validate format (should be 3 Pig + 3 Window = 6 total)
+            if len(pig_lines) != 3 or len(window_lines) != 3:
+                print(f"   [!] Invalid Pig-Window format: {len(pig_lines)} Pig, {len(window_lines)} Window")
+                print(f"   [DEBUG] Content: {content[:200]}")
+                return None
+            
+            print(f"   [✓] Pig-Window generated successfully")
+            return {
+                'pig_lines': pig_lines,
+                'window_lines': window_lines
+            }
+            
+        except Exception as e:
+            print(f"   [!] Pig-Window generation error: {e}")
+            return None
+    
+    def _match_pregenerated_content(self, primary: str, secondary: str, tertiary: str, context) -> Optional[Dict]:
+        """
+        Match pre-generated content based on exact emotion combination + context similarity.
+        
+        Args:
+            primary: Primary emotion (e.g., "scared", "mad", "sad")
+            secondary: Secondary emotion (e.g., "anxious", "frustrated")
+            tertiary: Tertiary emotion (e.g., "worried", "annoyed")
+            context: Context from Stage 1 - can be string (legacy) or Dict (new 4-field)
+        
+        Returns:
+            Matched post_enrichment dict or None if no match
+        """
+        if not self.pregenerated_db:
+            return None
+        
+        # Normalize inputs
+        primary = primary.lower().strip()
+        secondary = secondary.lower().strip()
+        tertiary = tertiary.lower().strip()
+        
+        # Convert context to string for similarity matching
+        if isinstance(context, dict):
+            # New 4-field format: combine domain + headline for matching
+            context_str = f"{context.get('event_domain', 'self')} {context.get('event_headline', 'moment')}"
+        else:
+            # Legacy 3-word string format
+            context_str = str(context).lower().strip() if context else ""
+        
+        context_str = context_str.lower().strip()
+        
+        print(f"   [MATCH] Looking for: {primary} → {secondary} → {tertiary}, context='{context_str}'")
+        
+        # First pass: Exact emotion match
+        exact_matches = []
+        for entry in self.pregenerated_db:
+            if (entry.get('primary', '').lower() == primary and
+                entry.get('secondary', '').lower() == secondary and
+                entry.get('tertiary', '').lower() == tertiary):
+                exact_matches.append(entry)
+        
+        if not exact_matches:
+            print(f"   [!] No exact emotion match found in database")
+            return None
+        
+        print(f"   [OK] Found {len(exact_matches)} exact emotion matches")
+        
+        # Second pass: Find best context match
+        if context_str:
+            best_match = None
+            best_score = 0.0
+            
+            for entry in exact_matches:
+                entry_context = entry.get('context', '').lower()
+                score = cosine_similarity(context_str, entry_context)
+                if score > best_score:
+                    best_score = score
+                    best_match = entry
+            
+            if best_match:
+                print(f"   [MATCHED] Best context: '{best_match.get('context')}' (similarity={best_score:.2f})")
+                return best_match.get('post_enrichment')
+        
+        # Fallback: Return first exact emotion match
+        print(f"   [FALLBACK] Using first exact emotion match")
+        return exact_matches[0].get('post_enrichment')
+    
+    def enrich(self, reflection: Dict, raw_text: str, normalized_text: str, circadian_phase: str) -> Dict:
+        """
+        Compatibility wrapper for enrichment_dispatcher.
+        Converts dispatcher's interface to run_post_enrichment's interface.
+        
+        Args:
+            reflection: Full reflection dict (contains hybrid_result data)
+            raw_text: Original user text (unused, for compatibility)
+            normalized_text: Cleaned text (unused, for compatibility)
+            circadian_phase: Time of day (unused, for compatibility)
+        
+        Returns:
+            Enriched reflection dict
+        """
+        # reflection already contains the hybrid_result data
+        # Just run post-enrichment on it
+        return self.run_post_enrichment(reflection)
     
     def run_post_enrichment(self, hybrid_result: Dict) -> Dict:
         """
@@ -195,63 +456,179 @@ class PostEnricher:
     def _run_post_enrichment_impl(self, hybrid_result: Dict) -> Dict:
         """Internal implementation of run_post_enrichment (separated for caching)"""
         
-        # Extract reliable fields only
-        print(f"   [1/3] Extracting reliable fields...")
-        reliable = pick_reliable_fields(hybrid_result)
-        
-        # E4: Extract circadian phase for phase-aware prompting
-        circadian_phase = hybrid_result.get('temporal', {}).get('circadian', {}).get('phase', 'afternoon')
-        hour_local = hybrid_result.get('temporal', {}).get('circadian', {}).get('hour_local', 12.0)
-        
-        print(f"   [2/3] Calling Ollama ({self.ollama_model}) - Phase: {circadian_phase} ({hour_local:.1f}h)...")
-        print(f"      Input: {reliable['normalized_text'][:60]}...")
-        
-        # Call Ollama
         try:
+            # Extract wheel emotions and context from Stage 1
+            wheel = hybrid_result.get('wheel', {})
+            primary = wheel.get('primary', '').lower()
+            secondary = wheel.get('secondary', '').lower()
+            tertiary = wheel.get('tertiary', '').lower()
+            
+            # Get context from meta (extracted in Stage 1)
+            context = hybrid_result.get('meta', {}).get('context', '')
+            
+            print(f"   [EMOTIONS] {primary} → {secondary} → {tertiary}")
+            print(f"   [CONTEXT] '{context}'")
+            print(f"   [DB STATUS] use_pregenerated={self.use_pregenerated}, db_entries={len(self.pregenerated_db)}")
+            
+            # DEBUG: Show what we're looking for
+            if not primary:
+                print(f"   [DEBUG] wheel dict: {wheel}")
+                print(f"   [DEBUG] meta dict: {hybrid_result.get('meta', {})}")
+            
+            # Try to match pre-generated content first
+            if self.use_pregenerated and primary and secondary and tertiary:
+                print(f"   [MATCHING] Attempting to match pre-generated content...")
+                matched_content = self._match_pregenerated_content(primary, secondary, tertiary, context)
+                
+                if matched_content:
+                    print(f"   [✓] Using pre-generated content (FAST)")
+                    hybrid_result['post_enrichment'] = matched_content
+                    hybrid_result['status'] = 'complete'
+                    return hybrid_result
+                else:
+                    print(f"   [!] No pre-generated match, falling back to Ollama generation")
+            else:
+                if not self.use_pregenerated:
+                    print(f"   [!] Pre-generated DB disabled, using Ollama")
+                elif not primary or not secondary or not tertiary:
+                    print(f"   [!] Missing emotions (p={primary}, s={secondary}, t={tertiary}), using Ollama")
+            
+            # Fallback to Ollama generation
+            print(f"   [OLLAMA] Generating creative content...")
+            
+            # Extract reliable fields only
+            print(f"   [1/4] Extracting reliable fields...")
+            reliable = pick_reliable_fields(hybrid_result)
+            
+            # E4: Extract circadian phase for phase-aware prompting
+            circadian_phase = hybrid_result.get('temporal', {}).get('circadian', {}).get('phase', 'afternoon')
+            hour_local = hybrid_result.get('temporal', {}).get('circadian', {}).get('hour_local', 12.0)
+            
+            # NEW: Extract context from the moment (1-2 words)
+            print(f"   [2/4] Extracting moment context...")
+            ollama_context = self._extract_context(reliable['normalized_text'])
+            print(f"      Context: '{ollama_context}'")
+            
+            # NEW: Generate Pig-Window dialogue
+            print(f"   [2.5/4] Generating Pig-Window dialogue...")
+            pig_window = self._generate_pig_window(
+                context if isinstance(context, str) else context.get('event_headline', 'moment'),
+                reliable['wheel']['primary'],
+                reliable['wheel']['secondary']
+            )
+            if pig_window:
+                print(f"      ✓ Pig: {len(pig_window['pig_lines'])} lines, Window: {len(pig_window['window_lines'])} lines")
+            else:
+                print(f"      ✗ Pig-Window generation failed, will use fallback")
+            
+            print(f"   [3/4] Generating poems + tips...")
+            print(f"      Input: {reliable['normalized_text'][:60]}...")
+            
             # E4: Build circadian-aware system prompt
             circadian_addition = get_circadian_prompt_additions(circadian_phase)
             phase_aware_prompt = STAGE2_SYSTEM_PROMPT + circadian_addition
             
-            payload = {
-                "model": self.ollama_model,
-                "options": {
-                    "temperature": self.temperature,
-                    "top_p": 0.9,
-                    "repeat_penalty": 1.05,
-                    "num_predict": 1024,  # Increased from 600 - need full response for poems+tips+closing
-                    "num_ctx": 4096,  # Explicit context window
-                    "num_thread": 8  # Use all CPU cores for faster inference
-                },
-                "keep_alive": "30m",  # Keep model loaded for 30 minutes
-                "messages": [
-                    {"role": "system", "content": phase_aware_prompt},
-                    {"role": "user", "content": json.dumps({"HYBRID_RESULT": reliable})}
-                ],
-                "stream": False
-            }
+            # Add context to reliable fields for prompt
+            reliable_with_context = {**reliable, 'moment_context': context}
             
-            response = requests.post(
-                f"{self.ollama_base_url}/api/chat",
-                json=payload,
-                timeout=self.timeout
-            )
+            # Build prompt
+            full_prompt = f"{phase_aware_prompt}\n\nHYBRID_RESULT:\n{json.dumps(reliable_with_context, indent=2)}\n\nGenerate the post_enrichment JSON:"
             
-            if response.status_code != 200:
-                raise RuntimeError(f"Ollama API error: {response.status_code}")
+            # Try Ollama first (with short timeout), fallback to HF API if it fails/times out
+            content = None
+            ollama_failed = False
             
-            data = response.json()
-            content = data.get('message', {}).get('content', '')
+            try:
+                print(f"   [DEBUG] Trying Ollama ({self.ollama_model}) with 60s timeout...")
+                
+                payload = {
+                    "model": self.ollama_model,
+                    "prompt": full_prompt,
+                    "options": {
+                        "temperature": self.temperature,
+                        "top_p": 0.9,
+                        "repeat_penalty": 1.05,
+                        "num_predict": 512,
+                        "num_ctx": 2048,
+                        "num_thread": 2
+                    },
+                    "stream": False
+                }
+                
+                # Use SHORT timeout (60s) - if Ollama can't do it quickly, fallback to HF
+                response = requests.post(
+                    f"{self.ollama_base_url}/api/generate",
+                    json=payload,
+                    timeout=60  # Short timeout for Ollama attempt
+                )
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    content = result.get('response', '')
+                    print(f"   [DEBUG] ✓ Ollama succeeded!")
+                else:
+                    print(f"   [DEBUG] ✗ Ollama returned HTTP {response.status_code}, falling back to HF API")
+                    ollama_failed = True
+                        
+            except (requests.Timeout, requests.ConnectionError) as e:
+                print(f"   [DEBUG] ✗ Ollama timeout/error ({type(e).__name__}), falling back to HF API")
+                ollama_failed = True
+            except Exception as e:
+                print(f"   [DEBUG] ✗ Ollama error ({e}), falling back to HF API")
+                ollama_failed = True
             
+            # Fallback to HuggingFace Inference API if Ollama failed
+            if ollama_failed or not content:
+                print(f"   [DEBUG] Using HuggingFace API (Qwen/Qwen2.5-3B-Instruct)...")
+                
+                hf_token = os.getenv('HF_TOKEN')
+                if not hf_token:
+                    raise RuntimeError("HF_TOKEN not set, cannot fallback to HF API")
+                
+                hf_response = requests.post(
+                    "https://api-inference.huggingface.co/models/Qwen/Qwen2.5-3B-Instruct",
+                    headers={"Authorization": f"Bearer {hf_token}"},
+                    json={
+                        "inputs": full_prompt,
+                        "parameters": {
+                            "max_new_tokens": 512,
+                            "temperature": self.temperature,
+                            "top_p": 0.9,
+                            "return_full_text": False
+                        }
+                    },
+                    timeout=30  # HF API is fast
+                )
+                
+                if hf_response.status_code == 200:
+                    hf_result = hf_response.json()
+                    if isinstance(hf_result, list) and len(hf_result) > 0:
+                        content = hf_result[0].get('generated_text', '')
+                        print(f"   [DEBUG] ✓ HF API succeeded!")
+                    else:
+                        raise RuntimeError(f"Unexpected HF API response format: {hf_result}")
+                else:
+                    raise RuntimeError(f"HF API error: {hf_response.status_code} - {hf_response.text}")
+            
+            # Check we got content from either Ollama or HF API
             if not content:
-                raise RuntimeError("Empty response from Ollama")
+                raise RuntimeError("Empty response from both Ollama and HF API")
             
-            print(f"   [3/3] Parsing response...")
+            print(f"   [4/4] Parsing response...")
+            print(f"   [DEBUG] Content preview: {content[:200]}...")
             
             # Parse JSON with fallback
             parsed = self._safe_parse_json(content)
             
             if not parsed or 'post_enrichment' not in parsed:
                 raise RuntimeError("Missing post_enrichment in response")
+            
+            # Add context to the post_enrichment output
+            parsed['post_enrichment']['context'] = context
+            
+            # Add Pig-Window dialogue if generated
+            if pig_window:
+                parsed['post_enrichment']['pig_window'] = pig_window
             
             # Validate schema
             self._validate_schema(parsed['post_enrichment'])
@@ -298,7 +675,7 @@ class PostEnricher:
             return hybrid_result
             
         except requests.Timeout:
-            print(f"[X] Ollama timeout after {self.timeout}s")
+            print(f"[X] Timeout during Stage 2 generation")
             # Add fallback empty post_enrichment
             hybrid_result['post_enrichment'] = self._fallback_response(reliable)
             hybrid_result['status'] = 'complete_with_fallback'
