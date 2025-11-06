@@ -43,7 +43,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   const [showMomentsLibrary, setShowMomentsLibrary] = useState(false);
   const [currentReflectionId, setCurrentReflectionId] = useState<string | null>(null);
   const [breathingContext, setBreathingContext] = useState<{
-    primary: PrimaryEmotion;
+    primary: PrimaryEmotion | null; // Allow null for moments without emotion
     secondary?: string;
     zoneName: string;
     zoneColor: string;
@@ -498,8 +498,24 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   };
 
   // Handle interlude completion → transition to breathing
-  const handleInterludeComplete = async (primaryEmotion: string) => {
+  const handleInterludeComplete = async (primaryEmotion: string | null) => {
     console.log('[Scene_Reflect] ✅ Interlude complete, primary emotion:', primaryEmotion);
+    
+    // Handle null emotion (no emotion detected)
+    if (primaryEmotion === null) {
+      console.log('[Scene_Reflect] 🌙 Null emotion detected, setting up peaceful breathing');
+      setBreathingContext({
+        primary: null,
+        secondary: undefined,
+        zoneName: 'Peaceful',
+        zoneColor: '#6A9FB5',
+        invokedWords: [],
+      });
+      setShowInterlude(false);
+      setShowBreathing(true);
+      return;
+    }
+    
     console.log('[Scene_Reflect] Fetching reflection data for breathing...');
     
     try {

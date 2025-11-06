@@ -38,7 +38,7 @@ import { getZone, type PrimaryEmotion } from '@/lib/zones';
 interface CityInterludeProps {
   reflectionId: string;
   pigName: string;
-  onComplete: (primaryEmotion: string) => void;
+  onComplete: (primaryEmotion: string | null) => void; // null = no emotion detected
   onTimeout?: () => void;
 }
 
