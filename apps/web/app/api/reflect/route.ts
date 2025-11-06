@@ -287,17 +287,33 @@ export async function POST(request: NextRequest) {
       }, { status: 503 });
     }
 
-    // 11b. Push to enrichment worker queue
-    try {
-      // Push the FULL reflection object (not just minimal fields)
-      // Worker needs all Stage-1 data (final, temporal, willingness, etc.) for Stage-2
-      console.log(`📤 Attempting to push ${rid} to reflections:normalized queue...`);
-      const pushResult = await kv.rpush('reflections:normalized', JSON.stringify(reflection));
-      console.log(`✅ PUSHED ${rid} to enrichment queue! Queue length: ${pushResult}`);
-    } catch (error) {
-      // Non-fatal: reflection is saved, enrichment can be triggered manually
-      console.error(`❌ FAILED to push ${rid} to enrichment queue:`, error);
-      console.error('Error details:', JSON.stringify(error, null, 2));
+    // 11b. Trigger enrichment via HF Spaces webhook (no-polling architecture)
+    const enrichmentWebhookUrl = process.env.ENRICHMENT_WEBHOOK_URL;
+    
+    if (enrichmentWebhookUrl) {
+      // Call HF Spaces webhook endpoint asynchronously (don't wait for enrichment to complete)
+      fetch(enrichmentWebhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rid,
+          sid,
+          timestamp: body.timestamp,
+          normalized_text: normalizedText,
+        }),
+      }).then(response => {
+        if (response.ok) {
+          console.log(`✅ Enrichment webhook triggered for ${rid}`);
+        } else {
+          console.error(`❌ Enrichment webhook failed for ${rid}: ${response.status}`);
+        }
+      }).catch(error => {
+        console.error(`❌ Enrichment webhook error for ${rid}:`, error);
+      });
+      
+      console.log(`📤 Enrichment webhook triggered (async) for ${rid}`);
+    } else {
+      console.warn(`⚠️ ENRICHMENT_WEBHOOK_URL not set - enrichment disabled`);
     }
 
     // 12. Add to sorted sets (for querying)
@@ -351,38 +367,7 @@ export async function POST(request: NextRequest) {
       console.error('Failed to delete draft:', error);
     }
 
-    // 15. Trigger analysis via direct Railway call (bypass Vercel function)
-    console.log('🔥 Triggering analysis for rid:', rid);
-    
-    const railwayUrl = process.env.BEHAVIORAL_API_URL;
-    console.log('🔗 Railway URL from env:', railwayUrl);
-    
-    if (railwayUrl) {
-      try {
-        const enrichUrl = `${railwayUrl}/enrich/${rid}`;
-        console.log('🚀 Calling enrichment endpoint:', enrichUrl);
-        
-        const enrichResponse = await fetch(enrichUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          signal: AbortSignal.timeout(5000), // 5 second timeout
-        });
-        
-        console.log('✅ Enrichment response status:', enrichResponse.status);
-        
-        if (!enrichResponse.ok) {
-          const errorText = await enrichResponse.text();
-          console.error('❌ Enrichment failed with status', enrichResponse.status, ':', errorText);
-        }
-      } catch (err) {
-        console.error('❌ Railway enrichment error:', err instanceof Error ? err.message : err);
-        // Non-fatal - reflection is already saved
-      }
-    } else {
-      console.warn('⚠️ BEHAVIORAL_API_URL not set - skipping enrichment');
-    }
-
-    // 16. Trigger micro-dream check (MUST AWAIT to prevent cancellation)
+    // 15. Trigger micro-dream check (MUST AWAIT to prevent cancellation)
     console.log('🌙 Triggering micro-dream check for owner:', ownerId);
     
     const microDreamUrl = `${process.env.NEXT_PUBLIC_APP_URL || `https://${request.headers.get('host')}`}/api/micro-dream/check`;
