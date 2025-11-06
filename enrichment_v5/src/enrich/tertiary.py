@@ -31,6 +31,38 @@ def get_valid_tertiaries(secondary: str) -> List[str]:
     return MICROS.get(secondary, [])
 
 
+def smart_fallback_tertiary(secondary: str, text: str) -> str:
+    """
+    Smart fallback for tertiary selection when embeddings fail.
+    Uses simple keyword matching for common patterns.
+    
+    Args:
+        secondary: Secondary emotion
+        text: Original reflection text
+        
+    Returns:
+        Best-guess tertiary from valid options
+    """
+    valid_tertiaries = get_valid_tertiaries(secondary)
+    if not valid_tertiaries:
+        return "Unknown"
+    
+    # Simple keyword matching for common cases
+    text_lower = text.lower()
+    
+    # For each tertiary, check if its lowercase version appears in text
+    for tertiary in valid_tertiaries:
+        if tertiary.lower() in text_lower:
+            return tertiary
+    
+    # Fallback: return middle tertiary (index 2 of 6) for variety
+    # This avoids always picking the first one
+    if len(valid_tertiaries) >= 3:
+        return valid_tertiaries[2]
+    
+    return valid_tertiaries[0]
+
+
 def select_tertiary(
     primary: str,
     secondary: str,
@@ -132,12 +164,12 @@ def select_tertiary_batch(
         )
         
         if response.status_code != 200:
-            return valid_tertiaries[0], 0.5
+            return smart_fallback_tertiary(secondary, text), 0.5
         
         embeddings = response.json()
         
         if not isinstance(embeddings, list) or len(embeddings) != len(all_texts):
-            return valid_tertiaries[0], 0.5
+            return smart_fallback_tertiary(secondary, text), 0.5
         
         # First embedding is the text, rest are tertiaries
         text_emb = embeddings[0]
@@ -167,5 +199,5 @@ def select_tertiary_batch(
         return best_tertiary, best_score
         
     except Exception as e:
-        # Fallback on any error
-        return valid_tertiaries[0], 0.5
+        # Fallback on any error - use smart keyword matching
+        return smart_fallback_tertiary(secondary, text), 0.5
