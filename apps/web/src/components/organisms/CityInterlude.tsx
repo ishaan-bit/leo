@@ -248,6 +248,21 @@ export default function CityInterlude({
       currentPhase,
     });
     
+    // Handle null emotion state - no emotion detected
+    if (reflection?.final?.wheel?.primary === null && !primaryLocked && currentPhase === 4) {
+      console.log('[CityInterlude] 🌑 Primary is NULL → No emotion detected, fading all buildings');
+      setPrimaryLocked(true);
+      setPrimaryEmotion(null);
+      setCurrentPhase(5); // Go to transition phase to fade buildings
+      
+      // Fade all buildings for 2s, then go to breathing with null primary
+      setTimeout(() => {
+        console.log('[CityInterlude] 🌙 Null emotion → Skipping zoom, going to Peaceful breathing');
+        onComplete(null); // Pass null to BreathingSequence
+      }, 2000);
+      return;
+    }
+    
     if (!reflection?.final?.wheel?.primary) {
       console.log('[CityInterlude] ⚠️ No primary found, path check:', {
         reflection_exists: !!reflection,

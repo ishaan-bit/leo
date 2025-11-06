@@ -643,6 +643,93 @@ export default function MomentsLibrary({
         )}
       </AnimatePresence>
 
+      {/* Crescent Moon - holds moments without any emotion (null primary) */}
+      {(() => {
+        const nullEmotionMoments = moments.filter(m => m.primaryEmotion === null || m.primaryEmotion === 'null');
+        if (nullEmotionMoments.length === 0) return null;
+        
+        return (
+          <motion.div
+            className="absolute z-45 cursor-pointer group"
+            style={{
+              left: 'calc(50% - 140px)', // Left of Leo (Leo is at 50%)
+              top: phase === 'library' ? '20%' : '35%', // Slightly above Leo, below subtitle
+            }}
+            initial={{ opacity: 0, scale: 0.8, rotate: -30 }}
+            animate={{ 
+              opacity: phase === 'library' ? 1 : 0,
+              scale: phase === 'library' ? 1 : 0.8,
+              rotate: -30,
+              y: [0, -3, 0],
+            }}
+            transition={{
+              opacity: { duration: 0.8, delay: 1.2, ease: EASING },
+              scale: { duration: 0.8, delay: 1.2, ease: EASING },
+              y: { duration: 3, repeat: Infinity, ease: 'easeInOut' },
+            }}
+            whileHover={{ scale: 1.15, rotate: -35 }}
+            onClick={() => {
+              // Show first null emotion moment
+              if (nullEmotionMoments[0]) {
+                setSelectedMoment(nullEmotionMoments[0]);
+              }
+            }}
+            title={`${nullEmotionMoments.length} moment${nullEmotionMoments.length > 1 ? 's' : ''} without emotion`}
+          >
+            {/* Glow effect */}
+            <motion.div
+              className="absolute inset-0"
+              style={{
+                background: 'radial-gradient(circle, rgba(180, 160, 255, 0.3) 0%, transparent 70%)',
+                filter: 'blur(20px)',
+                transform: 'scale(1.5)',
+              }}
+              animate={{
+                opacity: [0.4, 0.7, 0.4],
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            />
+            
+            {/* Crescent moon icon */}
+            <div className="relative text-6xl" style={{ filter: 'drop-shadow(0 0 10px rgba(180, 160, 255, 0.5))' }}>
+              🌙
+            </div>
+            
+            {/* Count badge */}
+            {nullEmotionMoments.length > 1 && (
+              <motion.div
+                className="absolute -top-2 -right-2 bg-purple-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 1.5, type: 'spring', stiffness: 500, damping: 15 }}
+              >
+                {nullEmotionMoments.length}
+              </motion.div>
+            )}
+            
+            {/* Hover tooltip */}
+            <motion.div
+              className="absolute top-full mt-2 left-1/2 -translate-x-1/2 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none"
+              style={{
+                background: 'rgba(255, 255, 255, 0.95)',
+                padding: '6px 12px',
+                borderRadius: '8px',
+                fontSize: '12px',
+                color: '#3A263F',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              }}
+              transition={{ duration: 0.2 }}
+            >
+              Quiet moments
+            </motion.div>
+          </motion.div>
+        );
+      })()}
+
       {/* Skyline - six towers */}
       <motion.div
         className="absolute bottom-0 left-0 right-0 z-25"

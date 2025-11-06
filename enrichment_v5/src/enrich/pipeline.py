@@ -160,6 +160,13 @@ def enrich(
     event_presence = event_presence_map.get(neutral_result.event_presence, "explicit")
     is_neutral = neutral_result.is_emotion_neutral and neutral_result.is_event_neutral
     
+    # If emotion_presence is None, set all emotions to None
+    if emotion_presence is None:
+        best_primary = None
+        best_secondary = None
+        best_tertiary = None
+        print("[pipeline] emotion_presence is None → setting all emotions to None")
+    
     # 10. Compute overall confidence
     overall_confidence, conf_components = conf_module.compute_overall_confidence(
         p_hf=p_hf_sarc,

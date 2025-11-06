@@ -10,7 +10,7 @@ import { translateToHindi } from '@/lib/translation';
 
 interface BreathingSequenceProps {
   reflectionId: string;
-  primary: PrimaryEmotion;
+  primary: PrimaryEmotion | null; // null = no emotion detected, use Peaceful pattern
   secondary?: string;
   zoneName: string;
   zoneColor: string;
@@ -96,13 +96,20 @@ export default function BreathingSequence({
   const orchestrationStartedRef = useRef(false); // Prevent duplicate orchestration runs
   const breathingContainerRef = useRef<HTMLDivElement>(null);
   
-  const breatheParams = computeBreatheParams(primary, secondary);
+  // When primary is null (no emotion), use Peaceful breathing pattern
+  const effectivePrimary = primary || 'peaceful';
+  const breatheParams = computeBreatheParams(effectivePrimary as PrimaryEmotion, secondary);
   const { cycle, color, audio } = breatheParams;
   
   // Use normal breathing cycle (orchestrator handles its own timing)
   const activeCycle = cycle;
   const cycleDuration = (activeCycle.in + activeCycle.out) * 1000; // ms
-  const primaryTower = TOWERS.find(t => t.id === primary) || TOWERS[0];
+  
+  // When primary is null: run 3 cycles then go to orchestrator (skip Stage 2)
+  const isNullEmotion = primary === null;
+  const targetCycles = isNullEmotion ? 3 : MIN_CYCLES;
+  
+  const primaryTower = TOWERS.find(t => t.id === effectivePrimary) || TOWERS[0];
 
   // Initialize word pool - ONLY invoked, expressed, primary, secondary, tertiary
   useEffect(() => {
@@ -242,6 +249,31 @@ export default function BreathingSequence({
     
     return () => clearInterval(pollInterval);
   }, [reflectionId, cycleCount, stage2.started]);
+
+  // Null emotion handling: Complete after 3 cycles without Stage 2
+  useEffect(() => {
+    if (!isNullEmotion || !isReady) return;
+    
+    if (cycleCount >= targetCycles) {
+      console.log('[Breathing] 🌙 Null emotion: 3 cycles complete, going to orchestrator');
+      // Fade audio
+      if (audioRef.current) {
+        const fadeOut = setInterval(() => {
+          if (audioRef.current && audioRef.current.volume > 0.05) {
+            audioRef.current.volume -= 0.05;
+          } else {
+            clearInterval(fadeOut);
+            audioRef.current?.pause();
+          }
+        }, 100);
+      }
+      
+      // Skip Stage 2, go directly to orchestrator
+      setTimeout(() => {
+        onComplete();
+      }, 1500);
+    }
+  }, [isNullEmotion, isReady, cycleCount, targetCycles, onComplete]);
 
   // Continuous breathing animation loop
   useEffect(() => {

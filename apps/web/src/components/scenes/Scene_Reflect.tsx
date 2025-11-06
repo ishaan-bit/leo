@@ -581,19 +581,31 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     }
   };
 
-  // Handle breathing completion → transition to moments library
+  // Handle breathing completion → transition to moments library OR orchestrator (null emotion)
   const handleBreathingComplete = () => {
-    console.log('[Scene_Reflect] 🌅 Breathing complete, transitioning to Moments Library');
+    console.log('[Scene_Reflect] 🌅 Breathing complete, transitioning...');
     console.log('[Scene_Reflect] Current context:', breathingContext);
     
-    // Smooth transition to moments library
-    setShowBreathing(false);
+    // Check if this was a null emotion (no primary detected)
+    const isNullEmotion = breathingContext?.primary === null;
     
-    // Small delay for fade out
-    setTimeout(() => {
-      console.log('[Scene_Reflect] 🏛️ Showing Moments Library');
-      setShowMomentsLibrary(true);
-    }, 300);
+    if (isNullEmotion) {
+      console.log('[Scene_Reflect] 🌙 Null emotion detected → Going to orchestrator/bubble sequence');
+      // TODO: Navigate to orchestrator/bubble pig window sequence
+      // For now, go to moments library with a flag
+      setShowBreathing(false);
+      setTimeout(() => {
+        console.log('[Scene_Reflect] 🏛️ Showing Moments Library (null emotion flow)');
+        setShowMomentsLibrary(true);
+      }, 300);
+    } else {
+      // Normal flow: go to moments library
+      console.log('[Scene_Reflect] 🏛️ Normal flow → Moments Library');
+      setShowBreathing(false);
+      setTimeout(() => {
+        setShowMomentsLibrary(true);
+      }, 300);
+    }
   };
   
   // Handle moments library - new reflection request
