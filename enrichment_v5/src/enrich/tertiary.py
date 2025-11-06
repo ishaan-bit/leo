@@ -31,36 +31,31 @@ def get_valid_tertiaries(secondary: str) -> List[str]:
     return MICROS.get(secondary, [])
 
 
-def smart_fallback_tertiary(secondary: str, text: str) -> str:
+def smart_fallback_tertiary(secondary: str, text: str) -> Optional[str]:
     """
     Smart fallback for tertiary selection when embeddings fail.
-    Uses simple keyword matching for common patterns.
+    Returns None if no confident match found.
     
     Args:
         secondary: Secondary emotion
         text: Original reflection text
         
     Returns:
-        Best-guess tertiary from valid options
+        Tertiary if keyword matched, None otherwise
     """
     valid_tertiaries = get_valid_tertiaries(secondary)
     if not valid_tertiaries:
-        return "Unknown"
+        return None
     
-    # Simple keyword matching for common cases
+    # Only return if keyword matched - otherwise None
     text_lower = text.lower()
     
-    # For each tertiary, check if its lowercase version appears in text
     for tertiary in valid_tertiaries:
         if tertiary.lower() in text_lower:
             return tertiary
     
-    # Fallback: return middle tertiary (index 2 of 6) for variety
-    # This avoids always picking the first one
-    if len(valid_tertiaries) >= 3:
-        return valid_tertiaries[2]
-    
-    return valid_tertiaries[0]
+    # No confident match - return None instead of guessing
+    return None
 
 
 def select_tertiary(
@@ -143,13 +138,14 @@ def select_tertiary_batch(
     valid_tertiaries = get_valid_tertiaries(secondary)
     
     if not valid_tertiaries:
-        return "Unknown", 0.0
+        return None, 0.0
     
     # Get HF token
     HF_TOKEN = os.getenv('HF_TOKEN')
     if not HF_TOKEN:
-        # Fallback: pick first tertiary
-        return valid_tertiaries[0], 0.5
+        # Fallback: smart keyword matching or None
+        fallback_tertiary = smart_fallback_tertiary(secondary, text)
+        return fallback_tertiary, 0.5
     
     # Get embeddings for text + all tertiaries in one batch call
     HF_EMBED_URL = "https://router.huggingface.co/hf-inference/models/sentence-transformers/all-MiniLM-L6-v2"
@@ -191,7 +187,8 @@ def select_tertiary_batch(
         
         # Select best match
         if not similarities:
-            return valid_tertiaries[0], 0.5
+            fallback_tertiary = smart_fallback_tertiary(secondary, text)
+            return fallback_tertiary, 0.5
         
         best_tertiary = max(similarities, key=similarities.get)
         best_score = similarities[best_tertiary]
