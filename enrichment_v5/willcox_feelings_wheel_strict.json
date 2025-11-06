@@ -1,0 +1,136 @@
+{
+  "metadata": {
+    "name": "Willcox Feelings Wheel - Strict Taxonomy (CORRECTED)",
+    "version": "1.0.1",
+    "description": "Exact 6×6×6 structure - 216 UNIQUE emotional states",
+    "total_combinations": 216,
+    "enforcement": "STRICT - No synonyms, extrapolations, or fuzzy expansions allowed"
+  },
+  
+  "structure": {
+    "cores": 6,
+    "nuances_per_core": 6,
+    "micros_per_nuance": 6,
+    "total_states": 216
+  },
+  
+  "cores": [
+    "Happy",
+    "Strong", 
+    "Peaceful",
+    "Sad",
+    "Angry",
+    "Fearful"
+  ],
+  
+  "nuances": {
+    "Happy": [
+      "Excited",
+      "Interested", 
+      "Energetic",
+      "Playful",
+      "Creative",
+      "Optimistic"
+    ],
+    "Strong": [
+      "Confident",
+      "Proud",
+      "Respected",
+      "Courageous", 
+      "Hopeful",
+      "Resilient"
+    ],
+    "Peaceful": [
+      "Loving",
+      "Grateful",
+      "Thoughtful",
+      "Content",
+      "Serene",
+      "Thankful"
+    ],
+    "Sad": [
+      "Lonely",
+      "Vulnerable",
+      "Hurt", 
+      "Depressed",
+      "Guilty",
+      "Grief"
+    ],
+    "Angry": [
+      "Mad",
+      "Disappointed",
+      "Humiliated",
+      "Aggressive",
+      "Frustrated",
+      "Critical"
+    ],
+    "Fearful": [
+      "Anxious",
+      "Insecure", 
+      "Overwhelmed",
+      "Weak",
+      "Rejected",
+      "Helpless"
+    ]
+  },
+  
+  "micros": {
+    "Excited": ["Electrified", "Thrilled", "Stimulated", "Exhilarated", "Inspired", "Enthusiastic"],
+    "Interested": ["Engaged", "Intrigued", "Focused", "Attentive", "Curious", "Fascinated"],
+    "Energetic": ["Driven", "Lively", "Motivated", "Active", "Vibrant", "Dynamic"],
+    "Playful": ["Fun", "Lighthearted", "Amused", "Silly", "Cheerful", "Jovial"],
+    "Creative": ["Imaginative", "Inventive", "Expressive", "Artistic", "Visionary", "Experimental"],
+    "Optimistic": ["Hopeful", "Upbeat", "Positive", "Expectant", "Forward-looking", "Bright"],
+    
+    "Confident": ["Assured", "Secure", "Capable", "Bold", "Competent", "Self-reliant"],
+    "Proud": ["Accomplished", "Honored", "Esteemed", "Fulfilled", "Worthy", "Distinguished"],
+    "Respected": ["Valued", "Trusted", "Admired", "Recognized", "Honorable", "Appreciated"],
+    "Courageous": ["Brave", "Adventurous", "Daring", "Fearless", "Determined", "Heroic"],
+    "Hopeful": ["Aspiring", "Reassured", "Uplifted", "Encouraged", "Anticipating", "Believing"],
+    "Resilient": ["Tough", "Steady", "Rebounding", "Enduring", "Adaptable", "Persistent"],
+    
+    "Loving": ["Caring", "Compassionate", "Affectionate", "Warm", "Tender", "Kind"],
+    "Grateful": ["Thankful", "Appreciative", "Blessed", "Relieved", "Humble", "Moved"],
+    "Thoughtful": ["Reflective", "Considerate", "Mindful", "Pensive", "Contemplative", "Understanding"],
+    "Content": ["Comfortable", "Satisfied", "Calm", "Settled", "At-ease", "Pleased"],
+    "Serene": ["Tranquil", "Still", "Quiet", "Harmonious", "Relaxed", "Balanced"],
+    "Thankful": ["Gracious", "Aware", "Gentle", "Peaceful-minded", "Reverent", "Acknowledging"],
+    
+    "Lonely": ["Abandoned", "Isolated", "Forsaken", "Forgotten", "Distant", "Alone"],
+    "Vulnerable": ["Exposed", "Fragile", "Unsafe", "Sensitive", "Unprotected", "Raw"],
+    "Hurt": ["Wounded", "Injured", "Offended", "Pained", "Damaged", "Aching"],
+    "Depressed": ["Hopeless", "Empty", "Low", "Melancholic", "Despairing", "Dejected"],
+    "Guilty": ["Ashamed", "Regretful", "Responsible", "Remorseful", "Contrite", "Blameworthy"],
+    "Grief": ["Mourning", "Bereaved", "Sorrowful", "Heartbroken", "Weeping", "Lamenting"],
+    
+    "Mad": ["Furious", "Enraged", "Outraged", "Heated", "Wild", "Livid"],
+    "Disappointed": ["Betrayed", "Jealous", "Let-down", "Resentful", "Displeased", "Dismayed"],
+    "Humiliated": ["Degraded", "Inferior", "Embarrassed", "Belittled", "Dishonored", "Shamed"],
+    "Aggressive": ["Provoked", "Violent", "Hostile", "Combative", "Threatening", "Confrontational"],
+    "Frustrated": ["Annoyed", "Impatient", "Restless", "Blocked", "Thwarted", "Stymied"],
+    "Critical": ["Dismissive", "Judgmental", "Harsh", "Skeptical", "Sarcastic", "Demanding"],
+    
+    "Anxious": ["Nervous", "Uneasy", "Tense", "Worried", "Alarmed", "Agitated"],
+    "Insecure": ["Uncertain", "Self-doubting", "Hesitant", "Guarded", "Timid", "Questioning"],
+    "Overwhelmed": ["Stressed", "Flooded", "Pressured", "Burdened", "Distracted", "Swamped"],
+    "Weak": ["Powerless", "Small", "Dependent", "Ineffective", "Frail", "Insufficient"],
+    "Rejected": ["Excluded", "Disillusioned", "Dismissed", "Neglected", "Unwanted", "Ignored"],
+    "Helpless": ["Worthless", "Stuck", "Lost", "Paralyzed", "Trapped", "Incapable"]
+  },
+  
+  "validation": {
+    "core_count": 6,
+    "nuance_count": 36,
+    "micro_count": 216,
+    "total_verified": true
+  },
+  
+  "enforcement_rules": [
+    "ALL emotion analysis must use ONLY terms from this exact taxonomy",
+    "NO synonyms or alternative terms permitted",
+    "NO sentiment extrapolations beyond defined micros", 
+    "NO fuzzy matching or similarity expansions",
+    "Backend must validate all emotional outputs against this wheel",
+    "Any term not in this taxonomy is REJECTED"
+  ]
+}
