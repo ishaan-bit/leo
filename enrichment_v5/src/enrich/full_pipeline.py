@@ -116,18 +116,27 @@ def _mock_classify(text: str) -> Dict[str, float]:
         return {k: v/total for k, v in scores.items()}
     
     # Standard keyword matching (no sarcasm)
-    if any(w in text_lower for w in ['happy', 'glad', 'joy', 'excited']):
+    # Check for strong positive events first (career, achievement)
+    if any(w in text_lower for w in ['promoted', 'promotion', 'hired', 'accepted', 'won', 'success']):
+        scores['Happy'] = 0.7
+        scores['Strong'] = 0.2
+    # Then emotion keywords
+    elif any(w in text_lower for w in ['happy', 'glad', 'joy', 'excited', 'amazing', 'wonderful']):
         scores['Happy'] = 0.6
     elif any(w in text_lower for w in ['strong', 'confident', 'powerful', 'capable', 'proud']):
         scores['Strong'] = 0.6
     elif any(w in text_lower for w in ['calm', 'peaceful', 'relaxed', 'serene']):
         scores['Peaceful'] = 0.6
-    elif any(w in text_lower for w in ['sad', 'down', 'depressed', 'unhappy', 'crying']):
+    elif any(w in text_lower for w in ['sad', 'down', 'depressed', 'unhappy', 'crying', 'devastated']):
         scores['Sad'] = 0.6
     elif any(w in text_lower for w in ['angry', 'mad', 'furious', 'pissed', 'annoyed', 'frustrated']):
         scores['Angry'] = 0.6
     elif any(w in text_lower for w in ['scared', 'afraid', 'anxious', 'worried', 'fearful', 'stressed']):
         scores['Fearful'] = 0.6
+    # Check for strong negative events
+    elif any(w in text_lower for w in ['fired', 'rejected', 'failed', 'lost', 'breakup']):
+        scores['Sad'] = 0.5
+        scores['Fearful'] = 0.3
     
     # Normalize
     total = sum(scores.values())
