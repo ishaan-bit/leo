@@ -60,11 +60,10 @@ export default function BreathingSequence({
   // NEW: 3-poem flow with simplified steps
   type BubbleSequenceStep = 
     | 'idle' 
-    | 'leo_poem1' | 'tip1' 
-    | 'leo_poem2' | 'tip2'
-    | 'leo_poem3' | 'tip3'
-    | 'sky' | 'gradientReturn' 
-    | 'cta';
+    | 'leo_poem1' | 'tip1' | 'mark_done_1'
+    | 'leo_poem2' | 'tip2' | 'mark_done_2'
+    | 'leo_poem3' | 'tip3' | 'mark_done_3'
+    | 'sky' | 'gradientReturn';
   
   const [bubbleStep, setBubbleStep] = useState<BubbleSequenceStep>('idle');
   const [leoBubbleState, setLeoBubbleState] = useState<'hidden' | 'text' | 'ellipsis'>('hidden');
@@ -73,8 +72,9 @@ export default function BreathingSequence({
   const [leoReacting, setLeoReacting] = useState(false); // For poem line reactions
   const [windowGlowing, setWindowGlowing] = useState(false); // For tip window glow
   
-  // "Mark Done" state
-  const [markedDone, setMarkedDone] = useState(false);
+  // "Mark Done" state - tracks which tips have been marked
+  const [markedTips, setMarkedTips] = useState<number[]>([]); // [1, 2, 3] as they're marked
+  const [currentTipIndex, setCurrentTipIndex] = useState(0); // 0 = tip1, 1 = tip2, 2 = tip3
   const [showMarkDoneButton, setShowMarkDoneButton] = useState(false);
   
   // DEBUG mode for bubble positioning overlays
@@ -366,348 +366,198 @@ export default function BreathingSequence({
   }, [isReady, stage2Complete]);
 
   // Bubble sequence orchestration (post-Stage 2 completion)
+  // EVENT-DRIVEN STATE MACHINE: Each step advances based on user interaction (Mark Done clicks)
   useEffect(() => {
-    console.log('[Bubble Sequence] Effect triggered:', { 
-      stage2Complete, 
-      hasPayload: !!stage2.payload,
-      orchestrationStarted: orchestrationStartedRef.current,
-      payload: stage2.payload,
-      poems: stage2.payload?.poems,
-      tips: stage2.payload?.tips
-    });
-    
-    if (!stage2Complete) {
-      console.log('[Bubble Sequence] Not starting - stage2 not complete');
+    if (!stage2Complete || !stage2.payload) {
       return;
     }
     
     // Guard: Prevent duplicate orchestration runs
     if (orchestrationStartedRef.current) {
-      console.log('[Bubble Sequence] ? Orchestration already running, skipping duplicate effect');
       return;
     }
     
-    // If no payload yet, try to fetch the reflection to get post_enrichment
-    if (!stage2.payload) {
-      console.log('[Bubble Sequence] No payload yet, fetching reflection data...');
-      
-      const fetchReflectionData = async () => {
-        try {
-          const response = await fetch(`/api/reflect/${reflectionId}`);
-          if (!response.ok) throw new Error('Failed to fetch reflection');
-          
-          const reflection = await response.json();
-          console.log('[Bubble Sequence] Full reflection response:', reflection);
-          console.log('[Bubble Sequence] reflection.final:', reflection.final);
-          console.log('[Bubble Sequence] reflection.post_enrichment:', reflection.post_enrichment);
-          console.log('[Bubble Sequence] reflection.final?.post_enrichment:', reflection.final?.post_enrichment);
-          
-          // Check if post_enrichment is at root level or in final
-          const postEnrichment = reflection.post_enrichment || reflection.final?.post_enrichment;
-          
-          if (postEnrichment) {
-            console.log('[Bubble Sequence] Found post_enrichment:', postEnrichment);
-            
-            // Update stage2 with the payload we just got
-            setStage2(prev => ({
-              ...prev,
-              payload: {
-                poems: postEnrichment.poems || ['...', '...'],
-                tips: postEnrichment.tips || [],
-                closing_line: postEnrichment.closing_line || '',
-                tip_moods: postEnrichment.tip_moods || [],
-              },
-            }));
-            
-            console.log('[Bubble Sequence] Payload set from fresh fetch!');
-          } else {
-            console.log('[Bubble Sequence] No post_enrichment in reflection yet - waiting...');
-          }
-        } catch (error) {
-          console.error('[Bubble Sequence] Error fetching reflection:', error);
-        }
-      };
-      
-      fetchReflectionData();
-      return; // Exit this effect run, will re-run when stage2.payload updates
-    }
-    
-    // Mark orchestration as started to prevent duplicate runs
     orchestrationStartedRef.current = true;
-    console.log('[Bubble Sequence] ?? Starting orchestration!');
+    console.log('[Bubble Sequence] 🎬 Starting event-driven orchestration');
     
-    const FADE_IN = 800;
-    const HOLD_TEXT = 2200;
-    const FADE_TO_ELLIPSIS = 600;
-    const GAP_BETWEEN_BUBBLES = 400;
-    const SKY_STEP = 2000;
-    const GRADIENT_RETURN = 2500;
-    
-    const poems = stage2.payload.poems || ['', ''];
+    const poems = stage2.payload.poems || [];
     const tips = stage2.payload.tips || [];
     
-    console.log('[Bubble Sequence] Poems:', poems);
-    console.log('[Bubble Sequence] Tips:', tips);
-    
-    // DETECT FORMAT: 3 distinct poems (old) vs 1 poem with 3 lines (new)
-    // Heuristic: If all 3 entries are very short (< 15 words), assume old format (3 separate poems)
-    // If they're 5-12 words each (new Agent Mode spec), they're 3 lines of ONE poem
-    const wordCount = (text: string) => text.trim().split(/\s+/).filter(Boolean).length;
-    const poem1Words = poems[0] ? wordCount(poems[0]) : 0;
-    const poem2Words = poems[1] ? wordCount(poems[1]) : 0;
-    const poem3Words = poems[2] ? wordCount(poems[2]) : 0;
-    const avgWords = poems.length > 0 ? (poem1Words + poem2Words + poem3Words) / poems.filter(Boolean).length : 0;
-    
-    // If average is 5-12 words and we have exactly 3 entries, it's the NEW format (3 lines of one poem)
-    // Otherwise, fall back to OLD format (3 separate poems)
-    const isNewFormat = poems.length === 3 && avgWords >= 5 && avgWords <= 13;
-    
-    console.log('[Bubble Sequence] Format detection:', {
-      poem1Words,
-      poem2Words,
-      poem3Words,
-      avgWords,
-      isNewFormat: isNewFormat ? 'NEW (1 poem, 3 lines)' : 'OLD (3 separate poems)'
-    });
-    
-    // NEW: Handle 3 standalone poems (no comma splitting needed)
-    const poem1 = poems[0] || '';
-    const poem2 = poems[1] || '';
-    const poem3 = poems[2] || '';
-    
-    console.log('[Bubble Sequence] Poem1:', poem1);
-    console.log('[Bubble Sequence] Poem2:', poem2);
-    console.log('[Bubble Sequence] Poem3:', poem3);
-    
-    // Validate we have at least some content to show
-    const hasContent = poem1 || poem2 || poem3 || tips.length > 0;
-    if (!hasContent) {
-      console.warn('[Bubble Sequence] ?? No poems or tips available, fast-forwarding to CTA');
-    }
-    
-    // Debug: Calculate expected steps and timing
-    // NEW FLOW: poem1 ? tip1 ? poem2 ? tip2 ? poem3 ? tip3 ? sky ? gradient ? CTA
-    const activeSteps = [
-      poem1 && 'poem1',
-      tips[0] && 'tip1',
-      poem2 && 'poem2',
-      tips[1] && 'tip2',
-      poem3 && 'poem3',
-      tips[2] && 'tip3',
-      'sky',
-      'gradient',
-      'cta',
-      'transition'
-    ].filter(Boolean);
-    
-    console.log('[Bubble Sequence] ?? Active steps:', activeSteps.join(' ? '));
-    console.log('[Bubble Sequence] ??  Total steps:', activeSteps.length);
-    
-    const timeouts: NodeJS.Timeout[] = [];
-    let currentTime = 0;
-    
-    const schedule = (callback: () => void, delay: number, stepName: string) => {
-      currentTime += delay;
-      console.log(`[Bubble Sequence] ??  Scheduling ${stepName} at ${(currentTime / 1000).toFixed(1)}s (+${delay}ms)`);
-      const timeout = setTimeout(callback, currentTime);
-      timeouts.push(timeout);
-      return timeout;
-    };
-    
-    // S1: Leo p1.l1 - First poem line appears
-    // NEW FLOW: poem1 ? tip1 ? poem2 ? tip2 ? poem3 ? tip3 ? sky ? gradient ? CTA
-    
-    // S1: Poem 1 - First poem from Leo
-    if (poem1) {
-      console.log('[Bubble Sequence] ?? Poem 1:', poem1);
-      schedule(() => {
-        console.log('[Bubble Sequence] ??  Step 1: Poem1 - Fade in');
+    // Initial transition: Start with poem 1 after brief delay
+    setTimeout(() => {
+      if (poems[0]) {
+        console.log('[Bubble Sequence] 📖 Showing poem 1');
         setBubbleStep('leo_poem1');
         setLeoBubbleState('text');
-      }, 0, 'poem1-fadeIn');
-      
-      schedule(() => {
-        console.log('[Bubble Sequence] ?? Leo reacting to poem 1');
-        setLeoReacting(true);
-        setTimeout(() => setLeoReacting(false), 700);
-      }, FADE_IN + 100, 'poem1-reaction');
-      
-      schedule(() => {
-        console.log('[Bubble Sequence] ??  Step 1: Poem1 ? ellipsis');
-        setLeoBubbleState('ellipsis');
-      }, HOLD_TEXT, 'poem1-ellipsis');
-      
-      schedule(() => {
-        console.log('[Bubble Sequence] ?? Step 1: Poem1 ? hidden');
-        setLeoBubbleState('hidden');
-      }, FADE_TO_ELLIPSIS, 'poem1-hide');
+        
+        // Leo reaction
+        setTimeout(() => {
+          setLeoReacting(true);
+          setTimeout(() => setLeoReacting(false), 700);
+        }, 800);
+        
+        // Hold poem, then transition to tip 1
+        setTimeout(() => {
+          setLeoBubbleState('ellipsis');
+          setTimeout(() => {
+            setLeoBubbleState('hidden');
+            
+            // Show tip 1 after gap
+            setTimeout(() => {
+              if (tips[0]) {
+                console.log('[Bubble Sequence] 💡 Showing tip 1');
+                setBubbleStep('tip1');
+                setWindowBubbleState('text');
+                setWindowGlowing(true);
+                
+                // Hold tip, then show Mark Done button
+                setTimeout(() => {
+                  setWindowBubbleState('ellipsis');
+                  setWindowGlowing(false);
+                  setTimeout(() => {
+                    setWindowBubbleState('hidden');
+                    
+                    // Show Mark Done for tip 1
+                    setTimeout(() => {
+                      console.log('[Bubble Sequence] ✅ Showing Mark Done for tip 1');
+                      setBubbleStep('mark_done_1');
+                      setCurrentTipIndex(0);
+                      setShowMarkDoneButton(true);
+                    }, 400);
+                  }, 600);
+                }, 2200);
+              }
+            }, 400);
+          }, 600);
+        }, 2200);
+      }
+    }, 500);
+  }, [stage2Complete, stage2.payload]);
+  
+  // Watch for Mark Done clicks and advance to next poem/tip cycle
+  useEffect(() => {
+    if (markedTips.length === 0 || !stage2.payload) return;
+    
+    const lastMarked = Math.max(...markedTips);
+    const poems = stage2.payload.poems || [];
+    const tips = stage2.payload.tips || [];
+    
+    // Tip 1 marked → Show poem 2
+    if (lastMarked === 1 && markedTips.length === 1) {
+      setTimeout(() => {
+        if (poems[1]) {
+          console.log('[Bubble Sequence] 📖 Showing poem 2 after tip 1 marked');
+          setBubbleStep('leo_poem2');
+          setLeoBubbleState('text');
+          
+          setTimeout(() => {
+            setLeoReacting(true);
+            setTimeout(() => setLeoReacting(false), 700);
+          }, 800);
+          
+          setTimeout(() => {
+            setLeoBubbleState('ellipsis');
+            setTimeout(() => {
+              setLeoBubbleState('hidden');
+              
+              setTimeout(() => {
+                if (tips[1]) {
+                  console.log('[Bubble Sequence] 💡 Showing tip 2');
+                  setBubbleStep('tip2');
+                  setWindowBubbleState('text');
+                  setWindowGlowing(true);
+                  
+                  setTimeout(() => {
+                    setWindowBubbleState('ellipsis');
+                    setWindowGlowing(false);
+                    setTimeout(() => {
+                      setWindowBubbleState('hidden');
+                      
+                      setTimeout(() => {
+                        console.log('[Bubble Sequence] ✅ Showing Mark Done for tip 2');
+                        setBubbleStep('mark_done_2');
+                        setCurrentTipIndex(1);
+                        setShowMarkDoneButton(true);
+                      }, 400);
+                    }, 600);
+                  }, 2200);
+                }
+              }, 400);
+            }, 600);
+          }, 2200);
+        }
+      }, 800);
     }
     
-    // S2: Tip1 - First tip from window
-    if (tips[0]) {
-      console.log('[Bubble Sequence] ?? Tip 1:', tips[0]);
-      schedule(() => {
-        console.log('[Bubble Sequence] ??  Step 2: Tip1 - Fade in');
-        setBubbleStep('tip1');
-        setWindowBubbleState('text');
-        setWindowGlowing(true);
-      }, GAP_BETWEEN_BUBBLES, 'tip1-fadeIn');
-      
-      schedule(() => {
-        console.log('[Bubble Sequence] ??  Step 2: Tip1 ? ellipsis');
-        setWindowBubbleState('ellipsis');
-        setWindowGlowing(false);
-      }, FADE_IN + HOLD_TEXT, 'tip1-ellipsis');
-      
-      schedule(() => {
-        console.log('[Bubble Sequence] ?? Step 2: Tip1 ? hidden');
-        setWindowBubbleState('hidden');
-      }, FADE_TO_ELLIPSIS, 'tip1-hide');
+    // Tip 2 marked → Show poem 3
+    else if (lastMarked === 2 && markedTips.length === 2) {
+      setTimeout(() => {
+        if (poems[2]) {
+          console.log('[Bubble Sequence] 📖 Showing poem 3 after tip 2 marked');
+          setBubbleStep('leo_poem3');
+          setLeoBubbleState('text');
+          
+          setTimeout(() => {
+            setLeoReacting(true);
+            setTimeout(() => setLeoReacting(false), 700);
+          }, 800);
+          
+          setTimeout(() => {
+            setLeoBubbleState('ellipsis');
+            setTimeout(() => {
+              setLeoBubbleState('hidden');
+              
+              setTimeout(() => {
+                if (tips[2]) {
+                  console.log('[Bubble Sequence] 💡 Showing tip 3');
+                  setBubbleStep('tip3');
+                  setWindowBubbleState('text');
+                  setWindowGlowing(true);
+                  
+                  setTimeout(() => {
+                    setWindowBubbleState('ellipsis');
+                    setWindowGlowing(false);
+                    setTimeout(() => {
+                      setWindowBubbleState('hidden');
+                      
+                      setTimeout(() => {
+                        console.log('[Bubble Sequence] ✅ Showing Mark Done for tip 3');
+                        setBubbleStep('mark_done_3');
+                        setCurrentTipIndex(2);
+                        setShowMarkDoneButton(true);
+                      }, 400);
+                    }, 600);
+                  }, 2200);
+                }
+              }, 400);
+            }, 600);
+          }, 2200);
+        }
+      }, 800);
     }
     
-    // S3: Poem 2 - Second poem from Leo
-    if (poem2) {
-      console.log('[Bubble Sequence] ?? Poem 2:', poem2);
-      schedule(() => {
-        console.log('[Bubble Sequence] ??  Step 3: Poem2 - Fade in');
-        setBubbleStep('leo_poem2');
-        setLeoBubbleState('text');
-      }, GAP_BETWEEN_BUBBLES, 'poem2-fadeIn');
+    // Tip 3 marked → Sky brightening → Transition to Living City
+    else if (lastMarked === 3 && markedTips.length === 3) {
+      console.log('[Bubble Sequence] 🌅 All tips marked, transitioning to Living City');
       
-      schedule(() => {
-        console.log('[Bubble Sequence] ?? Leo reacting to poem 2');
-        setLeoReacting(true);
-        setTimeout(() => setLeoReacting(false), 700);
-      }, FADE_IN + 100, 'poem2-reaction');
-      
-      schedule(() => {
-        console.log('[Bubble Sequence] ??  Step 3: Poem2 ? ellipsis');
-        setLeoBubbleState('ellipsis');
-      }, HOLD_TEXT, 'poem2-ellipsis');
-      
-      schedule(() => {
-        console.log('[Bubble Sequence] ?? Step 3: Poem2 ? hidden');
-        setLeoBubbleState('hidden');
-      }, FADE_TO_ELLIPSIS, 'poem2-hide');
+      setTimeout(() => {
+        console.log('[Bubble Sequence] ☀️ Sky brightening');
+        setBubbleStep('sky');
+        setSkyLightnessLevel(3);
+        
+        setTimeout(() => {
+          console.log('[Bubble Sequence] 🎨 Gradient return');
+          setBubbleStep('gradientReturn');
+          setSkyLightnessLevel(4);
+          
+          setTimeout(() => {
+            console.log('[Bubble Sequence] ✅ Transition to Living City');
+            onComplete();
+          }, 2500);
+        }, 2000);
+      }, 1000);
     }
-    
-    // S4: Tip2 - Second tip from window
-    if (tips[1]) {
-      console.log('[Bubble Sequence] ?? Tip 2:', tips[1]);
-      schedule(() => {
-        console.log('[Bubble Sequence] ??  Step 4: Tip2 - Fade in');
-        setBubbleStep('tip2');
-        setWindowBubbleState('text');
-        setWindowGlowing(true);
-      }, GAP_BETWEEN_BUBBLES, 'tip2-fadeIn');
-      
-      schedule(() => {
-        console.log('[Bubble Sequence] ??  Step 4: Tip2 ? ellipsis');
-        setWindowBubbleState('ellipsis');
-        setWindowGlowing(false);
-      }, FADE_IN + HOLD_TEXT, 'tip2-ellipsis');
-      
-      schedule(() => {
-        console.log('[Bubble Sequence] ?? Step 4: Tip2 ? hidden');
-        setWindowBubbleState('hidden');
-      }, FADE_TO_ELLIPSIS, 'tip2-hide');
-    }
-    
-    // S5: Poem 3 - Third poem from Leo
-    if (poem3) {
-      console.log('[Bubble Sequence] ?? Poem 3:', poem3);
-      schedule(() => {
-        console.log('[Bubble Sequence] ??  Step 5: Poem3 - Fade in');
-        setBubbleStep('leo_poem3');
-        setLeoBubbleState('text');
-      }, GAP_BETWEEN_BUBBLES, 'poem3-fadeIn');
-      
-      schedule(() => {
-        console.log('[Bubble Sequence] ?? Leo reacting to poem 3');
-        setLeoReacting(true);
-        setTimeout(() => setLeoReacting(false), 700);
-      }, FADE_IN + 100, 'poem3-reaction');
-      
-      schedule(() => {
-        console.log('[Bubble Sequence] ??  Step 5: Poem3 ? ellipsis');
-        setLeoBubbleState('ellipsis');
-      }, HOLD_TEXT, 'poem3-ellipsis');
-      
-      schedule(() => {
-        console.log('[Bubble Sequence] ?? Step 5: Poem3 ? hidden');
-        setLeoBubbleState('hidden');
-      }, FADE_TO_ELLIPSIS, 'poem3-hide');
-    }
-    
-    // S6: Tip3 - Third and final tip from window
-    if (tips[2]) {
-      console.log('[Bubble Sequence] ?? Tip 3:', tips[2]);
-      schedule(() => {
-        console.log('[Bubble Sequence] ??  Step 6: Tip3 - Fade in');
-        setBubbleStep('tip3');
-        setWindowBubbleState('text');
-        setWindowGlowing(true);
-      }, GAP_BETWEEN_BUBBLES, 'tip3-fadeIn');
-      
-      schedule(() => {
-        console.log('[Bubble Sequence] ?? Step 6: Tip3 ? hidden (final tip fades completely)');
-        setWindowBubbleState('hidden');
-        setWindowGlowing(false);
-      }, FADE_IN + HOLD_TEXT + FADE_TO_ELLIPSIS, 'tip3-hide');
-    }
-    
-    // S7: Sky brightening - Progressive lightening
-    schedule(() => {
-      console.log('[Bubble Sequence] ?? Step 7: Sky brightening');
-      setBubbleStep('sky');
-      setSkyLightnessLevel(3);
-    }, GAP_BETWEEN_BUBBLES, 'sky');
-    
-    // S8: Gradient return - Sky transitions to dawn gradient
-    schedule(() => {
-      console.log('[Bubble Sequence] ?? Step 8: Gradient return - Full dawn');
-      setBubbleStep('gradientReturn');
-      setSkyLightnessLevel(4);
-    }, SKY_STEP, 'gradient');
-    
-    // S9: CTA - Final call to action
-    schedule(() => {
-      console.log('[Bubble Sequence] ?? Step 9: CTA appears');
-      setBubbleStep('cta');
-      setLeoBubbleState('text');
-      // Show "Mark Done" button with CTA
-      setShowMarkDoneButton(true);
-    }, GRADIENT_RETURN, 'cta-fadeIn');
-    
-    // S10: Fade out CTA
-    schedule(() => {
-      console.log('[Bubble Sequence] ?? Step 10: CTA fading out');
-      setLeoBubbleState('hidden');
-      setBubbleStep('idle');
-    }, FADE_IN + HOLD_TEXT + 800, 'cta-hide');
-    
-    // S11: Trigger transition to Moments Library
-    schedule(() => {
-      console.log('[Bubble Sequence] ?? Step 11: Transition to Moments Library');
-      console.log('[Bubble Sequence] ? COMPLETE! Total sequence time:', (currentTime / 1000).toFixed(1), 'seconds');
-      onComplete();
-    }, 1200, 'transition');
-    
-    console.log('[Bubble Sequence] ?? Orchestration scheduled:', {
-      totalSteps: timeouts.length,
-      finalTimestamp: `${(currentTime / 1000).toFixed(1)}s`,
-      poems: { poem1: !!poem1, poem2: !!poem2, poem3: !!poem3 },
-      tips: { tip1: !!tips[0], tip2: !!tips[1], tip3: !!tips[2] },
-    });
-    
-    return () => {
-      // Cleanup all scheduled timeouts if component unmounts
-      console.log('[Bubble Sequence] ?? Cleaning up', timeouts.length, 'scheduled timeouts');
-      timeouts.forEach(timeout => clearTimeout(timeout));
-      // DON'T reset orchestrationStartedRef here - it should stay true once started
-      // to prevent re-triggering the sequence when state updates cause re-renders
-    };
-  }, [stage2Complete]); // onComplete removed - it's called once at end, doesn't need to trigger re-runs
+  }, [markedTips, stage2.payload, onComplete]);
 
   // Breathing helpers
   const isInhaling = breathProgress < 0.5;
@@ -715,22 +565,24 @@ export default function BreathingSequence({
   const leoScale = isInhaling ? 1.15 : 0.92;
   const starOpacity = isInhaling ? 0.9 : 0.3;
   
-  // Handle "Mark Done" button click
-  const handleMarkDone = () => {
-    console.log('[Breathing] 🎯 Mark Done clicked');
-    setMarkedDone(true);
+  // Handle "Mark Done" button click - advances to next poem/tip cycle
+  const handleMarkDone = (tipIndex: number) => {
+    console.log(`[Breathing] 🎯 Mark Done clicked for tip ${tipIndex + 1}`);
+    
+    // Track this tip as marked
+    setMarkedTips(prev => [...prev, tipIndex + 1]);
+    setShowMarkDoneButton(false);
     
     // Play success SFX
     const successAudio = new Audio('/sounds/success-chime.mp3');
     successAudio.volume = 0.6;
     successAudio.play().catch(err => console.warn('[Breathing] Success SFX failed:', err));
     
-    // Visual feedback - pulse the button
-    setShowMarkDoneButton(false);
+    // Visual feedback - brief pause, then continue to next poem
     setTimeout(() => {
-      // Don't trigger completion - keep breathing loop running
-      console.log('[Breathing] ✅ Ritual marked as complete, breathing continues...');
-    }, 500);
+      console.log(`[Breathing] ✅ Tip ${tipIndex + 1} marked, continuing to next poem...`);
+      // The orchestrator will handle the next step based on markedTips array
+    }, 800);
   };
 
   // Sky gradient based on lightness level (0 = night, 4 = pink gradient)
@@ -1185,7 +1037,6 @@ export default function BreathingSequence({
                   bubbleStep === 'leo_poem1' ? (stage2.payload.poems[0] || 'Breathing...')
                   : bubbleStep === 'leo_poem2' ? (stage2.payload.poems[1] || 'Just breathe...')
                   : bubbleStep === 'leo_poem3' ? (stage2.payload.poems[2] || '')
-                  : bubbleStep === 'cta' ? `If anything came to mind, write it down and feed it to ${pigName}.`
                   : ''
                 }
                 state={leoBubbleState}
@@ -1218,9 +1069,9 @@ export default function BreathingSequence({
         );
       })()}
       
-      {/* "Mark Done" button - appears with CTA */}
+      {/* "Mark Done" button - appears after each tip */}
       <AnimatePresence>
-        {showMarkDoneButton && !markedDone && (
+        {showMarkDoneButton && (
           <motion.div
             className="fixed bottom-8 left-1/2 -translate-x-1/2 z-60"
             initial={{ opacity: 0, y: 20, scale: 0.9 }}
@@ -1229,7 +1080,7 @@ export default function BreathingSequence({
             transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
           >
             <motion.button
-              onClick={handleMarkDone}
+              onClick={() => handleMarkDone(currentTipIndex)}
               className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-8 py-4 rounded-full font-medium shadow-2xl hover:shadow-green-500/50 transition-all duration-300 flex items-center gap-3"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -1240,8 +1091,8 @@ export default function BreathingSequence({
           </motion.div>
         )}
         
-        {/* Completion feedback */}
-        {markedDone && (
+        {/* Completion feedback - shown briefly after each tip marked */}
+        {markedTips.includes(currentTipIndex + 1) && showMarkDoneButton === false && (
           <motion.div
             className="fixed bottom-8 left-1/2 -translate-x-1/2 z-60 bg-white/90 backdrop-blur-sm px-6 py-3 rounded-full shadow-xl border border-green-200"
             initial={{ opacity: 0, scale: 0.8 }}

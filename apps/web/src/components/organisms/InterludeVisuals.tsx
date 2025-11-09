@@ -59,10 +59,11 @@ export default function InterludeVisuals({
   const particleCount = reduceMotion ? 4 : 8;
   const waveCount = reduceMotion ? 1 : 3;
   
-  // Show skyline on line 3 of "Held Safe" (index 2)
+  // Show skyline on line 3 of "Held Safe" (index 2) - "time holding its breath"
   const showSkyline = phase === 'held_safe' && heldSafeLineIndex >= 2;
   
   // Determine if we should show moon (null or "none" emotion)
+  // For null emotion: show BOTH moon AND first building pulsing together
   const isNullEmotion = primaryEmotion === null || primaryEmotion === 'none';
   const showMoon = showSkyline && isNullEmotion;
   
@@ -259,7 +260,12 @@ export default function InterludeVisuals({
           transition={{ duration: 2, ease: breathingCurve }}
         >
           {TOWERS.map((tower, idx) => {
-            const isPrimary = tower.id === primaryEmotion;
+            // For null emotion: show FIRST tower (Vera - joyful) pulsing with moon
+            // For detected emotion: show matching primary tower only
+            const isPrimary = isNullEmotion 
+              ? tower.id === 'joyful' // First tower for null emotion
+              : tower.id === primaryEmotion;
+            
             const shouldFade = pulseCount >= 1 && !isPrimary; // Fade non-primary after 1 pulse
             
             return (
@@ -273,12 +279,12 @@ export default function InterludeVisuals({
                 }}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{
-                  opacity: shouldFade ? 0.15 : 1,
+                  opacity: isPrimary ? 1 : 0, // Only show primary tower
                   y: 0,
                 }}
                 transition={{
                   y: { duration: 1.5, delay: idx * 0.2, ease: 'easeOut' },
-                  opacity: { duration: 1.5, delay: pulseCount >= 1 ? 0 : 999 }, // Only fade after pulse
+                  opacity: { duration: 1.5 },
                 }}
               >
                 {/* Tower body */}
@@ -290,25 +296,45 @@ export default function InterludeVisuals({
                     borderRadius: '2px 2px 0 0',
                   }}
                 >
-                  {/* Pulsating windows */}
+                  {/* Pulsating windows - synchronized breathing pulse for primary */}
                   <div className="absolute inset-4 grid grid-cols-4 gap-2">
                     {Array.from({ length: Math.floor((tower.height * 1.8) / 25) * 4 }).map((_, i) => (
                       <motion.div
                         key={`window-${tower.id}-${i}`}
                         className="rounded-[1px]"
-                        animate={{
-                          backgroundColor: [
-                            `rgba(248, 216, 181, 0.15)`,
-                            `rgba(255, 230, 200, 0.5)`,
-                            `rgba(248, 216, 181, 0.15)`,
-                          ],
-                        }}
-                        transition={{
-                          duration: 3 + Math.random() * 2,
-                          repeat: Infinity,
-                          delay: idx * 0.5 + i * 0.1,
-                          ease: [0.45, 0.05, 0.55, 0.95],
-                        }}
+                        animate={
+                          isPrimary
+                            ? {
+                                // Synchronized pulse for primary building
+                                backgroundColor: [
+                                  `rgba(248, 216, 181, 0.2)`,
+                                  `rgba(255, 230, 200, 0.7)`,
+                                  `rgba(248, 216, 181, 0.2)`,
+                                ],
+                              }
+                            : {
+                                // Original staggered animation for non-primary
+                                backgroundColor: [
+                                  `rgba(248, 216, 181, 0.15)`,
+                                  `rgba(255, 230, 200, 0.5)`,
+                                  `rgba(248, 216, 181, 0.15)`,
+                                ],
+                              }
+                        }
+                        transition={
+                          isPrimary
+                            ? {
+                                duration: 5, // Match breathing cycle
+                                repeat: Infinity,
+                                ease: breathingCurve,
+                              }
+                            : {
+                                duration: 3 + Math.random() * 2,
+                                repeat: Infinity,
+                                delay: idx * 0.5 + i * 0.1,
+                                ease: [0.45, 0.05, 0.55, 0.95],
+                              }
+                        }
                       />
                     ))}
                   </div>
