@@ -52,52 +52,37 @@ export default function BreathingSequence({
 }: BreathingSequenceProps) {
   const [breathProgress, setBreathProgress] = useState(0); // 0-1 continuous
   const [cycleCount, setCycleCount] = useState(0);
-  const [words, setWords] = useState<Array<{ id: string; text: string; angle: number; index: number }>>([]);
+  const [floatingPoem, setFloatingPoem] = useState<{ id: string; text: string } | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [stage2Complete, setStage2Complete] = useState(false);
   
-  // Bubble sequence state (post-Stage 2)
-  // NEW: 3-poem flow with simplified steps
+  // NEW ARCHITECTURE: Poems float as complete lines, tips from Leo only
   type BubbleSequenceStep = 
     | 'idle' 
-    | 'leo_poem1' | 'tip1' | 'mark_done_1'
-    | 'leo_poem2' | 'tip2' | 'mark_done_2'
-    | 'leo_poem3' | 'tip3' | 'mark_done_3'
+    | 'poem1_floating' | 'tip1' | 'mark_done_1'
+    | 'poem2_floating' | 'tip2' | 'mark_done_2'
+    | 'poem3_floating' | 'tip3' | 'mark_done_3'
     | 'sky' | 'gradientReturn';
   
   const [bubbleStep, setBubbleStep] = useState<BubbleSequenceStep>('idle');
   const [leoBubbleState, setLeoBubbleState] = useState<'hidden' | 'text' | 'ellipsis'>('hidden');
-  const [windowBubbleState, setWindowBubbleState] = useState<'hidden' | 'text' | 'ellipsis'>('hidden');
-  const [skyLightnessLevel, setSkyLightnessLevel] = useState(0); // 0-3
-  const [leoReacting, setLeoReacting] = useState(false); // For poem line reactions
-  const [windowGlowing, setWindowGlowing] = useState(false); // For tip window glow
+  const [skyLightnessLevel, setSkyLightnessLevel] = useState(0); // 0-4
+  const [leoReacting, setLeoReacting] = useState(false); // For tip reactions
   
   // "Mark Done" state - tracks which tips have been marked
   const [markedTips, setMarkedTips] = useState<number[]>([]); // [1, 2, 3] as they're marked
   const [currentTipIndex, setCurrentTipIndex] = useState(0); // 0 = tip1, 1 = tip2, 2 = tip3
   const [showMarkDoneButton, setShowMarkDoneButton] = useState(false);
   
-  // DEBUG mode for bubble positioning overlays
-  const DEBUG_BUBBLES = typeof window !== 'undefined' && window.location.search.includes('debug=bubbles');
-  
-  // Stage 2 state
-  const [stage2, setStage2] = useState<Stage2State>({
-    phase: 'idle',
-    payload: null,
-    window: null,
-    currentTipIndex: 0,
-    stage2CycleCount: 0,
-    started: false,
-  });
+  // Stage 2 state (holds poems and tips from enrichment)
+  const [stage2Payload, setStage2Payload] = useState<PostEnrichmentPayload | null>(null);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const wordPool = useRef<string[]>([]);
-  const wordIndexCounter = useRef<number>(0); // Track word index for EN/HI alternation
   const animationFrameRef = useRef<number>();
   const startTimeRef = useRef<number>(Date.now());
   const leoContainerRef = useRef<HTMLDivElement>(null);
   const buildingContainerRef = useRef<HTMLDivElement>(null);
-  const orchestrationStartedRef = useRef(false); // Prevent duplicate orchestration runs
+  const orchestrationStartedRef = useRef(false);
   const breathingContainerRef = useRef<HTMLDivElement>(null);
   
   // When primary is null (no emotion), use Peaceful breathing pattern
@@ -114,66 +99,6 @@ export default function BreathingSequence({
   const targetCycles = isNullEmotion ? 3 : MIN_CYCLES;
   
   const primaryTower = TOWERS.find(t => t.id === effectivePrimary) || TOWERS[0];
-
-  // Initialize word pool - ONLY invoked, expressed, primary, secondary, tertiary
-  useEffect(() => {
-    const initWords = async () => {
-      try {
-        console.log('[Breathing] 🔍 DEBUG initWords:', {
-          'invokedWords prop': invokedWords,
-          'invokedWords.length': invokedWords.length,
-        });
-        
-        const response = await fetch(`/api/reflect/${reflectionId}`);
-        if (!response.ok) throw new Error('Failed to fetch reflection');
-        
-        const reflection = await response.json();
-        const pool: string[] = [];
-        
-        // 1. Invoked words (primary source)
-        if (invokedWords.length > 0) pool.push(...invokedWords);
-        
-        console.log('[Breathing] 🔍 After invokedWords, pool:', pool);
-        
-        // 2. Expressed emotion
-        if (reflection.final?.expressed && reflection.final.expressed !== 'null') {
-          const expressed = reflection.final.expressed.split(/[+\s]+/).map((w: string) => w.trim()).filter(Boolean);
-          pool.push(...expressed);
-        }
-        
-        console.log('[Breathing] 🔍 After expressed, pool:', pool);
-        
-        // 3. Context headline (if available) - add as complete phrase
-        if (reflection.final?.context?.event_headline) {
-          const headline = reflection.final.context.event_headline;
-          if (headline && headline.length > 2) {
-            pool.push(headline); // Add the full headline as a phrase
-            console.log('[Breathing] 🔍 Added context headline phrase:', headline);
-          }
-        }
-        
-        console.log('[Breathing] 🔍 After context headline, pool:', pool);
-        
-        // 4. Wheel emotions ONLY (no random text words)
-        if (reflection.final?.wheel?.primary) pool.push(reflection.final.wheel.primary);
-        if (reflection.final?.wheel?.secondary) pool.push(reflection.final.wheel.secondary);
-        if (reflection.final?.wheel?.tertiary) pool.push(reflection.final.wheel.tertiary);
-        
-        console.log('[Breathing] 🔍 After wheel, pool:', pool);
-        
-        // Filter out short/meaningless words
-        const filteredPool = pool.filter(w => w && w.length > 2);
-        
-        wordPool.current = filteredPool.length > 0 ? filteredPool : [...FALLBACK_WORDS];
-        console.log('[Breathing] ✅ Final word pool:', wordPool.current.length, 'words', wordPool.current);
-      } catch (error) {
-        console.error('[Breathing] Failed to load words:', error);
-        wordPool.current = [...FALLBACK_WORDS];
-      }
-    };
-    
-    initWords();
-  }, [reflectionId, invokedWords]);
 
   // Start audio and reveal
   useEffect(() => {
@@ -208,42 +133,26 @@ export default function BreathingSequence({
         
         const reflection = await response.json();
         
-        // Check for post_enrichment payload (at top level or under final for backwards compat)
+        // Check for post_enrichment payload
         const postEnrichment = reflection.post_enrichment || reflection.final?.post_enrichment;
-        if (postEnrichment && !stage2.started) {
-          
+        if (postEnrichment && !stage2Payload) {
           console.log('[Stage2] Post-enrichment received:', postEnrichment);
           
-          // Initialize Stage 2 with payload
-          setStage2(prev => ({
-            ...prev,
-            payload: {
-              poems: postEnrichment.poems || ['...', '...', '...'],
-              tips: postEnrichment.tips || [],
-              closing_line: postEnrichment.closing_line || '',
-              tip_moods: postEnrichment.tip_moods || [],
-            },
-            window: {
-              lit: false,
-              window_id: reflectionId,
-              x: 35, // Primary tower X position
-              y: 35 + Math.random() * 20, // Mid-height on tower
-              opacity: 0,
-              glow: 0,
-            },
-            phase: 'idle', // Stage 2 orchestrator handles bubble sequence
-            started: true,
-          }));
+          setStage2Payload({
+            poems: postEnrichment.poems || [],
+            tips: postEnrichment.tips || [],
+            closing_line: postEnrichment.closing_line || '',
+            tip_moods: postEnrichment.tip_moods || [],
+          });
           
-          // IMMEDIATELY trigger bubble sequence - no waiting for breath cycles
-          console.log('[Breathing] ? Triggering bubble sequence immediately');
+          // Trigger Stage 2 sequence
           setStage2Complete(true);
         }
         
-        // Check for overall completion status (backup trigger only if stage2 not started yet)
+        // Backup: Check completion status
         const status = reflection.status || reflection.final?.status;
-        if (status === 'complete' && !stage2Complete && !stage2.started) {
-          console.log('[Breathing] Stage-2 complete (backup trigger), cycle:', cycleCount);
+        if (status === 'complete' && !stage2Complete && !stage2Payload) {
+          console.log('[Breathing] Enrichment complete (backup trigger)');
           setStage2Complete(true);
         }
       } catch (error) {
@@ -252,7 +161,7 @@ export default function BreathingSequence({
     }, 2000);
     
     return () => clearInterval(pollInterval);
-  }, [reflectionId, cycleCount, stage2.started]);
+  }, [reflectionId, stage2Complete, stage2Payload]);
 
   // Null emotion handling: Complete after 3 cycles without Stage 2
   useEffect(() => {
@@ -307,257 +216,180 @@ export default function BreathingSequence({
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [isReady, cycleDuration, cycleCount, stage2Complete, stage2, onComplete]);
+  }, [isReady, cycleDuration, cycleCount, stage2Complete, onComplete]);
 
-  // Add floating words periodically - fade out when Stage 2 completes
+  // NEW ORCHESTRATION: Poem floating → Leo tip → Mark Done (repeat 3x) → Sky → Living City
   useEffect(() => {
-    console.log('[Breathing] 🔍 Floating words effect check:', {
-      isReady,
-      'wordPool.length': wordPool.current.length,
-      stage2Complete,
-    });
-    
-    if (!isReady || wordPool.current.length === 0) {
-      console.log('[Breathing] ⏸️ Floating words paused - isReady:', isReady, 'wordPool:', wordPool.current.length);
+    if (!stage2Complete || !stage2Payload) {
       return;
     }
     
-    console.log('[Breathing] ▶️ Starting floating words with pool:', wordPool.current);
-    
-    // Stop and clear all words when Stage 2 completes
-    if (stage2Complete) {
-      console.log('[Breathing] 🧹 Stage 2 complete, clearing all floating words');
-      setWords([]); // Clear all existing words
-      return;
-    }
-    
-    const addWord = async () => {
-      const word = wordPool.current[Math.floor(Math.random() * wordPool.current.length)];
-      const wordId = `word-${Date.now()}-${Math.random()}`;
-      const angle = Math.random() * Math.PI * 2;
-      const index = wordIndexCounter.current++;
-      
-      // Alternate: even index = English, odd index = Hindi
-      const shouldTranslate = index % 2 === 1;
-      let displayText = word;
-      
-      if (shouldTranslate) {
-        try {
-          const translated = await translateToHindi(word);
-          displayText = translated.translatedText || word; // Fallback to English if translation fails
-        } catch (error) {
-          console.warn('[Breathing] Translation failed for word:', word, error);
-          // Keep original English word
-        }
-      }
-      
-      setWords(prev => [...prev, { id: wordId, text: displayText, angle, index }]);
-      
-      setTimeout(() => {
-        setWords(prev => prev.filter(w => w.id !== wordId));
-      }, 5000);
-    };
-    
-    // Add first word immediately
-    addWord();
-    
-    const interval = setInterval(addWord, 5000);
-    return () => clearInterval(interval);
-  }, [isReady, stage2Complete]);
-
-  // Bubble sequence orchestration (post-Stage 2 completion)
-  // EVENT-DRIVEN STATE MACHINE: Each step advances based on user interaction (Mark Done clicks)
-  useEffect(() => {
-    if (!stage2Complete || !stage2.payload) {
-      return;
-    }
-    
-    // Guard: Prevent duplicate orchestration runs
     if (orchestrationStartedRef.current) {
       return;
     }
     
     orchestrationStartedRef.current = true;
-    console.log('[Bubble Sequence] 🎬 Starting event-driven orchestration');
+    console.log('[Bubble Sequence] 🎬 Starting poem-floating sequence');
     
-    const poems = stage2.payload.poems || [];
-    const tips = stage2.payload.tips || [];
+    const poems = stage2Payload.poems || [];
+    const tips = stage2Payload.tips || [];
     
-    // Initial transition: Start with poem 1 after brief delay
+    // Cycle 1: Poem 1 floats → Tip 1 from Leo → Mark Done
     setTimeout(() => {
       if (poems[0]) {
-        console.log('[Bubble Sequence] 📖 Showing poem 1');
-        setBubbleStep('leo_poem1');
-        setLeoBubbleState('text');
+        console.log('[Sequence] 📖 Showing poem 1 floating');
+        setBubbleStep('poem1_floating');
+        setFloatingPoem({ id: 'poem1', text: poems[0] });
         
-        // Leo reaction
+        // After poem floats away (6s), show tip from Leo
         setTimeout(() => {
-          setLeoReacting(true);
-          setTimeout(() => setLeoReacting(false), 700);
-        }, 800);
-        
-        // Hold poem, then transition to tip 1
-        setTimeout(() => {
-          setLeoBubbleState('ellipsis');
+          setFloatingPoem(null);
+          
           setTimeout(() => {
-            setLeoBubbleState('hidden');
-            
-            // Show tip 1 after gap
-            setTimeout(() => {
-              if (tips[0]) {
-                console.log('[Bubble Sequence] 💡 Showing tip 1');
-                setBubbleStep('tip1');
-                setWindowBubbleState('text');
-                setWindowGlowing(true);
-                
-                // Hold tip, then show Mark Done button
+            if (tips[0]) {
+              console.log('[Sequence] 💬 Leo showing tip 1');
+              setBubbleStep('tip1');
+              setLeoBubbleState('text');
+              
+              // Leo reacts
+              setTimeout(() => {
+                setLeoReacting(true);
+                setTimeout(() => setLeoReacting(false), 700);
+              }, 300);
+              
+              // Hold tip, then show Mark Done
+              setTimeout(() => {
+                setLeoBubbleState('ellipsis');
                 setTimeout(() => {
-                  setWindowBubbleState('ellipsis');
-                  setWindowGlowing(false);
+                  setLeoBubbleState('hidden');
+                  
                   setTimeout(() => {
-                    setWindowBubbleState('hidden');
-                    
-                    // Show Mark Done for tip 1
-                    setTimeout(() => {
-                      console.log('[Bubble Sequence] ✅ Showing Mark Done for tip 1');
-                      setBubbleStep('mark_done_1');
-                      setCurrentTipIndex(0);
-                      setShowMarkDoneButton(true);
-                    }, 400);
+                    console.log('[Sequence] ✅ Showing Mark Done for tip 1');
+                    setBubbleStep('mark_done_1');
+                    setCurrentTipIndex(0);
+                    setShowMarkDoneButton(true);
                   }, 600);
-                }, 2200);
-              }
-            }, 400);
-          }, 600);
-        }, 2200);
+                }, 600);
+              }, 2500);
+            }
+          }, 800);
+        }, 6000);
       }
     }, 500);
-  }, [stage2Complete, stage2.payload]);
+  }, [stage2Complete, stage2Payload]);
   
-  // Watch for Mark Done clicks and advance to next poem/tip cycle
+  // Watch for Mark Done clicks and continue sequence
   useEffect(() => {
-    if (markedTips.length === 0 || !stage2.payload) return;
+    if (markedTips.length === 0 || !stage2Payload) return;
     
     const lastMarked = Math.max(...markedTips);
-    const poems = stage2.payload.poems || [];
-    const tips = stage2.payload.tips || [];
+    const poems = stage2Payload.poems || [];
+    const tips = stage2Payload.tips || [];
     
-    // Tip 1 marked → Show poem 2
+    // Tip 1 marked → Poem 2 floats → Tip 2
     if (lastMarked === 1 && markedTips.length === 1) {
       setTimeout(() => {
         if (poems[1]) {
-          console.log('[Bubble Sequence] 📖 Showing poem 2 after tip 1 marked');
-          setBubbleStep('leo_poem2');
-          setLeoBubbleState('text');
+          console.log('[Sequence] 📖 Showing poem 2 floating');
+          setBubbleStep('poem2_floating');
+          setFloatingPoem({ id: 'poem2', text: poems[1] });
           
           setTimeout(() => {
-            setLeoReacting(true);
-            setTimeout(() => setLeoReacting(false), 700);
-          }, 800);
-          
-          setTimeout(() => {
-            setLeoBubbleState('ellipsis');
+            setFloatingPoem(null);
+            
             setTimeout(() => {
-              setLeoBubbleState('hidden');
-              
-              setTimeout(() => {
-                if (tips[1]) {
-                  console.log('[Bubble Sequence] 💡 Showing tip 2');
-                  setBubbleStep('tip2');
-                  setWindowBubbleState('text');
-                  setWindowGlowing(true);
-                  
+              if (tips[1]) {
+                console.log('[Sequence] 💬 Leo showing tip 2');
+                setBubbleStep('tip2');
+                setLeoBubbleState('text');
+                
+                setTimeout(() => {
+                  setLeoReacting(true);
+                  setTimeout(() => setLeoReacting(false), 700);
+                }, 300);
+                
+                setTimeout(() => {
+                  setLeoBubbleState('ellipsis');
                   setTimeout(() => {
-                    setWindowBubbleState('ellipsis');
-                    setWindowGlowing(false);
+                    setLeoBubbleState('hidden');
+                    
                     setTimeout(() => {
-                      setWindowBubbleState('hidden');
-                      
-                      setTimeout(() => {
-                        console.log('[Bubble Sequence] ✅ Showing Mark Done for tip 2');
-                        setBubbleStep('mark_done_2');
-                        setCurrentTipIndex(1);
-                        setShowMarkDoneButton(true);
-                      }, 400);
+                      console.log('[Sequence] ✅ Showing Mark Done for tip 2');
+                      setBubbleStep('mark_done_2');
+                      setCurrentTipIndex(1);
+                      setShowMarkDoneButton(true);
                     }, 600);
-                  }, 2200);
-                }
-              }, 400);
-            }, 600);
-          }, 2200);
+                  }, 600);
+                }, 2500);
+              }
+            }, 800);
+          }, 6000);
         }
-      }, 800);
+      }, 1000);
     }
     
-    // Tip 2 marked → Show poem 3
+    // Tip 2 marked → Poem 3 floats → Tip 3
     else if (lastMarked === 2 && markedTips.length === 2) {
       setTimeout(() => {
         if (poems[2]) {
-          console.log('[Bubble Sequence] 📖 Showing poem 3 after tip 2 marked');
-          setBubbleStep('leo_poem3');
-          setLeoBubbleState('text');
+          console.log('[Sequence] 📖 Showing poem 3 floating');
+          setBubbleStep('poem3_floating');
+          setFloatingPoem({ id: 'poem3', text: poems[2] });
           
           setTimeout(() => {
-            setLeoReacting(true);
-            setTimeout(() => setLeoReacting(false), 700);
-          }, 800);
-          
-          setTimeout(() => {
-            setLeoBubbleState('ellipsis');
+            setFloatingPoem(null);
+            
             setTimeout(() => {
-              setLeoBubbleState('hidden');
-              
-              setTimeout(() => {
-                if (tips[2]) {
-                  console.log('[Bubble Sequence] 💡 Showing tip 3');
-                  setBubbleStep('tip3');
-                  setWindowBubbleState('text');
-                  setWindowGlowing(true);
-                  
+              if (tips[2]) {
+                console.log('[Sequence] 💬 Leo showing tip 3');
+                setBubbleStep('tip3');
+                setLeoBubbleState('text');
+                
+                setTimeout(() => {
+                  setLeoReacting(true);
+                  setTimeout(() => setLeoReacting(false), 700);
+                }, 300);
+                
+                setTimeout(() => {
+                  setLeoBubbleState('ellipsis');
                   setTimeout(() => {
-                    setWindowBubbleState('ellipsis');
-                    setWindowGlowing(false);
+                    setLeoBubbleState('hidden');
+                    
                     setTimeout(() => {
-                      setWindowBubbleState('hidden');
-                      
-                      setTimeout(() => {
-                        console.log('[Bubble Sequence] ✅ Showing Mark Done for tip 3');
-                        setBubbleStep('mark_done_3');
-                        setCurrentTipIndex(2);
-                        setShowMarkDoneButton(true);
-                      }, 400);
+                      console.log('[Sequence] ✅ Showing Mark Done for tip 3');
+                      setBubbleStep('mark_done_3');
+                      setCurrentTipIndex(2);
+                      setShowMarkDoneButton(true);
                     }, 600);
-                  }, 2200);
-                }
-              }, 400);
-            }, 600);
-          }, 2200);
+                  }, 600);
+                }, 2500);
+              }
+            }, 800);
+          }, 6000);
         }
-      }, 800);
+      }, 1000);
     }
     
-    // Tip 3 marked → Sky brightening → Transition to Living City
+    // Tip 3 marked → Sky brightens → Living City
     else if (lastMarked === 3 && markedTips.length === 3) {
-      console.log('[Bubble Sequence] 🌅 All tips marked, transitioning to Living City');
+      console.log('[Sequence] 🌅 All tips complete, transitioning to Living City');
       
       setTimeout(() => {
-        console.log('[Bubble Sequence] ☀️ Sky brightening');
         setBubbleStep('sky');
         setSkyLightnessLevel(3);
         
         setTimeout(() => {
-          console.log('[Bubble Sequence] 🎨 Gradient return');
           setBubbleStep('gradientReturn');
           setSkyLightnessLevel(4);
           
           setTimeout(() => {
-            console.log('[Bubble Sequence] ✅ Transition to Living City');
+            console.log('[Sequence] ✅ Transition to Living City');
             onComplete();
           }, 2500);
         }, 2000);
       }, 1000);
     }
-  }, [markedTips, stage2.payload, onComplete]);
+  }, [markedTips, stage2Payload, onComplete]);
 
   // Breathing helpers
   const isInhaling = breathProgress < 0.5;
@@ -813,255 +645,74 @@ export default function BreathingSequence({
         })}
       </motion.div>
 
-      {/* Floating words - fade out when Stage 2 completes */}
+      {/* Floating poem - shows complete line, floats upward like smoke */}
       <AnimatePresence>
-        {words.map(word => {
-          // Safe zones: avoid top 15% (auth bar), center 30-45% vertical (Leo + prompts)
-          // Place words with more padding from edges to prevent cutoff
-          const angle = word.angle;
-          const normalizedAngle = (angle % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
-          
-          // Determine safe vertical zone based on angle quadrant
-          let x, y;
-          
-          if (normalizedAngle < Math.PI / 2) {
-            // Top-right quadrant → place in upper-right safe zone
-            x = 60 + Math.random() * 20; // 60-80% (more centered)
-            y = 18 + Math.random() * 10; // 18-28% (below auth bar, above Leo)
-          } else if (normalizedAngle < Math.PI) {
-            // Bottom-right quadrant → place in lower-right safe zone
-            x = 60 + Math.random() * 20; // 60-80% (more centered)
-            y = 50 + Math.random() * 15; // 50-65% (below Leo, above towers)
-          } else if (normalizedAngle < Math.PI * 1.5) {
-            // Bottom-left quadrant → place in lower-left safe zone
-            x = 15 + Math.random() * 20; // 15-35% (more centered)
-            y = 50 + Math.random() * 15; // 50-65% (below Leo, above towers)
-          } else {
-            // Top-left quadrant → place in upper-left safe zone
-            x = 15 + Math.random() * 20; // 15-35% (more centered)
-            y = 18 + Math.random() * 10; // 18-28% (below auth bar, above Leo)
-          }
-          
-          return (
-            <motion.div
-              key={word.id}
-              className="absolute pointer-events-none will-change-transform z-40"
-              style={{ 
-                left: `${x}%`, 
-                top: `${y}%`,
-                transform: 'translateZ(0)', // Force GPU acceleration on mobile
-                backfaceVisibility: 'hidden', // Improve mobile rendering
+        {floatingPoem && (
+          <motion.div
+            key={floatingPoem.id}
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-40 pointer-events-none"
+            initial={{ opacity: 0, y: 0, scale: 0.9 }}
+            animate={{ 
+              opacity: [0, 1, 1, 0.7, 0],
+              y: [0, -50, -120, -200, -300],
+              scale: [0.9, 1, 1.02, 1.05, 1.1],
+            }}
+            exit={{ opacity: 0 }}
+            transition={{
+              duration: 6,
+              times: [0, 0.2, 0.5, 0.8, 1],
+              ease: [0.4, 0, 0.2, 1], // easeInOutCirc
+            }}
+          >
+            <div
+              className="text-3xl md:text-4xl font-serif italic font-medium text-center leading-relaxed px-8 max-w-2xl"
+              style={{
+                color: '#FFD700',
+                textShadow: `
+                  0 0 25px #FFD700,
+                  0 0 50px #FFD700,
+                  0 0 75px #FFD70080,
+                  0 4px 12px rgba(0,0,0,0.4)
+                `,
+                WebkitFontSmoothing: 'antialiased',
               }}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1.05, y: -20 }}
-              exit={{ opacity: 0, scale: 0.9, transition: { duration: 1.5, ease: 'easeOut' } }}
-              transition={{ duration: 6, ease: EASING }}
             >
-              {/* Split text into max 2 words per line for multi-word phrases */}
-              {(() => {
-                const words = word.text.split(/\s+/);
-                if (words.length <= 2) {
-                  // Single line if 1-2 words
-                  return (
-                    <span
-                      className="text-2xl md:text-3xl font-serif italic font-bold"
-                      style={{
-                        color: '#FFD700',
-                        textShadow: `
-                          0 0 20px #FFD700,
-                          0 0 40px #FFD700,
-                          0 0 60px #FFD70080,
-                          0 4px 8px rgba(0,0,0,0.6)
-                        `,
-                        WebkitFontSmoothing: 'antialiased',
-                      }}
-                    >
-                      {word.text}
-                    </span>
-                  );
-                } else {
-                  // Multi-line: 2 words per line
-                  const line1 = words.slice(0, 2).join(' ');
-                  const line2 = words.slice(2, 4).join(' ');
-                  return (
-                    <div className="text-center leading-tight">
-                      <div
-                        className="text-2xl md:text-3xl font-serif italic font-bold"
-                        style={{
-                          color: '#FFD700',
-                          textShadow: `
-                            0 0 20px #FFD700,
-                            0 0 40px #FFD700,
-                            0 0 60px #FFD70080,
-                            0 4px 8px rgba(0,0,0,0.6)
-                          `,
-                          WebkitFontSmoothing: 'antialiased',
-                        }}
-                      >
-                        {line1}
-                      </div>
-                      {line2 && (
-                        <div
-                          className="text-2xl md:text-3xl font-serif italic font-bold"
-                          style={{
-                            color: '#FFD700',
-                            textShadow: `
-                              0 0 20px #FFD700,
-                              0 0 40px #FFD700,
-                              0 0 60px #FFD70080,
-                              0 4px 8px rgba(0,0,0,0.6)
-                            `,
-                            WebkitFontSmoothing: 'antialiased',
-                          }}
-                        >
-                          {line2}
-                        </div>
-                      )}
-                    </div>
-                  );
-                }
-              })()}
-            </motion.div>
-          );
-        })}
+              {floatingPoem.text}
+            </div>
+          </motion.div>
+        )}
       </AnimatePresence>
 
-      {/* Comic Bubbles - Post-Stage 2 Sequence */}
-      {stage2Complete && stage2.payload && (() => {
+      {/* Leo speech bubbles (tips only, no window bubble) */}
+      {stage2Complete && stage2Payload && (() => {
         // Get container and element rects for absolute positioning
         const containerRect = breathingContainerRef.current?.getBoundingClientRect();
         const leoRect = leoContainerRef.current?.getBoundingClientRect();
-        const buildingRect = buildingContainerRef.current?.getBoundingClientRect();
         
         if (!containerRect) return null;
         
-        // Leo bubble: Use center-based positioning since Leo is at left: 50%, top: 28%
-        // This matches Leo's actual CSS positioning rather than relying on getBoundingClientRect
-        // which can be affected by transforms
+        // Leo bubble: Anchored above Leo's head
         const leoAnchor = {
           x: containerRect.width / 2, // Match left: 50%
-          y: containerRect.height * 0.28 - 120, // Match top: 28% (Leo's actual position), offset up by ~120px to clear Leo
+          y: containerRect.height * 0.28 - 120, // Above Leo
         };
-        
-        // Building/Tips bubble: Anchored to the PRIMARY tower (always at 35% from left, bottom of screen)
-        // Calculate position based on primary tower's actual location
-        const buildingAnchor = buildingRect ? {
-          x: (containerRect.width * 0.35) + 40, // 35% from left (primary tower position) + 40px offset into building
-          y: buildingRect.top - containerRect.top + 40, // 40px from top of building container
-        } : null;
-        
-        if (DEBUG_BUBBLES) {
-          console.log('[Bubble Positions - Absolute]', {
-            bubbleStep,
-            containerRect: { x: containerRect.left, y: containerRect.top, width: containerRect.width, height: containerRect.height },
-            leoRect: leoRect ? { x: leoRect.left, y: leoRect.top, width: leoRect.width, height: leoRect.height } : null,
-            buildingRect: buildingRect ? { x: buildingRect.left, y: buildingRect.top, width: buildingRect.width, height: buildingRect.height } : null,
-            leoAnchor,
-            buildingAnchor,
-            leoBubbleState,
-            windowBubbleState,
-            calculation: {
-              leoX: `${containerRect.width} / 2 = ${containerRect.width / 2}`,
-              leoY: `${containerRect.height} * 0.35 - 120 = ${containerRect.height * 0.35 - 120}`,
-            },
-          });
-        }
         
         return (
           <>
-            {/* DEBUG: Visual anchor overlays */}
-            {DEBUG_BUBBLES && (
-              <>
-                {/* Leo anchor point - RED DOT */}
-                {leoAnchor && (
-                  <div
-                    className="absolute w-4 h-4 bg-red-500 rounded-full border-2 border-white pointer-events-none shadow-lg"
-                    style={{
-                      left: leoAnchor.x - 8,
-                      top: leoAnchor.y - 8,
-                      zIndex: 100,
-                    }}
-                    title="Leo Anchor"
-                  />
-                )}
-                
-                {/* Building anchor point - BLUE DOT */}
-                {buildingAnchor && (
-                  <div
-                    className="absolute w-4 h-4 bg-blue-500 rounded-full border-2 border-white pointer-events-none shadow-lg"
-                    style={{
-                      left: buildingAnchor.x - 8,
-                      top: buildingAnchor.y - 8,
-                      zIndex: 100,
-                    }}
-                    title="Building Anchor"
-                  />
-                )}
-                
-                {/* Leo container outline - RED */}
-                {leoRect && (
-                  <div
-                    className="absolute border-2 border-red-500 pointer-events-none bg-red-500/10"
-                    style={{
-                      left: leoRect.left - containerRect.left,
-                      top: leoRect.top - containerRect.top,
-                      width: leoRect.width,
-                      height: leoRect.height,
-                      zIndex: 99,
-                    }}
-                    title="Leo Container"
-                  />
-                )}
-                
-                {/* Building container outline - BLUE */}
-                {buildingRect && (
-                  <div
-                    className="absolute border-2 border-blue-500 pointer-events-none bg-blue-500/10"
-                    style={{
-                      left: buildingRect.left - containerRect.left,
-                      top: buildingRect.top - containerRect.top,
-                      width: buildingRect.width,
-                      height: buildingRect.height,
-                      zIndex: 99,
-                    }}
-                    title="Building Container"
-                  />
-                )}
-              </>
-            )}
-
-            {/* Leo Bubble (Poems) - Anchored to Leo's head */}
+            {/* Leo Bubble (Tips only - poems float independently) */}
             {leoAnchor && (
               <ComicBubble
                 content={
-                  bubbleStep === 'leo_poem1' ? (stage2.payload.poems[0] || 'Breathing...')
-                  : bubbleStep === 'leo_poem2' ? (stage2.payload.poems[1] || 'Just breathe...')
-                  : bubbleStep === 'leo_poem3' ? (stage2.payload.poems[2] || '')
+                  bubbleStep === 'tip1' ? (stage2Payload.tips[0] || '')
+                  : bubbleStep === 'tip2' ? (stage2Payload.tips[1] || '')
+                  : bubbleStep === 'tip3' ? (stage2Payload.tips[2] || '')
                   : ''
                 }
                 state={leoBubbleState}
-                type="poem"
-                anchorPosition={leoAnchor}
-                tailDirection="down-left" // Diagonal southwest tail
-                maxWidth={Math.min(480, containerRect.width * 0.85)} // Responsive width
-                breathProgress={breathProgress}
-              />
-            )}
-
-            {/* Building/Tips Bubble - Anchored to top-left of building */}
-            {buildingAnchor && (
-              <ComicBubble
-                content={
-                  bubbleStep === 'tip1' ? (stage2.payload.tips[0] || '')
-                  : bubbleStep === 'tip2' ? (stage2.payload.tips[1] || '')
-                  : bubbleStep === 'tip3' ? (stage2.payload.tips[2] || '')
-                  : ''
-                }
-                state={windowBubbleState}
                 type="tip"
-                anchorPosition={buildingAnchor}
-                tailDirection="down" // Point down to building
-                maxWidth={Math.min(340, containerRect.width * 0.75)} // Responsive width
+                anchorPosition={leoAnchor}
+                tailDirection="down-left"
+                maxWidth={Math.min(480, containerRect.width * 0.85)}
                 breathProgress={breathProgress}
               />
             )}
@@ -1069,40 +720,72 @@ export default function BreathingSequence({
         );
       })()}
       
-      {/* "Mark Done" button - appears after each tip */}
+      {/* Ghibli-inspired Mark Done button - sage green, soft shadows, handwritten feel */}
       <AnimatePresence>
         {showMarkDoneButton && (
           <motion.div
-            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-60"
-            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            className="fixed bottom-10 left-1/2 -translate-x-1/2 z-60"
+            initial={{ opacity: 0, y: 30, scale: 0.85 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           >
             <motion.button
               onClick={() => handleMarkDone(currentTipIndex)}
-              className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-8 py-4 rounded-full font-medium shadow-2xl hover:shadow-green-500/50 transition-all duration-300 flex items-center gap-3"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              className="relative px-10 py-4 rounded-full bg-gradient-to-br from-[#8BA888] via-[#9BB89A] to-[#A8C5A6] text-white shadow-[0_8px_30px_rgba(139,168,136,0.35)] border border-white/20 backdrop-blur-sm overflow-hidden"
+              whileHover={{ 
+                scale: 1.03,
+                boxShadow: '0 12px 40px rgba(139,168,136,0.45)',
+              }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
             >
-              <span className="text-2xl">✓</span>
-              <span className="text-lg">Mark Done</span>
+              {/* Ghibli-style soft glow overlay */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-t from-white/0 via-white/10 to-white/20 rounded-full"
+                animate={{ opacity: [0.4, 0.7, 0.4] }}
+                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+              />
+              
+              {/* Button content */}
+              <div className="relative flex items-center gap-3">
+                <motion.span 
+                  className="text-2xl"
+                  animate={{ rotate: [0, 5, -5, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  ✓
+                </motion.span>
+                <span 
+                  className="text-lg font-light tracking-wide"
+                  style={{ fontFamily: "'Cormorant Garamond', serif", letterSpacing: '0.05em' }}
+                >
+                  Mark Done
+                </span>
+              </div>
             </motion.button>
           </motion.div>
         )}
         
-        {/* Completion feedback - shown briefly after each tip marked */}
+        {/* Completion feedback - gentle Ghibli-style confirmation */}
         {markedTips.includes(currentTipIndex + 1) && showMarkDoneButton === false && (
           <motion.div
-            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-60 bg-white/90 backdrop-blur-sm px-6 py-3 rounded-full shadow-xl border border-green-200"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ duration: 0.4 }}
+            className="fixed bottom-10 left-1/2 -translate-x-1/2 z-60 bg-white/95 backdrop-blur-md px-8 py-4 rounded-full shadow-[0_8px_30px_rgba(139,168,136,0.25)] border border-[#8BA888]/20"
+            initial={{ opacity: 0, scale: 0.75, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.85, y: -10 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           >
-            <p className="text-green-700 font-medium flex items-center gap-2">
-              <span className="text-xl">✓</span>
-              <span>Ritual complete</span>
+            <p className="text-[#6B8E6A] font-light flex items-center gap-3" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+              <motion.span 
+                className="text-2xl"
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ duration: 0.6, ease: [0.34, 1.56, 0.64, 1] }}
+              >
+                ✓
+              </motion.span>
+              <span className="text-lg tracking-wide">Ritual complete</span>
             </p>
           </motion.div>
         )}

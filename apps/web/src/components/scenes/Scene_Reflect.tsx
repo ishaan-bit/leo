@@ -686,8 +686,8 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   // If showing interlude or breathing, render them as overlay
   if (showInterlude || showBreathing) {
     return (
-      <div className="fixed inset-0 bg-gradient-to-br from-pink-50 to-rose-100">
-        <AnimatePresence mode="wait">
+      <div className="fixed inset-0 bg-[#1A1734]">
+        <AnimatePresence mode="wait">{/* Crossfade mode for smooth transitions */}
           {showInterlude && currentReflectionId && (
             <motion.div
               key="city-interlude"
