@@ -432,16 +432,39 @@ export default function CityInterlude({
 
       {/* Moonlight glow (Phase 3+) */}
       {currentPhase >= 3 && (
-        <motion.div
-          className="absolute top-10 right-20 w-32 h-32 rounded-full pointer-events-none"
-          style={{
-            background: 'radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%)',
-            filter: 'blur(20px)',
-          }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: phase3SubBeat === 'stars' ? 0.4 : 0.6 }}
-          transition={{ duration: 5, ease: 'easeInOut' }}
-        />
+        <>
+          {/* Moon glow */}
+          <motion.div
+            className="absolute top-10 right-20 w-32 h-32 rounded-full pointer-events-none"
+            style={{
+              background: 'radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%)',
+              filter: 'blur(20px)',
+            }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: phase3SubBeat === 'stars' ? 0.4 : 0.6 }}
+            transition={{ duration: 5, ease: 'easeInOut' }}
+          />
+          
+          {/* Crescent Moon - visible in Phase 3 */}
+          <motion.div
+            className="absolute top-12 right-24 w-16 h-16 pointer-events-none"
+            style={{
+              borderRadius: '50%',
+              boxShadow: 'inset -8px 0px 0px 0px rgba(255, 255, 255, 0.9)',
+              background: 'transparent',
+              transform: 'rotate(-20deg)',
+            }}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ 
+              opacity: [0, 0.95, 0.95],
+              scale: [0.8, 1, 1],
+            }}
+            transition={{ 
+              duration: 3,
+              ease: [0.16, 1, 0.3, 1],
+            }}
+          />
+        </>
       )}
 
       {/* Stars - Enhanced with parallax layers (Phase 2+ but brighten in Phase 3) */}
@@ -814,8 +837,9 @@ export default function CityInterlude({
         />
       )}
 
-      {/* City skyline with six towers (Phase 4 or Phase 5 zoom) */}
-      {towersRising && currentPhase >= 4 && (
+      {/* City skyline with six towers (Phase 3+ when towers rising) */}
+      {/* SHOW PULSING BUILDINGS IN PHASE 3 - "time holding its breath" */}
+      {towersRising && currentPhase >= 3 && (
         <motion.div
           className="absolute bottom-0 left-0 right-0 z-25"
           style={{ height: '50vh' }}
@@ -985,9 +1009,10 @@ export default function CityInterlude({
       )}
 
       {/* Copy display - positioned below Leo, persist phase 3 with rotation */}
+      {/* HIDE TEXT IN PHASE 3 - show only pulsing buildings */}
       <div className="absolute bottom-24 md:bottom-32 left-0 right-0 z-30 flex flex-col items-center px-6 max-w-2xl mx-auto">
         <AnimatePresence mode="wait">
-          {showCopy && (
+          {showCopy && currentPhase !== 3 && (
             <motion.p
               key={showCopy}
               className="text-xl md:text-2xl lg:text-3xl font-serif italic text-center tracking-wide leading-relaxed"
@@ -998,9 +1023,9 @@ export default function CityInterlude({
               animate={{ 
                 opacity: 1, 
                 y: 0,
-                // Gentle pulse for all waiting lines (phases 3 & 4)
-                scale: currentPhase >= 3 ? [1, 1.02, 1] : 1,
-                rotate: currentPhase >= 3 ? [0, 0.5, 0, -0.5, 0] : 0,
+                // Gentle pulse for all waiting lines (phase 4 only now)
+                scale: currentPhase >= 4 ? [1, 1.02, 1] : 1,
+                rotate: currentPhase >= 4 ? [0, 0.5, 0, -0.5, 0] : 0,
               }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ 
