@@ -42,8 +42,13 @@ interface InterludeFlowProps {
 // Copy pools for each phase - poetic, whisper-like
 const COPY = {
   heldSafe: {
-    line1: 'Your moment has been held safe.',
-    delay: 1500, // 1.5s delay before showing
+    lines: [
+      'Your moment has been held safe,',
+      'a quiet breath between things,',
+      'and time holding its breath.',
+    ],
+    lineDelay: 4000, // 4s per line
+    crossfadeDuration: 500, // 0.5s crossfade
   },
   interlude: [
     'A quiet breath between things.',
@@ -69,7 +74,8 @@ const COPY = {
 };
 
 const TIMING = {
-  HELD_SAFE_DURATION: 2500,           // 2.5s
+  HELD_SAFE_LINE_DURATION: 4000,     // 4s per line
+  CROSSFADE_DURATION: 500,            // 0.5s crossfade
   COMPLETE_TRANSITION_DURATION: 2000, // 2s
   MINIMUM_TOTAL_DWELL: 8000,          // 8s minimum experience
   SOFT_TIMEOUT: 90000,                // 90s soft timeout
@@ -86,7 +92,8 @@ export default function InterludeFlow({
 }: InterludeFlowProps) {
   const { data: session, status } = useSession();
   const [phase, setPhase] = useState<InterludePhase>('held_safe');
-  const [currentCopy, setCurrentCopy] = useState<string>(COPY.heldSafe.line1);
+  const [currentCopy, setCurrentCopy] = useState<string>(COPY.heldSafe.lines[0]);
+  const [currentLineIndex, setCurrentLineIndex] = useState<number>(0); // Track held safe line
   const [showReassurance, setShowReassurance] = useState(false);
   const [copyIndex, setCopyIndex] = useState(0);
   
@@ -104,7 +111,8 @@ export default function InterludeFlow({
     isReady, 
     isLoading, 
     error,
-    elapsedTime 
+    elapsedTime,
+    reflection, // Get reflection data for emotion
   } = useEnrichmentStatus(reflectionId, {
     enabled: phase === 'interlude_active',
     pollInterval: 3500, // 3.5s with jitter
@@ -115,10 +123,30 @@ export default function InterludeFlow({
     },
   });
   
-  // Phase 1: Held Safe → Interlude
+  // Phase 1: Held Safe → cycle through 3 lines → Interlude
   useEffect(() => {
     if (phase === 'held_safe') {
-      const timer = setTimeout(() => {
+      const timers: NodeJS.Timeout[] = [];
+      
+      // Schedule each line transition
+      COPY.heldSafe.lines.forEach((line, index) => {
+        if (index === 0) {
+          // First line shows immediately
+          setCurrentCopy(line);
+        } else {
+          // Subsequent lines fade in after delay
+          const timer = setTimeout(() => {
+            setCurrentCopy(line);
+            setCurrentLineIndex(index);
+          }, TIMING.HELD_SAFE_LINE_DURATION * index);
+          
+          timers.push(timer);
+        }
+      });
+      
+      // Transition to interlude after all lines shown
+      const totalDuration = TIMING.HELD_SAFE_LINE_DURATION * COPY.heldSafe.lines.length;
+      const interludeTimer = setTimeout(() => {
         setPhase('interlude_active');
         setCurrentCopy(COPY.interlude[0]);
         
@@ -131,9 +159,13 @@ export default function InterludeFlow({
           timestamp: Date.now(),
           reduceMotion: prefersReducedMotion,
         });
-      }, TIMING.HELD_SAFE_DURATION);
+      }, totalDuration);
       
-      return () => clearTimeout(timer);
+      timers.push(interludeTimer);
+      
+      return () => {
+        timers.forEach(timer => clearTimeout(timer));
+      };
     }
   }, [phase, reflectionId, prefersReducedMotion]);
   
@@ -281,6 +313,8 @@ export default function InterludeFlow({
         phase={phase}
         pigName={pigName}
         reduceMotion={prefersReducedMotion}
+        heldSafeLineIndex={currentLineIndex}
+        primaryEmotion={reflection?.final?.wheel?.primary}
       />
       
       {/* Copy Display - Positioned below pig */}
@@ -288,19 +322,18 @@ export default function InterludeFlow({
         <AnimatePresence mode="wait">
           {phase === 'held_safe' && (
             <motion.div
-              key="held-safe"
+              key={`held-safe-${currentLineIndex}`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ 
-                duration: 1.5, 
-                delay: COPY.heldSafe.delay / 1000, // Convert ms to s
+                duration: TIMING.CROSSFADE_DURATION / 1000, // Convert ms to s
                 ease: [0.4, 0, 0.2, 1] // easeInOutCirc 
               }}
               className="text-center"
             >
               <p className="text-2xl md:text-3xl font-serif italic text-[#7D2054] tracking-wider leading-relaxed">
-                {COPY.heldSafe.line1}
+                {currentCopy}
               </p>
             </motion.div>
           )}

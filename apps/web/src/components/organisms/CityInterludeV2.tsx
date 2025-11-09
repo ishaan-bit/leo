@@ -25,13 +25,14 @@ const PULSING_DURATION = 12000; // 12s of pulsating towers before zoom can trigg
 const ZOOM_DURATION = 8000;     // 8s cinematic zoom sequence
 
 // MAPPING: joyful→Vera, powerful→Ashmere, peaceful→Haven, sad→Vanta, scared→Vire, mad→Sable
+// Sable (mad) is rightmost at 90% for clear visual separation
 const TOWERS: Array<{id: WillcoxPrimary; name: string; color: string; x: number; height: number}> = [
-  { id: 'joyful', name: 'Vera', color: '#FFD700', x: 15, height: 200 },
-  { id: 'powerful', name: 'Ashmere', color: '#FF6B35', x: 28, height: 240 },
-  { id: 'peaceful', name: 'Haven', color: '#6A9FB5', x: 44, height: 180 },
-  { id: 'sad', name: 'Vanta', color: '#7D8597', x: 56, height: 220 },
-  { id: 'scared', name: 'Vire', color: '#5A189A', x: 70, height: 210 },
-  { id: 'mad', name: 'Sable', color: '#C1121F', x: 85, height: 190 },
+  { id: 'joyful', name: 'Vera', color: '#FFD700', x: 12, height: 160 },      // Reduced from 200→160
+  { id: 'powerful', name: 'Ashmere', color: '#FF6B35', x: 24, height: 190 }, // Reduced from 240→190
+  { id: 'peaceful', name: 'Haven', color: '#6A9FB5', x: 38, height: 145 },   // Reduced from 180→145
+  { id: 'sad', name: 'Vanta', color: '#7D8597', x: 52, height: 175 },        // Reduced from 220→175
+  { id: 'scared', name: 'Vire', color: '#5A189A', x: 67, height: 165 },      // Reduced from 210→165
+  { id: 'mad', name: 'Sable', color: '#C1121F', x: 90, height: 155 },        // Moved to 90% (rightmost), reduced from 190→155
 ];
 
 export default function CityInterludeV2({
@@ -152,7 +153,7 @@ export default function CityInterludeV2({
       {currentPhase >= 4 && (
         <motion.div
         className="absolute bottom-0 left-0 right-0"
-        style={{ height: '50vh' }}
+        style={{ height: '40vh', maxHeight: '400px' }} // Reduced from 50vh, added max-height
         animate={isZooming && selectedTower ? {
           scale: [1, 2.5],
           y: [0, '-30%'],
@@ -172,8 +173,9 @@ export default function CityInterludeV2({
               className="absolute bottom-0"
               style={{
                 left: `${tower.x}%`,
-                width: '80px',
+                width: '70px', // Reduced from 80px
                 height: `${tower.height}px`,
+                transform: 'translateX(-50%)', // Center on X coordinate for better spacing
               }}
               initial={{ y: 40, opacity: 0 }}
               animate={{

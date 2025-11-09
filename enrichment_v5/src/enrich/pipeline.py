@@ -254,10 +254,10 @@ def enrich(
         }
     }
     
-    # 14. Append playful dialogue (poems + tips)
+    # 14. Append playful dialogue (poems + tips) from micro-content-api
     try:
-        from dialogue.generator import build_dialogue
-        poems, tips, dialogue_meta = build_dialogue(result)
+        from dialogue.micro_content_fetcher import build_dialogue_from_micro_content
+        poems, tips, dialogue_meta = build_dialogue_from_micro_content(result)
         result['poems'] = poems
         result['tips'] = tips
         result['_dialogue_meta'] = dialogue_meta

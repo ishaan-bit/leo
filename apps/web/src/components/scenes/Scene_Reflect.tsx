@@ -11,6 +11,8 @@ import AuthStateIndicator from '../atoms/AuthStateIndicator';
 import SoundToggle from '../atoms/SoundToggle';
 import MomentsNavIcon from '../atoms/MomentsNavIcon';
 import TopNav from '../molecules/TopNav';
+import GuestSignInModal from '../molecules/GuestSignInModal';
+import FloatingSignInButton from '../atoms/FloatingSignInButton';
 import CityInterlude from '../organisms/CityInterlude';
 import BreathingSequence from '../organisms/BreathingSequence';
 import MomentsLibrary from '../organisms/MomentsLibrary';
@@ -52,6 +54,10 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   const [showGuestNudge, setShowGuestNudge] = useState(false);
   const [guestNudgeMinimized, setGuestNudgeMinimized] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
+  
+  // Guest sign-in modal state
+  const [showSignInModal, setShowSignInModal] = useState(false);
+  const [showFloatingSignIn, setShowFloatingSignIn] = useState(false);
   
   // Micro-dream state
   const [microDream, setMicroDream] = useState<{ 
@@ -196,6 +202,17 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
       return () => clearTimeout(minimizeTimer);
     }
   }, [showGuestNudge, guestNudgeMinimized]);
+  
+  // Show floating sign-in button for guest users after 3 seconds of page load
+  useEffect(() => {
+    if (status === 'unauthenticated' && !showSignInModal) {
+      const timer = setTimeout(() => {
+        setShowFloatingSignIn(true);
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [status, showSignInModal]);
 
   // Check for reduced motion preference
   useEffect(() => {
@@ -221,6 +238,10 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     // Show contextual sign-in nudge on first keystroke (guest users only)
     if (status === 'unauthenticated' && text.length === 1 && !showGuestNudge) {
       setShowGuestNudge(true);
+      // Show modal on first keystroke
+      setShowSignInModal(true);
+      // Hide floating button when modal is shown
+      setShowFloatingSignIn(false);
     }
     
     if (scenePhase === 'entering') {
@@ -729,7 +750,13 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   // If showing moments library, render it
   if (showMomentsLibrary) {
     return (
-      <>
+      <motion.div
+        className="fixed inset-0"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
+      >
         {/* Top navigation - horizontally aligned */}
         {!isMomentExpanded && (
           <TopNav
@@ -749,7 +776,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
           onNewReflection={handleNewReflection}
           onMomentSelected={setIsMomentExpanded}
         />
-      </>
+      </motion.div>
     );
   }
 
@@ -781,7 +808,12 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   }
 
   return (
-    <div className="fixed inset-0 overflow-y-auto">
+    <motion.div 
+      className="fixed inset-0 overflow-y-auto"
+      initial={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
+    >
       <div className={`min-h-screen bg-gradient-to-br ${backgroundTone} relative overflow-x-hidden transition-colors duration-1000`}>
       {/* Breathing background gradient overlay */}
       <motion.div
@@ -1012,7 +1044,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
               {guestNudgeMinimized ? (
                 // Minimized state - compact
                 <button
-                  onClick={() => signIn('google')}
+                  onClick={() => setShowSignInModal(true)}
                   className="flex items-center gap-2 text-xs font-serif text-pink-800 hover:text-pink-900"
                 >
                   <span>💾</span>
@@ -1025,7 +1057,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
                     {dialogueData.guestNudge.copy.replace('{pigName}', pigName)}
                   </p>
                   <button
-                    onClick={() => signIn('google')}
+                    onClick={() => setShowSignInModal(true)}
                     className="w-full bg-pink-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-pink-700 transition-colors"
                   >
                     {dialogueData.guestNudge.button}
@@ -1035,8 +1067,26 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
             </motion.div>
           )}
         </AnimatePresence>
+        
+        {/* Guest Sign-In Modal */}
+        <GuestSignInModal 
+          isOpen={showSignInModal}
+          onClose={() => {
+            setShowSignInModal(false);
+            // Show floating button again after modal is closed
+            setShowFloatingSignIn(true);
+          }}
+          pigId={pigId}
+        />
+        
+        {/* Floating Sign-In Button */}
+        <AnimatePresence>
+          {showFloatingSignIn && status === 'unauthenticated' && !isSubmitting && !showSignInModal && (
+            <FloatingSignInButton onClick={() => setShowSignInModal(true)} />
+          )}
+        </AnimatePresence>
       </div>
-    </div>
-    </div>
+      </div>
+    </motion.div>
   );
 }

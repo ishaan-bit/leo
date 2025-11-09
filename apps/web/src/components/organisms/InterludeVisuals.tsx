@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import PinkPig from '../molecules/PinkPig';
 
@@ -13,6 +14,9 @@ import PinkPig from '../molecules/PinkPig';
  * - Film grain overlay (3% opacity, SVG noise)
  * - Depth blur vignette at edges
  * - Ear twitch every 10s for micro-motion
+ * - Skyline with 6 emotional towers (fade in on line 3 of "Held Safe")
+ * - Crescent moon for null/none emotion states
+ * - Building pulse and fade logic based on emotion detection
  * 
  * Accessibility:
  * - Respects prefers-reduced-motion
@@ -24,20 +28,54 @@ interface InterludeVisualsProps {
   phase: 'held_safe' | 'interlude_active' | 'complete_transition' | 'progress_ready';
   pigName: string;
   reduceMotion?: boolean;
+  heldSafeLineIndex?: number; // Track which line of "Held Safe" is showing (0-2)
+  primaryEmotion?: string | null; // 'null' = no emotion, undefined = not loaded yet
 }
 
 // Easing curve for breathing motion
 const breathingCurve = [0.4, 0, 0.2, 1];
 
+// Emotional towers (matching BreathingSequence layout)
+const TOWERS = [
+  { id: 'joyful', name: 'Vera', color: '#FFD700', x: 15, height: 180 },
+  { id: 'powerful', name: 'Ashmere', color: '#FF6B35', x: 25, height: 220 },
+  { id: 'peaceful', name: 'Haven', color: '#6A9FB5', x: 40, height: 160 },
+  { id: 'sad', name: 'Vanta', color: '#7D8597', x: 55, height: 200 },
+  { id: 'scared', name: 'Vire', color: '#5A189A', x: 70, height: 190 },
+  { id: 'mad', name: 'Sable', color: '#C1121F', x: 85, height: 170 },
+];
+
 export default function InterludeVisuals({
   phase,
   pigName,
   reduceMotion = false,
+  heldSafeLineIndex = 0,
+  primaryEmotion,
 }: InterludeVisualsProps) {
+  const [pulseCount, setPulseCount] = useState(0);
+  
   // Animation parameters based on reduce motion
   const glowIntensity = reduceMotion ? 0.15 : 0.4;
   const particleCount = reduceMotion ? 4 : 8;
   const waveCount = reduceMotion ? 1 : 3;
+  
+  // Show skyline on line 3 of "Held Safe" (index 2)
+  const showSkyline = phase === 'held_safe' && heldSafeLineIndex >= 2;
+  
+  // Determine if we should show moon (null or "none" emotion)
+  const isNullEmotion = primaryEmotion === null || primaryEmotion === 'none';
+  const showMoon = showSkyline && isNullEmotion;
+  
+  // Track pulse count for fade logic
+  useEffect(() => {
+    if (!showSkyline || !primaryEmotion || isNullEmotion) return;
+    
+    const pulseInterval = setInterval(() => {
+      setPulseCount(prev => prev + 1);
+    }, 3000); // Count pulses every 3s (window animation cycle)
+    
+    return () => clearInterval(pulseInterval);
+  }, [showSkyline, primaryEmotion, isNullEmotion]);
 
   return (
     <>
@@ -210,6 +248,134 @@ export default function InterludeVisuals({
           ease: breathingCurve,
         }}
       />
+      
+      {/* City skyline - fades in on line 3 of "Held Safe" */}
+      {showSkyline && (
+        <motion.div
+          className="fixed bottom-0 left-0 right-0 z-15"
+          style={{ height: '50vh' }}
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 2, ease: breathingCurve }}
+        >
+          {TOWERS.map((tower, idx) => {
+            const isPrimary = tower.id === primaryEmotion;
+            const shouldFade = pulseCount >= 1 && !isPrimary; // Fade non-primary after 1 pulse
+            
+            return (
+              <motion.div
+                key={tower.id}
+                className="absolute bottom-0"
+                style={{
+                  left: `${tower.x}%`,
+                  width: '80px',
+                  height: `${tower.height * 1.8}px`,
+                }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{
+                  opacity: shouldFade ? 0.15 : 1,
+                  y: 0,
+                }}
+                transition={{
+                  y: { duration: 1.5, delay: idx * 0.2, ease: 'easeOut' },
+                  opacity: { duration: 1.5, delay: pulseCount >= 1 ? 0 : 999 }, // Only fade after pulse
+                }}
+              >
+                {/* Tower body */}
+                <div
+                  className="w-full h-full relative"
+                  style={{
+                    background: `linear-gradient(180deg, ${tower.color}50 0%, ${tower.color}25 60%, ${tower.color}15 100%)`,
+                    border: `1px solid ${tower.color}40`,
+                    borderRadius: '2px 2px 0 0',
+                  }}
+                >
+                  {/* Pulsating windows */}
+                  <div className="absolute inset-4 grid grid-cols-4 gap-2">
+                    {Array.from({ length: Math.floor((tower.height * 1.8) / 25) * 4 }).map((_, i) => (
+                      <motion.div
+                        key={`window-${tower.id}-${i}`}
+                        className="rounded-[1px]"
+                        animate={{
+                          backgroundColor: [
+                            `rgba(248, 216, 181, 0.15)`,
+                            `rgba(255, 230, 200, 0.5)`,
+                            `rgba(248, 216, 181, 0.15)`,
+                          ],
+                        }}
+                        transition={{
+                          duration: 3 + Math.random() * 2,
+                          repeat: Infinity,
+                          delay: idx * 0.5 + i * 0.1,
+                          ease: [0.45, 0.05, 0.55, 0.95],
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+      )}
+      
+      {/* Crescent moon - shows only for null/none emotion */}
+      {showMoon && (
+        <motion.div
+          className="fixed z-20"
+          style={{
+            left: '50%',
+            top: '25%',
+            transform: 'translateX(-50%)',
+          }}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ 
+            opacity: [0.7, 1, 0.7],
+            scale: 1,
+          }}
+          transition={{
+            opacity: { duration: 4, repeat: Infinity, ease: 'easeInOut' },
+            scale: { duration: 1.5, ease: breathingCurve },
+          }}
+        >
+          {/* Crescent moon SVG */}
+          <svg width="120" height="120" viewBox="0 0 120 120">
+            <defs>
+              <filter id="moonGlow">
+                <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+                <feMerge>
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+            <path
+              d="M 60 10 A 40 40 0 1 0 60 110 A 35 35 0 1 1 60 10 Z"
+              fill="#FFF9E6"
+              filter="url(#moonGlow)"
+              opacity="0.9"
+            />
+          </svg>
+          
+          {/* Moon glow */}
+          <motion.div
+            className="absolute inset-0 rounded-full pointer-events-none"
+            style={{
+              background: 'radial-gradient(circle, rgba(255, 249, 230, 0.4) 0%, transparent 70%)',
+              filter: 'blur(30px)',
+              transform: 'scale(1.5)',
+            }}
+            animate={{
+              opacity: [0.4, 0.7, 0.4],
+            }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          />
+        </motion.div>
+      )}
     </>
   );
 }

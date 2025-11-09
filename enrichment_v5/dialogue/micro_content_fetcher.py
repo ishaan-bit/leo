@@ -91,8 +91,13 @@ def normalize_secondary(secondary: Optional[str]) -> str:
     if secondary is None or secondary == "null" or secondary == "":
         return "None"
     
-    # Capitalize first letter, lowercase rest (e.g., "optimistic" -> "Optimistic")
-    return secondary.strip().capitalize()
+    # Ensure proper capitalization (first letter uppercase, rest as-is)
+    # JSON uses: Frustrated, Angry, Jealous, etc.
+    secondary = secondary.strip()
+    if secondary:
+        # Capitalize first letter only, preserve rest of casing
+        return secondary[0].upper() + secondary[1:]
+    return "None"
 
 
 def normalize_domain_primary(domain_primary: Optional[str]) -> str:
@@ -144,23 +149,36 @@ def build_dialogue_from_micro_content(
         # This is different from data.get('secondary') which is also wheel secondary
         wheel_secondary = normalize_secondary(data.get('secondary'))
         
-        logger.info(f"Looking up dialogue for domain={domain_primary}, secondary={wheel_secondary}")
+        original_domain = domain.get('primary', 'self')
+        original_secondary = data.get('secondary')
+        
+        logger.info(f"[micro_content] Original: domain={original_domain}, secondary={original_secondary}")
+        logger.info(f"[micro_content] Normalized: domain={domain_primary}, secondary={wheel_secondary}")
+        logger.info(f"[micro_content] Looking up dialogue for domain={domain_primary}, secondary={wheel_secondary}")
         
         # Navigate nested structure: micro_content[domain][secondary]["parsed"]
+        # Apply fallbacks: if domain not found → use 'self', if secondary not found → use 'None'
+        
+        # Check domain exists, fallback to 'self' if not
         if domain_primary not in micro_content:
-            logger.warning(f"Domain {domain_primary} not found, trying fallback: self")
+            logger.warning(f"[micro_content] Domain '{domain_primary}' not found in JSON, using fallback: 'self'")
             domain_primary = "self"
         
         domain_data = micro_content.get(domain_primary)
         if not domain_data:
+            # This shouldn't happen if 'self' exists, but handle it
+            logger.error(f"[micro_content] CRITICAL: Fallback domain 'self' not found in micro content!")
             raise ValueError(f"Domain {domain_primary} not found in micro content")
         
+        # Check secondary exists, fallback to 'None' if not
         if wheel_secondary not in domain_data:
-            logger.warning(f"Secondary {wheel_secondary} not found in {domain_primary}, trying None")
+            logger.warning(f"[micro_content] Secondary '{wheel_secondary}' not found in '{domain_primary}', using fallback: 'None'")
             wheel_secondary = "None"
         
         dialogue_entry = domain_data.get(wheel_secondary)
         if not dialogue_entry:
+            # This shouldn't happen if 'None' exists, but handle it
+            logger.error(f"[micro_content] CRITICAL: Fallback secondary 'None' not found in '{domain_primary}'!")
             raise ValueError(f"No dialogue found for {domain_primary}/{wheel_secondary}")
         
         # Extract parsed dialogue
@@ -180,6 +198,10 @@ def build_dialogue_from_micro_content(
             parsed.get('window3', 'notice.')
         ]
         
+        logger.info(f"[micro_content] ✅ Fetched dialogue for {domain_primary}/{wheel_secondary}")
+        logger.info(f"[micro_content] Poems: {poems}")
+        logger.info(f"[micro_content] Tips: {tips}")
+        
         # Meta information
         meta = {
             'source': 'micro-content-api',
@@ -194,7 +216,8 @@ def build_dialogue_from_micro_content(
         return poems, tips, meta
     
     except Exception as e:
-        logger.error(f"Micro content dialogue fetch failed: {e}")
+        logger.error(f"[micro_content] ❌ Dialogue fetch failed: {e}")
+        logger.exception(e)  # Full stack trace
         
         # Safe fallback
         return (

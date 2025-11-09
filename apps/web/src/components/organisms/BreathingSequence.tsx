@@ -73,6 +73,10 @@ export default function BreathingSequence({
   const [leoReacting, setLeoReacting] = useState(false); // For poem line reactions
   const [windowGlowing, setWindowGlowing] = useState(false); // For tip window glow
   
+  // "Mark Done" state
+  const [markedDone, setMarkedDone] = useState(false);
+  const [showMarkDoneButton, setShowMarkDoneButton] = useState(false);
+  
   // DEBUG mode for bubble positioning overlays
   const DEBUG_BUBBLES = typeof window !== 'undefined' && window.location.search.includes('debug=bubbles');
   
@@ -671,6 +675,8 @@ export default function BreathingSequence({
       console.log('[Bubble Sequence] ?? Step 9: CTA appears');
       setBubbleStep('cta');
       setLeoBubbleState('text');
+      // Show "Mark Done" button with CTA
+      setShowMarkDoneButton(true);
     }, GRADIENT_RETURN, 'cta-fadeIn');
     
     // S10: Fade out CTA
@@ -708,6 +714,24 @@ export default function BreathingSequence({
   const skyBrightness = isInhaling ? 1.2 : 0.8;
   const leoScale = isInhaling ? 1.15 : 0.92;
   const starOpacity = isInhaling ? 0.9 : 0.3;
+  
+  // Handle "Mark Done" button click
+  const handleMarkDone = () => {
+    console.log('[Breathing] 🎯 Mark Done clicked');
+    setMarkedDone(true);
+    
+    // Play success SFX
+    const successAudio = new Audio('/sounds/success-chime.mp3');
+    successAudio.volume = 0.6;
+    successAudio.play().catch(err => console.warn('[Breathing] Success SFX failed:', err));
+    
+    // Visual feedback - pulse the button
+    setShowMarkDoneButton(false);
+    setTimeout(() => {
+      // Don't trigger completion - keep breathing loop running
+      console.log('[Breathing] ✅ Ritual marked as complete, breathing continues...');
+    }, 500);
+  };
 
   // Sky gradient based on lightness level (0 = night, 4 = pink gradient)
   const getSkyGradient = () => {
@@ -1193,6 +1217,45 @@ export default function BreathingSequence({
           </>
         );
       })()}
+      
+      {/* "Mark Done" button - appears with CTA */}
+      <AnimatePresence>
+        {showMarkDoneButton && !markedDone && (
+          <motion.div
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-60"
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
+          >
+            <motion.button
+              onClick={handleMarkDone}
+              className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-8 py-4 rounded-full font-medium shadow-2xl hover:shadow-green-500/50 transition-all duration-300 flex items-center gap-3"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <span className="text-2xl">✓</span>
+              <span className="text-lg">Mark Done</span>
+            </motion.button>
+          </motion.div>
+        )}
+        
+        {/* Completion feedback */}
+        {markedDone && (
+          <motion.div
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-60 bg-white/90 backdrop-blur-sm px-6 py-3 rounded-full shadow-xl border border-green-200"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.4 }}
+          >
+            <p className="text-green-700 font-medium flex items-center gap-2">
+              <span className="text-xl">✓</span>
+              <span>Ritual complete</span>
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 
