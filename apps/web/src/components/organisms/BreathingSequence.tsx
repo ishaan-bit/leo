@@ -40,6 +40,13 @@ const getPrimaryTowerX = (towerId: string) => {
 const MIN_CYCLES = 3;
 const EASING = [0.42, 0, 0.58, 1] as const; // easeInOutSine
 
+// Utility: Filter out non-English text (Hindi/Devanagari characters)
+const isEnglishText = (text: string): boolean => {
+  // Devanagari Unicode range: U+0900 to U+097F
+  const devanagariRegex = /[\u0900-\u097F]/;
+  return !devanagariRegex.test(text);
+};
+
 export default function BreathingSequence({
   reflectionId,
   primary,
@@ -231,7 +238,14 @@ export default function BreathingSequence({
     orchestrationStartedRef.current = true;
     console.log('[Bubble Sequence] 🎬 Starting poem-floating sequence');
     
-    const poems = stage2Payload.poems || [];
+    // Filter poems to only include English text (remove Hindi/Devanagari)
+    const allPoems = stage2Payload.poems || [];
+    const poems = allPoems.filter(isEnglishText);
+    
+    if (poems.length < 3) {
+      console.warn('[Bubble Sequence] ⚠️ Less than 3 English poems available:', poems.length);
+    }
+    
     const tips = stage2Payload.tips || [];
     
     // Cycle 1: Poem 1 floats → Tip 1 from Leo → Mark Done
@@ -283,8 +297,13 @@ export default function BreathingSequence({
     if (markedTips.length === 0 || !stage2Payload) return;
     
     const lastMarked = Math.max(...markedTips);
-    const poems = stage2Payload.poems || [];
+    
+    // Filter poems to only include English (same as orchestration)
+    const allPoems = stage2Payload.poems || [];
+    const poems = allPoems.filter(isEnglishText);
     const tips = stage2Payload.tips || [];
+    
+    console.log('[Mark Done Watch] Filtered poems:', poems.length, 'Tips:', tips.length);
     
     // Tip 1 marked → Poem 2 floats → Tip 2
     if (lastMarked === 1 && markedTips.length === 1) {
@@ -720,45 +739,39 @@ export default function BreathingSequence({
         );
       })()}
       
-      {/* Ghibli-inspired Mark Done button - sage green, soft shadows, handwritten feel */}
+      {/* Mark Done button - sleek, refined Ghibli style */}
       <AnimatePresence>
         {showMarkDoneButton && (
           <motion.div
-            className="fixed bottom-10 left-1/2 -translate-x-1/2 z-60"
-            initial={{ opacity: 0, y: 30, scale: 0.85 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.9 }}
-            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed bottom-8 left-0 right-0 z-60 flex justify-center items-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           >
             <motion.button
               onClick={() => handleMarkDone(currentTipIndex)}
-              className="relative px-10 py-4 rounded-full bg-gradient-to-br from-[#8BA888] via-[#9BB89A] to-[#A8C5A6] text-white shadow-[0_8px_30px_rgba(139,168,136,0.35)] border border-white/20 backdrop-blur-sm overflow-hidden"
+              className="relative px-6 py-2.5 rounded-full bg-white/90 backdrop-blur-md text-[#6B8E6A] shadow-[0_4px_20px_rgba(107,142,106,0.2)] border border-[#8BA888]/30 overflow-hidden"
               whileHover={{ 
-                scale: 1.03,
-                boxShadow: '0 12px 40px rgba(139,168,136,0.45)',
+                scale: 1.02,
+                boxShadow: '0 6px 25px rgba(107,142,106,0.3)',
               }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.2 }}
             >
-              {/* Ghibli-style soft glow overlay */}
+              {/* Subtle shimmer */}
               <motion.div
-                className="absolute inset-0 bg-gradient-to-t from-white/0 via-white/10 to-white/20 rounded-full"
-                animate={{ opacity: [0.4, 0.7, 0.4] }}
-                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                animate={{ x: ['-100%', '100%'] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
               />
               
               {/* Button content */}
-              <div className="relative flex items-center gap-3">
-                <motion.span 
-                  className="text-2xl"
-                  animate={{ rotate: [0, 5, -5, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  ✓
-                </motion.span>
+              <div className="relative flex items-center gap-2">
+                <span className="text-base">✓</span>
                 <span 
-                  className="text-lg font-light tracking-wide"
-                  style={{ fontFamily: "'Cormorant Garamond', serif", letterSpacing: '0.05em' }}
+                  className="text-sm font-light tracking-wide"
+                  style={{ fontFamily: "'Cormorant Garamond', serif" }}
                 >
                   Mark Done
                 </span>
@@ -767,26 +780,27 @@ export default function BreathingSequence({
           </motion.div>
         )}
         
-        {/* Completion feedback - gentle Ghibli-style confirmation */}
+        {/* Completion feedback */}
         {markedTips.includes(currentTipIndex + 1) && showMarkDoneButton === false && (
           <motion.div
-            className="fixed bottom-10 left-1/2 -translate-x-1/2 z-60 bg-white/95 backdrop-blur-md px-8 py-4 rounded-full shadow-[0_8px_30px_rgba(139,168,136,0.25)] border border-[#8BA888]/20"
-            initial={{ opacity: 0, scale: 0.75, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.85, y: -10 }}
-            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed bottom-8 left-0 right-0 z-60 flex justify-center items-center"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           >
-            <p className="text-[#6B8E6A] font-light flex items-center gap-3" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-              <motion.span 
-                className="text-2xl"
-                initial={{ scale: 0, rotate: -180 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ duration: 0.6, ease: [0.34, 1.56, 0.64, 1] }}
-              >
-                ✓
-              </motion.span>
-              <span className="text-lg tracking-wide">Ritual complete</span>
-            </p>
+            <div className="bg-white/95 backdrop-blur-md px-6 py-2.5 rounded-full shadow-[0_4px_20px_rgba(107,142,106,0.15)] border border-[#8BA888]/20">
+              <p className="text-[#6B8E6A] font-light flex items-center gap-2 text-sm" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+                <motion.span 
+                  initial={{ scale: 0, rotate: -90 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ duration: 0.5, ease: [0.34, 1.56, 0.64, 1] }}
+                >
+                  ✓
+                </motion.span>
+                <span>Ritual complete</span>
+              </p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
