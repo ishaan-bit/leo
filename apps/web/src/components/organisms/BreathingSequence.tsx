@@ -196,24 +196,33 @@ export default function BreathingSequence({
     }
   }, [isNullEmotion, isReady, cycleCount, targetCycles, onComplete]);
 
-  // Continuous breathing animation loop
+  // Continuous breathing animation loop with proper 4-phase cycle
   useEffect(() => {
     if (!isReady) return;
     
     const animate = () => {
       const elapsed = Date.now() - startTimeRef.current;
-      const cyclePosition = (elapsed % cycleDuration) / cycleDuration;
+      const totalCycleDuration = (activeCycle.in + activeCycle.h1 + activeCycle.out + activeCycle.h2) * 1000;
+      const cyclePosition = (elapsed % totalCycleDuration) / totalCycleDuration;
       
-      // 0-0.5 = inhale, 0.5-1 = exhale (simplified, no holds)
+      // Calculate breath progress with 4 phases: inhale -> hold1 -> exhale -> hold2
+      const inDuration = activeCycle.in / (activeCycle.in + activeCycle.h1 + activeCycle.out + activeCycle.h2);
+      const h1Duration = activeCycle.h1 / (activeCycle.in + activeCycle.h1 + activeCycle.out + activeCycle.h2);
+      const outDuration = activeCycle.out / (activeCycle.in + activeCycle.h1 + activeCycle.out + activeCycle.h2);
+      
+      const phase1End = inDuration;
+      const phase2End = inDuration + h1Duration;
+      const phase3End = inDuration + h1Duration + outDuration;
+      
       setBreathProgress(cyclePosition);
       
       // Count completed cycles
-      const currentCycle = Math.floor(elapsed / cycleDuration);
+      const currentCycle = Math.floor(elapsed / totalCycleDuration);
       if (currentCycle > cycleCount) {
         setCycleCount(currentCycle);
         console.log('[Breathing] Cycle', currentCycle, 'complete');
         
-        // Mark first cycle complete after one full inhale/exhale
+        // Mark first cycle complete after one full inhale/hold/exhale/hold
         if (currentCycle >= 1 && !firstCycleComplete) {
           setFirstCycleComplete(true);
           console.log('[Breathing] ✅ First breathing cycle complete - ready for floating words');
@@ -403,11 +412,29 @@ export default function BreathingSequence({
     }
   }, [markedTips, stage2Payload, onComplete]);
 
-  // Breathing helpers
-  const isInhaling = breathProgress < 0.5;
-  const skyBrightness = isInhaling ? 1.2 : 0.8;
-  const leoScale = isInhaling ? 1.15 : 0.92;
-  const starOpacity = isInhaling ? 0.9 : 0.3;
+  // Breathing helpers - 4-phase cycle: inhale -> hold1 -> exhale -> hold2
+  const inDuration = activeCycle.in / (activeCycle.in + activeCycle.h1 + activeCycle.out + activeCycle.h2);
+  const h1Duration = activeCycle.h1 / (activeCycle.in + activeCycle.h1 + activeCycle.out + activeCycle.h2);
+  const outDuration = activeCycle.out / (activeCycle.in + activeCycle.h1 + activeCycle.out + activeCycle.h2);
+  
+  const phase1End = inDuration;
+  const phase2End = inDuration + h1Duration;
+  const phase3End = inDuration + h1Duration + outDuration;
+  
+  // Determine current phase
+  const currentPhase = breathProgress < phase1End ? 'inhale'
+    : breathProgress < phase2End ? 'hold-in'
+    : breathProgress < phase3End ? 'exhale'
+    : 'hold-out';
+  
+  const isInhaling = currentPhase === 'inhale';
+  const isExhaling = currentPhase === 'exhale';
+  const isHoldingIn = currentPhase === 'hold-in';
+  const isHoldingOut = currentPhase === 'hold-out';
+  
+  const skyBrightness = (isInhaling || isHoldingIn) ? 1.2 : 0.8;
+  const leoScale = (isInhaling || isHoldingIn) ? 1.15 : 0.92;
+  const starOpacity = (isInhaling || isHoldingIn) ? 0.9 : 0.3;
   
   // Handle "Mark Done" button click - advances to next poem/tip cycle
   const handleMarkDone = (tipIndex: number) => {
@@ -504,7 +531,10 @@ export default function BreathingSequence({
             rotateZ: leoReacting ? [-1, 1.5, -1, 0] : 0,
           }}
           transition={{ 
-            scale: { duration: activeCycle.in, ease: EASING },
+            scale: { 
+              duration: isInhaling ? activeCycle.in : isExhaling ? activeCycle.out : 0.3,
+              ease: EASING 
+            },
             rotateZ: leoReacting 
               ? { duration: 0.7, times: [0, 0.33, 0.66, 1], ease: 'easeInOut' }
               : { duration: 0.3, ease: 'easeOut' }
@@ -535,9 +565,9 @@ export default function BreathingSequence({
             }}
             exit={{ opacity: 0, transition: { duration: 1.5, ease: 'easeOut' } }}
           >
-            {/* Inhale/exhale separated by breathing phase */}
+            {/* Show current breathing phase: inhale -> hold -> exhale -> hold */}
             <div
-              className="text-2xl font-sans tracking-widest lowercase font-light" // Reduced from text-4xl
+              className="text-2xl font-sans tracking-widest lowercase font-light"
               style={{
                 color: 'rgba(255, 255, 255, 0.9)',
                 textShadow: `
@@ -548,7 +578,10 @@ export default function BreathingSequence({
                 letterSpacing: '0.35em',
               }}
             >
-              {isInhaling ? 'inhale' : 'exhale'}
+              {currentPhase === 'inhale' ? 'inhale'
+                : currentPhase === 'hold-in' ? 'hold'
+                : currentPhase === 'exhale' ? 'exhale'
+                : 'hold'}
             </div>
           </motion.div>
         )}
@@ -582,7 +615,7 @@ export default function BreathingSequence({
               initial={{ opacity: 0 }} // Start hidden
               animate={{
                 opacity: towerOpacity,
-                scale: isPrimary ? (isInhaling ? 1.02 : 0.98) : 1,
+                scale: isPrimary ? ((isInhaling || isHoldingIn) ? 1.02 : 0.98) : 1,
               }}
               transition={{ 
                 opacity: { 
@@ -590,7 +623,10 @@ export default function BreathingSequence({
                   delay: isPrimary ? 0 : 0.5, // Non-primary fade slightly after
                   ease: 'easeInOut',
                 },
-                scale: { duration: activeCycle.in, ease: EASING }
+                scale: { 
+                  duration: isInhaling ? activeCycle.in : isExhaling ? activeCycle.out : 0.3,
+                  ease: EASING 
+                }
               }}
             >
               {/* Tower body */}

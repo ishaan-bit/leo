@@ -316,6 +316,12 @@ export default function MomentsLibrary({
         }
         
         setMoments(data.moments || []);
+        
+        // Additional debugging
+        console.log('[MomentsLibrary] 🔍 Moments state set:', {
+          totalMoments: data.moments?.length || 0,
+          firstMoment: data.moments?.[0],
+        });
       } catch (error) {
         console.error(`[MomentsLibrary] ❌ Error fetching moments (attempt ${retryCount + 1}):`, error);
         
@@ -843,7 +849,11 @@ export default function MomentsLibrary({
               key={tower.id}
               className="absolute bottom-0"
               style={{
-                left: getBuildingPosition(tower.index, 52),
+                // Sable (index 5) positioned from right to ensure visibility
+                ...(tower.index === 5 
+                  ? { right: '2%' } // Position Sable from right edge
+                  : { left: getBuildingPosition(tower.index, 52) }
+                ),
                 width: '52px', // Reduced to 75% (52px from 70px) so Sable fits on mobile
                 height: `${tower.height * 1.5}px`, // Increased from 1.2x to 1.5x for taller buildings
               }}
@@ -873,7 +883,7 @@ export default function MomentsLibrary({
               >
                 {/* Windows - warm lit windows representing moments */}
                 <div className="absolute inset-4 grid grid-cols-4 gap-2">
-                  {momentsByZone[tower.id]?.slice(0, 24).map((moment, i) => {
+                  {(momentsByZone[tower.id] || []).slice(0, 24).map((moment, i) => {
                     const windowKey = `window-${tower.id}-${moment.id}`;
                     const isBlinking = blinkingWindow === windowKey;
                     const isNewest = moment.id === newestMomentId; // Only THE newest moment across all towers glows brightest
@@ -882,7 +892,7 @@ export default function MomentsLibrary({
                       <motion.div
                         key={windowKey}
                         className="rounded-[1px] cursor-pointer relative group"
-                        style={{ cursor: 'pointer' }}
+                        style={{ cursor: 'pointer', minHeight: '8px', minWidth: '8px' }} // Ensure minimum size
                         animate={{
                           backgroundColor: isNewest
                             ? [
@@ -897,9 +907,9 @@ export default function MomentsLibrary({
                                 `rgba(255, 230, 200, 0.9)`,
                               ]
                             : [
-                                `rgba(248, 216, 181, 0.15)`,
-                                `rgba(255, 230, 200, 0.5)`,
-                                `rgba(248, 216, 181, 0.15)`,
+                                `rgba(248, 216, 181, 0.3)`, // Increased from 0.15 to make more visible
+                                `rgba(255, 230, 200, 0.7)`, // Increased from 0.5
+                                `rgba(248, 216, 181, 0.3)`,
                               ],
                           boxShadow: isNewest
                             ? [
@@ -913,7 +923,11 @@ export default function MomentsLibrary({
                                 `0 0 25px rgba(255, 230, 200, 0.9), 0 4px 30px rgba(255, 230, 200, 0.6)`,
                                 `0 0 8px rgba(255, 230, 200, 0.4)`,
                               ]
-                            : `0 0 0px transparent`,
+                            : [
+                                `0 0 4px rgba(255, 230, 200, 0.2)`, // Added subtle glow for non-special windows
+                                `0 0 8px rgba(255, 230, 200, 0.4)`,
+                                `0 0 4px rgba(255, 230, 200, 0.2)`,
+                              ],
                         }}
                         transition={{
                           duration: isNewest ? 1.5 : (isBlinking ? 0.8 : 2 + Math.random() * 2),
