@@ -53,35 +53,11 @@ const TOWERS = [
   { id: 'mad', name: 'Sable', color: '#C1121F', x: 86, height: 170 },        // Mad - red
 ];
 
-// Extended poetic lines - Start with English intro, then bilingual (Hindi/English) cycling until Stage 1 complete
-const WAITING_LINES = [
-  // English intro (first 3 lines - match original phase2/phase3)
-  'A quiet breath between things,',
-  'and time holding its breath.',
-  
-  // Extended Hindi poetry
-  'रोशनी मेज़ पर धीरे से झुकती है,',
-  'हवा खिड़की पर ठहर जाती है,',
-  'एक पत्ता अपनी धीमी सोच में मुड़ता है',
-  'समय अपनी साँस थामे हुए।',
-  
-  'कहीं दूर कोई घंटी हिलती है,',
-  'आवाज़ बिना ध्वनि के लौट आती है,',
-  'दीवार पर परछाईं लंबी हो चली है',
-  'समय अपनी साँस थामे हुए।',
-  
-  'किताब खुली है, पर शब्द सोए हैं,',
-  'पन्नों की ख़ुशबू में दोपहर की ऊँघ,',
-  'तुम्हारी आँखों में ठहरा एक सवाल',
-  'समय अपनी साँस थामे हुए।',
-  
-  'और इस ठहराव में,',
-  'हर चीज़ एक अनकही प्रार्थना बन जाती है',
-  'समय अपनी साँस थामे हुए।',
-];
-
+// Three lines for three phases
 const COPY = {
   phase1: 'Your moment has been held safe.',
+  phase2: 'A quiet breath between things,',
+  phase3: 'and time holding its breath.',
 };
 
 // Enhanced timing for Ghibli-style atmospheric transitions (compressed by ~10s total)
@@ -170,13 +146,13 @@ export default function CityInterlude({
         setCityPulseActive(true);
         // Lines continue cycling (no change to showCopy here)
       } else if (elapsed >= TIMING.PHASE3_START && currentPhase < 3) {
-        // 10s (was 26s) - Phase 3: start cycling waiting lines
+        // 10s (was 26s) - Phase 3: Show "and time holding its breath"
         setCurrentPhase(3);
-        setShowCopy(WAITING_LINES[0]); // Start with first line
+        setShowCopy(COPY.phase3);
       } else if (elapsed >= TIMING.PHASE1_DURATION && currentPhase < 2) {
-        // 5s (was 14s) - Phase 2: preparation
+        // 5s (was 14s) - Phase 2: Show "A quiet breath between things"
         setCurrentPhase(2);
-        setShowCopy(null); // Brief pause before waiting lines
+        setShowCopy(COPY.phase2);
       } else if (elapsed >= 3000 && currentPhase === 1) {
         // Fade out phase 1 copy at 3s
         setShowCopy(null);
@@ -196,23 +172,7 @@ export default function CityInterlude({
     return () => clearInterval(interval);
   }, [currentPhase]);
 
-  // Cycle through waiting lines continuously in phases 3 and 4 (until Stage 1 complete)
-  useEffect(() => {
-    if (currentPhase < 3) return; // Only cycle in phase 3 & 4
-    if (primaryLocked) return; // Stop cycling once Stage 1 completes
-    
-    let cycleIndex = 0;
-    
-    const cycleInterval = setInterval(() => {
-      cycleIndex = (cycleIndex + 1) % WAITING_LINES.length;
-      setShowCopy(WAITING_LINES[cycleIndex]);
-      setPhase4CycleIndex(cycleIndex);
-    }, 3500); // Change every 3.5 seconds for gentle pulsing rhythm
-    
-    return () => clearInterval(cycleInterval);
-  }, [currentPhase, primaryLocked]);
-
-  // Show initial copy
+  // Show phase 1 text after delay
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowCopy(COPY.phase1);
@@ -693,8 +653,8 @@ export default function CityInterlude({
           rotate: currentPhase >= 3 ? [-1, 1, -1] : 0, // Gentle tilt in Phase 3+
         }}
         transition={{
-          y: { duration: currentPhase === 5 ? 8 : (currentBeat === 4 ? 6 : 2), ease: [0.4, 0, 0.2, 1] },
-          scale: { duration: currentPhase === 5 ? 6 : 5, ease: [0.4, 0, 0.2, 1] },
+          y: { duration: currentPhase === 5 ? 8 : (currentBeat === 4 ? 6 : 4), ease: [0.22, 1, 0.36, 1] }, // Smooth cubic-bezier ease
+          scale: { duration: currentPhase === 5 ? 6 : 5, ease: [0.22, 1, 0.36, 1] },
           rotate: { duration: 8, repeat: Infinity, ease: 'easeInOut' },
         }}
       >
@@ -1008,11 +968,10 @@ export default function CityInterlude({
         </motion.div>
       )}
 
-      {/* Copy display - positioned below Leo, persist phase 3 with rotation */}
-      {/* HIDE TEXT IN PHASE 3 - show only pulsing buildings */}
+      {/* Copy display - one line per phase, hides when buildings rise */}
       <div className="absolute bottom-24 md:bottom-32 left-0 right-0 z-30 flex flex-col items-center px-6 max-w-2xl mx-auto">
         <AnimatePresence mode="wait">
-          {showCopy && currentPhase !== 3 && (
+          {showCopy && !towersRising && (
             <motion.p
               key={showCopy}
               className="text-xl md:text-2xl lg:text-3xl font-serif italic text-center tracking-wide leading-relaxed"

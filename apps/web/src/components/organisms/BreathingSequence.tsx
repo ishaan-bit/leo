@@ -255,7 +255,7 @@ export default function BreathingSequence({
         setBubbleStep('poem1_floating');
         setFloatingPoem({ id: 'poem1', text: poems[0] });
         
-        // After poem floats away (6s), show tip from Leo
+        // After poem floats away (11s), show tip from Leo
         setTimeout(() => {
           setFloatingPoem(null);
           
@@ -271,23 +271,17 @@ export default function BreathingSequence({
                 setTimeout(() => setLeoReacting(false), 700);
               }, 300);
               
-              // Hold tip, then show Mark Done
+              // Hold tip indefinitely until Mark Done clicked - NO AUTO-HIDE
               setTimeout(() => {
-                setLeoBubbleState('ellipsis');
-                setTimeout(() => {
-                  setLeoBubbleState('hidden');
-                  
-                  setTimeout(() => {
-                    console.log('[Sequence] ✅ Showing Mark Done for tip 1');
-                    setBubbleStep('mark_done_1');
-                    setCurrentTipIndex(0);
-                    setShowMarkDoneButton(true);
-                  }, 600);
-                }, 600);
+                console.log('[Sequence] ✅ Showing Mark Done for tip 1');
+                setBubbleStep('mark_done_1');
+                setCurrentTipIndex(0);
+                setShowMarkDoneButton(true);
+                // Bubble stays visible with leoBubbleState='text'
               }, 2500);
             }
           }, 800);
-        }, 6000);
+        }, 11000); // Changed from 6000 to 11000 (11s)
       }
     }, 500);
   }, [stage2Complete, stage2Payload]);
@@ -327,22 +321,16 @@ export default function BreathingSequence({
                   setTimeout(() => setLeoReacting(false), 700);
                 }, 300);
                 
+                // Hold tip indefinitely until Mark Done clicked
                 setTimeout(() => {
-                  setLeoBubbleState('ellipsis');
-                  setTimeout(() => {
-                    setLeoBubbleState('hidden');
-                    
-                    setTimeout(() => {
-                      console.log('[Sequence] ✅ Showing Mark Done for tip 2');
-                      setBubbleStep('mark_done_2');
-                      setCurrentTipIndex(1);
-                      setShowMarkDoneButton(true);
-                    }, 600);
-                  }, 600);
+                  console.log('[Sequence] ✅ Showing Mark Done for tip 2');
+                  setBubbleStep('mark_done_2');
+                  setCurrentTipIndex(1);
+                  setShowMarkDoneButton(true);
                 }, 2500);
               }
             }, 800);
-          }, 6000);
+          }, 11000); // Changed from 6000 to 11000
         }
       }, 1000);
     }
@@ -369,22 +357,16 @@ export default function BreathingSequence({
                   setTimeout(() => setLeoReacting(false), 700);
                 }, 300);
                 
+                // Hold tip indefinitely until Mark Done clicked
                 setTimeout(() => {
-                  setLeoBubbleState('ellipsis');
-                  setTimeout(() => {
-                    setLeoBubbleState('hidden');
-                    
-                    setTimeout(() => {
-                      console.log('[Sequence] ✅ Showing Mark Done for tip 3');
-                      setBubbleStep('mark_done_3');
-                      setCurrentTipIndex(2);
-                      setShowMarkDoneButton(true);
-                    }, 600);
-                  }, 600);
+                  console.log('[Sequence] ✅ Showing Mark Done for tip 3');
+                  setBubbleStep('mark_done_3');
+                  setCurrentTipIndex(2);
+                  setShowMarkDoneButton(true);
                 }, 2500);
               }
             }, 800);
-          }, 6000);
+          }, 11000); // Changed from 6000 to 11000
         }
       }, 1000);
     }
@@ -419,6 +401,12 @@ export default function BreathingSequence({
   // Handle "Mark Done" button click - advances to next poem/tip cycle
   const handleMarkDone = (tipIndex: number) => {
     console.log(`[Breathing] 🎯 Mark Done clicked for tip ${tipIndex + 1}`);
+    
+    // Hide the speech bubble when mark done is clicked
+    setLeoBubbleState('ellipsis');
+    setTimeout(() => {
+      setLeoBubbleState('hidden');
+    }, 400);
     
     // Track this tip as marked
     setMarkedTips(prev => [...prev, tipIndex + 1]);
@@ -513,7 +501,7 @@ export default function BreathingSequence({
         </motion.div>
       </motion.div>
 
-      {/* Breathing prompt - positioned below Leo */}
+      {/* Breathing prompt - positioned below Leo - Show BOTH inhale/exhale on first cycle */}
       {/* Fade out smoothly when Stage 2 completes */}
       <AnimatePresence>
         {!stage2Complete && (
@@ -534,20 +522,60 @@ export default function BreathingSequence({
             }}
             exit={{ opacity: 0, transition: { duration: 1.5, ease: 'easeOut' } }}
           >
-            <div
-              className="text-4xl font-sans tracking-widest lowercase font-light"
-              style={{
-                color: 'rgba(255, 255, 255, 0.9)',
-                textShadow: `
-                  0 0 20px rgba(255, 255, 255, 0.8),
-                  0 0 40px rgba(255, 255, 255, 0.6),
-                  0 2px 8px rgba(0,0,0,0.4)
-                `,
-                letterSpacing: '0.35em',
-              }}
-            >
-              {isInhaling ? 'inhale' : 'exhale'}
-            </div>
+            {/* Show both words on first cycle, then toggle */}
+            {cycleCount === 0 ? (
+              <div className="flex flex-col items-center gap-2">
+                <motion.div
+                  className="text-4xl font-sans tracking-widest lowercase font-light"
+                  style={{
+                    color: 'rgba(255, 255, 255, 0.9)',
+                    textShadow: `
+                      0 0 20px rgba(255, 255, 255, 0.8),
+                      0 0 40px rgba(255, 255, 255, 0.6),
+                      0 2px 8px rgba(0,0,0,0.4)
+                    `,
+                    letterSpacing: '0.35em',
+                  }}
+                  animate={{
+                    opacity: isInhaling ? 1 : 0.3,
+                  }}
+                >
+                  inhale
+                </motion.div>
+                <motion.div
+                  className="text-4xl font-sans tracking-widest lowercase font-light"
+                  style={{
+                    color: 'rgba(255, 255, 255, 0.9)',
+                    textShadow: `
+                      0 0 20px rgba(255, 255, 255, 0.8),
+                      0 0 40px rgba(255, 255, 255, 0.6),
+                      0 2px 8px rgba(0,0,0,0.4)
+                    `,
+                    letterSpacing: '0.35em',
+                  }}
+                  animate={{
+                    opacity: isInhaling ? 0.3 : 1,
+                  }}
+                >
+                  exhale
+                </motion.div>
+              </div>
+            ) : (
+              <div
+                className="text-4xl font-sans tracking-widest lowercase font-light"
+                style={{
+                  color: 'rgba(255, 255, 255, 0.9)',
+                  textShadow: `
+                    0 0 20px rgba(255, 255, 255, 0.8),
+                    0 0 40px rgba(255, 255, 255, 0.6),
+                    0 2px 8px rgba(0,0,0,0.4)
+                  `,
+                  letterSpacing: '0.35em',
+                }}
+              >
+                {isInhaling ? 'inhale' : 'exhale'}
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -664,7 +692,7 @@ export default function BreathingSequence({
         })}
       </motion.div>
 
-      {/* Floating poem - shows complete line, floats upward like smoke */}
+      {/* Floating poem - shows complete line, floats upward like smoke - 11s duration with breathing pulse */}
       <AnimatePresence>
         {floatingPoem && (
           <motion.div
@@ -672,32 +700,43 @@ export default function BreathingSequence({
             className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-40 pointer-events-none"
             initial={{ opacity: 0, y: 0, scale: 0.9 }}
             animate={{ 
-              opacity: [0, 1, 1, 0.7, 0],
-              y: [0, -50, -120, -200, -300],
-              scale: [0.9, 1, 1.02, 1.05, 1.1],
+              opacity: [0, 1, 1, 1, 0.7, 0],
+              y: [0, -50, -120, -200, -300, -400],
+              scale: [0.9, 1, 1.02, 1.05, 1.08, 1.1],
             }}
             exit={{ opacity: 0 }}
             transition={{
-              duration: 6,
-              times: [0, 0.2, 0.5, 0.8, 1],
+              duration: 11, // Extended from 6s to 11s
+              times: [0, 0.1, 0.4, 0.7, 0.9, 1],
               ease: [0.4, 0, 0.2, 1], // easeInOutCirc
             }}
           >
-            <div
-              className="text-3xl md:text-4xl font-serif italic font-medium text-center leading-relaxed px-8 max-w-2xl"
-              style={{
-                color: '#FFD700',
-                textShadow: `
-                  0 0 25px #FFD700,
-                  0 0 50px #FFD700,
-                  0 0 75px #FFD70080,
-                  0 4px 12px rgba(0,0,0,0.4)
-                `,
-                WebkitFontSmoothing: 'antialiased',
+            {/* Add breathing pulse effect to floating words */}
+            <motion.div
+              animate={{
+                scale: isInhaling ? [1, 1.05] : [1.05, 1],
+              }}
+              transition={{
+                duration: activeCycle.in,
+                ease: EASING,
               }}
             >
-              {floatingPoem.text}
-            </div>
+              <div
+                className="text-3xl md:text-4xl font-serif italic font-medium text-center leading-relaxed px-8 max-w-2xl"
+                style={{
+                  color: '#FFD700',
+                  textShadow: `
+                    0 0 25px #FFD700,
+                    0 0 50px #FFD700,
+                    0 0 75px #FFD70080,
+                    0 4px 12px rgba(0,0,0,0.4)
+                  `,
+                  WebkitFontSmoothing: 'antialiased',
+                }}
+              >
+                {floatingPoem.text}
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

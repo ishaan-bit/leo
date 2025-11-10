@@ -628,20 +628,15 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     
     if (isNullEmotion) {
       console.log('[Scene_Reflect] 🌙 Null emotion detected → Going to orchestrator/bubble sequence');
-      // TODO: Navigate to orchestrator/bubble pig window sequence
-      // For now, go to moments library with a flag
+      // Show library immediately, hide breathing (AnimatePresence handles crossfade)
+      setShowMomentsLibrary(true);
       setShowBreathing(false);
-      setTimeout(() => {
-        console.log('[Scene_Reflect] 🏛️ Showing Moments Library (null emotion flow)');
-        setShowMomentsLibrary(true);
-      }, 300);
     } else {
       // Normal flow: go to moments library
       console.log('[Scene_Reflect] 🏛️ Normal flow → Moments Library');
+      // Show library immediately, hide breathing (AnimatePresence handles crossfade)
+      setShowMomentsLibrary(true);
       setShowBreathing(false);
-      setTimeout(() => {
-        setShowMomentsLibrary(true);
-      }, 300);
     }
   };
   
@@ -683,11 +678,11 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     setAudioStarted(true);
   };
 
-  // If showing interlude or breathing, render them as overlay
-  if (showInterlude || showBreathing) {
+  // If showing interlude, breathing, or moments library, render them as full-screen overlay
+  if (showInterlude || showBreathing || showMomentsLibrary) {
     return (
       <div className="fixed inset-0 bg-[#1A1734]">
-        <AnimatePresence mode="wait">{/* Crossfade mode for smooth transitions */}
+        <AnimatePresence mode="wait">{/* Crossfade mode for smooth transitions - only one visible at a time */}
           {showInterlude && currentReflectionId && (
             <motion.div
               key="city-interlude"
@@ -711,6 +706,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
               key="breathing-sequence"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
               className="fixed inset-0"
             >
@@ -718,8 +714,8 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
               <TopNav
                 leftElement={
                   <MomentsNavIcon onClick={() => {
+                    setShowMomentsLibrary(true);
                     setShowBreathing(false);
-                    setTimeout(() => setShowMomentsLibrary(true), 300);
                   }} />
                 }
                 centerElement={
@@ -742,41 +738,40 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
               />
             </motion.div>
           )}
+          
+          {/* Moments library - inside same AnimatePresence for smooth crossfade */}
+          {showMomentsLibrary && (
+            <motion.div
+              key="moments-library"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
+              className="fixed inset-0"
+            >
+              {/* Top navigation - horizontally aligned */}
+              {!isMomentExpanded && (
+                <TopNav
+                  centerElement={
+                    <AuthStateIndicator 
+                      userName={session?.user?.name}
+                      isGuest={status === 'unauthenticated'}
+                    />
+                  }
+                />
+              )}
+              
+              <MomentsLibrary
+                pigId={pigId}
+                pigName={pigName}
+                currentPrimary={(breathingContext?.primary || 'joy') as PrimaryEmotion}
+                onNewReflection={handleNewReflection}
+                onMomentSelected={setIsMomentExpanded}
+              />
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
-    );
-  }
-  
-  // If showing moments library, render it
-  if (showMomentsLibrary) {
-    return (
-      <motion.div
-        className="fixed inset-0"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
-      >
-        {/* Top navigation - horizontally aligned */}
-        {!isMomentExpanded && (
-          <TopNav
-            centerElement={
-              <AuthStateIndicator 
-                userName={session?.user?.name}
-                isGuest={status === 'unauthenticated'}
-              />
-            }
-          />
-        )}
-        
-        <MomentsLibrary
-          pigId={pigId}
-          pigName={pigName}
-          currentPrimary={(breathingContext?.primary || 'joy') as PrimaryEmotion}
-          onNewReflection={handleNewReflection}
-          onMomentSelected={setIsMomentExpanded}
-        />
-      </motion.div>
     );
   }
 

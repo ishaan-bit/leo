@@ -64,14 +64,14 @@ const EASING = [0.65, 0, 0.35, 1] as const;
 // Tower configuration with corrected zone labels
 // MAPPING: joyful→Vera, powerful→Ashmere, peaceful→Haven, sad→Vanta, scared→Vire, mad→Sable
 // ZONE LABELS: Vera (Joyful), Ashmere (Powerful), Haven (Peaceful), Vanta (Sad), Vire (Fearful), Sable (Angry)
-// Mobile-optimized: Shifted left (4→2%), narrower spacing (14→13%) to fit all 6 towers
+// Mobile-optimized: Reduced heights by 30% to fit mobile screens better
 const TOWER_CONFIGS = [
-  { id: 'joyful' as PrimaryEmotion, name: 'Vera', label: 'Joyful', color: '#FFD700', x: 2, height: 180 },
-  { id: 'powerful' as PrimaryEmotion, name: 'Ashmere', label: 'Powerful', color: '#FF6B35', x: 15, height: 220 },
-  { id: 'peaceful' as PrimaryEmotion, name: 'Haven', label: 'Peaceful', color: '#6A9FB5', x: 28, height: 160 },
-  { id: 'sad' as PrimaryEmotion, name: 'Vanta', label: 'Sad', color: '#7D8597', x: 41, height: 200 },
-  { id: 'scared' as PrimaryEmotion, name: 'Vire', label: 'Fearful', color: '#5A189A', x: 54, height: 190 },
-  { id: 'mad' as PrimaryEmotion, name: 'Sable', label: 'Angry', color: '#C1121F', x: 67, height: 170 },
+  { id: 'joyful' as PrimaryEmotion, name: 'Vera', label: 'Joyful', color: '#FFD700', x: 2, height: 126 },
+  { id: 'powerful' as PrimaryEmotion, name: 'Ashmere', label: 'Powerful', color: '#FF6B35', x: 15, height: 154 },
+  { id: 'peaceful' as PrimaryEmotion, name: 'Haven', label: 'Peaceful', color: '#6A9FB5', x: 28, height: 112 },
+  { id: 'sad' as PrimaryEmotion, name: 'Vanta', label: 'Sad', color: '#7D8597', x: 41, height: 140 },
+  { id: 'scared' as PrimaryEmotion, name: 'Vire', label: 'Fearful', color: '#5A189A', x: 54, height: 133 },
+  { id: 'mad' as PrimaryEmotion, name: 'Sable', label: 'Angry', color: '#C1121F', x: 67, height: 119 },
 ];
 
 export default function MomentsLibrary({
@@ -443,6 +443,36 @@ export default function MomentsLibrary({
         }}
       />
       
+      {/* Decorative Crescent Moon - upper right, persistent */}
+      <motion.div
+        className="absolute top-10 right-20 w-32 h-32 rounded-full pointer-events-none z-10"
+        style={{
+          background: 'radial-gradient(circle, rgba(255, 255, 255, 0.12) 0%, transparent 70%)',
+          filter: 'blur(20px)',
+        }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.6 }}
+        transition={{ duration: 3, ease: 'easeInOut' }}
+      />
+      <motion.div
+        className="absolute top-12 right-24 w-16 h-16 pointer-events-none z-10"
+        style={{
+          borderRadius: '50%',
+          boxShadow: 'inset -8px 0px 0px 0px rgba(255, 255, 255, 0.85)',
+          background: 'transparent',
+          transform: 'rotate(-20deg)',
+        }}
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ 
+          opacity: 0.9,
+          scale: 1,
+        }}
+        transition={{ 
+          duration: 2,
+          ease: [0.16, 1, 0.3, 1],
+        }}
+      />
+      
       {/* Loading shimmer during fetch */}
       {isLoading && (
         <div className="absolute inset-0 z-40 flex items-center justify-center">
@@ -668,13 +698,7 @@ export default function MomentsLibrary({
               y: { duration: 3, repeat: Infinity, ease: 'easeInOut' },
             }}
             whileHover={{ scale: 1.15, rotate: -35 }}
-            onClick={() => {
-              // Show first null emotion moment
-              if (nullEmotionMoments[0]) {
-                setSelectedMoment(nullEmotionMoments[0]);
-              }
-            }}
-            title={`${nullEmotionMoments.length} moment${nullEmotionMoments.length > 1 ? 's' : ''} without emotion`}
+            title={`${nullEmotionMoments.length} quiet moment${nullEmotionMoments.length > 1 ? 's' : ''}`}
           >
             {/* Glow effect */}
             <motion.div
@@ -694,22 +718,76 @@ export default function MomentsLibrary({
               }}
             />
             
-            {/* Crescent moon icon */}
-            <div className="relative text-6xl" style={{ filter: 'drop-shadow(0 0 10px rgba(180, 160, 255, 0.5))' }}>
-              🌙
+            {/* Crescent moon base - larger container */}
+            <div className="relative w-20 h-20">
+              {/* Main crescent shape */}
+              <div
+                className="absolute inset-0 rounded-full"
+                style={{
+                  boxShadow: 'inset -10px 0px 0px 0px rgba(180, 160, 255, 0.9)',
+                  background: 'transparent',
+                  filter: 'drop-shadow(0 0 10px rgba(180, 160, 255, 0.5))',
+                }}
+              />
+              
+              {/* Individual crescent slices for each null moment - like windows */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 p-3">
+                {nullEmotionMoments.slice(0, 6).map((moment, i) => {
+                  const angle = -40 + (i * 15); // Arc from -40° to +35°
+                  const radius = 22; // Distance from center
+                  const x = Math.cos((angle * Math.PI) / 180) * radius;
+                  const y = Math.sin((angle * Math.PI) / 180) * radius;
+                  
+                  return (
+                    <motion.div
+                      key={moment.id}
+                      className="absolute w-2 h-3 rounded-sm cursor-pointer"
+                      style={{
+                        left: '50%',
+                        top: '50%',
+                        transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) rotate(${angle + 90}deg)`,
+                        background: 'rgba(200, 180, 255, 0.8)',
+                        boxShadow: '0 0 8px rgba(180, 160, 255, 0.6)',
+                      }}
+                      animate={{
+                        opacity: [0.6, 1, 0.6],
+                        boxShadow: [
+                          '0 0 8px rgba(180, 160, 255, 0.6)',
+                          '0 0 15px rgba(180, 160, 255, 0.9)',
+                          '0 0 8px rgba(180, 160, 255, 0.6)',
+                        ],
+                      }}
+                      transition={{
+                        duration: 2 + i * 0.3,
+                        repeat: Infinity,
+                        delay: i * 0.2,
+                      }}
+                      whileHover={{
+                        scale: 1.5,
+                        background: 'rgba(220, 200, 255, 1)',
+                        boxShadow: '0 0 20px rgba(180, 160, 255, 1)',
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedMoment(moment);
+                      }}
+                    />
+                  );
+                })}
+              </div>
+              
+              {/* Count badge - if more than 6 moments */}
+              {nullEmotionMoments.length > 6 && (
+                <motion.div
+                  className="absolute -bottom-1 -right-1 bg-purple-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 1.5, type: 'spring', stiffness: 500, damping: 15 }}
+                >
+                  +{nullEmotionMoments.length - 6}
+                </motion.div>
+              )}
             </div>
-            
-            {/* Count badge */}
-            {nullEmotionMoments.length > 1 && (
-              <motion.div
-                className="absolute -top-2 -right-2 bg-purple-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 1.5, type: 'spring', stiffness: 500, damping: 15 }}
-              >
-                {nullEmotionMoments.length}
-              </motion.div>
-            )}
             
             {/* Hover tooltip */}
             <motion.div
@@ -752,8 +830,8 @@ export default function MomentsLibrary({
               className="absolute bottom-0"
               style={{
                 left: `${tower.x}%`,
-                width: '80px',
-                height: `${tower.height * 1.8}px`,
+                width: '60px', // Reduced from 80px for mobile lateral fit
+                height: `${tower.height * 1.2}px`, // Reduced from 1.8x to 1.2x for mobile
               }}
               initial={{ opacity: isCurrent ? 1 : 0, scale: 0.9 }}
               animate={{
