@@ -324,6 +324,9 @@ export default function BreathingSequence({
     
     // Tip 1 marked → Poem 2 floats → Tip 2
     if (lastMarked === 1 && markedTips.length === 1) {
+      console.log('[Mark Done Watch] ✅ Tip 1 marked, starting Poem 2 → Tip 2 sequence');
+      console.log('[Mark Done Watch] poems[1] exists?', !!poems[1], 'tips[1] exists?', !!tips[1]);
+      
       setTimeout(() => {
         if (poems[1]) {
           console.log('[Sequence] 📖 Showing poem 2 floating');
@@ -354,12 +357,17 @@ export default function BreathingSequence({
               }
             }, 800);
           }, 13000); // Changed from 11000 to 13000
+        } else {
+          console.error('[Mark Done Watch] ❌ poems[1] does NOT exist! Cannot show poem 2');
+          console.error('[Mark Done Watch] All filtered poems:', poems);
         }
       }, 1000);
     }
     
     // Tip 2 marked → Poem 3 floats → Tip 3
     else if (lastMarked === 2 && markedTips.length === 2) {
+      console.log('[Mark Done Watch] ✅ Tip 2 marked, starting Poem 3 → Tip 3 sequence');
+      console.log('[Mark Done Watch] poems[2] exists?', !!poems[2], 'tips[2] exists?', !!tips[2]);
       setTimeout(() => {
         if (poems[2]) {
           console.log('[Sequence] 📖 Showing poem 3 floating');
@@ -390,6 +398,9 @@ export default function BreathingSequence({
               }
             }, 800);
           }, 13000); // Changed from 11000 to 13000
+        } else {
+          console.error('[Mark Done Watch] ❌ poems[2] does NOT exist! Cannot show poem 3');
+          console.error('[Mark Done Watch] All filtered poems:', poems);
         }
       }, 1000);
     }
