@@ -66,11 +66,15 @@ export async function GET(
           ? JSON.parse(reflectionData) 
           : reflectionData;
         
-        // CRITICAL FIX: Skip guest reflections (owner_id starts with "guest:")
-        // Authenticated users should ONLY see their own reflections (user_id !== null)
+        // CRITICAL FIX: Filter reflections based on ownership
+        // Guest users: ONLY see their own reflections (owner_id === "guest:<pigId>")
+        // Auth users: ONLY see their own reflections (NOT guest reflections)
         const isGuestReflection = data.owner_id && String(data.owner_id).startsWith('guest:');
-        if (isGuestReflection) {
-          console.log('[API /pig/moments] 🚫 Skipping guest reflection:', rid, data.owner_id);
+        const isOwnGuestReflection = isGuestReflection && data.owner_id === `guest:${pigId}`;
+        
+        // Skip guest reflections UNLESS it's the current user's own guest reflection
+        if (isGuestReflection && !isOwnGuestReflection) {
+          console.log('[API /pig/moments] 🚫 Skipping other guest reflection:', rid, data.owner_id);
           continue;
         }
         

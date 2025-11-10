@@ -69,7 +69,7 @@ const TIMING = {
   STARS_TWINKLE: 5000,      // 15-20s - stars + clouds + Leo glow (was 10s)
   SKYLINE_EMERGE: 4000,     // 20-24s - first silhouettes (was 10s)
   TOWERS_RISE: 6000,        // 24-30s - towers + windows + parallax (was 10s)
-  PHASE4_START: 30000,      // Phase 4 ready state (was 42s)
+  PHASE4_START: 15000,      // Phase 4 ready state - triggers when buildings appear (was 30s)
 };
 
 export default function CityInterlude({
@@ -255,13 +255,13 @@ export default function CityInterlude({
       setPrimaryLocked(true);
       setPrimaryEmotion(primary); // Store primary for highlighting
       
-      // Simple fade transition - no zoom
+      // Immediate transition - no artificial delays
       setTimeout(() => {
         console.log('[CityInterlude] ✨ Showing zone name, fading other towers');
         setCurrentPhase(5); // Transition phase
         setZoomStartTime(Date.now());
         
-        // Complete transition after 3s (time to show zone name and fade others)
+        // Complete transition after 1.5s (brief moment to show zone)
         setTimeout(() => {
           const event = {
             type: 'stage1_transition_complete',
@@ -283,8 +283,8 @@ export default function CityInterlude({
           
           // Call onComplete callback
           onComplete(primary);
-        }, 3000); // 3s transition
-      }, 1000); // 1s stillness before transition
+        }, 1500); // 1.5s transition (was 3s)
+      }, 200); // Brief 200ms pause (was 1s)
     }
   }, [reflection, primaryLocked, currentPhase, reflectionId, onComplete]);
 
@@ -976,10 +976,10 @@ export default function CityInterlude({
         </motion.div>
       )}
 
-      {/* Copy display - one line per phase, hides when buildings rise */}
+      {/* Copy display - one line per phase, shows alongside buildings */}
       <div className="absolute bottom-24 md:bottom-32 left-0 right-0 z-30 flex flex-col items-center px-6 max-w-2xl mx-auto">
         <AnimatePresence mode="wait">
-          {showCopy && !towersRising && (
+          {showCopy && (
             <motion.p
               key={showCopy}
               className="text-xl md:text-2xl lg:text-3xl font-serif italic text-center tracking-wide leading-relaxed"

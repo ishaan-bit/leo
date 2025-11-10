@@ -577,9 +577,9 @@ export default function BreathingSequence({
       </motion.div>
 
       {/* Breathing prompt - positioned below Leo - Show BOTH inhale/exhale on first cycle */}
-      {/* Fade out smoothly when Stage 2 completes */}
+      {/* Keep visible during first cycle even if stage2 completes early */}
       <AnimatePresence>
-        {!stage2Complete && (
+        {(!stage2Complete || cycleCount < 1) && (
           <motion.div
             className="absolute left-1/2 z-30 pointer-events-none"
             style={{
@@ -901,12 +901,12 @@ export default function BreathingSequence({
               
               {/* Button content */}
               <div className="relative flex items-center gap-2">
-                <span className="text-base">✓</span>
+                <span className="text-base">→</span>
                 <span 
                   className="text-sm font-light tracking-wide"
                   style={{ fontFamily: "'Cormorant Garamond', serif" }}
                 >
-                  Mark Done
+                  Continue
                 </span>
               </div>
             </motion.button>
@@ -931,7 +931,7 @@ export default function BreathingSequence({
                 >
                   ✓
                 </motion.span>
-                <span>Ritual complete</span>
+                <span>Noted</span>
               </p>
             </div>
           </motion.div>
