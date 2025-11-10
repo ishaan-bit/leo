@@ -76,8 +76,12 @@ export async function GET(
           imageSize: data.image_base64?.length || data.caption?.image_base64?.length || 0,
         });
         
-        // Extract primary zone from final.wheel.primary (e.g., "scared" → scared zone)
-        const primaryEmotion = data.final?.wheel?.primary || 'peaceful';
+        // Extract primary zone from final.wheel.primary
+        // FIX: Keep null/none as null, don't default to peaceful
+        const rawPrimary = data.final?.wheel?.primary;
+        const primaryEmotion = (rawPrimary === null || rawPrimary === 'none' || rawPrimary === 'null' || rawPrimary === undefined) 
+          ? null 
+          : rawPrimary;
         
         // Map emotion to zone - backend sends LOWERCASE (scared, mad, joyful, powerful, peaceful, sad)
         // CRITICAL: Backend uses Willcox canonical names: happy, angry, fearful, strong, peaceful, sad
@@ -127,7 +131,10 @@ export async function GET(
         };
         
         // Normalize to lowercase for case-insensitive matching
-        const zone = zoneMapping[primaryEmotion.toLowerCase()] || 'peaceful';
+        // FIX: Keep null primaryEmotion as null (for moon slices), don't map to peaceful
+        const zone = primaryEmotion === null 
+          ? null 
+          : (zoneMapping[primaryEmotion.toLowerCase()] || 'peaceful');
         
         // Extract moment data
         const moment = {

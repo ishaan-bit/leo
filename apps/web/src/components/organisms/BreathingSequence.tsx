@@ -260,10 +260,16 @@ export default function BreathingSequence({
     const poems = allPoems.filter(isEnglishText);
     
     if (poems.length < 3) {
-      console.warn('[Bubble Sequence] ⚠️ Less than 3 English poems available:', poems.length);
+      console.error('[Bubble Sequence] ❌ CRITICAL: Less than 3 English poems available:', poems.length, 'This will break the 3-poem flow!');
+      console.error('[Bubble Sequence] All poems:', allPoems);
     }
     
     const tips = stage2Payload.tips || [];
+    
+    if (tips.length < 3) {
+      console.error('[Bubble Sequence] ❌ CRITICAL: Less than 3 tips available:', tips.length, 'This will break the 3-tip flow!');
+      console.error('[Bubble Sequence] All tips:', tips);
+    }
     
     // Cycle 1: Poem 1 floats → Tip 1 from Leo → Mark Done
     setTimeout(() => {
@@ -819,12 +825,13 @@ export default function BreathingSequence({
         return (
           <>
             {/* Leo Bubble (Tips only - poems float independently) */}
+            {/* FIX: Keep showing tip during mark_done state */}
             {leoAnchor && (
               <ComicBubble
                 content={
-                  bubbleStep === 'tip1' ? (stage2Payload.tips[0] || '')
-                  : bubbleStep === 'tip2' ? (stage2Payload.tips[1] || '')
-                  : bubbleStep === 'tip3' ? (stage2Payload.tips[2] || '')
+                  (bubbleStep === 'tip1' || bubbleStep === 'mark_done_1') ? (stage2Payload.tips[0] || '')
+                  : (bubbleStep === 'tip2' || bubbleStep === 'mark_done_2') ? (stage2Payload.tips[1] || '')
+                  : (bubbleStep === 'tip3' || bubbleStep === 'mark_done_3') ? (stage2Payload.tips[2] || '')
                   : ''
                 }
                 state={leoBubbleState}

@@ -416,11 +416,14 @@ export default function MomentsLibrary({
   }, [phase, moments]);
 
   // Group moments by zone (always grouped by zones now)
-  const momentsByZone = moments.reduce((acc, moment) => {
-    if (!acc[moment.zone]) acc[moment.zone] = [];
-    acc[moment.zone].push(moment);
-    return acc;
-  }, {} as Record<PrimaryEmotion, Moment[]>);
+  // FIX: Filter out null/none emotion moments - they go to moon, not towers
+  const momentsByZone = moments
+    .filter(m => m.zone !== null && (m.zone as any) !== 'none')
+    .reduce((acc, moment) => {
+      if (!acc[moment.zone]) acc[moment.zone] = [];
+      acc[moment.zone].push(moment);
+      return acc;
+    }, {} as Record<PrimaryEmotion, Moment[]>);
 
   // Get moment count for a tower
   const getMomentCount = (zone: PrimaryEmotion) => {
@@ -693,9 +696,12 @@ export default function MomentsLibrary({
         )}
       </AnimatePresence>
 
-      {/* Crescent Moon - holds moments without any emotion (null primary) */}
+      {/* Crescent Moon - holds moments without any emotion (null primary or null zone) */}
       {(() => {
-        const nullEmotionMoments = moments.filter(m => m.primaryEmotion === null || m.primaryEmotion === 'null');
+        const nullEmotionMoments = moments.filter(m => 
+          m.primaryEmotion === null || m.primaryEmotion === 'null' || m.primaryEmotion === 'none' ||
+          m.zone === null || (m.zone as any) === 'null'
+        );
         if (nullEmotionMoments.length === 0) return null;
         
         return (
