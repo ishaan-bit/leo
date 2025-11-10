@@ -538,7 +538,9 @@ export default function BreathingSequence({
                   }}
                   animate={{
                     opacity: isInhaling ? 1 : 0.3,
+                    scale: isInhaling ? 1.05 : 1, // Breathing pulse
                   }}
+                  transition={{ duration: cycleDuration / 2000, ease: EASING }}
                 >
                   inhale
                 </motion.div>
@@ -555,7 +557,9 @@ export default function BreathingSequence({
                   }}
                   animate={{
                     opacity: isInhaling ? 0.3 : 1,
+                    scale: isInhaling ? 1 : 1.05, // Breathing pulse
                   }}
+                  transition={{ duration: cycleDuration / 2000, ease: EASING }}
                 >
                   exhale
                 </motion.div>

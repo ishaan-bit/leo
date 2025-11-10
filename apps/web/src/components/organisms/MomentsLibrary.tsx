@@ -64,14 +64,14 @@ const EASING = [0.65, 0, 0.35, 1] as const;
 // Tower configuration with corrected zone labels
 // MAPPING: joyful→Vera, powerful→Ashmere, peaceful→Haven, sad→Vanta, scared→Vire, mad→Sable
 // ZONE LABELS: Vera (Joyful), Ashmere (Powerful), Haven (Peaceful), Vanta (Sad), Vire (Fearful), Sable (Angry)
-// Mobile-optimized: Reduced heights by 30% to fit mobile screens better
+// Mobile-optimized: Increased heights for better visibility, Sable shifted right, reduced gap to edge
 const TOWER_CONFIGS = [
-  { id: 'joyful' as PrimaryEmotion, name: 'Vera', label: 'Joyful', color: '#FFD700', x: 2, height: 126 },
-  { id: 'powerful' as PrimaryEmotion, name: 'Ashmere', label: 'Powerful', color: '#FF6B35', x: 15, height: 154 },
-  { id: 'peaceful' as PrimaryEmotion, name: 'Haven', label: 'Peaceful', color: '#6A9FB5', x: 28, height: 112 },
-  { id: 'sad' as PrimaryEmotion, name: 'Vanta', label: 'Sad', color: '#7D8597', x: 41, height: 140 },
-  { id: 'scared' as PrimaryEmotion, name: 'Vire', label: 'Fearful', color: '#5A189A', x: 54, height: 133 },
-  { id: 'mad' as PrimaryEmotion, name: 'Sable', label: 'Angry', color: '#C1121F', x: 67, height: 119 },
+  { id: 'joyful' as PrimaryEmotion, name: 'Vera', label: 'Joyful', color: '#FFD700', x: 2, height: 180 },
+  { id: 'powerful' as PrimaryEmotion, name: 'Ashmere', label: 'Powerful', color: '#FF6B35', x: 14, height: 220 },
+  { id: 'peaceful' as PrimaryEmotion, name: 'Haven', label: 'Peaceful', color: '#6A9FB5', x: 26, height: 160 },
+  { id: 'sad' as PrimaryEmotion, name: 'Vanta', label: 'Sad', color: '#7D8597', x: 38, height: 200 },
+  { id: 'scared' as PrimaryEmotion, name: 'Vire', label: 'Fearful', color: '#5A189A', x: 50, height: 190 },
+  { id: 'mad' as PrimaryEmotion, name: 'Sable', label: 'Angry', color: '#C1121F', x: 75, height: 170 },
 ];
 
 export default function MomentsLibrary({
@@ -443,9 +443,9 @@ export default function MomentsLibrary({
         }}
       />
       
-      {/* Decorative Crescent Moon - upper right, persistent */}
+      {/* Decorative Crescent Moon - positioned below Leo */}
       <motion.div
-        className="absolute top-10 right-20 w-32 h-32 rounded-full pointer-events-none z-10"
+        className="absolute top-[35%] right-20 w-32 h-32 rounded-full pointer-events-none z-10"
         style={{
           background: 'radial-gradient(circle, rgba(255, 255, 255, 0.12) 0%, transparent 70%)',
           filter: 'blur(20px)',
@@ -455,7 +455,7 @@ export default function MomentsLibrary({
         transition={{ duration: 3, ease: 'easeInOut' }}
       />
       <motion.div
-        className="absolute top-12 right-24 w-16 h-16 pointer-events-none z-10"
+        className="absolute top-[calc(35%+8px)] right-24 w-16 h-16 pointer-events-none z-10"
         style={{
           borderRadius: '50%',
           boxShadow: 'inset -8px 0px 0px 0px rgba(255, 255, 255, 0.85)',
@@ -830,8 +830,8 @@ export default function MomentsLibrary({
               className="absolute bottom-0"
               style={{
                 left: `${tower.x}%`,
-                width: '60px', // Reduced from 80px for mobile lateral fit
-                height: `${tower.height * 1.2}px`, // Reduced from 1.8x to 1.2x for mobile
+                width: '70px', // Slightly increased from 60px for better visibility
+                height: `${tower.height * 1.5}px`, // Increased from 1.2x to 1.5x for taller buildings
               }}
               initial={{ opacity: isCurrent ? 1 : 0, scale: 0.9 }}
               animate={{
