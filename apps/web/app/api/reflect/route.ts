@@ -270,12 +270,16 @@ export async function POST(request: NextRequest) {
       version,
     };
 
-    // 11. Write reflection:{rid} with TTL 30d
+    // 11. Write reflection:{rid} - GUEST MODE: Use short TTL for unauthenticated users
+    const isGuest = userId === null;
     const reflectionKey = kvKeys.reflection(rid);
+    const ttl = isGuest ? 300 : REFLECTION_TTL; // 5 min for guests, 30 days for authenticated
+    
     logKvOperation({ op: 'SETEX', key: reflectionKey, phase: 'start', sid, rid });
+    console.log(`💾 Saving reflection ${rid} - Guest: ${isGuest}, TTL: ${ttl}s`);
 
     try {
-      await kv.set(reflectionKey, JSON.stringify(reflection), { ex: REFLECTION_TTL });
+      await kv.set(reflectionKey, JSON.stringify(reflection), { ex: ttl });
       logKvOperation({ op: 'SETEX', key: reflectionKey, phase: 'ok', sid, rid });
     } catch (error) {
       logKvOperation({ op: 'SETEX', key: reflectionKey, phase: 'error', sid, rid, error });
@@ -316,7 +320,7 @@ export async function POST(request: NextRequest) {
       console.warn(`⚠️ ENRICHMENT_WEBHOOK_URL not set - enrichment disabled`);
     }
 
-    // 12. Add to sorted sets (for querying)
+    // 12. Add to sorted sets (for querying) - GUESTS: Add but will expire with reflection TTL
     const ownerKey = kvKeys.reflectionsByOwner(ownerId);
     const pigKey = kvKeys.reflectionsByPig(body.pigId);
     const globalKey = kvKeys.reflectionsAll();
@@ -330,33 +334,40 @@ export async function POST(request: NextRequest) {
       ]);
       
       logKvOperation({ op: 'ZADD', key: ownerKey, phase: 'ok', sid, rid });
+      
+      if (isGuest) {
+        console.log(`👤 Guest reflection ${rid} - added to index (will expire with reflection in 5 min)`);
+      }
     } catch (error) {
       // Non-fatal: reflection is saved, just indexing failed
       console.error('Failed to index reflection:', error);
     }
 
-    // 13. Add to session recent_reflections list (for merge on sign-in)
-    const recentKey = kvKeys.sessionRecentReflections(sid);
-    try {
-      // Get existing list
-      const existingData = await kv.get(recentKey);
-      const existing: Array<{ rid: string; ts: number }> = existingData 
-        ? JSON.parse(existingData as string) 
-        : [];
-      
-      // Add new reflection
-      existing.unshift({ rid, ts: score });
-      
-      // Trim to max 25
-      const trimmed = existing.slice(0, MAX_RECENT_REFLECTIONS);
-      
-      // Write back with TTL
-      await kv.set(recentKey, JSON.stringify(trimmed), { ex: SESSION_RECENT_TTL });
-      
-      logKvOperation({ op: 'SET', key: recentKey, phase: 'ok', sid, rid });
-    } catch (error) {
-      // Non-fatal
-      console.error('Failed to update recent reflections:', error);
+    // 13. Add to session recent_reflections list (for merge on sign-in) - SKIP FOR GUESTS
+    if (!isGuest) {
+      const recentKey = kvKeys.sessionRecentReflections(sid);
+      const score = Date.now();
+      try {
+        // Get existing list
+        const existingData = await kv.get(recentKey);
+        const existing: Array<{ rid: string; ts: number }> = existingData 
+          ? JSON.parse(existingData as string) 
+          : [];
+        
+        // Add new reflection
+        existing.unshift({ rid, ts: score });
+        
+        // Trim to max 25
+        const trimmed = existing.slice(0, MAX_RECENT_REFLECTIONS);
+        
+        // Write back with TTL
+        await kv.set(recentKey, JSON.stringify(trimmed), { ex: SESSION_RECENT_TTL });
+        
+        logKvOperation({ op: 'SET', key: recentKey, phase: 'ok', sid, rid });
+      } catch (error) {
+        // Non-fatal
+        console.error('Failed to update recent reflections:', error);
+      }
     }
 
     // 14. Delete draft if exists
@@ -367,25 +378,29 @@ export async function POST(request: NextRequest) {
       console.error('Failed to delete draft:', error);
     }
 
-    // 15. Trigger micro-dream check (MUST AWAIT to prevent cancellation)
-    console.log('🌙 Triggering micro-dream check for owner:', ownerId);
-    
-    const microDreamUrl = `${process.env.NEXT_PUBLIC_APP_URL || `https://${request.headers.get('host')}`}/api/micro-dream/check`;
-    
-    try {
-      const microDreamResponse = await fetch(microDreamUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ownerId }),
-      });
+    // 15. Trigger micro-dream check (MUST AWAIT to prevent cancellation) - SKIP FOR GUESTS
+    if (!isGuest) {
+      console.log('🌙 Triggering micro-dream check for owner:', ownerId);
       
-      if (microDreamResponse.ok) {
-        console.log('✅ Micro-dream check completed');
-      } else {
-        console.error(`⚠️ Micro-dream check failed: ${microDreamResponse.status}`);
+      const microDreamUrl = `${process.env.NEXT_PUBLIC_APP_URL || `https://${request.headers.get('host')}`}/api/micro-dream/check`;
+      
+      try {
+        const microDreamResponse = await fetch(microDreamUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ownerId }),
+        });
+        
+        if (microDreamResponse.ok) {
+          console.log('✅ Micro-dream check completed');
+        } else {
+          console.error(`⚠️ Micro-dream check failed: ${microDreamResponse.status}`);
+        }
+      } catch (err) {
+        console.error('⚠️ Micro-dream trigger error (non-fatal):', err instanceof Error ? err.message : err);
       }
-    } catch (err) {
-      console.error('⚠️ Micro-dream trigger error (non-fatal):', err instanceof Error ? err.message : err);
+    } else {
+      console.log('👤 Guest reflection - skipping micro-dream check');
     }
 
     // 17. Success response
@@ -394,12 +409,13 @@ export async function POST(request: NextRequest) {
       rid,
       message: 'Reflection saved',
       userLinked: !!userId,
+      isGuest,
       data: {
         reflectionId: rid,
         ownerId,
         pigId: body.pigId,
         timestamp: body.timestamp,
-        ttl_days: 30,
+        ttl_days: isGuest ? 0.003 : 30, // 5 min for guests, 30 days for auth
         user_id: userId,
       },
     });
