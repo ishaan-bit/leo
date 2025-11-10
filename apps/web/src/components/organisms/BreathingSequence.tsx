@@ -62,6 +62,7 @@ export default function BreathingSequence({
   const [floatingPoem, setFloatingPoem] = useState<{ id: string; text: string } | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [stage2Complete, setStage2Complete] = useState(false);
+  const [firstCycleComplete, setFirstCycleComplete] = useState(false); // Track first breathing cycle
   
   // NEW ARCHITECTURE: Poems float as complete lines, tips from Leo only
   type BubbleSequenceStep = 
@@ -211,6 +212,12 @@ export default function BreathingSequence({
       if (currentCycle > cycleCount) {
         setCycleCount(currentCycle);
         console.log('[Breathing] Cycle', currentCycle, 'complete');
+        
+        // Mark first cycle complete after one full inhale/exhale
+        if (currentCycle >= 1 && !firstCycleComplete) {
+          setFirstCycleComplete(true);
+          console.log('[Breathing] ✅ First breathing cycle complete - ready for floating words');
+        }
       }
       
       animationFrameRef.current = requestAnimationFrame(animate);
@@ -223,11 +230,12 @@ export default function BreathingSequence({
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [isReady, cycleDuration, cycleCount, stage2Complete, onComplete]);
+  }, [isReady, cycleDuration, cycleCount, firstCycleComplete, stage2Complete, onComplete]);
 
   // NEW ORCHESTRATION: Poem floating → Leo tip → Mark Done (repeat 3x) → Sky → Living City
+  // WAIT for first breathing cycle to complete before starting
   useEffect(() => {
-    if (!stage2Complete || !stage2Payload) {
+    if (!stage2Complete || !stage2Payload || !firstCycleComplete) {
       return;
     }
     
@@ -236,7 +244,7 @@ export default function BreathingSequence({
     }
     
     orchestrationStartedRef.current = true;
-    console.log('[Bubble Sequence] 🎬 Starting poem-floating sequence');
+    console.log('[Bubble Sequence] 🎬 Starting poem-floating sequence AFTER first breath cycle');
     
     // Filter poems to only include English text (remove Hindi/Devanagari)
     const allPoems = stage2Payload.poems || [];
@@ -284,7 +292,7 @@ export default function BreathingSequence({
         }, 13000); // Changed from 11000 to 13000 (13s total for floating words)
       }
     }, 500);
-  }, [stage2Complete, stage2Payload]);
+  }, [stage2Complete, stage2Payload, firstCycleComplete]);
   
   // Watch for Mark Done clicks and continue sequence
   useEffect(() => {
@@ -371,24 +379,27 @@ export default function BreathingSequence({
       }, 1000);
     }
     
-    // Tip 3 marked → Sky brightens → Living City
+    // Tip 3 marked → Clean fade to Living City (skip sky brightening)
     else if (lastMarked === 3 && markedTips.length === 3) {
       console.log('[Sequence] 🌅 All tips complete, transitioning to Living City');
       
+      // Fade audio
+      if (audioRef.current) {
+        const fadeOut = setInterval(() => {
+          if (audioRef.current && audioRef.current.volume > 0.05) {
+            audioRef.current.volume -= 0.05;
+          } else {
+            clearInterval(fadeOut);
+            audioRef.current?.pause();
+          }
+        }, 100);
+      }
+      
+      // Direct transition after brief pause
       setTimeout(() => {
-        setBubbleStep('sky');
-        setSkyLightnessLevel(3);
-        
-        setTimeout(() => {
-          setBubbleStep('gradientReturn');
-          setSkyLightnessLevel(4);
-          
-          setTimeout(() => {
-            console.log('[Sequence] ✅ Transition to Living City');
-            onComplete();
-          }, 2500);
-        }, 2000);
-      }, 1000);
+        console.log('[Sequence] ✅ Fade transition to Living City');
+        onComplete();
+      }, 1500);
     }
   }, [markedTips, stage2Payload, onComplete]);
 
@@ -402,6 +413,9 @@ export default function BreathingSequence({
   const handleMarkDone = (tipIndex: number) => {
     console.log(`[Breathing] 🎯 Mark Done clicked for tip ${tipIndex + 1}`);
     
+    // Immediately disable button to prevent double clicks
+    setShowMarkDoneButton(false);
+    
     // Hide the speech bubble when mark done is clicked
     setLeoBubbleState('ellipsis');
     setTimeout(() => {
@@ -410,7 +424,6 @@ export default function BreathingSequence({
     
     // Track this tip as marked
     setMarkedTips(prev => [...prev, tipIndex + 1]);
-    setShowMarkDoneButton(false);
     
     // Play success SFX
     const successAudio = new Audio('/sounds/success-chime.mp3');
@@ -553,7 +566,8 @@ export default function BreathingSequence({
       >
         {TOWERS.map(tower => {
           const isPrimary = tower.id === primary;
-          const towerOpacity = isPrimary ? 1 : 0;
+          // All buildings start visible, then non-primary fade to 0.2 (not 0)
+          const towerOpacity = isReady ? (isPrimary ? 1 : 0.2) : 0;
           const displayX = isPrimary ? getPrimaryTowerX(tower.id) : tower.x;
           
           return (
@@ -565,14 +579,16 @@ export default function BreathingSequence({
                 width: '80px',
                 height: `${tower.height * 1.8}px`,
               }}
+              initial={{ opacity: 0 }} // Start hidden
               animate={{
                 opacity: towerOpacity,
                 scale: isPrimary ? (isInhaling ? 1.02 : 0.98) : 1,
               }}
               transition={{ 
                 opacity: { 
-                  duration: isPrimary ? 0.5 : 2.5, // Slower fade for non-primary to avoid flash
-                  delay: isPrimary ? 2 : 1.5, // Delay both to avoid white flash gap
+                  duration: isPrimary ? 1.5 : 2, // Smooth fade for all
+                  delay: isPrimary ? 0 : 0.5, // Non-primary fade slightly after
+                  ease: 'easeInOut',
                 },
                 scale: { duration: activeCycle.in, ease: EASING }
               }}
@@ -608,7 +624,7 @@ export default function BreathingSequence({
                   ))}
                 </div>
 
-                {/* Building name - fade out when Stage 2 completes */}
+                {/* Building name - visible during first cycle and stage2, fade when transitioning */}
                 <AnimatePresence>
                   {isPrimary && !stage2Complete && (
                     <motion.div
@@ -616,7 +632,7 @@ export default function BreathingSequence({
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0, transition: { duration: 2, ease: 'easeOut' } }}
-                      transition={{ duration: 1, delay: 2.5 }}
+                      transition={{ duration: 1.5, delay: 0.5 }}
                       style={{
                         top: '-10rem', // Moved up from -top-32 (-8rem) to avoid inhale/exhale overlap
                         color: tower.color,
@@ -683,13 +699,13 @@ export default function BreathingSequence({
               }}
             >
               <div
-                className="text-3xl md:text-4xl font-serif italic font-medium text-center leading-relaxed px-8 max-w-2xl"
+                className="text-xl md:text-2xl font-serif italic font-medium text-center leading-relaxed px-8 max-w-2xl"
                 style={{
                   color: '#FFD700',
                   textShadow: `
-                    0 0 25px #FFD700,
-                    0 0 50px #FFD700,
-                    0 0 75px #FFD70080,
+                    0 0 20px #FFD700,
+                    0 0 40px #FFD700,
+                    0 0 60px #FFD70080,
                     0 4px 12px rgba(0,0,0,0.4)
                   `,
                   WebkitFontSmoothing: 'antialiased',
