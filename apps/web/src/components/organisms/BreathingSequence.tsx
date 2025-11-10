@@ -313,11 +313,19 @@ export default function BreathingSequence({
     }, 500);
   }, [stage2Complete, stage2Payload, firstCycleComplete]);
   
+  // Track which sequences have already been triggered (prevent infinite loops)
+  const sequencesTriggeredRef = useRef<Set<number>>(new Set());
+  
   // Watch for Mark Done clicks and continue sequence
   useEffect(() => {
     if (markedTips.length === 0 || !stage2Payload) return;
     
     const lastMarked = Math.max(...markedTips);
+    
+    // Prevent re-triggering same sequence
+    if (sequencesTriggeredRef.current.has(lastMarked)) {
+      return;
+    }
     
     // Filter poems to only include English (same as orchestration)
     const allPoems = stage2Payload.poems || [];
@@ -328,6 +336,7 @@ export default function BreathingSequence({
     
     // Tip 1 marked → Poem 2 floats → Tip 2
     if (lastMarked === 1 && markedTips.length === 1) {
+      sequencesTriggeredRef.current.add(1);
       console.log('[Mark Done Watch] ✅ Tip 1 marked, starting Poem 2 → Tip 2 sequence');
       console.log('[Mark Done Watch] poems[1] exists?', !!poems[1], 'tips[1] exists?', !!tips[1]);
       
@@ -370,6 +379,7 @@ export default function BreathingSequence({
     
     // Tip 2 marked → Poem 3 floats → Tip 3
     else if (lastMarked === 2 && markedTips.length === 2) {
+      sequencesTriggeredRef.current.add(2);
       console.log('[Mark Done Watch] ✅ Tip 2 marked, starting Poem 3 → Tip 3 sequence');
       console.log('[Mark Done Watch] poems[2] exists?', !!poems[2], 'tips[2] exists?', !!tips[2]);
       setTimeout(() => {
@@ -411,6 +421,7 @@ export default function BreathingSequence({
     
     // Tip 3 marked → Clean fade to Living City (skip sky brightening)
     else if (lastMarked === 3 && markedTips.length === 3) {
+      sequencesTriggeredRef.current.add(3);
       console.log('[Sequence] 🌅 All tips complete, transitioning to Living City');
       
       // Fade audio
