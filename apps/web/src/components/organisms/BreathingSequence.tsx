@@ -133,7 +133,14 @@ export default function BreathingSequence({
   }, [audio]);
 
   // Poll for Stage-2 enrichment (post_enrichment payload)
+  // CRITICAL: Skip polling for null emotions - they don't get Stage 2
   useEffect(() => {
+    // Skip Stage 2 for null emotions
+    if (isNullEmotion) {
+      console.log('[Stage2] 🌙 Null emotion detected, skipping Stage 2 enrichment polling');
+      return;
+    }
+    
     const pollInterval = setInterval(async () => {
       try {
         const response = await fetch(`/api/reflect/${reflectionId}`);
@@ -173,7 +180,7 @@ export default function BreathingSequence({
     }, 2000);
     
     return () => clearInterval(pollInterval);
-  }, [reflectionId, stage2Complete, stage2Payload]);
+  }, [reflectionId, stage2Complete, stage2Payload, isNullEmotion]);
 
   // Null emotion handling: Complete after 3 cycles without Stage 2
   useEffect(() => {
@@ -576,10 +583,10 @@ export default function BreathingSequence({
         </motion.div>
       </motion.div>
 
-      {/* Breathing prompt - positioned below Leo - Show BOTH inhale/exhale on first cycle */}
+      {/* Breathing prompt - positioned below Leo - Show ONLY inhale/exhale synced to pulse */}
       {/* Keep visible during first cycle even if stage2 completes early */}
       <AnimatePresence>
-        {(!stage2Complete || cycleCount < 1) && (
+        {(!stage2Complete || cycleCount < 1) && (isInhaling || isExhaling) && (
           <motion.div
             className="absolute left-1/2 z-30 pointer-events-none"
             style={{
@@ -587,21 +594,21 @@ export default function BreathingSequence({
               top: 'calc(28% + 160px)', // Below Leo
             }}
             animate={{ 
-              opacity: isInhaling ? [0.3, 0.95, 0.95] : [0.95, 0.3, 0.3],
-              scale: isInhaling ? [0.95, 1.08, 1.08] : [1.08, 0.92, 0.92],
+              opacity: isInhaling ? [0, 1, 1, 0.7] : [0.7, 1, 1, 0],
+              scale: isInhaling ? [0.92, 1.12, 1.12, 1.02] : [1.02, 1.12, 1.12, 0.92],
             }}
             transition={{ 
               duration: isInhaling ? activeCycle.in : activeCycle.out,
               ease: EASING,
-              times: [0, 0.5, 1],
+              times: [0, 0.3, 0.7, 1],
             }}
-            exit={{ opacity: 0, transition: { duration: 1.5, ease: 'easeOut' } }}
+            exit={{ opacity: 0, transition: { duration: 0.3, ease: 'easeOut' } }}
           >
-            {/* Show current breathing phase: inhale -> hold -> exhale -> hold */}
+            {/* Show only inhale or exhale - synced to breathing pulse */}
             <div
               className="text-2xl font-sans tracking-widest lowercase font-light"
               style={{
-                color: 'rgba(255, 255, 255, 0.9)',
+                color: 'rgba(255, 255, 255, 0.95)',
                 textShadow: `
                   0 0 20px rgba(255, 255, 255, 0.8),
                   0 0 40px rgba(255, 255, 255, 0.6),
@@ -610,10 +617,7 @@ export default function BreathingSequence({
                 letterSpacing: '0.35em',
               }}
             >
-              {currentPhase === 'inhale' ? 'inhale'
-                : currentPhase === 'hold-in' ? 'hold'
-                : currentPhase === 'exhale' ? 'exhale'
-                : 'hold'}
+              {isInhaling ? 'inhale' : 'exhale'}
             </div>
           </motion.div>
         )}

@@ -612,7 +612,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     }
   };
 
-  // Handle breathing completion → transition to moments library OR orchestrator (null emotion)
+  // Handle breathing completion → transition to moments library OR reset for null emotion
   const handleBreathingComplete = () => {
     console.log('[Scene_Reflect] 🌅 Breathing complete, transitioning...');
     console.log('[Scene_Reflect] Current context:', breathingContext);
@@ -621,10 +621,22 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     const isNullEmotion = breathingContext?.primary === null;
     
     if (isNullEmotion) {
-      console.log('[Scene_Reflect] 🌙 Null emotion detected → Going to orchestrator/bubble sequence');
-      // Show library immediately, hide breathing (AnimatePresence handles crossfade)
-      setShowMomentsLibrary(true);
+      console.log('[Scene_Reflect] 🌙 Null emotion detected → Completing scene, ready for next reflection');
+      // Hide breathing, reset scene for next reflection
       setShowBreathing(false);
+      
+      setTimeout(() => {
+        setCurrentReflectionId(null);
+        setBreathingContext(null);
+        setScenePhase('entering');
+        setIsSubmitting(false);
+        
+        // Reset dialogue to time-based greeting
+        const timeGreeting = getTimeBasedGreeting(pigName);
+        setDialogue(timeGreeting);
+        
+        console.log('[Scene_Reflect] ✅ Null emotion flow complete, ready for next reflection');
+      }, 600); // Wait for breathing fade-out
     } else {
       // Normal flow: go to moments library
       console.log('[Scene_Reflect] 🏛️ Normal flow → Moments Library');
