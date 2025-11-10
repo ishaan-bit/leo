@@ -9,12 +9,15 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { signIn } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 
-export default function BindPage() {
+// Force dynamic rendering (uses searchParams)
+export const dynamic = 'force-dynamic';
+
+function BindPageContent() {
   const searchParams = useSearchParams();
   const next = searchParams.get('next') || '/city';
 
@@ -211,5 +214,19 @@ export default function BindPage() {
         </p>
       </motion.div>
     </main>
+  );
+}
+
+export default function BindPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gradient-to-br from-pink-50 via-rose-50 to-purple-50 flex items-center justify-center">
+          <div className="text-pink-800 text-lg font-serif italic">Loading...</div>
+        </div>
+      }
+    >
+      <BindPageContent />
+    </Suspense>
   );
 }
