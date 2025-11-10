@@ -1,0 +1,18 @@
+{
+  "positive_hype": [
+    "fuck yeah", "hell yes", "damn right", "let's go", "lets go",
+    "fucking awesome", "hell yeah", "damn good", "badass",
+    "fuck yes", "fucking amazing", "fucking great", "fucking brilliant"
+  ],
+  "negative_frustration": [
+    "fuck this", "screw this", "to hell with", "dammit", "shit show",
+    "fucking terrible", "damn it", "goddammit", "wtf", "bullshit",
+    "piece of shit", "fuck off", "pissed off",
+    "fucking irritated", "fucking angry", "fucking mad", "fucking frustrated",
+    "no fucking idea", "have no idea", "fucking broken", "shits broken",
+    "getting broken", "beyond repair", "pathetic", "fuck sake",
+    "for fuck", "fucking hell", "god damn", "so pissed",
+    "irritated now", "irritated af", "annoyed af", "fed up"
+  ],
+  "arousal_boost_range": [0.05, 0.12]
+}

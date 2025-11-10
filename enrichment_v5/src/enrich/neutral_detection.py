@@ -174,7 +174,8 @@ def compute_emotion_evidence(
     emotion_words.extend(re.findall(
         r'\b(sad|happy|angry|fear(ful)?|anxious|excited|peaceful|stressed?|'
         r'depressed?|joy(ful)?|overwhelmed?|calm|frustrated?|worried|nervous|'
-        r'content|grateful|lonely|hurt|proud|ashamed|guilty|confident)\b',
+        r'content|grateful|lonely|hurt|proud|ashamed|guilty|confident|'
+        r'irritated?|annoyed?|pissed|fed up|mad)\b',
         text, re.IGNORECASE
     ))
     
@@ -182,6 +183,17 @@ def compute_emotion_evidence(
     feeling_match = re.search(r'\bfeeling (really |so |very )?(good|bad|great|terrible|awful|amazing)', text, re.IGNORECASE)
     if feeling_match:
         emotion_words.append('feeling_explicit')
+    
+    # CRITICAL: Profanity as emotion signal
+    # Check for negative frustration profanity (fucking, shit, fuck, etc.)
+    profanity_pattern = re.compile(
+        r'\b(fuck(ing)?|shit|bullshit|goddamn|dammit|wtf|pissed off|'
+        r'piece of shit|screw this|to hell with|pathetic|beyond repair)\b',
+        re.IGNORECASE
+    )
+    profanity_matches = profanity_pattern.findall(text)
+    # Each profanity phrase is a VERY strong emotion signal
+    evidence += 2.0 * len([m for m in profanity_matches if m])  # 2.0 per profanity phrase
     
     # Flatten and count (filter out empty strings from groups)
     emotion_count = sum(1 for match in emotion_words if match and (isinstance(match, str) or (isinstance(match, tuple) and match[0])))
