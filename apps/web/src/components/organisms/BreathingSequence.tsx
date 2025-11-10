@@ -580,7 +580,7 @@ export default function BreathingSequence({
               scale: isInhaling ? [0.95, 1.08, 1.08] : [1.08, 0.92, 0.92],
             }}
             transition={{ 
-              duration: activeCycle.in,
+              duration: isInhaling ? activeCycle.in : activeCycle.out,
               ease: EASING,
               times: [0, 0.5, 1],
             }}
@@ -729,10 +729,10 @@ export default function BreathingSequence({
       </motion.div>
       )}
 
-      {/* Moon - shown ONLY when primary is null/none */}
+      {/* Moon - shown ONLY when primary is null/none - CENTERED vertically and horizontally */}
       {!primary && isReady && (
         <motion.div
-          className="absolute left-1/2 top-1/3 -translate-x-1/2 -translate-y-1/2 z-30"
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-30"
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ 
             opacity: 1,
@@ -746,28 +746,28 @@ export default function BreathingSequence({
             }
           }}
         >
-          {/* Moon glow */}
+          {/* Moon glow - WHITE not purple */}
           <div
             className="absolute inset-0 rounded-full"
             style={{
               width: '200px',
               height: '200px',
-              background: 'radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%)',
+              background: 'radial-gradient(circle, rgba(255,255,255,0.4) 0%, transparent 70%)',
               filter: 'blur(30px)',
             }}
           />
           
-          {/* Moon body */}
+          {/* Moon body - PURE WHITE crescent */}
           <div
             className="relative rounded-full"
             style={{
               width: '120px',
               height: '120px',
-              background: 'radial-gradient(circle at 30% 30%, #FFFFFF 0%, #E8E8F0 50%, #D0D0E0 100%)',
+              background: 'radial-gradient(circle at 30% 30%, #FFFFFF 0%, #F8F8FF 50%, #F0F0F8 100%)',
               boxShadow: `
-                inset -10px -10px 20px rgba(0,0,0,0.1),
-                0 0 40px rgba(255,255,255,0.5),
-                0 0 80px rgba(255,255,255,0.3)
+                inset -10px -10px 20px rgba(0,0,0,0.08),
+                0 0 50px rgba(255,255,255,0.6),
+                0 0 100px rgba(255,255,255,0.4)
               `,
             }}
           />
