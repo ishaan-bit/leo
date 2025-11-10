@@ -405,7 +405,7 @@ export default function CityInterlude({
             transition={{ duration: 5, ease: 'easeInOut' }}
           />
           
-          {/* Crescent Moon - stays visible through all phases */}
+          {/* Crescent Moon - stays visible through all phases, pulses with buildings in phase 3+ */}
           <motion.div
             className="absolute top-12 right-24 w-16 h-16 pointer-events-none z-50"
             style={{
@@ -416,12 +416,13 @@ export default function CityInterlude({
             }}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ 
-              opacity: 0.95,
-              scale: 1,
+              opacity: currentPhase >= 3 ? [0.85, 0.95, 0.85] : 0.95,
+              scale: currentPhase >= 3 ? [0.98, 1.02, 0.98] : 1,
             }}
             transition={{ 
-              duration: 3,
-              ease: [0.16, 1, 0.3, 1],
+              duration: currentPhase >= 3 ? 4 : 3,
+              repeat: currentPhase >= 3 ? Infinity : 0,
+              ease: currentPhase >= 3 ? [0.45, 0.05, 0.55, 0.95] : [0.16, 1, 0.3, 1],
             }}
           />
         </>
@@ -641,7 +642,8 @@ export default function CityInterlude({
         className="absolute z-20"
         style={{
           left: '50%',
-          top: currentPhase <= 2 ? '50%' : '35%',
+          // Gradual float up starting from phase 2 (5s)
+          top: currentPhase <= 1 ? '50%' : currentPhase === 2 ? '42%' : '35%',
         }}
         initial={{ x: '-50%', y: '-50%' }}
         animate={{
@@ -656,6 +658,7 @@ export default function CityInterlude({
           y: { duration: currentPhase === 5 ? 8 : (currentBeat === 4 ? 6 : 4), ease: [0.22, 1, 0.36, 1] }, // Smooth cubic-bezier ease
           scale: { duration: currentPhase === 5 ? 6 : 5, ease: [0.22, 1, 0.36, 1] },
           rotate: { duration: 8, repeat: Infinity, ease: 'easeInOut' },
+          top: { duration: 4, ease: [0.22, 1, 0.36, 1] }, // Smooth transition for top position
         }}
       >
         {/* Glow particles trailing Leo (Phase 3+) */}

@@ -281,7 +281,7 @@ export default function BreathingSequence({
               }, 2500);
             }
           }, 800);
-        }, 11000); // Changed from 6000 to 11000 (11s)
+        }, 13000); // Changed from 11000 to 13000 (13s total for floating words)
       }
     }, 500);
   }, [stage2Complete, stage2Payload]);
@@ -330,7 +330,7 @@ export default function BreathingSequence({
                 }, 2500);
               }
             }, 800);
-          }, 11000); // Changed from 6000 to 11000
+          }, 13000); // Changed from 11000 to 13000
         }
       }, 1000);
     }
@@ -366,7 +366,7 @@ export default function BreathingSequence({
                 }, 2500);
               }
             }, 800);
-          }, 11000); // Changed from 6000 to 11000
+          }, 13000); // Changed from 11000 to 13000
         }
       }, 1000);
     }

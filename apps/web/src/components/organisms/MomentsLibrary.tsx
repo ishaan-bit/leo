@@ -64,15 +64,29 @@ const EASING = [0.65, 0, 0.35, 1] as const;
 // Tower configuration with corrected zone labels
 // MAPPING: joyful→Vera, powerful→Ashmere, peaceful→Haven, sad→Vanta, scared→Vire, mad→Sable
 // ZONE LABELS: Vera (Joyful), Ashmere (Powerful), Haven (Peaceful), Vanta (Sad), Vire (Fearful), Sable (Angry)
-// Mobile-optimized: Increased heights for better visibility, Sable shifted right, reduced gap to edge
+// Responsive layout: positions calculated dynamically based on screen width
 const TOWER_CONFIGS = [
-  { id: 'joyful' as PrimaryEmotion, name: 'Vera', label: 'Joyful', color: '#FFD700', x: 2, height: 180 },
-  { id: 'powerful' as PrimaryEmotion, name: 'Ashmere', label: 'Powerful', color: '#FF6B35', x: 14, height: 220 },
-  { id: 'peaceful' as PrimaryEmotion, name: 'Haven', label: 'Peaceful', color: '#6A9FB5', x: 26, height: 160 },
-  { id: 'sad' as PrimaryEmotion, name: 'Vanta', label: 'Sad', color: '#7D8597', x: 38, height: 200 },
-  { id: 'scared' as PrimaryEmotion, name: 'Vire', label: 'Fearful', color: '#5A189A', x: 50, height: 190 },
-  { id: 'mad' as PrimaryEmotion, name: 'Sable', label: 'Angry', color: '#C1121F', x: 75, height: 170 },
+  { id: 'joyful' as PrimaryEmotion, name: 'Vera', label: 'Joyful', color: '#FFD700', index: 0, height: 180 },
+  { id: 'powerful' as PrimaryEmotion, name: 'Ashmere', label: 'Powerful', color: '#FF6B35', index: 1, height: 220 },
+  { id: 'peaceful' as PrimaryEmotion, name: 'Haven', label: 'Peaceful', color: '#6A9FB5', index: 2, height: 160 },
+  { id: 'sad' as PrimaryEmotion, name: 'Vanta', label: 'Sad', color: '#7D8597', index: 3, height: 200 },
+  { id: 'scared' as PrimaryEmotion, name: 'Vire', label: 'Fearful', color: '#5A189A', index: 4, height: 190 },
+  { id: 'mad' as PrimaryEmotion, name: 'Sable', label: 'Angry', color: '#C1121F', index: 5, height: 170 },
 ];
+
+// Calculate responsive building position - equal spacing from left to right
+const getBuildingPosition = (index: number, buildingWidth: number = 70): string => {
+  const totalBuildings = TOWER_CONFIGS.length;
+  const padding = 2; // 2% padding on each side
+  const availableSpace = 100 - (2 * padding); // 96% available
+  
+  // Calculate spacing: divide available space by (buildings - 1) for gaps between buildings
+  // First building at padding%, last at (100 - padding)%, rest evenly spaced
+  if (totalBuildings === 1) return `${padding}%`;
+  
+  const spacing = availableSpace / (totalBuildings - 1);
+  return `${padding + (index * spacing)}%`;
+};
 
 export default function MomentsLibrary({
   pigId,
@@ -829,7 +843,7 @@ export default function MomentsLibrary({
               key={tower.id}
               className="absolute bottom-0"
               style={{
-                left: `${tower.x}%`,
+                left: getBuildingPosition(tower.index),
                 width: '70px', // Slightly increased from 60px for better visibility
                 height: `${tower.height * 1.5}px`, // Increased from 1.2x to 1.5x for taller buildings
               }}

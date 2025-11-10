@@ -1074,9 +1074,9 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
           pigId={pigId}
         />
         
-        {/* Floating Sign-In Button */}
+        {/* Floating Sign-In Button - hide when guest nudge is visible */}
         <AnimatePresence>
-          {showFloatingSignIn && status === 'unauthenticated' && !isSubmitting && !showSignInModal && (
+          {showFloatingSignIn && status === 'unauthenticated' && !isSubmitting && !showSignInModal && !showGuestNudge && (
             <FloatingSignInButton onClick={() => setShowSignInModal(true)} />
           )}
         </AnimatePresence>
