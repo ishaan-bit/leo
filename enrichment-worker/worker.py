@@ -126,9 +126,13 @@ def generate_songs_async(rid: str):
                     'en': song_data.get('tracks', {}).get('en', {}),
                     'hi': song_data.get('tracks', {}).get('hi', {})
                 }
-                redis_client.set(reflection_key, json.dumps(reflection), ex=30 * 24 * 60 * 60)
                 
-                print(f"[OK] Songs added to reflection:{rid}")
+                # Preserve existing TTL (guests have 5-min TTL, authenticated users have 30-day)
+                existing_ttl = redis_client.ttl(reflection_key)
+                ttl_to_use = existing_ttl if existing_ttl > 0 else 30 * 24 * 60 * 60
+                redis_client.set(reflection_key, json.dumps(reflection), ex=ttl_to_use)
+                
+                print(f"[OK] Songs added to reflection:{rid} (TTL preserved: {ttl_to_use}s)")
                 print(f"   Song EN: {reflection['songs']['en'].get('title', 'N/A')}")
                 print(f"   Song HI: {reflection['songs']['hi'].get('title', 'N/A')}")
         else:
@@ -335,9 +339,14 @@ def process_reflection(reflection: Dict) -> Optional[Dict]:
             if reflection_json:
                 reflection = json.loads(reflection_json)
                 reflection['final'] = enriched_stage1['final']
-                write_success = redis_client.set(reflection_key, json.dumps(reflection), ex=30 * 24 * 60 * 60)
+                
+                # Preserve existing TTL (guests have 5-min TTL, authenticated users have 30-day)
+                existing_ttl = redis_client.ttl(reflection_key)
+                ttl_to_use = existing_ttl if existing_ttl > 0 else 30 * 24 * 60 * 60
+                
+                write_success = redis_client.set(reflection_key, json.dumps(reflection), ex=ttl_to_use)
                 if write_success:
-                    print(f"[OK] Added 'final' data to reflection:{rid}")
+                    print(f"[OK] Added 'final' data to reflection:{rid} (TTL preserved: {ttl_to_use}s)")
                     print(f"   Primary: {enriched_stage1['final']['wheel']['primary']}")
                     print(f"   Wheel: {enriched_stage1['final']['wheel']['primary']} → {enriched_stage1['final']['wheel'].get('secondary')} → {enriched_stage1['final']['wheel'].get('tertiary')}")
                 else:

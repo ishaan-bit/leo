@@ -145,6 +145,10 @@ export default function BreathingSequence({
         const postEnrichment = reflection.post_enrichment || reflection.final?.post_enrichment;
         if (postEnrichment && !stage2Payload) {
           console.log('[Stage2] Post-enrichment received:', postEnrichment);
+          console.log('[Stage2] poems array:', postEnrichment.poems);
+          console.log('[Stage2] poems count:', postEnrichment.poems?.length);
+          console.log('[Stage2] tips array:', postEnrichment.tips);
+          console.log('[Stage2] tips count:', postEnrichment.tips?.length);
           
           setStage2Payload({
             poems: postEnrichment.poems || [],
