@@ -8,6 +8,18 @@ Leo creates meaningful micro-rituals through playful interaction with pink pig t
 
 **Target Audience**: Urban India, 25-35, seeking mindfulness moments in digital life.
 
+## 🆕 NEW: QR Entry & Identity System
+
+**One QR to rule them all** - Unified entry point with seamless guest/auth flows:
+- 📱 Single QR entry: `/enter?t=<token>`
+- 🐷 First-time users name their pig
+- 🔄 Returning users skip straight to main experience
+- 🌐 Cross-device sync for signed-in users
+- 🍪 Secure same-device persistence for guests
+
+**Quick Start:** See [QR Entry Quick Start Guide](./QR_ENTRY_QUICKSTART.md)  
+**Full Docs:** [QR Entry Implementation](./QR_ENTRY_IMPLEMENTATION.md)
+
 ## � Production Deployment
 
 - **Frontend**: https://leo-indol-theta.vercel.app
