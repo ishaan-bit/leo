@@ -592,16 +592,18 @@ export default function BreathingSequence({
       {/* All text has faded out above */}
 
       {/* City skyline with towers - primary repositioned to center-left */}
-      <motion.div
-        ref={buildingContainerRef}
-        className="absolute bottom-0 left-0 right-0 z-25"
-        style={{ height: '50vh' }}
-      >
-        {TOWERS.map(tower => {
-          const isPrimary = tower.id === primary;
-          // All buildings start visible, then non-primary fade to 0.2 (not 0)
-          const towerOpacity = isReady ? (isPrimary ? 1 : 0.2) : 0;
-          const displayX = isPrimary ? getPrimaryTowerX(tower.id) : tower.x;
+      {/* FIX: Hide all buildings if primary is null - show only moon */}
+      {primary && (
+        <motion.div
+          ref={buildingContainerRef}
+          className="absolute bottom-0 left-0 right-0 z-25"
+          style={{ height: '50vh' }}
+        >
+          {TOWERS.map(tower => {
+            const isPrimary = tower.id === primary;
+            // All buildings start visible, then non-primary fade to 0.2 (not 0)
+            const towerOpacity = isReady ? (isPrimary ? 1 : 0.2) : 0;
+            const displayX = isPrimary ? getPrimaryTowerX(tower.id) : tower.x;
           
           return (
             <motion.div
@@ -704,6 +706,52 @@ export default function BreathingSequence({
           );
         })}
       </motion.div>
+      )}
+
+      {/* Moon - shown ONLY when primary is null/none */}
+      {!primary && isReady && (
+        <motion.div
+          className="absolute left-1/2 top-1/3 -translate-x-1/2 -translate-y-1/2 z-30"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ 
+            opacity: 1,
+            scale: isInhaling ? 1.05 : 0.95,
+          }}
+          transition={{
+            opacity: { duration: 2, ease: 'easeInOut' },
+            scale: { 
+              duration: isInhaling ? activeCycle.in : activeCycle.out,
+              ease: EASING 
+            }
+          }}
+        >
+          {/* Moon glow */}
+          <div
+            className="absolute inset-0 rounded-full"
+            style={{
+              width: '200px',
+              height: '200px',
+              background: 'radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%)',
+              filter: 'blur(30px)',
+            }}
+          />
+          
+          {/* Moon body */}
+          <div
+            className="relative rounded-full"
+            style={{
+              width: '120px',
+              height: '120px',
+              background: 'radial-gradient(circle at 30% 30%, #FFFFFF 0%, #E8E8F0 50%, #D0D0E0 100%)',
+              boxShadow: `
+                inset -10px -10px 20px rgba(0,0,0,0.1),
+                0 0 40px rgba(255,255,255,0.5),
+                0 0 80px rgba(255,255,255,0.3)
+              `,
+            }}
+          />
+        </motion.div>
+      )}
 
       {/* Floating poem - shows complete line, floats upward like smoke - 11s duration with breathing pulse */}
       <AnimatePresence>

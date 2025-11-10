@@ -117,22 +117,26 @@ export default function CityInterlude({
       setElapsedTime(elapsed);
       
       // Phase 3 sub-beats for cinematic Ghibli-style transition (compressed timing)
+      // FIX: Buildings should appear IMMEDIATELY when "time holding its breath" appears
       if (currentPhase === 3) {
         const phase3Start = TIMING.PHASE3_START; // 10s
         const phase3Elapsed = elapsed - phase3Start;
         
+        // Show buildings immediately when phase 3 starts (when text appears)
+        if (!towersRising) {
+          setTowersRising(true);
+          setSkylineVisible(true);
+        }
+        
         if (phase3Elapsed >= TIMING.PHASE3_HOLD + TIMING.STARS_TWINKLE + TIMING.SKYLINE_EMERGE) {
           // 20s+ (was 24s+)
           setPhase3SubBeat('ready');
-          setTowersRising(true);
         } else if (phase3Elapsed >= TIMING.PHASE3_HOLD + TIMING.STARS_TWINKLE) {
           // 10s-20s (was 20s-30s)
           setPhase3SubBeat('rise');
-          setTowersRising(true);
         } else if (phase3Elapsed >= TIMING.PHASE3_HOLD) {
           // 5s-10s (was 10s-20s)
           setPhase3SubBeat('emerge');
-          setSkylineVisible(true);
         } else if (phase3Elapsed >= 0) {
           // 0-5s (was 0-10s)
           setPhase3SubBeat('stars');
@@ -306,12 +310,13 @@ export default function CityInterlude({
     };
     
     // Define color stops for continuous breathing flow
+    // FIX: Sky should be dark by time "time holding its breath" appears (10s)
     const colorStops = [
       { time: 0, top: '#FCE9EF', bottom: '#F9D8E3' },           // 0s: Blush
       { time: TIMING.PHASE1_DURATION, top: '#F9D8E3', bottom: '#D7B3DB' },  // 5s: Petal pink → mauve
-      { time: TIMING.PHASE3_START, top: '#C1A0E2', bottom: '#4A3568' },     // 10s: Violet
-      { time: TIMING.PHASE3_START + 10000, top: '#3A2952', bottom: '#2B2357' }, // 20s: Deep violet
-      { time: TIMING.PHASE4_START, top: '#0A0714', bottom: '#2B2357' },     // 30s: Night sky
+      { time: TIMING.PHASE3_START - 2000, top: '#6B5B95', bottom: '#3A2952' }, // 8s: Deep twilight (2s before text)
+      { time: TIMING.PHASE3_START, top: '#2B2357', bottom: '#1A1530' },     // 10s: Dark night (when text appears)
+      { time: TIMING.PHASE4_START, top: '#0A0714', bottom: '#1A1530' },     // 30s: Deepest night
     ];
     
     // Find which two color stops we're between
