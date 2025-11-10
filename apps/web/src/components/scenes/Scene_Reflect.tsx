@@ -235,14 +235,8 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     const words = text.trim().split(/\s+/).filter(w => w.length > 0);
     setWordCount(words.length);
     
-    // Show contextual sign-in nudge on first keystroke (guest users only)
-    if (status === 'unauthenticated' && text.length === 1 && !showGuestNudge) {
-      setShowGuestNudge(true);
-      // Show modal on first keystroke
-      setShowSignInModal(true);
-      // Hide floating button when modal is shown
-      setShowFloatingSignIn(false);
-    }
+    // REMOVED auto-popup on first keystroke - was too intrusive
+    // Guest users can click floating sign-in button instead
     
     if (scenePhase === 'entering') {
       setScenePhase('listening');
@@ -1068,8 +1062,10 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
           isOpen={showSignInModal}
           onClose={() => {
             setShowSignInModal(false);
-            // Show floating button again after modal is closed
-            setShowFloatingSignIn(true);
+            // Don't auto-show floating button after close - let user continue reflection
+            // They can click the guest nudge if they want to sign in later
+            setShowFloatingSignIn(false);
+            setShowGuestNudge(false); // Also hide the nudge to avoid duplicate buttons
           }}
           pigId={pigId}
         />

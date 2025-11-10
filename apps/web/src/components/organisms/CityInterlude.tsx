@@ -840,8 +840,8 @@ export default function CityInterlude({
                 }}
                 transition={{
                   initial: {
-                    duration: 2,
-                    delay: idx * 0.5,
+                    duration: 1.5, // Faster rise from 2s
+                    delay: idx * 0.2, // Reduced stagger from 0.5s to 0.2s (1.2s total vs 3s)
                     ease: [0.22, 1, 0.36, 1],
                   },
                   left: { duration: 2, ease: [0.22, 1, 0.36, 1] },

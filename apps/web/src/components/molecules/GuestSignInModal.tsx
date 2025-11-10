@@ -35,9 +35,9 @@ export default function GuestSignInModal({
             onClick={onClose}
           />
 
-          {/* Modal - smaller and properly centered for mobile */}
+          {/* Modal - CENTERED properly for mobile, ensure not cut off */}
           <motion.div
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[70] w-[90%] max-w-xs"
+            className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-[70] max-w-[280px] mx-auto"
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}

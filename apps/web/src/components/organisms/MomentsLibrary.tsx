@@ -75,17 +75,17 @@ const TOWER_CONFIGS = [
 ];
 
 // Calculate responsive building position - equal spacing from left to right
-const getBuildingPosition = (index: number, buildingWidth: number = 70): string => {
+const getBuildingPosition = (index: number, buildingWidth: number = 52): string => {
   const totalBuildings = TOWER_CONFIGS.length;
-  const padding = 2; // 2% padding on each side
-  const availableSpace = 100 - (2 * padding); // 96% available
+  const leftPadding = 2; // 2% padding on left
+  const rightPadding = 8; // More padding on right to ensure Sable is visible
+  const availableSpace = 100 - leftPadding - rightPadding; // 90% available
   
   // Calculate spacing: divide available space by (buildings - 1) for gaps between buildings
-  // First building at padding%, last at (100 - padding)%, rest evenly spaced
-  if (totalBuildings === 1) return `${padding}%`;
+  if (totalBuildings === 1) return `${leftPadding}%`;
   
   const spacing = availableSpace / (totalBuildings - 1);
-  return `${padding + (index * spacing)}%`;
+  return `${leftPadding + (index * spacing)}%`;
 };
 
 export default function MomentsLibrary({
@@ -843,8 +843,8 @@ export default function MomentsLibrary({
               key={tower.id}
               className="absolute bottom-0"
               style={{
-                left: getBuildingPosition(tower.index),
-                width: '70px', // Slightly increased from 60px for better visibility
+                left: getBuildingPosition(tower.index, 52),
+                width: '52px', // Reduced to 75% (52px from 70px) so Sable fits on mobile
                 height: `${tower.height * 1.5}px`, // Increased from 1.2x to 1.5x for taller buildings
               }}
               initial={{ opacity: isCurrent ? 1 : 0, scale: 0.9 }}

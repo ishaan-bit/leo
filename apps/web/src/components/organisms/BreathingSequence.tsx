@@ -522,64 +522,21 @@ export default function BreathingSequence({
             }}
             exit={{ opacity: 0, transition: { duration: 1.5, ease: 'easeOut' } }}
           >
-            {/* Show both words on first cycle, then toggle */}
-            {cycleCount === 0 ? (
-              <div className="flex flex-col items-center gap-2">
-                <motion.div
-                  className="text-4xl font-sans tracking-widest lowercase font-light"
-                  style={{
-                    color: 'rgba(255, 255, 255, 0.9)',
-                    textShadow: `
-                      0 0 20px rgba(255, 255, 255, 0.8),
-                      0 0 40px rgba(255, 255, 255, 0.6),
-                      0 2px 8px rgba(0,0,0,0.4)
-                    `,
-                    letterSpacing: '0.35em',
-                  }}
-                  animate={{
-                    opacity: isInhaling ? 1 : 0.3,
-                    scale: isInhaling ? 1.05 : 1, // Breathing pulse
-                  }}
-                  transition={{ duration: cycleDuration / 2000, ease: EASING }}
-                >
-                  inhale
-                </motion.div>
-                <motion.div
-                  className="text-4xl font-sans tracking-widest lowercase font-light"
-                  style={{
-                    color: 'rgba(255, 255, 255, 0.9)',
-                    textShadow: `
-                      0 0 20px rgba(255, 255, 255, 0.8),
-                      0 0 40px rgba(255, 255, 255, 0.6),
-                      0 2px 8px rgba(0,0,0,0.4)
-                    `,
-                    letterSpacing: '0.35em',
-                  }}
-                  animate={{
-                    opacity: isInhaling ? 0.3 : 1,
-                    scale: isInhaling ? 1 : 1.05, // Breathing pulse
-                  }}
-                  transition={{ duration: cycleDuration / 2000, ease: EASING }}
-                >
-                  exhale
-                </motion.div>
-              </div>
-            ) : (
-              <div
-                className="text-4xl font-sans tracking-widest lowercase font-light"
-                style={{
-                  color: 'rgba(255, 255, 255, 0.9)',
-                  textShadow: `
-                    0 0 20px rgba(255, 255, 255, 0.8),
-                    0 0 40px rgba(255, 255, 255, 0.6),
-                    0 2px 8px rgba(0,0,0,0.4)
-                  `,
-                  letterSpacing: '0.35em',
-                }}
-              >
-                {isInhaling ? 'inhale' : 'exhale'}
-              </div>
-            )}
+            {/* Inhale/exhale separated by breathing phase */}
+            <div
+              className="text-2xl font-sans tracking-widest lowercase font-light" // Reduced from text-4xl
+              style={{
+                color: 'rgba(255, 255, 255, 0.9)',
+                textShadow: `
+                  0 0 20px rgba(255, 255, 255, 0.8),
+                  0 0 40px rgba(255, 255, 255, 0.6),
+                  0 2px 8px rgba(0,0,0,0.4)
+                `,
+                letterSpacing: '0.35em',
+              }}
+            >
+              {isInhaling ? 'inhale' : 'exhale'}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
