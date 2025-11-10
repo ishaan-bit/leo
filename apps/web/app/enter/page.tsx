@@ -19,6 +19,9 @@ import { redirect } from 'next/navigation';
 import { resolveIdentity } from '@/lib/identity-resolver';
 import { kv } from '@vercel/kv';
 
+// Force dynamic rendering (uses cookies)
+export const dynamic = 'force-dynamic';
+
 type QRTokenMetadata = {
   campaign?: string;
   requested_mode?: 'auto' | 'guest' | 'auth';

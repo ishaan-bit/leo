@@ -12,6 +12,9 @@ import { redirect } from 'next/navigation';
 import { resolveIdentity, promoteGuestPig } from '@/lib/identity-resolver';
 import { cookies } from 'next/headers';
 
+// Force dynamic rendering (uses cookies and auth session)
+export const dynamic = 'force-dynamic';
+
 interface BindCallbackProps {
   searchParams: Promise<{ next?: string }>;
 }

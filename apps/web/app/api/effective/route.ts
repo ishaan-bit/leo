@@ -20,6 +20,10 @@
 import { NextResponse } from 'next/server';
 import { resolveIdentity } from '@/lib/identity-resolver';
 
+// Force dynamic rendering (uses cookies)
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function GET() {
   try {
     const identity = await resolveIdentity();
