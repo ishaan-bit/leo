@@ -441,7 +441,14 @@ export default function BreathingSequence({
   const isHoldingOut = currentPhase === 'hold-out';
   
   const skyBrightness = (isInhaling || isHoldingIn) ? 1.2 : 0.8;
-  const leoScale = (isInhaling || isHoldingIn) ? 1.15 : 0.92;
+  
+  // BREATHING SYNC FIX: Pig and text must use identical scale keyframes
+  // Inhale: [0.92 → 1.15 → 1.15 → 1.0] over activeCycle.in seconds
+  // Exhale: [1.0 → 0.92 → 0.92 → 0.95] over activeCycle.out seconds
+  const leoScale = isInhaling 
+    ? [0.92, 1.15, 1.15, 1.0]  // Start small, grow to peak, hold peak, settle to medium
+    : [1.0, 0.92, 0.92, 0.95]; // Start medium, shrink to trough, hold trough, settle to near-trough
+  
   const starOpacity = (isInhaling || isHoldingIn) ? 0.9 : 0.3;
   
   // Handle "Mark Done" button click - advances to next poem/tip cycle
@@ -541,7 +548,8 @@ export default function BreathingSequence({
           transition={{ 
             scale: { 
               duration: isInhaling ? activeCycle.in : isExhaling ? activeCycle.out : 0.3,
-              ease: EASING 
+              ease: EASING,
+              times: [0, 0.3, 0.7, 1], // SYNC FIX: Match text keyframe times exactly
             },
             rotateZ: leoReacting 
               ? { duration: 0.7, times: [0, 0.33, 0.66, 1], ease: 'easeInOut' }
