@@ -409,7 +409,7 @@ export default function MomentsLibrary({
     if (phase === 'library' && moments.length > 0 && !selectedMoment) {
       // Find the newest moment (today's brightest window)
       const newestMoment = moments.reduce((newest, current) => {
-        return new Date(current.created_at) > new Date(newest.created_at) ? current : newest;
+        return new Date(current.timestamp) > new Date(newest.timestamp) ? current : newest;
       });
       
       console.log('[MomentsLibrary] 🎯 Auto-opening newest moment:', newestMoment.id);
