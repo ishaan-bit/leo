@@ -63,7 +63,7 @@ export default function GuestNamePigPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          deviceUid,
+          guest_session_id: deviceUid,
           pigName: pigName.trim(),
         }),
       });

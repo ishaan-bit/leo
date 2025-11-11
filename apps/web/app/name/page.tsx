@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { v4 as uuidv4 } from 'uuid';
 import PinkPig from '@/components/molecules/PinkPig';
+import { playClickSound, playChimeSound } from '@/lib/sound';
 
 export default function NamePage() {
   const router = useRouter();
@@ -115,6 +116,7 @@ export default function NamePage() {
         console.log('[Name] Pig created:', pigId, pigName.trim());
         
         // Show confetti celebration
+        playChimeSound();
         setShowConfetti(true);
         setTimeout(() => {
           setShowConfetti(false);
@@ -155,6 +157,7 @@ export default function NamePage() {
         console.log('[Name] Guest pig created:', pigName.trim());
         
         // Show confetti celebration
+        playChimeSound();
         setShowConfetti(true);
         setTimeout(() => {
           setShowConfetti(false);
@@ -199,6 +202,19 @@ export default function NamePage() {
             ease: 'linear'
           }}
         />
+
+        {/* Animated Pig - floats up to final position */}
+        <motion.div
+          className="mb-8"
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ 
+            duration: 2,
+            ease: [0.34, 1.56, 0.64, 1]
+          }}
+        >
+          <PinkPig size={180} state="idle" />
+        </motion.div>
 
         {/* Settle text */}
         <motion.div
@@ -280,7 +296,13 @@ export default function NamePage() {
             ease: 'linear'
           }}
         />
-        <div className="text-pink-800 text-lg font-serif italic">Loading...</div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <div className="text-pink-800 text-lg font-serif italic">Loading...</div>
+        </motion.div>
       </section>
     );
   }
@@ -539,6 +561,7 @@ export default function NamePage() {
             <motion.button
               type="submit"
               disabled={!pigName.trim() || isSubmitting}
+              onClick={() => playClickSound()}
               className="w-full max-w-sm py-3 px-6 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-medium shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}

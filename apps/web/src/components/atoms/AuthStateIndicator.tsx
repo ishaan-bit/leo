@@ -18,8 +18,8 @@ export default function AuthStateIndicator({ userName, isGuest }: AuthStateIndic
     // Fade out animation
     await new Promise(resolve => setTimeout(resolve, 800));
     
-    // Sign out and redirect to testpig page
-    await signOut({ callbackUrl: '/p/testpig' });
+    // Sign out and redirect to start page
+    await signOut({ callbackUrl: '/start' });
   };
 
   return (

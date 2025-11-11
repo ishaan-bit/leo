@@ -4,6 +4,8 @@ import { Howl } from "howler";
 declare global {
   interface Window {
     __leoAmbientSound?: Howl;
+    __leoClickSound?: Howl;
+    __leoChimeSound?: Howl;
   }
 }
 
@@ -104,4 +106,33 @@ export function resumeAmbientSound() {
     sound.play();
     sound.fade(0, 0.4, 400); // Fade back in
   }
+}
+
+// UI Sound Effects
+export function playClickSound() {
+  if (typeof window === 'undefined') return;
+  
+  if (!window.__leoClickSound) {
+    window.__leoClickSound = new Howl({
+      src: ["/audio/inkRipple.mp3"],
+      volume: 0.3,
+      html5: true,
+    });
+  }
+  
+  window.__leoClickSound.play();
+}
+
+export function playChimeSound() {
+  if (typeof window === 'undefined') return;
+  
+  if (!window.__leoChimeSound) {
+    window.__leoChimeSound = new Howl({
+      src: ["/audio/chime.mp3"],
+      volume: 0.4,
+      html5: true,
+    });
+  }
+  
+  window.__leoChimeSound.play();
 }

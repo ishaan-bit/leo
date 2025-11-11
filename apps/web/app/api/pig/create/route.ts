@@ -87,15 +87,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Check if name is taken by any user (global uniqueness)
-    const existingPigByName = await redis.get(`pig_name:${sanitizedName}`);
-    if (existingPigByName) {
-      return NextResponse.json(
-        { error: 'This name is already taken' },
-        { status: 409 }
-      );
-    }
-
     // Create pig
     const pigId = uuidv4();
     const pigData = {
