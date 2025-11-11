@@ -106,8 +106,8 @@ export default function NamePage() {
         // Show 5s settle screen
         setShowSettle(true);
         setTimeout(() => {
-          // Blend to /reflect
-          router.push('/reflect');
+          // Redirect directly to /reflect/[pigName] to avoid identity resolver timing issues
+          router.push(`/reflect/${pigName.trim()}`);
         }, 5000);
       }, 2000);
     } catch (err) {
@@ -152,7 +152,7 @@ export default function NamePage() {
           transition={{ duration: 1.2 }}
         >
           <motion.p
-            className="text-pink-800 text-xl md:text-2xl font-serif italic leading-relaxed"
+            className="text-pink-800 text-base md:text-lg font-serif italic leading-relaxed"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 1 }}
@@ -161,7 +161,7 @@ export default function NamePage() {
           </motion.p>
           
           <motion.p
-            className="text-pink-900 text-2xl md:text-3xl font-serif italic leading-relaxed"
+            className="text-pink-900 text-lg md:text-xl font-serif italic leading-relaxed"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 1.0, duration: 1.2 }}
@@ -170,7 +170,7 @@ export default function NamePage() {
           </motion.p>
 
           <motion.p
-            className="text-pink-700 text-base md:text-lg font-serif italic leading-relaxed pt-2"
+            className="text-pink-700 text-sm md:text-base font-serif italic leading-relaxed pt-2"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 2.0, duration: 1 }}
