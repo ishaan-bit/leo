@@ -104,6 +104,7 @@ export default function MomentsLibrary({
   const [isLoading, setIsLoading] = useState(true);
   const [blinkingWindow, setBlinkingWindow] = useState<string | null>(null);
   const [showIntroBubble, setShowIntroBubble] = useState(false);
+  const [showPreservationBubble, setShowPreservationBubble] = useState(false);
   
   // Language toggle state
   const [language, setLanguage] = useState<'en' | 'hi'>('en');
@@ -144,8 +145,17 @@ export default function MomentsLibrary({
           // Ignore errors if iframe is from different origin
         }
       });
+      
+      // Show preservation bubble when moment is closed
+      // Only show if we previously had a moment open (not initial load)
+      if (phase === 'library' && moments.length > 0) {
+        setShowPreservationBubble(true);
+        
+        // Auto-hide after 3 seconds
+        setTimeout(() => setShowPreservationBubble(false), 3000);
+      }
     }
-  }, [selectedMoment]);
+  }, [selectedMoment, phase, moments.length]);
 
   // Track image rendering telemetry (non-PII)
   useEffect(() => {
@@ -393,6 +403,25 @@ export default function MomentsLibrary({
       return () => clearTimeout(timer);
     }
   }, [phase, moments.length]);
+
+  // Auto-open today's brightest moment when library phase loads
+  useEffect(() => {
+    if (phase === 'library' && moments.length > 0 && !selectedMoment) {
+      // Find the newest moment (today's brightest window)
+      const newestMoment = moments.reduce((newest, current) => {
+        return new Date(current.created_at) > new Date(newest.created_at) ? current : newest;
+      });
+      
+      console.log('[MomentsLibrary] 🎯 Auto-opening newest moment:', newestMoment.id);
+      
+      // Wait for animations to settle (2.5s after library loads)
+      const timer = setTimeout(() => {
+        setSelectedMoment(newestMoment);
+      }, 2500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [phase, moments, selectedMoment]);
 
   // GUEST DATA PURGE: After library phase loads, purge guest data (transient mode)
   useEffect(() => {
@@ -723,6 +752,41 @@ export default function MomentsLibrary({
         )}
       </AnimatePresence>
 
+      {/* Preservation bubble - "Today's Moment has been preserved here" */}
+      <AnimatePresence>
+        {showPreservationBubble && (
+          <motion.div
+            className="absolute top-[15%] left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+            initial={{ opacity: 0, y: -10, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.9 }}
+            transition={{ duration: 0.6, ease: EASING }}
+          >
+            <div
+              className="px-6 py-4 rounded-2xl shadow-2xl max-w-sm text-center"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 250, 245, 0.98) 100%)',
+                backdropFilter: 'blur(20px)',
+                border: '2px solid rgba(156, 31, 95, 0.15)',
+                boxShadow: '0 12px 40px rgba(156, 31, 95, 0.15), 0 4px 12px rgba(0,0,0,0.1)',
+              }}
+            >
+              <p
+                className="text-base font-medium"
+                style={{
+                  fontFamily: '"EB Garamond", "Georgia", serif',
+                  color: '#2D2D2D',
+                  lineHeight: '1.5',
+                  letterSpacing: '0.3px',
+                }}
+              >
+                Today's Moment has been preserved here
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Crescent Moon - holds moments without any emotion (null primary or null zone) */}
       {(() => {
         const nullEmotionMoments = moments.filter(m => 
@@ -735,8 +799,8 @@ export default function MomentsLibrary({
           <motion.div
             className="absolute z-45 cursor-pointer group"
             style={{
-              left: 'calc(50% - 140px)', // Left of Leo (Leo is at 50%)
-              top: phase === 'library' ? '20%' : '35%', // Slightly above Leo, below subtitle
+              right: '15%', // Bottom-right of Leo (Leo is at 50%)
+              bottom: '20%', // Below Leo
             }}
             initial={{ opacity: 0, scale: 0.8, rotate: -30 }}
             animate={{ 
@@ -753,11 +817,11 @@ export default function MomentsLibrary({
             whileHover={{ scale: 1.15, rotate: -35 }}
             title={`${nullEmotionMoments.length} quiet moment${nullEmotionMoments.length > 1 ? 's' : ''}`}
           >
-            {/* Glow effect */}
+            {/* Glow effect - white instead of violet */}
             <motion.div
               className="absolute inset-0"
               style={{
-                background: 'radial-gradient(circle, rgba(180, 160, 255, 0.3) 0%, transparent 70%)',
+                background: 'radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%)',
                 filter: 'blur(20px)',
                 transform: 'scale(1.5)',
               }}
@@ -773,13 +837,13 @@ export default function MomentsLibrary({
             
             {/* Crescent moon base - larger container */}
             <div className="relative w-20 h-20">
-              {/* Main crescent shape */}
+              {/* Main crescent shape - white instead of violet */}
               <div
                 className="absolute inset-0 rounded-full"
                 style={{
-                  boxShadow: 'inset -10px 0px 0px 0px rgba(180, 160, 255, 0.9)',
+                  boxShadow: 'inset -10px 0px 0px 0px rgba(255, 255, 255, 0.9)',
                   background: 'transparent',
-                  filter: 'drop-shadow(0 0 10px rgba(180, 160, 255, 0.5))',
+                  filter: 'drop-shadow(0 0 10px rgba(255, 255, 255, 0.5))',
                 }}
               />
               
@@ -799,15 +863,15 @@ export default function MomentsLibrary({
                         left: '50%',
                         top: '50%',
                         transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) rotate(${angle + 90}deg)`,
-                        background: 'rgba(200, 180, 255, 0.8)',
-                        boxShadow: '0 0 8px rgba(180, 160, 255, 0.6)',
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        boxShadow: '0 0 8px rgba(255, 255, 255, 0.6)',
                       }}
                       animate={{
                         opacity: [0.6, 1, 0.6],
                         boxShadow: [
-                          '0 0 8px rgba(180, 160, 255, 0.6)',
-                          '0 0 15px rgba(180, 160, 255, 0.9)',
-                          '0 0 8px rgba(180, 160, 255, 0.6)',
+                          '0 0 8px rgba(255, 255, 255, 0.6)',
+                          '0 0 15px rgba(255, 255, 255, 0.9)',
+                          '0 0 8px rgba(255, 255, 255, 0.6)',
                         ],
                       }}
                       transition={{
@@ -817,7 +881,7 @@ export default function MomentsLibrary({
                       }}
                       whileHover={{
                         scale: 1.5,
-                        background: 'rgba(220, 200, 255, 1)',
+                        background: 'rgba(255, 255, 255, 1)',
                         boxShadow: '0 0 20px rgba(180, 160, 255, 1)',
                       }}
                       onClick={(e) => {
