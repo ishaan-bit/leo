@@ -195,7 +195,8 @@ def enrich(
     include_neutral: bool = True,
     timestamp: Optional[datetime] = None,
     context: Optional[Dict] = None,
-    user_priors: Optional[Dict] = None
+    user_priors: Optional[Dict] = None,
+    use_none_gate: bool = True
 ) -> Dict:
     """
     Full enrichment pipeline with automatic HF classification.
@@ -209,6 +210,7 @@ def enrich(
         timestamp: When reflection was created
         context: User history
         user_priors: User-specific priors
+        use_none_gate: If True, returns None for low-density moments. If False, fallback to Neutral/Calm
     
     Returns:
         Complete enrichment result
@@ -242,7 +244,8 @@ def enrich(
         secondary_similarity=secondary_similarity,
         driver_scores=None,
         history=context,
-        user_priors=user_priors
+        user_priors=user_priors,
+        use_none_gate=use_none_gate
     )
     
     return result

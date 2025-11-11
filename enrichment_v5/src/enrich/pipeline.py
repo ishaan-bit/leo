@@ -47,7 +47,8 @@ def enrich(
     secondary_similarity: Dict[str, float],
     driver_scores: Optional[Dict[str, float]] = None,
     history: Optional[Dict] = None,
-    user_priors: Optional[Dict] = None
+    user_priors: Optional[Dict] = None,
+    use_none_gate: bool = True
 ) -> Dict:
     """
     Main enrichment pipeline.
@@ -59,6 +60,7 @@ def enrich(
         driver_scores: Optional driver signals {driver: score}
         history: Optional previous VA values
         user_priors: Optional user-specific domain/control priors
+        use_none_gate: If True, returns None for low-density moments. If False, fallback to Neutral/Calm
         
     Returns:
         Complete enrichment result with emotions, VA, context, and confidence
@@ -136,12 +138,13 @@ def enrich(
     # This is just for neutral detection thresholds, actual VA computed later
     emotion_valence_approx = 0.5
     
-    # Run neutral detection
+    # Run neutral detection (pass domain for enhanced detection)
     neutral_result = neutral_detection.detect_neutral_states(
         text=text,
         features=feature_set,
         emotion_valence=emotion_valence_approx,
-        event_valence=event_val_sarc
+        event_valence=event_val_sarc,
+        domain=domain_primary  # For domain-aware emotion evidence
     )
     
     # Map values: "none" → None, "routine" → "subtle", "specific" → "explicit"
@@ -160,12 +163,20 @@ def enrich(
     event_presence = event_presence_map.get(neutral_result.event_presence, "explicit")
     is_neutral = neutral_result.is_emotion_neutral and neutral_result.is_event_neutral
     
-    # If emotion_presence is None, set all emotions to None
+    # If emotion_presence is None, handle based on use_none_gate flag
     if emotion_presence is None:
-        best_primary = None
-        best_secondary = None
-        best_tertiary = None
-        print("[pipeline] emotion_presence is None → setting all emotions to None")
+        if use_none_gate:
+            # Gate is ON: Return None emotions (original behavior)
+            best_primary = None
+            best_secondary = None
+            best_tertiary = None
+            print("[pipeline] emotion_presence is None + use_none_gate=True -> setting all emotions to None")
+        else:
+            # Gate is OFF: Fallback to Neutral/Calm instead of None
+            best_primary = "Peaceful"  # Neutral primary
+            best_secondary = "Serene"  # Calm secondary
+            best_tertiary = "soft"     # Gentle tertiary
+            print("[pipeline] emotion_presence is None + use_none_gate=False -> fallback to Peaceful/Serene/soft")
     
     # 10. Compute overall confidence
     overall_confidence, conf_components = conf_module.compute_overall_confidence(
@@ -264,6 +275,95 @@ def enrich(
     except Exception as e:
         import logging
         logging.getLogger(__name__).warning(f"[dialogue append skipped] {e}")
+    
+    # 15. Compute signifiers (MSP/SMS/SOM-WC) - non-blocking, feature-gated
+    try:
+        from config.settings import settings
+        
+        if settings.FEATURE_SIGNIFIERS_ENABLED:
+            from analytics.signifiers import compute_signifiers
+            from analytics.som_wc import compute_som_wc
+            
+            # Compute signifiers
+            signifiers = compute_signifiers(result, text)
+            som = compute_som_wc(result, signifiers)
+            
+            # Merge into result
+            result['signifiers'] = {**signifiers, **som}
+            
+            # Persist to Upstash if configured
+            if settings.upstash_configured:
+                from storage.upstash_client import store_signifiers
+                rid = result.get('rid')
+                if rid:
+                    store_signifiers(rid, result['signifiers'], settings.SIGNIFIERS_TTL_SECONDS)
+    
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.exception(
+            "[signifiers] Failed to compute/store signifiers",
+            extra={"rid": result.get("rid"), "sid": result.get("sid")}
+        )
+        # Continue without signifiers - non-blocking
+    
+    # 16. Append safety risk assessment - append-only, non-breaking
+    try:
+        from safety.detector import detect_safety_risk
+        from safety.merge import append_only_update, prepare_safety_additions
+        
+        # Detect safety risk
+        risk_assessment = detect_safety_risk(
+            normalized_text=text,
+            domain_secondary=domain_secondary
+        )
+        
+        # EMOTION PRESENCE OVERRIDE: Crisis inputs MUST have emotion presence
+        if risk_assessment.get("overall_band") in ["high", "concern"]:
+            if is_neutral or emotion_presence is None:
+                # Force emotion presence for crisis
+                result['is_neutral'] = False
+                result['emotion_presence'] = "present"
+            
+            # Force primary emotion for crisis based on signals (override existing emotion)
+            sh_signals = risk_assessment.get("vectors", {}).get("self_harm", {}).get("signals", {})
+            if sh_signals:
+                # Attempt/ideation/history → Sad (despair, hopelessness)
+                if sh_signals.get("history", 0) > 0 or sh_signals.get("ideation", 0) > 0.5:
+                    result['wheel']['primary'] = "Sad"
+                    result['primary'] = "Sad"
+                    # Add secondary emotion based on context
+                    if sh_signals.get("intent", 0) > 0:
+                        result['wheel']['secondary'] = "Despair"
+                        result['secondary'] = "Despair"
+                # Planning/intent without history → Fearful (panic, dread)
+                elif sh_signals.get("planning", 0) > 0 or sh_signals.get("intent", 0) > 0:
+                    result['wheel']['primary'] = "Fearful"
+                    result['primary'] = "Fearful"
+                    result['wheel']['secondary'] = "Hurt"
+                    result['secondary'] = "Hurt"
+        
+        # Prepare additions (append-only)
+        safety_additions = prepare_safety_additions(
+            risk_assessment,
+            risk_assessment["overall_band"]
+        )
+        
+        # Merge append-only (no modifications to existing fields)
+        result = append_only_update(
+            result,
+            safety_additions,
+            allowed_modifications=["final.post_enrichment.mode"]
+        )
+        
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.warning(
+            f"[safety] Failed to append safety risk assessment: {e}",
+            extra={"rid": result.get("rid"), "sid": result.get("sid")}
+        )
+        # Continue without safety - non-blocking
     
     return result
 
