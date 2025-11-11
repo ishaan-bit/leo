@@ -21,34 +21,7 @@ function BindPageContent() {
   const searchParams = useSearchParams();
   const next = searchParams.get('next') || '/city';
 
-  const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [emailSent, setEmailSent] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleEmailSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setIsSubmitting(true);
-
-    try {
-      const result = await signIn('email', {
-        email,
-        redirect: false,
-        callbackUrl: `/bind/callback?next=${encodeURIComponent(next)}`,
-      });
-
-      if (result?.error) {
-        setError('Failed to send magic link. Please try again.');
-        setIsSubmitting(false);
-      } else {
-        setEmailSent(true);
-      }
-    } catch (err) {
-      setError('An unexpected error occurred');
-      setIsSubmitting(false);
-    }
-  };
 
   const handleGoogleSignIn = async () => {
     setIsSubmitting(true);
@@ -56,48 +29,6 @@ function BindPageContent() {
       callbackUrl: `/bind/callback?next=${encodeURIComponent(next)}`,
     });
   };
-
-  if (emailSent) {
-    return (
-      <main className="min-h-screen bg-gradient-to-br from-pink-50 via-rose-50 to-purple-50 flex items-center justify-center px-6">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="max-w-md w-full bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/50 p-8 text-center space-y-6"
-        >
-          <motion.div
-            animate={{
-              scale: [1, 1.1, 1],
-              rotate: [0, 10, -10, 0],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-            className="text-7xl"
-          >
-            📧
-          </motion.div>
-
-          <h2 className="text-2xl font-serif text-pink-900">
-            Check your email
-          </h2>
-
-          <p className="text-pink-700 text-sm">
-            We sent a magic link to <strong>{email}</strong>.
-            Click the link to sign in and keep your pig on all devices.
-          </p>
-
-          <div className="pt-4 border-t border-pink-200">
-            <p className="text-xs text-pink-500">
-              Didn't receive it? Check your spam folder or try again.
-            </p>
-          </div>
-        </motion.div>
-      </main>
-    );
-  }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-pink-50 via-rose-50 to-purple-50 flex items-center justify-center px-6">
@@ -159,51 +90,9 @@ function BindPageContent() {
             Continue with Google
           </motion.button>
 
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-pink-200"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white/80 text-pink-500">or</span>
-            </div>
-          </div>
-
-          {/* Email Sign In */}
-          <form onSubmit={handleEmailSignIn} className="space-y-4">
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="your@email.com"
-              required
-              className="w-full px-4 py-3 rounded-full border-2 border-pink-200 focus:border-pink-400 focus:outline-none bg-white/50 text-pink-900 placeholder-pink-400 text-center transition-all"
-              disabled={isSubmitting}
-            />
-
-            {error && (
-              <motion.p
-                initial={{ opacity: 0, y: -5 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-red-500 text-sm text-center"
-              >
-                {error}
-              </motion.p>
-            )}
-
-            <motion.button
-              type="submit"
-              disabled={isSubmitting}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-medium py-3 px-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50"
-            >
-              {isSubmitting ? 'Sending magic link...' : 'Continue with Email'}
-            </motion.button>
-          </form>
-
           <button
             onClick={() => window.location.href = next}
-            className="w-full text-sm text-pink-600 hover:text-pink-800 underline py-2"
+            className="w-full text-sm text-pink-600 hover:text-pink-800 underline py-2 mt-6"
           >
             Skip for now
           </button>
