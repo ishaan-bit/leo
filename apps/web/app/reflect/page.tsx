@@ -12,14 +12,20 @@ export default function ReflectRedirectPage() {
         // Fetch effective identity
         const res = await fetch('/api/effective');
         if (!res.ok) {
-          router.push('/name');
+          // Default to guest flow if can't determine identity
+          router.push('/guest/name-pig');
           return;
         }
 
         const identity = await res.json();
         
         if (!identity.pigName) {
-          router.push('/name');
+          // Redirect to appropriate naming flow based on auth status
+          if (identity.mode === 'auth') {
+            router.push('/name'); // Authenticated but no pig name
+          } else {
+            router.push('/guest/name-pig'); // Guest without pig name
+          }
           return;
         }
 
@@ -27,7 +33,7 @@ export default function ReflectRedirectPage() {
         router.push(`/reflect/${identity.pigId || identity.pigName}`);
       } catch (err) {
         console.error('[Reflect] Error:', err);
-        router.push('/name');
+        router.push('/guest/name-pig'); // Default to guest on error
       }
     }
 

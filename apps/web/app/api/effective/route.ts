@@ -28,9 +28,13 @@ export async function GET() {
   try {
     const identity = await resolveIdentity();
 
+    // For guest users, use sid as pigId. For authenticated users, use authId
+    const pigId = identity.authId || identity.sid;
+
     return NextResponse.json({
       mode: identity.effectiveScope === 'user' ? 'auth' : 'guest',
       pigName: identity.pigName,
+      pigId: pigId, // Added pigId for routing
       effectiveId: identity.effectiveId,
       sid: identity.sid.substring(0, 12) + '...', // Truncated for security
       authId: identity.authId ? identity.authId.substring(0, 12) + '...' : null,

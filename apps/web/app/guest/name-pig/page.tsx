@@ -1,8 +1,9 @@
 /**
- * /guest/name-pig - Guest Pig Naming (EXACT copy of /name flow)
+ * /guest/name-pig - Guest Pig Naming
  * 
  * Poetic naming experience with cinematic entrance
- * Creates ephemeral guest session (3min TTL)
+ * Uses identity-resolver system (same as authenticated users)
+ * NO duplicate name checking - guests can use any name
  */
 
 'use client';
@@ -10,7 +11,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { v4 as uuidv4 } from 'uuid';
 import PinkPig from '@/components/molecules/PinkPig';
 
 export default function GuestNamePigPage() {
@@ -51,19 +51,11 @@ export default function GuestNamePigPage() {
     setError(null);
 
     try {
-      // Get or create device_uid
-      let deviceUid = localStorage.getItem('leo_guest_uid');
-      if (!deviceUid) {
-        deviceUid = uuidv4();
-        localStorage.setItem('leo_guest_uid', deviceUid);
-      }
-
-      // Initialize guest pig
+      // Initialize guest pig (identity-resolver handles session)
       const res = await fetch('/api/guest/init', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          guest_session_id: deviceUid,
           pigName: pigName.trim(),
         }),
       });
@@ -75,10 +67,12 @@ export default function GuestNamePigPage() {
         return;
       }
 
-      // Save locally
+      const data = await res.json();
+
+      // Save locally for confirmed page
       localStorage.setItem('leo_pig_name_local', pigName.trim());
 
-      console.log('[Guest] Pig created:', pigName.trim());
+      console.log('[Guest] Pig created:', pigName.trim(), 'pigId:', data.pigId);
       
       // Show confetti celebration
       setShowConfetti(true);

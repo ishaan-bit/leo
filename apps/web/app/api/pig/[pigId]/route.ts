@@ -1,66 +1,57 @@
+/**
+ * GET /api/pig/[pigId]
+ * 
+ * Fetch pig profile by pigId (either user ID or session ID)
+ * Works with both authenticated users and guest sessions
+ * 
+ * Response: { pigId, named: boolean, name: string | null }
+ */
+
 import { NextRequest, NextResponse } from "next/server";
-import { redis } from '@/lib/supabase';
+import { kv } from '@vercel/kv';
+
+type PigProfile = {
+  pig_name: string;
+  created_at: string;
+};
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ pigId: string }> }) {
   const { pigId } = await params;
   
-  // Check if pigId looks like a UUID (contains hyphens) vs a pig name
-  const isUUID = pigId.includes('-');
-  
-  if (isUUID) {
-    // Fetch by pigId from Redis
-    try {
-      const pigData = await redis.hgetall(`pig:${pigId}`);
-      
-      if (!pigData || !pigData.name) {
-        return NextResponse.json({ 
-          pigId, 
-          named: false, 
-          name: null 
-        });
-      }
-      
-      return NextResponse.json({ 
-        pigId, 
-        named: true, 
-        name: pigData.name
-      });
-    } catch (error) {
-      console.error('[API /pig/[pigId]] Error fetching pig by ID:', error);
+  try {
+    // Try both user and sid formats
+    let profile: PigProfile | null = null;
+    let profileKey: string;
+
+    // Check if pigId starts with sid_ (guest session)
+    if (pigId.startsWith('sid_')) {
+      profileKey = `sid:${pigId}:profile`;
+      profile = await kv.get<PigProfile>(profileKey);
+    } else {
+      // Assume it's a user ID
+      profileKey = `user:${pigId}:profile`;
+      profile = await kv.get<PigProfile>(profileKey);
+    }
+
+    if (!profile || !profile.pig_name) {
       return NextResponse.json({ 
         pigId, 
         named: false, 
         name: null 
       });
     }
-  } else {
-    // Lookup by name → get pigId
-    try {
-      const resolvedPigId = await redis.get(`pig_name:${pigId}`);
-      
-      if (!resolvedPigId) {
-        return NextResponse.json({ 
-          pigId, 
-          named: false, 
-          name: null 
-        });
-      }
-      
-      // Fetch the full pig data
-      const pigData = await redis.hgetall(`pig:${resolvedPigId}`);
-      
-      return NextResponse.json({ 
-        pigId: resolvedPigId, 
-        named: true, 
-        name: pigData?.name || pigId
-      });
-    } catch (error) {
-      console.error('[API /pig/[pigId]] Error looking up by name:', error);
-      return NextResponse.json({ 
-        pigId, 
-        named: false, 
-        name: null 
-      });
-    }
+    
+    return NextResponse.json({ 
+      pigId, 
+      named: true, 
+      name: profile.pig_name
+    });
+  } catch (error) {
+    console.error('[API /pig/[pigId]] Error fetching pig:', error);
+    return NextResponse.json({ 
+      pigId, 
+      named: false, 
+      name: null 
+    }, { status: 500 });
   }
 }

@@ -1,28 +1,20 @@
 /**
  * POST /api/guest/init
  * 
- * Initialize a guest pig (ephemeral, auto-purge after 3 minutes)
- * Stores in Upstash with TTL=180s
+ * Initialize a guest pig using the identity-resolver system
+ * Stores pig profile in Vercel KV at sid:{sid}:profile (same as authenticated users)
+ * NO DUPLICATE NAME CHECK - guests can use any name
  * 
- * Body: { guest_session_id: string, pigName: string }
- * Response: { success: true, pigName: string }
+ * Body: { pigName: string }
+ * Response: { success: true, pigName: string, pigId: string }
  */
 
 import { NextResponse } from 'next/server';
-import { redis } from '@/lib/supabase';
-
-const GUEST_TTL = 180; // 3 minutes in seconds
+import { resolveIdentity, savePigName } from '@/lib/identity-resolver';
 
 export async function POST(req: Request) {
   try {
-    const { guest_session_id, pigName } = await req.json();
-
-    if (!guest_session_id || typeof guest_session_id !== 'string') {
-      return NextResponse.json(
-        { error: 'Guest session ID is required' },
-        { status: 400 }
-      );
-    }
+    const { pigName } = await req.json();
 
     if (!pigName || typeof pigName !== 'string' || !pigName.trim()) {
       return NextResponse.json(
@@ -48,24 +40,29 @@ export async function POST(req: Request) {
       );
     }
 
-    // Create guest session in Upstash with TTL
-    const guestData = {
+    // Get current identity (will be guest session since not authenticated)
+    const identity = await resolveIdentity();
+
+    // Save pig name using identity resolver (writes to Vercel KV)
+    const result = await savePigName(identity.effectiveId, sanitizedName);
+
+    if (!result.success) {
+      return NextResponse.json(
+        { error: result.error || 'Failed to save pig name' },
+        { status: 500 }
+      );
+    }
+
+    console.log('[Guest Init] Created guest pig:', {
+      sid: identity.sid.substring(0, 12) + '...',
       pigName: sanitizedName,
-      created_at: new Date().toISOString(),
-    };
-
-    // Store with 180-second TTL (auto-purge)
-    await redis.set(
-      `guest:${guest_session_id}`,
-      JSON.stringify(guestData),
-      { ex: GUEST_TTL }
-    );
-
-    console.log('[Guest Init] Created guest session:', guest_session_id, sanitizedName, `TTL=${GUEST_TTL}s`);
+      scope: identity.effectiveScope,
+    });
 
     return NextResponse.json({
       success: true,
       pigName: sanitizedName,
+      pigId: identity.sid, // Use sid as pigId for guest sessions
     });
   } catch (err) {
     console.error('[Guest Init] Error:', err);
