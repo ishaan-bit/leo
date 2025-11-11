@@ -1,44 +1,22 @@
 /**
- * /start - Universal QR Entry Point (Ultra-Simple Auth + Onboarding)
+ * /start - Landing Page (QR Entry Point)
  * 
- * Single URL for all users (QR codes point here)
- * Always shows Sign-In screen with hero text + 3 CTAs
- * 
- * Hero text (must be shown):
- * "They say pigs can't fly.
- *  Yet here I am — waiting for someone to believe I could."
- * 
- * CTAs (exact order):
- * 1. Continue as Guest
- * 2. Sign in with Google
- * 3. Sign in with Phone No
+ * Single URL for all users
+ * Two options: Guest OR Sign In
  */
 
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import PinkPig from '@/components/molecules/PinkPig';
 
 export default function StartPage() {
   const router = useRouter();
 
-  const handleGuestFlow = () => {
-    router.push('/guest/name-pig');
-  };
-
-  const handleGoogleSignIn = () => {
-    signIn('google', { callbackUrl: '/app/confirmed' });
-  };
-
-  const handlePhoneSignIn = () => {
-    router.push('/auth/phone');
-  };
-
   return (
     <section 
-      className="relative flex flex-col items-center justify-center h-[100dvh] w-full overflow-hidden px-6"
+      className="relative flex flex-col items-center justify-between h-[100dvh] w-full overflow-hidden"
       style={{
         paddingTop: 'max(1rem, env(safe-area-inset-top))',
         paddingBottom: 'max(2.5rem, env(safe-area-inset-bottom))',
@@ -97,71 +75,78 @@ export default function StartPage() {
         })}
       </div>
 
-      {/* Animated pig */}
-      <motion.div
-        initial={{ y: 100, opacity: 0 }}
-        animate={{ 
-          y: 0, 
-          opacity: 1,
-        }}
-        transition={{ 
-          y: { duration: 1.2, ease: [0.34, 1.56, 0.64, 1] },
-          opacity: { duration: 0.8 },
-        }}
-        className="mb-8"
-      >
-        <PinkPig 
-          size={200} 
-          state="idle"
-        />
-      </motion.div>
-
-      {/* Hero text */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4, duration: 0.8 }}
-        className="text-center mb-12 max-w-md"
-      >
-        <p className="font-serif text-2xl md:text-3xl text-pink-900 leading-relaxed italic">
-          They say pigs can't fly.
-        </p>
-        <p className="font-serif text-2xl md:text-3xl text-pink-900 leading-relaxed italic mt-2">
-          Yet here I am — waiting for someone to believe I could.
-        </p>
-      </motion.div>
-
-      {/* CTAs */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.8, duration: 0.8 }}
-        className="w-full max-w-sm space-y-4"
-      >
-        {/* CTA 1: Continue as Guest */}
-        <button
-          onClick={handleGuestFlow}
-          className="w-full py-4 px-6 bg-gradient-to-r from-pink-400 to-rose-400 text-white font-sans font-medium text-lg rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+      {/* Main content */}
+      <div className="relative z-10 w-full max-w-lg flex-1 flex flex-col items-center justify-center space-y-8 py-8 px-6">
+        
+        {/* Pig Character */}
+        <motion.div
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: -5, opacity: 1, rotate: 3 }}
+          transition={{ 
+            y: { duration: 1.2, ease: [0.34, 1.56, 0.64, 1] },
+            opacity: { duration: 0.8 },
+            rotate: { duration: 0.6 }
+          }}
         >
-          Continue as Guest
-        </button>
+          <PinkPig size={280} state="idle" />
+        </motion.div>
 
-        {/* CTA 2: Sign in with Google */}
-        <button
-          onClick={handleGoogleSignIn}
-          className="w-full py-4 px-6 bg-white text-pink-900 font-sans font-medium text-lg rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border-2 border-pink-200"
+        {/* Hero text */}
+        <motion.div
+          className="flex flex-col gap-3 items-center text-center max-w-md"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8, duration: 0.8 }}
         >
-          Sign in with Google
-        </button>
+          <motion.p
+            className="font-serif text-2xl md:text-3xl text-pink-900 italic"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 1.0 }}
+          >
+            They say pigs can't fly.
+          </motion.p>
 
-        {/* CTA 3: Sign in with Phone No */}
-        <button
-          onClick={handlePhoneSignIn}
-          className="w-full py-4 px-6 bg-white text-pink-900 font-sans font-medium text-lg rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border-2 border-pink-200"
+          <motion.p
+            className="font-serif text-2xl md:text-3xl text-pink-900 italic"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 1.6 }}
+          >
+            Yet here I am — waiting for someone to believe I could.
+          </motion.p>
+        </motion.div>
+
+        {/* CTA Buttons */}
+        <motion.div
+          className="w-full max-w-md space-y-4 pt-6"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 2.2, duration: 0.8 }}
         >
-          Sign in with Phone No
-        </button>
-      </motion.div>
+          <motion.button
+            onClick={() => router.push('/guest/name-pig')}
+            className="w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-semibold py-4 px-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            Continue as Guest
+          </motion.button>
+
+          <motion.button
+            onClick={() => router.push('/name?mode=fetch')}
+            className="w-full bg-white/90 backdrop-blur-sm border-2 border-pink-200 text-pink-900 font-semibold py-4 px-6 rounded-2xl shadow-md hover:shadow-lg hover:border-pink-300 transition-all duration-300"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            Sign In
+          </motion.button>
+
+          <p className="text-center text-pink-600 text-sm italic pt-2">
+            Guest mode: Your pig will be remembered for 3 minutes
+          </p>
+        </motion.div>
+      </div>
     </section>
   );
 }

@@ -1,8 +1,8 @@
 /**
- * /guest/confirmed - 5s Settle Screen (Guest)
+ * /guest/confirmed - Guest 5s Settle Screen
  * 
- * Shows "So it's settled. I am {pigName}. I'll remember that… wherever you find me again"
- * Auto-transitions to /guest/moment after 5 seconds with CSS blend
+ * "So it's settled. I am {pigName}. I'll remember that… wherever you find me again"
+ * Auto-redirects to /reflect after 5s
  */
 
 'use client';
@@ -10,142 +10,109 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import PinkPig from '@/components/molecules/PinkPig';
 
 export default function GuestConfirmedPage() {
   const router = useRouter();
-  const [pigName, setPigName] = useState<string>('');
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [pigName, setPigName] = useState<string | null>(null);
 
   useEffect(() => {
-    // Get pig name from localStorage
-    const storedName = localStorage.getItem('guest_pig_name');
-    if (!storedName) {
-      // No pig name found, redirect to start
-      router.replace('/start');
+    // Get guest pig name from localStorage
+    const name = localStorage.getItem('leo_pig_name_local');
+    if (!name) {
+      router.push('/start');
       return;
     }
-    setPigName(storedName);
+    
+    setPigName(name);
 
-    // Auto-transition after 5 seconds
+    // Auto-redirect after 5s
     const timer = setTimeout(() => {
-      setIsTransitioning(true);
-      // Wait for transition animation, then navigate to reflect
-      setTimeout(() => {
-        router.push(`/reflect/${pigName}`);
-      }, 600); // Match transition duration
+      router.push('/reflect');
     }, 5000);
 
     return () => clearTimeout(timer);
   }, [router]);
 
   if (!pigName) {
-    return null; // Redirecting...
+    return null;
   }
 
   return (
-    <motion.section 
+    <section 
       className="relative flex flex-col items-center justify-center h-[100dvh] w-full overflow-hidden px-6"
       style={{
         paddingTop: 'max(1rem, env(safe-area-inset-top))',
         paddingBottom: 'max(2.5rem, env(safe-area-inset-bottom))',
-        paddingLeft: 'max(1.5rem, env(safe-area-inset-left))',
-        paddingRight: 'max(1.5rem, env(safe-area-inset-right))',
       }}
-      initial={{ opacity: 1, filter: 'blur(0px)' }}
-      animate={{ 
-        opacity: isTransitioning ? 0 : 1,
-        filter: isTransitioning ? 'blur(10px)' : 'blur(0px)'
-      }}
-      transition={{ duration: 0.6, ease: 'easeInOut' }}
     >
-      {/* Animated gradient atmosphere */}
+      {/* Calm gradient */}
       <motion.div 
         className="fixed inset-0 -z-10"
         style={{
-          background: 'linear-gradient(135deg, #fce7f3, #fed7aa, #e9d5ff, #fbcfe8)',
-          backgroundSize: '400% 400%'
+          background: 'linear-gradient(135deg, #fce7f3, #e9d5ff, #fbcfe8)',
+          backgroundSize: '200% 200%'
         }}
         animate={{
           backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
         }}
         transition={{
-          duration: 18,
+          duration: 15,
           repeat: Infinity,
           ease: 'linear'
         }}
       />
 
-      {/* Floating particles */}
-      <div className="fixed inset-0 pointer-events-none -z-5">
-        {[...Array(12)].map((_, i) => {
-          const size = 2 + Math.random() * 3;
-          const colors = ['bg-pink-200/30', 'bg-peach-200/30', 'bg-purple-200/30', 'bg-rose-200/30'];
-          const color = colors[i % colors.length];
-          return (
-            <motion.div
-              key={i}
-              className={`absolute rounded-full ${color}`}
-              style={{
-                width: size,
-                height: size,
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                filter: 'blur(1px)'
-              }}
-              animate={{
-                y: [0, -120 - Math.random() * 60, 0],
-                x: [0, (Math.random() - 0.5) * 40, 0],
-                opacity: [0.2, 0.6, 0.2],
-                scale: [1, 1.3, 1],
-              }}
-              transition={{
-                duration: 10 + Math.random() * 8,
-                repeat: Infinity,
-                delay: i * 0.6,
-                ease: 'easeInOut',
-              }}
-            />
-          );
-        })}
-      </div>
-
-      {/* Animated pig */}
+      {/* Settle text */}
       <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ 
-          scale: 1, 
-          opacity: 1,
-        }}
-        transition={{ 
-          duration: 1,
-          ease: [0.34, 1.56, 0.64, 1]
-        }}
-        className="mb-12"
-      >
-        <PinkPig 
-          size={160} 
-          state="happy"
-        />
-      </motion.div>
-
-      {/* Settle copy (exact wording required) */}
-      <motion.div
+        className="text-center space-y-4 max-w-md"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5, duration: 1 }}
-        className="text-center max-w-md space-y-4"
+        transition={{ duration: 1.2 }}
       >
-        <p className="font-serif text-2xl md:text-3xl text-pink-900 leading-relaxed italic">
+        <motion.p
+          className="text-pink-800 text-xl md:text-2xl font-serif italic leading-relaxed"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4, duration: 1 }}
+        >
           So it's settled.
-        </p>
-        <p className="font-serif text-2xl md:text-3xl text-pink-900 leading-relaxed italic">
-          I am <span className="font-semibold text-rose-600">{pigName}</span>.
-        </p>
-        <p className="font-serif text-2xl md:text-3xl text-pink-900 leading-relaxed italic mt-6">
+        </motion.p>
+        
+        <motion.p
+          className="text-pink-900 text-2xl md:text-3xl font-serif italic leading-relaxed"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 1.0, duration: 1.2 }}
+        >
+          I am <span className="text-pink-600 font-bold">{pigName}</span>.
+        </motion.p>
+
+        <motion.p
+          className="text-pink-700 text-base md:text-lg font-serif italic leading-relaxed pt-2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 2.0, duration: 1 }}
+        >
           I'll remember that… wherever you find me again
-        </p>
+        </motion.p>
       </motion.div>
-    </motion.section>
+
+      {/* Subtle progress indicator */}
+      <motion.div
+        className="absolute bottom-12 left-1/2 -translate-x-1/2"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.5 }}
+        transition={{ delay: 3, duration: 0.5 }}
+      >
+        <div className="w-32 h-1 bg-pink-200 rounded-full overflow-hidden">
+          <motion.div
+            className="h-full bg-pink-400 rounded-full"
+            initial={{ width: '0%' }}
+            animate={{ width: '100%' }}
+            transition={{ duration: 5, ease: 'linear' }}
+          />
+        </div>
+      </motion.div>
+    </section>
   );
 }

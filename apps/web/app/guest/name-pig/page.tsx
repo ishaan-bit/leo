@@ -1,69 +1,70 @@
 /**
- * /guest/name-pig - Guest Name Entry (Ephemeral)
+ * /guest/name-pig - Guest Pig Naming (EXACT copy of /name flow)
  * 
- * User enters pig name (2-20 chars, a-z0-9_-)
- * Creates guest session in Upstash with TTL=180s
- * Then routes to /guest/confirmed
+ * Poetic naming experience with cinematic entrance
+ * Creates ephemeral guest session (3min TTL)
  */
 
 'use client';
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { v4 as uuidv4 } from 'uuid';
 import PinkPig from '@/components/molecules/PinkPig';
 
 export default function GuestNamePigPage() {
   const router = useRouter();
+  
   const [pigName, setPigName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isInputFocused, setIsInputFocused] = useState(false);
 
-  const validatePigName = (name: string): string | null => {
-    if (name.length < 2) return 'Name must be at least 2 characters';
-    if (name.length > 20) return 'Name must be 20 characters or less';
-    if (!/^[a-z0-9_-]+$/i.test(name)) return 'Only letters, numbers, hyphens, and underscores allowed';
-    
-    // Simple profanity check (basic)
-    const blocked = ['fuck', 'shit', 'damn', 'ass', 'bitch'];
-    if (blocked.some(word => name.toLowerCase().includes(word))) {
-      return 'Please choose a different name';
-    }
-    
-    return null;
-  };
+  // Cinematic entrance states (EXACT like /name)
+  const [showLine1, setShowLine1] = useState(false);
+  const [showLine2, setShowLine2] = useState(false);
+  const [showLine3, setShowLine3] = useState(false);
+  const [showLine4, setShowLine4] = useState(false);
+  const [showInputField, setShowInputField] = useState(false);
+  const [pigHeadTilt, setPigHeadTilt] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Cinematic entrance sequence
+  useEffect(() => {
+    const timers = [
+      setTimeout(() => setShowLine1(true), 800),
+      setTimeout(() => setShowLine2(true), 2200),
+      setTimeout(() => setPigHeadTilt(true), 3200),
+      setTimeout(() => setShowLine3(true), 3800),
+      setTimeout(() => setShowLine4(true), 4600),
+      setTimeout(() => setShowInputField(true), 5400),
+    ];
+    return () => timers.forEach(clearTimeout);
+  }, []);
+
+  const handleNameSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!pigName.trim() || isSubmitting) return;
-
-    const trimmedName = pigName.trim();
-    const validationError = validatePigName(trimmedName);
-    
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
 
     setIsSubmitting(true);
     setError(null);
 
     try {
-      // Generate guest session ID
-      let guestSessionId = localStorage.getItem('guest_session_id');
-      if (!guestSessionId) {
-        guestSessionId = uuidv4();
-        localStorage.setItem('guest_session_id', guestSessionId);
+      // Get or create device_uid
+      let deviceUid = localStorage.getItem('leo_guest_uid');
+      if (!deviceUid) {
+        deviceUid = uuidv4();
+        localStorage.setItem('leo_guest_uid', deviceUid);
       }
 
-      // Initialize guest pig in Upstash with TTL=180s
+      // Initialize guest pig
       const res = await fetch('/api/guest/init', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          guest_session_id: guestSessionId,
-          pigName: trimmedName,
+          deviceUid,
+          pigName: pigName.trim(),
         }),
       });
 
@@ -74,17 +75,18 @@ export default function GuestNamePigPage() {
         return;
       }
 
-      // Save to localStorage for client-side access
-      localStorage.setItem('guest_pig_name', trimmedName);
-      
-      // Start 3-minute timer for auto-purge
-      const purgeTime = Date.now() + 180000; // 3 minutes from now
-      localStorage.setItem('guest_purge_time', purgeTime.toString());
+      // Save locally
+      localStorage.setItem('leo_pig_name_local', pigName.trim());
 
-      console.log('[Guest] Pig named:', trimmedName);
+      console.log('[Guest] Pig created:', pigName.trim());
       
-      // Route to confirmed screen
-      router.push('/guest/confirmed');
+      // Show confetti celebration
+      setShowConfetti(true);
+      setTimeout(() => {
+        setShowConfetti(false);
+        // Redirect to confirmed (5s settle)
+        router.push('/guest/confirmed');
+      }, 2000);
     } catch (err) {
       console.error('[Guest] Error:', err);
       setError('Something went wrong. Please try again.');
@@ -94,12 +96,12 @@ export default function GuestNamePigPage() {
 
   return (
     <section 
-      className="relative flex flex-col items-center justify-center h-[100dvh] w-full overflow-hidden px-6"
+      className="relative flex flex-col items-center justify-between h-[100dvh] w-full overflow-hidden"
       style={{
         paddingTop: 'max(1rem, env(safe-area-inset-top))',
         paddingBottom: 'max(2.5rem, env(safe-area-inset-bottom))',
-        paddingLeft: 'max(1.5rem, env(safe-area-inset-left))',
-        paddingRight: 'max(1.5rem, env(safe-area-inset-right))',
+        paddingLeft: 'max(1rem, env(safe-area-inset-left))',
+        paddingRight: 'max(1rem, env(safe-area-inset-right))',
       }}
     >
       {/* Animated gradient atmosphere */}
@@ -153,83 +155,225 @@ export default function GuestNamePigPage() {
         })}
       </div>
 
-      {/* Animated pig */}
-      <motion.div
-        initial={{ y: 100, opacity: 0 }}
-        animate={{ 
-          y: 0, 
-          opacity: 1,
-        }}
-        transition={{ 
-          y: { duration: 1.2, ease: [0.34, 1.56, 0.64, 1] },
-          opacity: { duration: 0.8 },
-        }}
-        className="mb-8"
-      >
-        <PinkPig 
-          size={180} 
-          state="idle"
-        />
-      </motion.div>
+      {/* Confetti celebration */}
+      {showConfetti && (
+        <div className="absolute inset-0 pointer-events-none z-20">
+          {[...Array(24)].map((_, i) => {
+            const angle = (Math.PI * 2 * i) / 24;
+            const distance = 150 + Math.random() * 100;
+            const colors = ['bg-pink-400', 'bg-rose-400', 'bg-purple-400', 'bg-yellow-300', 'bg-blue-300'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            
+            return (
+              <motion.div
+                key={`confetti-${i}`}
+                className={`absolute w-3 h-3 ${color} rounded-full`}
+                style={{
+                  left: '50%',
+                  top: '40%',
+                }}
+                initial={{ x: 0, y: 0, opacity: 1, scale: 0 }}
+                animate={{
+                  x: Math.cos(angle) * distance,
+                  y: Math.sin(angle) * distance - 50,
+                  opacity: 0,
+                  scale: [0, 1.5, 0.5],
+                  rotate: Math.random() * 360,
+                }}
+                transition={{
+                  duration: 1.2,
+                  ease: [0.34, 1.56, 0.64, 1],
+                }}
+              />
+            );
+          })}
+        </div>
+      )}
 
-      {/* "Name me" prompt */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4, duration: 0.8 }}
-        className="text-center mb-8"
-      >
-        <h1 className="font-serif text-3xl md:text-4xl text-pink-900 italic">
-          Name me
-        </h1>
-      </motion.div>
-
-      {/* Input form */}
-      <motion.form
-        onSubmit={handleSubmit}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6, duration: 0.8 }}
-        className="w-full max-w-sm space-y-4"
-      >
-        <input
-          type="text"
-          value={pigName}
-          onChange={(e) => setPigName(e.target.value)}
-          placeholder="Enter a name..."
-          className="w-full py-4 px-6 text-center font-sans text-lg text-pink-900 bg-white/80 backdrop-blur-sm rounded-2xl border-2 border-pink-200 focus:border-pink-400 focus:outline-none transition-all"
-          autoFocus
-          disabled={isSubmitting}
-        />
-
-        {error && (
-          <motion.p
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-rose-600 text-sm text-center font-sans"
-          >
-            {error}
-          </motion.p>
-        )}
-
-        <button
-          type="submit"
-          disabled={isSubmitting || !pigName.trim()}
-          className="w-full py-4 px-6 bg-gradient-to-r from-pink-400 to-rose-400 text-white font-sans font-medium text-lg rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+      {/* Main content */}
+      <div className="relative z-10 w-full max-w-lg flex-1 flex flex-col items-center justify-center space-y-3 py-8">
+        
+        {/* Pig Character */}
+        <motion.div
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ 
+            y: pigHeadTilt ? -5 : 0, 
+            opacity: 1,
+            rotate: pigHeadTilt ? 3 : 0
+          }}
+          transition={{ 
+            y: { duration: 1.2, ease: [0.34, 1.56, 0.64, 1] },
+            opacity: { duration: 0.8 },
+            rotate: { duration: 0.6, delay: 3.2 }
+          }}
+          className="mb-0"
         >
-          {isSubmitting ? 'Saving...' : 'Continue'}
-        </button>
-      </motion.form>
+          <PinkPig 
+            size={240} 
+            state="idle"
+            onInputFocus={isInputFocused}
+          />
+        </motion.div>
 
-      {/* Helper text */}
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1, duration: 0.8 }}
-        className="mt-6 text-pink-700/70 text-sm text-center font-sans max-w-xs"
-      >
-        2-20 characters • Letters, numbers, hyphens, underscores
-      </motion.p>
+        {/* Sequential dialogue reveal */}
+        <motion.div
+          className="flex flex-col gap-3 items-center text-center px-6 max-w-md"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6, duration: 0.6 }}
+        >
+          {showLine1 && (
+            <motion.p
+              className="text-pink-800 text-base font-serif italic"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7 }}
+            >
+              They say pigs can't fly.
+            </motion.p>
+          )}
+
+          {showLine2 && (
+            <motion.p
+              className="text-pink-800 text-base font-serif italic"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7 }}
+            >
+              Yet here I am — waiting for someone to believe I could.
+            </motion.p>
+          )}
+
+          {showLine3 && (
+            <motion.p
+              className="text-pink-800 text-base font-serif italic mt-2"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7 }}
+            >
+              I don't have a name yet.
+            </motion.p>
+          )}
+
+          {showLine4 && (
+            <motion.p
+              className="text-pink-800 text-base font-serif italic"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7 }}
+            >
+              Would you lend me one?
+            </motion.p>
+          )}
+        </motion.div>
+
+        {/* Magical input field */}
+        {showInputField && (
+          <motion.form
+            onSubmit={handleNameSubmit}
+            className="flex flex-col items-center gap-4 w-full pb-8 mt-6 px-6"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ 
+              duration: 0.8,
+              type: 'spring',
+              stiffness: 120,
+              damping: 15
+            }}
+          >
+            <div className="relative w-full max-w-sm">
+              {/* Ambient shimmer */}
+              <motion.div
+                className="absolute inset-0 rounded-full"
+                style={{
+                  background: 'radial-gradient(circle, rgba(251,207,232,0.4) 0%, transparent 70%)',
+                  filter: 'blur(20px)',
+                }}
+                animate={{
+                  scale: [1, 1.15, 1],
+                  opacity: [0.4, 0.7, 0.4],
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
+              />
+              
+              {/* Input field */}
+              <input
+                type="text"
+                value={pigName}
+                onChange={(e) => setPigName(e.target.value)}
+                placeholder="Give me a name I'll remember…"
+                className="relative w-full rounded-full border-2 border-pink-200/60 text-center text-pink-900 shadow-xl placeholder-pink-400/70 focus:outline-none focus:border-pink-300 transition-all"
+                style={{ 
+                  fontSize: '16px', 
+                  minHeight: '64px',
+                  background: 'radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,245,255,0.8) 100%)',
+                  backdropFilter: 'blur(12px)',
+                  WebkitBackdropFilter: 'blur(12px)',
+                  boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.8), 0 8px 32px rgba(251,113,133,0.15)',
+                  fontFamily: "'DM Serif Text', serif",
+                }}
+                required
+                minLength={2}
+                maxLength={30}
+                disabled={isSubmitting}
+                onFocus={() => setIsInputFocused(true)}
+                onBlur={() => setIsInputFocused(false)}
+              />
+
+              {/* Typing shimmer */}
+              {isInputFocused && (
+                <motion.div
+                  className="absolute inset-0 rounded-full pointer-events-none"
+                  style={{
+                    background: 'linear-gradient(90deg, transparent, rgba(251,207,232,0.6), transparent)',
+                    backgroundSize: '200% 100%',
+                  }}
+                  animate={{
+                    backgroundPosition: ['-200% 0', '200% 0'],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: 'linear',
+                  }}
+                />
+              )}
+            </div>
+
+            <motion.button
+              type="submit"
+              disabled={!pigName.trim() || isSubmitting}
+              className="w-full py-3 px-6 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-medium shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {isSubmitting ? 'Saving...' : 'Continue as Guest'}
+            </motion.button>
+
+            {/* Error message */}
+            <AnimatePresence>
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="text-red-600 text-sm text-center px-4"
+                >
+                  {error}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <p className="text-pink-600 text-sm italic text-center mt-2">
+              Guest mode: Your pig will be remembered for 3 minutes
+            </p>
+          </motion.form>
+        )}
+      </div>
     </section>
   );
 }
