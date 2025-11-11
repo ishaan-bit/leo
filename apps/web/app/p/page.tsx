@@ -64,29 +64,16 @@ export default function PigLandingPage() {
     setError(null);
 
     try {
-      // Check if name is unique (for authenticated users)
-      if (session?.user) {
-        const checkRes = await fetch('/api/pig/check-name', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ pigName: pigName.trim() }),
-        });
-
-        if (!checkRes.ok) {
-          const { error: checkError } = await checkRes.json();
-          if (checkError === 'NAME_TAKEN') {
-            setError('This pig name is already taken. Choose another name or fetch your existing pig.');
-            setIsSubmitting(false);
-            return;
-          }
-        }
-      }
-
+      console.log('[Landing] Submitting pig name:', pigName.trim());
+      
       // Save pig name
+      const payload = { pigName: pigName.trim() };
+      console.log('[Landing] Request payload:', payload);
+      
       const saveRes = await fetch('/api/pig/name', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pigName: pigName.trim() }),
+        body: JSON.stringify(payload),
       });
 
       console.log('[Landing] Save response status:', saveRes.status);
@@ -98,6 +85,9 @@ export default function PigLandingPage() {
         setIsSubmitting(false);
         return;
       }
+
+      const result = await saveRes.json();
+      console.log('[Landing] Success:', result);
 
       // Success - redirect to reflect
       console.log('[Landing] Pig named successfully:', pigName.trim());

@@ -96,7 +96,7 @@ export default function PigRitualBlock({ pigId, initialName }: PigRitualBlockPro
       const res = await fetch('/api/pig/name', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pigId, name }),
+        body: JSON.stringify({ pigName: name }), // FIXED: was { pigId, name }
       });
 
       if (res.ok) {
