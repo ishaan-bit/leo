@@ -442,12 +442,9 @@ export default function BreathingSequence({
   
   const skyBrightness = (isInhaling || isHoldingIn) ? 1.2 : 0.8;
   
-  // BREATHING SYNC FIX: Pig and text must use identical scale keyframes
-  // Inhale: [0.92 → 1.15 → 1.15 → 1.0] over activeCycle.in seconds
-  // Exhale: [1.0 → 0.92 → 0.92 → 0.95] over activeCycle.out seconds
-  const leoScale = isInhaling 
-    ? [0.92, 1.15, 1.15, 1.0]  // Start small, grow to peak, hold peak, settle to medium
-    : [1.0, 0.92, 0.92, 0.95]; // Start medium, shrink to trough, hold trough, settle to near-trough
+  // REVERTED: Keep pig's original simple pulse (better animation feel)
+  // Text 'inhale'/'exhale' should sync to THIS, not the other way around
+  const leoScale = (isInhaling || isHoldingIn) ? 1.15 : 0.92;
   
   const starOpacity = (isInhaling || isHoldingIn) ? 0.9 : 0.3;
   
@@ -549,7 +546,6 @@ export default function BreathingSequence({
             scale: { 
               duration: isInhaling ? activeCycle.in : isExhaling ? activeCycle.out : 0.3,
               ease: EASING,
-              times: [0, 0.3, 0.7, 1], // SYNC FIX: Match text keyframe times exactly
             },
             rotateZ: leoReacting 
               ? { duration: 0.7, times: [0, 0.33, 0.66, 1], ease: 'easeInOut' }
@@ -571,13 +567,12 @@ export default function BreathingSequence({
               top: 'calc(28% + 160px)', // Below Leo
             }}
             animate={{ 
-              opacity: isInhaling ? [0, 1, 1, 0.7] : [0.7, 1, 1, 0],
-              scale: isInhaling ? [0.95, 1.15, 1.15, 1.0] : [1.0, 0.8, 0.8, 0.95], // Inhale: both pig AND text grow together, Exhale: both pig AND text shrink together
+              opacity: isInhaling || isHoldingIn ? 1 : 0.7, // Simpler fade matching pig pulse
+              scale: isInhaling || isHoldingIn ? 1.1 : 0.9, // Follow pig's pulse (1.15/0.92 scaled to text size)
             }}
             transition={{ 
               duration: isInhaling ? activeCycle.in : activeCycle.out,
               ease: EASING,
-              times: [0, 0.3, 0.7, 1],
             }}
             exit={{ opacity: 0, transition: { duration: 0.3, ease: 'easeOut' } }}
           >
