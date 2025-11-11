@@ -188,12 +188,25 @@ def compute_emotion_evidence(
     # Check for negative frustration profanity (fucking, shit, fuck, etc.)
     profanity_pattern = re.compile(
         r'\b(fuck(ing)?|shit|bullshit|goddamn|dammit|wtf|pissed off|'
-        r'piece of shit|screw this|to hell with|pathetic|beyond repair)\b',
+        r'piece of shit|screw this|to hell with|pathetic|beyond repair|'
+        r'lose it|losing it|lost it|snap(ped)?|snapping|'
+        r'i swear|swear to god|had enough|can\'t take|fed up)\b',
         re.IGNORECASE
     )
     profanity_matches = profanity_pattern.findall(text)
     # Each profanity phrase is a VERY strong emotion signal
     evidence += 2.0 * len([m for m in profanity_matches if m])  # 2.0 per profanity phrase
+    
+    # Workplace frustration markers (interrupt, meetings)
+    workplace_frustration = re.compile(
+        r'\b(interrupt(s|ed|ing)?|keeps? (interrupt(ing)?|cutting me off)|'
+        r'won\'t (let me|shut up)|talking over|cutting (me|us) off|'
+        r'another (meeting|call)|one more (meeting|person)|'
+        r'if one more|sick of (meetings?|calls?|people))\b',
+        re.IGNORECASE
+    )
+    work_frustration_matches = workplace_frustration.findall(text)
+    evidence += 1.5 * len([m for m in work_frustration_matches if m])  # Strong work frustration signal
     
     # Flatten and count (filter out empty strings from groups)
     emotion_count = sum(1 for match in emotion_words if match and (isinstance(match, str) or (isinstance(match, tuple) and match[0])))
