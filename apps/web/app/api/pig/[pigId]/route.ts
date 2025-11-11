@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPigName } from "@/domain/pig/pig.storage";
 import { redis } from '@/lib/supabase';
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ pigId: string }> }) {
@@ -9,14 +8,31 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ pig
   const isUUID = pigId.includes('-');
   
   if (isUUID) {
-    // Fetch by pigId from Vercel KV (persists across serverless invocations, browsers, and devices)
-    const name = await getPigName(pigId);
-    
-    return NextResponse.json({ 
-      pigId, 
-      named: !!name, 
-      name 
-    });
+    // Fetch by pigId from Redis
+    try {
+      const pigData = await redis.hgetall(`pig:${pigId}`);
+      
+      if (!pigData || !pigData.name) {
+        return NextResponse.json({ 
+          pigId, 
+          named: false, 
+          name: null 
+        });
+      }
+      
+      return NextResponse.json({ 
+        pigId, 
+        named: true, 
+        name: pigData.name
+      });
+    } catch (error) {
+      console.error('[API /pig/[pigId]] Error fetching pig by ID:', error);
+      return NextResponse.json({ 
+        pigId, 
+        named: false, 
+        name: null 
+      });
+    }
   } else {
     // Lookup by name → get pigId
     try {
