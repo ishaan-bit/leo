@@ -4,10 +4,10 @@
  */
 
 export interface PostEnrichmentPayload {
-  /** 3 standalone poems (no comma splitting) */
+  /** 3 standalone poems (no comma splitting) - LEGACY, use dialogue_tuples instead */
   poems: [string, string, string];
   
-  /** 3 guidance tips */
+  /** 3 guidance tips - LEGACY, use dialogue_tuples instead */
   tips: string[];
   
   /** Final outro phrase */
@@ -15,6 +15,21 @@ export interface PostEnrichmentPayload {
   
   /** Tip mood for micro-animations */
   tip_moods?: Array<'peaceful' | 'pride' | 'celebratory'>;
+  
+  /** NEW: Full 3-part dialogue tuples from Excel
+   * Each tuple is [Inner Voice, Regulate, Amuse]
+   * - Inner Voice: Floating text above city/skyline
+   * - Regulate: Pig speech bubble
+   * - Amuse: Window/building bubble
+   */
+  dialogue_tuples?: Array<[string, string, string]>;
+  
+  /** Metadata from enrichment */
+  meta?: {
+    source?: string;
+    dialogue_tuples?: Array<[string, string, string]>;
+    [key: string]: any;
+  };
 }
 
 export type Stage2Phase = 

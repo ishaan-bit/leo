@@ -279,11 +279,14 @@ def build_dialogue_from_excel(
         
     Returns:
         Tuple of (poems, tips, meta)
-        - poems: First element of each tuple ("Inner Voice of Reason")
-        - tips: Second element of each tuple ("Regulate")  
-        - meta: Dict with source info
+        - poems: First element of each tuple ("Inner Voice of Reason") - LEGACY
+        - tips: Empty list - frontend uses meta['dialogue_tuples'] instead
+        - meta: Dict with 'dialogue_tuples' containing full 3-part tuples
         
-    Note: Third element "Amuse" is stored in meta for future use
+    Note: Frontend should use meta['dialogue_tuples'] for 3-phase display:
+        - tuple[0] = Inner Voice (floating text above city)
+        - tuple[1] = Regulate (pig speech bubble)
+        - tuple[2] = Amuse (window/building bubble)
     """
     try:
         # Extract domain primary and wheel secondary from enrichment data
@@ -300,57 +303,60 @@ def build_dialogue_from_excel(
             logger.warning(f"[Excel] ❌ No data found: {excel_result.get('error')}")
             raise ValueError(f"No Excel data found for {raw_domain_primary}/{raw_wheel_secondary}")
         
-        # Extract tuples
+        # Extract tuples (each tuple is [Inner Voice, Regulate, Amuse])
         tuples = excel_result.get('tuples', [])
         
         if len(tuples) < 3:
             logger.warning(f"[Excel] Only {len(tuples)} tuples available, padding to 3")
+            # Pad with fallback tuples
+            fallback_tuples = [
+                ['Noted.', 'Pause.', 'Breathe.'],
+                ['Here.', 'Notice.', 'Allow.'],
+                ['Okay.', 'Feel.', 'Continue.']
+            ]
+            while len(tuples) < 3:
+                tuples.append(fallback_tuples[len(tuples)])
         
-        # Extract poems (Inner Voice - first element of each tuple)
-        poems = [t[0] for t in tuples] if len(tuples) > 0 else ['noted.', 'here.', 'okay.']
+        # Extract Inner Voice parts as "poems" for backwards compatibility
+        # Frontend should use meta['dialogue_tuples'] for the full 3-phase display
+        poems = [t[0] for t in tuples[:3]]
         
-        # Ensure 3 poems
-        while len(poems) < 3:
-            poems.append('pause.')
+        logger.info(f"[Excel] ✅ Fetched {len(tuples)} dialogue tuples")
+        logger.info(f"[Excel] Tuple 1: {tuples[0] if tuples else 'N/A'}")
+        logger.info(f"[Excel] Tuple 2: {tuples[1] if len(tuples) > 1 else 'N/A'}")
+        logger.info(f"[Excel] Tuple 3: {tuples[2] if len(tuples) > 2 else 'N/A'}")
         
-        # Extract tips (Regulate - second element of each tuple)
-        tips = [t[1] for t in tuples] if len(tuples) > 0 else ['breathe.', 'notice.', 'allow.']
-        
-        # Ensure 3 tips
-        while len(tips) < 3:
-            tips.append('breathe.')
-        
-        # Store Amuse (third element) in meta for future use
-        amuse_lines = [t[2] for t in tuples] if len(tuples) > 0 else []
-        
-        logger.info(f"[Excel] ✅ Fetched dialogue for {excel_result.get('domain')}/{excel_result.get('secondary')}")
-        logger.info(f"[Excel] Poems (Inner Voice): {poems[:1]}... ({len(poems)} total)")
-        logger.info(f"[Excel] Tips (Regulate): {tips[:1]}... ({len(tips)} total)")
-        
-        # Meta information
+        # Meta information with FULL tuple structure
         meta = {
             'source': 'excel',
             'domain_primary': excel_result.get('domain'),
             'wheel_secondary': excel_result.get('secondary'),
             'total_available': excel_result.get('total_available', len(tuples)),
-            'amuse_lines': amuse_lines,  # Store for future 3-part interlude
+            'dialogue_tuples': tuples[:3],  # 🔥 NEW: Full 3-part tuples [[Inner, Regulate, Amuse], ...]
             'found': True
         }
         
-        logger.info(f"Successfully fetched Excel dialogue for {raw_domain_primary}/{raw_wheel_secondary}")
-        return poems, tips, meta
+        logger.info(f"Successfully fetched Excel dialogue tuples for {raw_domain_primary}/{raw_wheel_secondary}")
+        return poems, [], meta  # tips now empty, frontend uses meta['dialogue_tuples']
     
     except Exception as e:
         logger.error(f"[Excel] ❌ Dialogue fetch failed: {e}")
         logger.exception(e)  # Full stack trace
         
-        # Safe fallback
+        # Safe fallback with full tuples
+        fallback_tuples = [
+            ['Noted.', 'Pause.', 'Breathe.'],
+            ['Here.', 'Notice.', 'Allow.'],
+            ['Okay.', 'Feel.', 'Continue.']
+        ]
+        
         return (
-            ['noted.', 'here.', 'okay.'],
-            ['pause.', 'breathe.', 'notice.'],
+            ['Noted.', 'Here.', 'Okay.'],  # poems (legacy)
+            [],  # tips (empty)
             {
                 'source': 'fallback',
                 'error': str(e),
+                'dialogue_tuples': fallback_tuples,
                 'found': False
             }
         )

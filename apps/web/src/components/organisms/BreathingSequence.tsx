@@ -7,7 +7,7 @@ import { type PrimaryEmotion, computeBreatheParams, FALLBACK_WORDS } from '@/lib
 import type { Stage2State, PostEnrichmentPayload, Stage2Phase, WindowState } from '@/lib/stage2-types';
 import ComicBubble from '../atoms/ComicBubble';
 import { translateToHindi } from '@/lib/translation';
-
+import DialogueInterlude from './DialogueInterlude';
 interface BreathingSequenceProps {
   reflectionId: string;
   primary: PrimaryEmotion | null; // null = no emotion detected, use Peaceful pattern
@@ -84,6 +84,7 @@ export default function BreathingSequence({
   
   // Stage 2 state (holds poems and tips from enrichment)
   const [stage2Payload, setStage2Payload] = useState<PostEnrichmentPayload | null>(null);
+  const [showDialogueInterlude, setShowDialogueInterlude] = useState(false);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const animationFrameRef = useRef<number>();
@@ -150,12 +151,16 @@ export default function BreathingSequence({
           console.log('[Stage2] poems count:', postEnrichment.poems?.length);
           console.log('[Stage2] tips array:', postEnrichment.tips);
           console.log('[Stage2] tips count:', postEnrichment.tips?.length);
+          console.log('[Stage2] meta:', postEnrichment.meta);
+          console.log('[Stage2] dialogue_tuples:', postEnrichment.meta?.dialogue_tuples);
           
           setStage2Payload({
             poems: postEnrichment.poems || [],
             tips: postEnrichment.tips || [],
             closing_line: postEnrichment.closing_line || '',
             tip_moods: postEnrichment.tip_moods || [],
+            dialogue_tuples: postEnrichment.dialogue_tuples || postEnrichment.meta?.dialogue_tuples,
+            meta: postEnrichment.meta,
           });
           
           // Trigger Stage 2 sequence
@@ -221,7 +226,7 @@ export default function BreathingSequence({
     };
   }, [isReady, cycleDuration, cycleCount, firstCycleComplete, stage2Complete, onComplete]);
 
-  // NEW ORCHESTRATION: Poem floating → Leo tip → Mark Done (repeat 3x) → Sky → Living City
+  // NEW ORCHESTRATION: Check for dialogue_tuples and trigger DialogueInterlude
   // WAIT for first breathing cycle to complete before starting
   useEffect(() => {
     if (!stage2Complete || !stage2Payload || !firstCycleComplete) {
@@ -233,7 +238,19 @@ export default function BreathingSequence({
     }
     
     orchestrationStartedRef.current = true;
-    console.log('[Bubble Sequence] 🎬 Starting poem-floating sequence AFTER first breath cycle');
+    
+    // Check if we have dialogue_tuples from Excel system
+    const dialogueTuples = stage2Payload.dialogue_tuples || stage2Payload.meta?.dialogue_tuples;
+    
+    if (dialogueTuples && dialogueTuples.length >= 3) {
+      console.log('[BreathingSequence] 🎬 Excel dialogue tuples found, triggering DialogueInterlude');
+      console.log('[BreathingSequence] Tuples:', dialogueTuples);
+      setShowDialogueInterlude(true);
+      return;  // Skip old orchestration
+    }
+    
+    // FALLBACK: Old orchestration for backwards compatibility
+    console.log('[Bubble Sequence] ⚠️ No dialogue tuples, falling back to old poem-floating sequence');
     
     // Filter poems to only include English text (remove Hindi/Devanagari)
     const allPoems = stage2Payload.poems || [];
@@ -248,7 +265,7 @@ export default function BreathingSequence({
     
     if (tips.length < 3) {
       console.error('[Bubble Sequence] ❌ CRITICAL: Less than 3 tips available:', tips.length, 'This will break the 3-tip flow!');
-      console.error('[Bubble Sequence] All tips:', tips);
+```      console.error('[Bubble Sequence] All tips:', tips);
     }
     
     // Cycle 1: Poem 1 floats → Tip 1 from Leo → Mark Done
@@ -501,6 +518,31 @@ export default function BreathingSequence({
         return getSkyGradient();
     }
   };
+
+  // NEW: If dialogue tuples available, show DialogueInterlude instead of breathing sequence
+  if (showDialogueInterlude && stage2Payload) {
+    const dialogueTuples = stage2Payload.dialogue_tuples || stage2Payload.meta?.dialogue_tuples;
+    
+    if (dialogueTuples && dialogueTuples.length >= 3) {
+      // Get tower config for primary emotion
+      const primaryTower = TOWERS.find(t => t.id === effectivePrimary);
+      
+      return (
+        <DialogueInterlude
+          tuples={dialogueTuples as Array<[string, string, string]>}
+          pigName={pigName}
+          zoneColor={color}
+          towerConfig={primaryTower ? {
+            name: primaryTower.name,
+            color: primaryTower.color,
+            x: getPrimaryTowerX(primaryTower.id),
+            height: primaryTower.height,
+          } : undefined}
+          onComplete={onComplete}
+        />
+      );
+    }
+  }
 
   return (
     <div ref={breathingContainerRef} className="fixed inset-0 z-50 overflow-hidden">
