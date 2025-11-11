@@ -1,24 +1,25 @@
 /**
  * POST /api/guest/init
  * 
- * Initialize a guest pig (ephemeral, device-bound)
- * Creates entry in Redis with status='guest' and device_uid
+ * Initialize a guest pig (ephemeral, auto-purge after 3 minutes)
+ * Stores in Upstash with TTL=180s
  * 
- * Body: { deviceUid: string, pigName: string }
- * Response: { pigId: string, pigName: string }
+ * Body: { guest_session_id: string, pigName: string }
+ * Response: { success: true, pigName: string }
  */
 
 import { NextResponse } from 'next/server';
 import { redis } from '@/lib/supabase';
-import { v4 as uuidv4 } from 'uuid';
+
+const GUEST_TTL = 180; // 3 minutes in seconds
 
 export async function POST(req: Request) {
   try {
-    const { deviceUid, pigName } = await req.json();
+    const { guest_session_id, pigName } = await req.json();
 
-    if (!deviceUid || typeof deviceUid !== 'string') {
+    if (!guest_session_id || typeof guest_session_id !== 'string') {
       return NextResponse.json(
-        { error: 'Device UID is required' },
+        { error: 'Guest session ID is required' },
         { status: 400 }
       );
     }
@@ -32,38 +33,38 @@ export async function POST(req: Request) {
 
     const sanitizedName = pigName.trim().slice(0, 20);
 
-    // Check if name is taken (check all pigs in Redis)
-    const allPigKeys = await redis.keys('pig:*');
-    for (const key of allPigKeys) {
-      const existingPig = await redis.hgetall(key);
-      if (existingPig && (existingPig as any).name === sanitizedName) {
-        return NextResponse.json(
-          { error: 'This name is already taken' },
-          { status: 409 }
-        );
-      }
+    // Validate name format (2-20 chars, a-z0-9_-)
+    if (sanitizedName.length < 2) {
+      return NextResponse.json(
+        { error: 'Name must be at least 2 characters' },
+        { status: 400 }
+      );
     }
 
-    // Generate unique pig ID
-    const pigId = uuidv4();
+    if (!/^[a-z0-9_-]+$/i.test(sanitizedName)) {
+      return NextResponse.json(
+        { error: 'Only letters, numbers, hyphens, and underscores allowed' },
+        { status: 400 }
+      );
+    }
 
-    // Create guest pig in Redis
-    const guestPig = {
-      id: pigId,
-      name: sanitizedName,
-      device_uid: deviceUid,
-      status: 'guest',
+    // Create guest session in Upstash with TTL
+    const guestData = {
+      pigName: sanitizedName,
       created_at: new Date().toISOString(),
     };
 
-    await redis.hset(`pig:${pigId}`, guestPig);
-    await redis.set(`pig_name:${sanitizedName}`, pigId); // Name → ID index
-    await redis.set(`device_pig:${deviceUid}`, pigId);   // Device → Pig index
+    // Store with 180-second TTL (auto-purge)
+    await redis.set(
+      `guest:${guest_session_id}`,
+      JSON.stringify(guestData),
+      { ex: GUEST_TTL }
+    );
 
-    console.log('[Guest Init] Created guest pig:', pigId, sanitizedName);
+    console.log('[Guest Init] Created guest session:', guest_session_id, sanitizedName, `TTL=${GUEST_TTL}s`);
 
     return NextResponse.json({
-      pigId,
+      success: true,
       pigName: sanitizedName,
     });
   } catch (err) {
