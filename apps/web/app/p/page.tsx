@@ -25,6 +25,12 @@ export default function PigLandingPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  
+  // Phone OTP state
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [otpCode, setOtpCode] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [isOtpFlow, setIsOtpFlow] = useState(false);
 
   // Check if user already has a pig
   useEffect(() => {
@@ -133,14 +139,79 @@ export default function PigLandingPage() {
 
   const handleSignIn = async (provider: 'google' | 'apple' | 'phone') => {
     if (provider === 'phone') {
-      // TODO: Implement phone OTP flow
-      console.log('[Landing] Phone OTP not yet implemented');
+      setIsOtpFlow(true);
       return;
     }
 
     await signIn(provider, {
       callbackUrl: '/p', // Return here after auth
     });
+  };
+
+  const handleSendOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!phoneNumber.trim() || isSubmitting) return;
+
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const res = await fetch('/api/auth/otp/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phoneNumber: phoneNumber.trim() }),
+      });
+
+      if (!res.ok) {
+        const { error: otpError } = await res.json();
+        setError(otpError || 'Failed to send verification code');
+        setIsSubmitting(false);
+        return;
+      }
+
+      console.log('[Landing] OTP sent to:', phoneNumber);
+      setOtpSent(true);
+      setIsSubmitting(false);
+    } catch (err) {
+      console.error('[Landing] Error sending OTP:', err);
+      setError('Failed to send verification code');
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!otpCode.trim() || isSubmitting) return;
+
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      // Sign in with phone OTP credentials
+      const result = await signIn('phone-otp', {
+        phoneNumber: phoneNumber.trim(),
+        code: otpCode.trim(),
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError(result.error);
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (result?.ok) {
+        console.log('[Landing] Phone OTP sign-in successful');
+        // Will trigger the useEffect to check for existing pig
+        setIsOtpFlow(false);
+        setOtpSent(false);
+        setIsSubmitting(false);
+      }
+    } catch (err) {
+      console.error('[Landing] Error verifying OTP:', err);
+      setError('Failed to verify code');
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -239,7 +310,7 @@ export default function PigLandingPage() {
         )}
 
         {/* Fetch Pig Flow */}
-        {mode === 'fetch' && (
+        {mode === 'fetch' && !isOtpFlow && (
           <div className="space-y-6">
             {!session?.user ? (
               <>
@@ -295,6 +366,100 @@ export default function PigLandingPage() {
               className="w-full text-purple-600 hover:text-purple-800 font-medium py-3 rounded-xl hover:bg-purple-50 transition-all duration-300"
             >
               ← Back to Name Pig
+            </button>
+          </div>
+        )}
+
+        {/* Phone OTP Flow */}
+        {isOtpFlow && (
+          <div className="space-y-6">
+            {!otpSent ? (
+              <form onSubmit={handleSendOtp} className="space-y-6">
+                <p className="text-center text-purple-700 text-sm mb-4">
+                  Enter your phone number to receive a verification code
+                </p>
+
+                <div>
+                  <input
+                    type="tel"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    placeholder="+1234567890"
+                    disabled={isSubmitting}
+                    className="w-full px-6 py-4 bg-white border-2 border-purple-200 rounded-2xl text-purple-900 placeholder-purple-400 focus:outline-none focus:border-purple-400 transition-all duration-300 text-center text-lg font-medium disabled:opacity-50"
+                    autoFocus
+                  />
+                  <p className="text-xs text-purple-500 text-center mt-2">
+                    Use international format (e.g., +1 for US)
+                  </p>
+                </div>
+
+                <motion.button
+                  type="submit"
+                  disabled={!phoneNumber.trim() || isSubmitting}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold py-4 rounded-2xl shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+                >
+                  {isSubmitting ? 'Sending...' : 'Send Code'}
+                </motion.button>
+              </form>
+            ) : (
+              <form onSubmit={handleVerifyOtp} className="space-y-6">
+                <p className="text-center text-purple-700 text-sm mb-4">
+                  Enter the verification code sent to<br />
+                  <span className="font-semibold">{phoneNumber}</span>
+                </p>
+
+                <div>
+                  <input
+                    type="text"
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                    placeholder="000000"
+                    maxLength={6}
+                    disabled={isSubmitting}
+                    className="w-full px-6 py-4 bg-white border-2 border-purple-200 rounded-2xl text-purple-900 placeholder-purple-400 focus:outline-none focus:border-purple-400 transition-all duration-300 text-center text-2xl font-mono tracking-widest disabled:opacity-50"
+                    autoFocus
+                  />
+                </div>
+
+                <motion.button
+                  type="submit"
+                  disabled={otpCode.length !== 6 || isSubmitting}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold py-4 rounded-2xl shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+                >
+                  {isSubmitting ? 'Verifying...' : 'Verify Code'}
+                </motion.button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOtpSent(false);
+                    setOtpCode('');
+                    setError(null);
+                  }}
+                  className="w-full text-purple-600 hover:text-purple-800 font-medium py-3 rounded-xl hover:bg-purple-50 transition-all duration-300 text-sm"
+                >
+                  Resend code
+                </button>
+              </form>
+            )}
+
+            <button
+              type="button"
+              onClick={() => {
+                setIsOtpFlow(false);
+                setOtpSent(false);
+                setPhoneNumber('');
+                setOtpCode('');
+                setError(null);
+              }}
+              className="w-full text-purple-600 hover:text-purple-800 font-medium py-3 rounded-xl hover:bg-purple-50 transition-all duration-300"
+            >
+              ← Back
             </button>
           </div>
         )}

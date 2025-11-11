@@ -5,12 +5,55 @@
 
 import { NextAuthOptions } from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
+import CredentialsProvider from "next-auth/providers/credentials"
 
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+    CredentialsProvider({
+      id: 'phone-otp',
+      name: 'Phone OTP',
+      credentials: {
+        phoneNumber: { label: "Phone Number", type: "text" },
+        code: { label: "Verification Code", type: "text" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.phoneNumber || !credentials?.code) {
+          throw new Error('Phone number and code are required');
+        }
+
+        try {
+          // Verify the OTP code via our API
+          const verifyRes = await fetch(`${process.env.NEXTAUTH_URL}/api/auth/otp/verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              phoneNumber: credentials.phoneNumber,
+              code: credentials.code,
+            }),
+          });
+
+          const data = await verifyRes.json();
+
+          if (!data.verified) {
+            throw new Error(data.error || 'Invalid verification code');
+          }
+
+          // Return user object - phoneNumber becomes the unique ID
+          return {
+            id: credentials.phoneNumber, // Use phone as unique ID
+            name: credentials.phoneNumber,
+            email: `${credentials.phoneNumber}@phone.local`, // Fake email for compatibility
+            phoneNumber: credentials.phoneNumber,
+          };
+        } catch (error: any) {
+          console.error('[Auth] Phone OTP verification failed:', error);
+          throw new Error(error.message || 'Verification failed');
+        }
+      },
     }),
   ],
   pages: {
