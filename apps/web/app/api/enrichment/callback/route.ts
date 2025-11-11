@@ -25,8 +25,6 @@ export async function POST(request: NextRequest) {
       control,
       polarity,
       confidence,
-      poems,
-      tips,
       _dialogue_meta,
       ...rest
     } = body;
@@ -73,19 +71,12 @@ export async function POST(request: NextRequest) {
       control,
       polarity,
       confidence,
-      // Store poems/tips in post_enrichment subfield for BreathingSequence
+      // NEW: Store dialogue_tuples directly in post_enrichment (Excel system)
       post_enrichment: {
-        poems: poems || [],
-        tips: tips || [],
-        closing_line: '', // Optional closing cue
-        tip_moods: [], // Optional mood tags for tips
+        dialogue_tuples: _dialogue_meta?.dialogue_tuples || [],
+        meta: _dialogue_meta || {},
       },
     };
-    
-    // Add dialogue metadata if present
-    if (_dialogue_meta) {
-      reflection.final._dialogue_meta = _dialogue_meta;
-    }
     
     // Add any other enrichment fields
     Object.keys(rest).forEach(key => {
@@ -101,8 +92,7 @@ export async function POST(request: NextRequest) {
       console.log(`[Enrichment Callback] ✅ Updated ${reflectionKey} with final data`);
       console.log(`[Enrichment Callback]    Primary: ${primary}`);
       console.log(`[Enrichment Callback]    Valence: ${valence}`);
-      console.log(`[Enrichment Callback]    Poems: ${poems?.length || 0} lines`);
-      console.log(`[Enrichment Callback]    Tips: ${tips?.length || 0} windows`);
+      console.log(`[Enrichment Callback]    Dialogue Tuples: ${_dialogue_meta?.dialogue_tuples?.length || 0} tuples`);
       
       return NextResponse.json({
         success: true,

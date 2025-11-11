@@ -4,18 +4,6 @@
  */
 
 export interface PostEnrichmentPayload {
-  /** 3 standalone poems (no comma splitting) - LEGACY, use dialogue_tuples instead */
-  poems: [string, string, string];
-  
-  /** 3 guidance tips - LEGACY, use dialogue_tuples instead */
-  tips: string[];
-  
-  /** Final outro phrase */
-  closing_line: string;
-  
-  /** Tip mood for micro-animations */
-  tip_moods?: Array<'peaceful' | 'pride' | 'celebratory'>;
-  
   /** NEW: Full 3-part dialogue tuples from Excel
    * Each tuple is [Inner Voice, Regulate, Amuse]
    * - Inner Voice: Floating text above city/skyline
