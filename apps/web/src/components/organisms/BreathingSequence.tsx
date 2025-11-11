@@ -260,193 +260,10 @@ export default function BreathingSequence({
       return;  // Skip old orchestration
     }
     
-    // FALLBACK: Old orchestration for backwards compatibility
-    console.log('[Bubble Sequence] ⚠️ No dialogue tuples, falling back to old poem-floating sequence');
-    
-    // Filter poems to only include English text (remove Hindi/Devanagari)
-    const allPoems = stage2Payload.poems || [];
-    const poems = allPoems.filter(isEnglishText);
-    
-    if (poems.length < 3) {
-      console.error('[Bubble Sequence] ❌ CRITICAL: Less than 3 English poems available:', poems.length, 'This will break the 3-poem flow!');
-      console.error('[Bubble Sequence] All poems:', allPoems);
-    }
-    
-    const tips = stage2Payload.tips || [];
-    
-    if (tips.length < 3) {
-      console.error('[Bubble Sequence] ❌ CRITICAL: Less than 3 tips available:', tips.length, 'This will break the 3-tip flow!');
-      console.error('[Bubble Sequence] All tips:', tips);
-    }
-    
-    // Cycle 1: Poem 1 floats → Tip 1 from Leo → Mark Done
-    setTimeout(() => {
-      if (poems[0]) {
-        console.log('[Sequence] 📖 Showing poem 1 floating');
-        setBubbleStep('poem1_floating');
-        setFloatingPoem({ id: 'poem1', text: poems[0] });
-        
-        // After poem floats away (11s), show tip from Leo
-        setTimeout(() => {
-          setFloatingPoem(null);
-          
-          setTimeout(() => {
-            if (tips[0]) {
-              console.log('[Sequence] 💬 Leo showing tip 1');
-              setBubbleStep('tip1');
-              setLeoBubbleState('text');
-              
-              // Leo reacts
-              setTimeout(() => {
-                setLeoReacting(true);
-                setTimeout(() => setLeoReacting(false), 700);
-              }, 300);
-              
-              // Hold tip indefinitely until Mark Done clicked - NO AUTO-HIDE
-              setTimeout(() => {
-                console.log('[Sequence] ✅ Showing Mark Done for tip 1');
-                setBubbleStep('mark_done_1');
-                setCurrentTipIndex(0);
-                setShowMarkDoneButton(true);
-                // Bubble stays visible with leoBubbleState='text'
-              }, 2500);
-            }
-          }, 800);
-        }, 13000); // Changed from 11000 to 13000 (13s total for floating words)
-      }
-    }, 500);
+    // NO FALLBACK: If no dialogue tuples, log error
+    console.error('[BreathingSequence] ❌ No dialogue tuples found in post_enrichment!');
+    console.error('[BreathingSequence] Stage2 payload:', stage2Payload);
   }, [stage2Complete, stage2Payload, firstCycleComplete]);
-  
-  // Track which sequences have already been triggered (prevent infinite loops)
-  const sequencesTriggeredRef = useRef<Set<number>>(new Set());
-  
-  // Watch for Mark Done clicks and continue sequence
-  useEffect(() => {
-    if (markedTips.length === 0 || !stage2Payload) return;
-    
-    const lastMarked = Math.max(...markedTips);
-    
-    // Prevent re-triggering same sequence
-    if (sequencesTriggeredRef.current.has(lastMarked)) {
-      return;
-    }
-    
-    // Filter poems to only include English (same as orchestration)
-    const allPoems = stage2Payload.poems || [];
-    const poems = allPoems.filter(isEnglishText);
-    const tips = stage2Payload.tips || [];
-    
-    console.log('[Mark Done Watch] Filtered poems:', poems.length, 'Tips:', tips.length);
-    
-    // Tip 1 marked → Poem 2 floats → Tip 2
-    if (lastMarked === 1 && markedTips.length === 1) {
-      sequencesTriggeredRef.current.add(1);
-      console.log('[Mark Done Watch] ✅ Tip 1 marked, starting Poem 2 → Tip 2 sequence');
-      console.log('[Mark Done Watch] poems[1] exists?', !!poems[1], 'tips[1] exists?', !!tips[1]);
-      
-      setTimeout(() => {
-        if (poems[1]) {
-          console.log('[Sequence] 📖 Showing poem 2 floating');
-          setBubbleStep('poem2_floating');
-          setFloatingPoem({ id: 'poem2', text: poems[1] });
-          
-          setTimeout(() => {
-            setFloatingPoem(null);
-            
-            setTimeout(() => {
-              if (tips[1]) {
-                console.log('[Sequence] 💬 Leo showing tip 2');
-                setBubbleStep('tip2');
-                setLeoBubbleState('text');
-                
-                setTimeout(() => {
-                  setLeoReacting(true);
-                  setTimeout(() => setLeoReacting(false), 700);
-                }, 300);
-                
-                // Hold tip indefinitely until Mark Done clicked
-                setTimeout(() => {
-                  console.log('[Sequence] ✅ Showing Mark Done for tip 2');
-                  setBubbleStep('mark_done_2');
-                  setCurrentTipIndex(1);
-                  setShowMarkDoneButton(true);
-                }, 2500);
-              }
-            }, 800);
-          }, 13000); // Changed from 11000 to 13000
-        } else {
-          console.error('[Mark Done Watch] ❌ poems[1] does NOT exist! Cannot show poem 2');
-          console.error('[Mark Done Watch] All filtered poems:', poems);
-        }
-      }, 1000);
-    }
-    
-    // Tip 2 marked → Poem 3 floats → Tip 3
-    else if (lastMarked === 2 && markedTips.length === 2) {
-      sequencesTriggeredRef.current.add(2);
-      console.log('[Mark Done Watch] ✅ Tip 2 marked, starting Poem 3 → Tip 3 sequence');
-      console.log('[Mark Done Watch] poems[2] exists?', !!poems[2], 'tips[2] exists?', !!tips[2]);
-      setTimeout(() => {
-        if (poems[2]) {
-          console.log('[Sequence] 📖 Showing poem 3 floating');
-          setBubbleStep('poem3_floating');
-          setFloatingPoem({ id: 'poem3', text: poems[2] });
-          
-          setTimeout(() => {
-            setFloatingPoem(null);
-            
-            setTimeout(() => {
-              if (tips[2]) {
-                console.log('[Sequence] 💬 Leo showing tip 3');
-                setBubbleStep('tip3');
-                setLeoBubbleState('text');
-                
-                setTimeout(() => {
-                  setLeoReacting(true);
-                  setTimeout(() => setLeoReacting(false), 700);
-                }, 300);
-                
-                // Hold tip indefinitely until Mark Done clicked
-                setTimeout(() => {
-                  console.log('[Sequence] ✅ Showing Mark Done for tip 3');
-                  setBubbleStep('mark_done_3');
-                  setCurrentTipIndex(2);
-                  setShowMarkDoneButton(true);
-                }, 2500);
-              }
-            }, 800);
-          }, 13000); // Changed from 11000 to 13000
-        } else {
-          console.error('[Mark Done Watch] ❌ poems[2] does NOT exist! Cannot show poem 3');
-          console.error('[Mark Done Watch] All filtered poems:', poems);
-        }
-      }, 1000);
-    }
-    
-    // Tip 3 marked → Clean fade to Living City (skip sky brightening)
-    else if (lastMarked === 3 && markedTips.length === 3) {
-      sequencesTriggeredRef.current.add(3);
-      console.log('[Sequence] 🌅 All tips complete, transitioning to Living City');
-      
-      // Fade audio
-      if (audioRef.current) {
-        const fadeOut = setInterval(() => {
-          if (audioRef.current && audioRef.current.volume > 0.05) {
-            audioRef.current.volume -= 0.05;
-          } else {
-            clearInterval(fadeOut);
-            audioRef.current?.pause();
-          }
-        }, 100);
-      }
-      
-      // Direct transition after brief pause
-      setTimeout(() => {
-        console.log('[Sequence] ✅ Fade transition to Living City');
-        onComplete();
-      }, 1500);
-    }
-  }, [markedTips, stage2Payload, onComplete]);
 
   // Breathing helpers - 4-phase cycle: inhale -> hold1 -> exhale -> hold2
   const inDuration = activeCycle.in / (activeCycle.in + activeCycle.h1 + activeCycle.out + activeCycle.h2);
@@ -879,16 +696,10 @@ export default function BreathingSequence({
         
         return (
           <>
-            {/* Leo Bubble (Tips only - poems float independently) */}
-            {/* FIX: Keep showing tip during mark_done state */}
-            {leoAnchor && (
+            {/* Leo Bubble - LEGACY: Only used if fallback orchestration runs */}
+            {leoAnchor && leoBubbleState !== 'hidden' && (
               <ComicBubble
-                content={
-                  (bubbleStep === 'tip1' || bubbleStep === 'mark_done_1') ? (stage2Payload.tips[0] || '')
-                  : (bubbleStep === 'tip2' || bubbleStep === 'mark_done_2') ? (stage2Payload.tips[1] || '')
-                  : (bubbleStep === 'tip3' || bubbleStep === 'mark_done_3') ? (stage2Payload.tips[2] || '')
-                  : ''
-                }
+                content=""  // Legacy tip system removed
                 state={leoBubbleState}
                 type="tip"
                 anchorPosition={leoAnchor}
