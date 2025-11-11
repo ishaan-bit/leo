@@ -89,9 +89,12 @@ export default function PigLandingPage() {
         body: JSON.stringify({ pigName: pigName.trim() }),
       });
 
+      console.log('[Landing] Save response status:', saveRes.status);
+
       if (!saveRes.ok) {
-        const { error: saveError } = await saveRes.json();
-        setError(saveError || 'Failed to save pig name');
+        const errorData = await saveRes.json();
+        console.error('[Landing] Save error:', errorData);
+        setError(errorData.error || 'Failed to save pig name');
         setIsSubmitting(false);
         return;
       }
@@ -238,16 +241,42 @@ export default function PigLandingPage() {
           🐷
         </motion.div>
 
+        {/* Mode Toggle - VERY VISIBLE */}
+        {!isOtpFlow && (
+          <div className="flex gap-3 mb-8">
+            <button
+              onClick={() => setMode('name')}
+              className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all duration-300 ${
+                mode === 'name'
+                  ? 'bg-purple-600 text-white shadow-lg'
+                  : 'bg-purple-100 text-purple-600 hover:bg-purple-200'
+              }`}
+            >
+              Name New Pig
+            </button>
+            <button
+              onClick={() => setMode('fetch')}
+              className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all duration-300 ${
+                mode === 'fetch'
+                  ? 'bg-purple-600 text-white shadow-lg'
+                  : 'bg-purple-100 text-purple-600 hover:bg-purple-200'
+              }`}
+            >
+              Fetch My Pig
+            </button>
+          </div>
+        )}
+
         <h1 className="text-4xl font-serif text-center text-purple-900 mb-3">
-          {mode === 'name' ? 'Name Your Pig' : mode === 'fetch' ? 'Fetch Your Pig' : 'Sign In'}
+          {isOtpFlow ? 'Sign In with Phone' : mode === 'name' ? 'Name Your Pig' : 'Fetch Your Pig'}
         </h1>
 
         <p className="text-center text-purple-600 mb-8 text-sm leading-relaxed">
-          {mode === 'name' 
+          {isOtpFlow
+            ? 'Enter your phone number to receive a verification code'
+            : mode === 'name' 
             ? 'Your pig will hold your reflections'
-            : mode === 'fetch'
-            ? 'Sign in to retrieve your existing pig'
-            : 'Sign in to access your pig from any device'}
+            : 'Sign in to retrieve your existing pig from any device'}
         </p>
 
         {/* Error Message */}
@@ -289,23 +318,6 @@ export default function PigLandingPage() {
             >
               {isSubmitting ? 'Saving...' : 'Continue'}
             </motion.button>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-purple-200"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-purple-500">or</span>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setMode('fetch')}
-              className="w-full text-purple-600 hover:text-purple-800 font-medium py-3 rounded-xl hover:bg-purple-50 transition-all duration-300"
-            >
-              Fetch My Pig
-            </button>
           </form>
         )}
 
