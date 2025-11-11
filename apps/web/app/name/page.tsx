@@ -22,6 +22,7 @@ export default function NamePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isInputFocused, setIsInputFocused] = useState(false);
+  const [isCheckingExisting, setIsCheckingExisting] = useState(true);
 
   // Cinematic entrance states
   const [showLine1, setShowLine1] = useState(false);
@@ -33,8 +34,39 @@ export default function NamePage() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [showSettle, setShowSettle] = useState(false);
 
-  // Cinematic entrance sequence
+  // Check if user already has a pig and redirect them
   useEffect(() => {
+    async function checkExistingPig() {
+      if (!session?.user?.email) {
+        setIsCheckingExisting(false);
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/pig/me');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.pigId) {
+            // User already has a pig - redirect to reflect page
+            console.log('[Name] User already has pig:', data.pigId);
+            router.push(`/reflect/${data.pigId}`);
+            return;
+          }
+        }
+      } catch (err) {
+        console.error('[Name] Error checking existing pig:', err);
+      }
+      
+      setIsCheckingExisting(false);
+    }
+
+    checkExistingPig();
+  }, [session, router]);
+
+  // Cinematic entrance sequence (only if no existing pig)
+  useEffect(() => {
+    if (isCheckingExisting) return;
+    
     const timers = [
       setTimeout(() => setShowLine1(true), 800),
       setTimeout(() => setShowLine2(true), 2200),
@@ -44,7 +76,7 @@ export default function NamePage() {
       setTimeout(() => setShowInputField(true), 5400),
     ];
     return () => timers.forEach(clearTimeout);
-  }, []);
+  }, [isCheckingExisting]);
 
   const handleNameSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -214,6 +246,36 @@ export default function NamePage() {
             />
           </div>
         </motion.div>
+      </section>
+    );
+  }
+
+  // Show loading while checking for existing pig
+  if (isCheckingExisting) {
+    return (
+      <section 
+        className="relative flex flex-col items-center justify-center h-[100dvh] w-full overflow-hidden px-6"
+        style={{
+          paddingTop: 'max(1rem, env(safe-area-inset-top))',
+          paddingBottom: 'max(2.5rem, env(safe-area-inset-bottom))',
+        }}
+      >
+        <motion.div 
+          className="fixed inset-0 -z-10"
+          style={{
+            background: 'linear-gradient(135deg, #fce7f3, #e9d5ff, #fbcfe8)',
+            backgroundSize: '200% 200%'
+          }}
+          animate={{
+            backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
+          }}
+          transition={{
+            duration: 15,
+            repeat: Infinity,
+            ease: 'linear'
+          }}
+        />
+        <div className="text-pink-800 text-lg font-serif italic">Loading...</div>
       </section>
     );
   }

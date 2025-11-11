@@ -46,6 +46,7 @@ export async function GET() {
     }
 
     return NextResponse.json({
+      pigId: pigId as string,
       pigName: pigData.name as string,
       createdAt: pigData.created_at as string,
     });
