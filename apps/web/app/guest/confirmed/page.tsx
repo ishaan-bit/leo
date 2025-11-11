@@ -30,9 +30,9 @@ export default function GuestConfirmedPage() {
     // Auto-transition after 5 seconds
     const timer = setTimeout(() => {
       setIsTransitioning(true);
-      // Wait for transition animation, then navigate
+      // Wait for transition animation, then navigate to reflect
       setTimeout(() => {
-        router.push('/guest/moment');
+        router.push(`/reflect/${pigName}`);
       }, 600); // Match transition duration
     }, 5000);
 
@@ -136,13 +136,13 @@ export default function GuestConfirmedPage() {
         transition={{ delay: 0.5, duration: 1 }}
         className="text-center max-w-md space-y-4"
       >
-        <p className="font-display text-2xl md:text-3xl text-pink-900 leading-relaxed italic">
+        <p className="font-serif text-2xl md:text-3xl text-pink-900 leading-relaxed italic">
           So it's settled.
         </p>
-        <p className="font-display text-2xl md:text-3xl text-pink-900 leading-relaxed italic">
+        <p className="font-serif text-2xl md:text-3xl text-pink-900 leading-relaxed italic">
           I am <span className="font-semibold text-rose-600">{pigName}</span>.
         </p>
-        <p className="font-display text-2xl md:text-3xl text-pink-900 leading-relaxed italic mt-6">
+        <p className="font-serif text-2xl md:text-3xl text-pink-900 leading-relaxed italic mt-6">
           I'll remember that… wherever you find me again
         </p>
       </motion.div>

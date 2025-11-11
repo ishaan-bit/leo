@@ -123,10 +123,10 @@ export default function StartPage() {
         transition={{ delay: 0.4, duration: 0.8 }}
         className="text-center mb-12 max-w-md"
       >
-        <p className="font-display text-2xl md:text-3xl text-pink-900 leading-relaxed italic">
+        <p className="font-serif text-2xl md:text-3xl text-pink-900 leading-relaxed italic">
           They say pigs can't fly.
         </p>
-        <p className="font-display text-2xl md:text-3xl text-pink-900 leading-relaxed italic mt-2">
+        <p className="font-serif text-2xl md:text-3xl text-pink-900 leading-relaxed italic mt-2">
           Yet here I am — waiting for someone to believe I could.
         </p>
       </motion.div>

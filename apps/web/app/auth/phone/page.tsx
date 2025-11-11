@@ -134,7 +134,7 @@ export default function AuthPhonePage() {
         transition={{ delay: 0.4, duration: 0.8 }}
         className="text-center mb-8"
       >
-        <h1 className="font-display text-3xl md:text-4xl text-pink-900 italic">
+        <h1 className="font-serif text-3xl md:text-4xl text-pink-900 italic">
           {otpSent ? 'Enter code' : 'Sign in with Phone'}
         </h1>
       </motion.div>

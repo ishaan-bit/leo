@@ -179,7 +179,7 @@ export default function GuestNamePigPage() {
         transition={{ delay: 0.4, duration: 0.8 }}
         className="text-center mb-8"
       >
-        <h1 className="font-display text-3xl md:text-4xl text-pink-900 italic">
+        <h1 className="font-serif text-3xl md:text-4xl text-pink-900 italic">
           Name me
         </h1>
       </motion.div>
