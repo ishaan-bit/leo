@@ -227,9 +227,9 @@ export default function BreathingSequence({
   }, [isReady, cycleDuration, cycleCount, firstCycleComplete, stage2Complete, onComplete]);
 
   // NEW ORCHESTRATION: Check for dialogue_tuples and trigger DialogueInterlude
-  // WAIT for first breathing cycle to complete before starting
+  // WAIT for PRIMARY CENTERS, then ONE FULL inhale+exhale cycle, THEN DialogueInterlude
   useEffect(() => {
-    if (!stage2Complete || !stage2Payload || !firstCycleComplete) {
+    if (!stage2Complete || !stage2Payload) {
       return;
     }
     
@@ -237,15 +237,34 @@ export default function BreathingSequence({
       return;
     }
     
-    orchestrationStartedRef.current = true;
-    
     // Check if we have dialogue_tuples from Excel system
     const dialogueTuples = stage2Payload.dialogue_tuples || stage2Payload.meta?.dialogue_tuples;
     
     if (dialogueTuples && dialogueTuples.length >= 3) {
-      console.log('[BreathingSequence] 🎬 Excel dialogue tuples found, triggering DialogueInterlude');
+      console.log('[BreathingSequence] 🎬 Excel dialogue tuples found');
       console.log('[BreathingSequence] Tuples:', dialogueTuples);
-      setShowDialogueInterlude(true);
+      console.log('[BreathingSequence] Waiting for PRIMARY to center, then 1 full breathing cycle...');
+      
+      // Wait for primary to center (tower animation completes)
+      // Then wait for ONE full breathing cycle (inhale + exhale)
+      // THEN trigger DialogueInterlude
+      
+      orchestrationStartedRef.current = true;
+      
+      // Tower centering takes ~2s, then wait for first breathing cycle to complete
+      setTimeout(() => {
+        console.log('[BreathingSequence] ✅ Tower centered, waiting for first breathing cycle...');
+        
+        // Wait for first cycle flag
+        const waitForCycle = setInterval(() => {
+          if (firstCycleComplete) {
+            clearInterval(waitForCycle);
+            console.log('[BreathingSequence] ✅ First breathing cycle complete, starting DialogueInterlude');
+            setShowDialogueInterlude(true);
+          }
+        }, 100);
+      }, 2000);
+      
       return;  // Skip old orchestration
     }
     

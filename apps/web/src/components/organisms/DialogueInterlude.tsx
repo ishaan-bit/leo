@@ -100,23 +100,28 @@ export default function DialogueInterlude({
     
     // Phase 1: Inner Voice (floating text)
     setTimeout(() => {
+      console.log(`[DialogueInterlude] Phase 1: Inner Voice - "${tuple[0]}"`);
       setPhase('inner_voice');
       
       // Inner Voice fades in, hovers 5s, fades out
       setTimeout(() => {
+        console.log(`[DialogueInterlude] Phase 2: Regulate - "${tuple[1]}"`);
         setPhase('regulate');
         
         // Phase 2: Pig bubble appears
         setTimeout(() => {
+          console.log('[DialogueInterlude] Showing pig bubble');
           setShowPigBubble(true);
           
           // Phase 3: Window bubble appears (alongside pig bubble)
           setTimeout(() => {
+            console.log(`[DialogueInterlude] Phase 3: Amuse - "${tuple[2]}"`);
             setPhase('amuse');
             setShowWindowBubble(true);
             
             // Phase 4: Proceed button fades in (2s delay after Amuse)
             setTimeout(() => {
+              console.log('[DialogueInterlude] Phase 4: Proceed button ready');
               setPhase('proceed');
               setShowProceedButton(true);
             }, 2000);
