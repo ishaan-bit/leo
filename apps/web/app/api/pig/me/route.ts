@@ -3,27 +3,51 @@
  * 
  * Get current authenticated user's pig
  * Returns pig name and metadata
+ * Supports both Google auth (NextAuth) and Phone auth (JWT)
  * 
- * Response: { pigName: string, createdAt: string } | 404
+ * Response: { pigId: string, pigName: string, createdAt: string } | 404
  */
 
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth.config';
 import { redis } from '@/lib/supabase';
+import { jwtVerify } from 'jose';
 
-export async function GET() {
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.NEXTAUTH_SECRET || 'your-secret-key'
+);
+
+export async function GET(req: Request) {
   try {
-    // Must be authenticated
+    // Check for NextAuth session (Google)
     const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
+    let userId: string | null = null;
+
+    if (session?.user?.email) {
+      userId = session.user.email;
+    } else {
+      // Check for phone auth session
+      const cookies = req.headers.get('cookie') || '';
+      const phoneSessionMatch = cookies.match(/leo-phone-session=([^;]+)/);
+      
+      if (phoneSessionMatch) {
+        try {
+          const token = phoneSessionMatch[1];
+          const { payload } = await jwtVerify(token, JWT_SECRET);
+          userId = payload.userId as string;
+        } catch (err) {
+          console.error('[API /pig/me] Invalid phone session:', err);
+        }
+      }
+    }
+
+    if (!userId) {
       return NextResponse.json(
         { error: 'Must be signed in' },
         { status: 401 }
       );
     }
-
-    const userId = session.user.email; // Using email as user ID
 
     // Get user's pig ID
     const pigId = await redis.get(`user_pig:${userId}`);

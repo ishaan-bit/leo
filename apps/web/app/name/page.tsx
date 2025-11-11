@@ -37,7 +37,12 @@ export default function NamePage() {
   // Check if user already has a pig and redirect them
   useEffect(() => {
     async function checkExistingPig() {
-      if (!session?.user?.email) {
+      // Check for both NextAuth session (Google) and phone session
+      const hasGoogleAuth = !!session?.user?.email;
+      const hasPhoneAuth = document.cookie.includes('leo-phone-session');
+      
+      if (!hasGoogleAuth && !hasPhoneAuth) {
+        // Guest user - no check needed
         setIsCheckingExisting(false);
         return;
       }
