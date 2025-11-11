@@ -265,10 +265,10 @@ def enrich(
         }
     }
     
-    # 14. Append playful dialogue (poems + tips) from micro-content-api
+    # 14. Append playful dialogue (poems + tips) from Excel (Guide to Urban Loneliness)
     try:
-        from dialogue.micro_content_fetcher import build_dialogue_from_micro_content
-        poems, tips, dialogue_meta = build_dialogue_from_micro_content(result)
+        from dialogue.excel_dialogue_fetcher import build_dialogue_from_excel
+        poems, tips, dialogue_meta = build_dialogue_from_excel(result)
         result['poems'] = poems
         result['tips'] = tips
         result['_dialogue_meta'] = dialogue_meta

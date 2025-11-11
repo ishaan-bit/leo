@@ -263,6 +263,99 @@ def test_fetch(domain: str = "work", secondary: str = "Frustrated"):
     return result
 
 
+def build_dialogue_from_excel(
+    data: Dict,
+    user_id: str = "default_user"
+) -> Tuple[List[str], List[str], Dict]:
+    """
+    Build dialogue (poems + tips) by fetching tuples from Excel file.
+    
+    This function replaces build_dialogue_from_micro_content() in the pipeline.
+    It extracts dialogue tuples from Guide to Urban Loneliness.xlsx instead of batch_all JSON.
+    
+    Args:
+        data: Enrichment result dict with domain.primary, secondary, etc.
+        user_id: User identifier (currently unused, kept for API compatibility)
+        
+    Returns:
+        Tuple of (poems, tips, meta)
+        - poems: First element of each tuple ("Inner Voice of Reason")
+        - tips: Second element of each tuple ("Regulate")  
+        - meta: Dict with source info
+        
+    Note: Third element "Amuse" is stored in meta for future use
+    """
+    try:
+        # Extract domain primary and wheel secondary from enrichment data
+        domain = data.get('domain', {})
+        raw_domain_primary = domain.get('primary', 'self')
+        raw_wheel_secondary = data.get('secondary', 'default')
+        
+        logger.info(f"[Excel] Raw values: domain={raw_domain_primary}, secondary={raw_wheel_secondary}")
+        
+        # Fetch from Excel
+        excel_result = fetch_dialogue_tuples(raw_domain_primary, raw_wheel_secondary)
+        
+        if not excel_result.get('found'):
+            logger.warning(f"[Excel] ❌ No data found: {excel_result.get('error')}")
+            raise ValueError(f"No Excel data found for {raw_domain_primary}/{raw_wheel_secondary}")
+        
+        # Extract tuples
+        tuples = excel_result.get('tuples', [])
+        
+        if len(tuples) < 3:
+            logger.warning(f"[Excel] Only {len(tuples)} tuples available, padding to 3")
+        
+        # Extract poems (Inner Voice - first element of each tuple)
+        poems = [t[0] for t in tuples] if len(tuples) > 0 else ['noted.', 'here.', 'okay.']
+        
+        # Ensure 3 poems
+        while len(poems) < 3:
+            poems.append('pause.')
+        
+        # Extract tips (Regulate - second element of each tuple)
+        tips = [t[1] for t in tuples] if len(tuples) > 0 else ['breathe.', 'notice.', 'allow.']
+        
+        # Ensure 3 tips
+        while len(tips) < 3:
+            tips.append('breathe.')
+        
+        # Store Amuse (third element) in meta for future use
+        amuse_lines = [t[2] for t in tuples] if len(tuples) > 0 else []
+        
+        logger.info(f"[Excel] ✅ Fetched dialogue for {excel_result.get('domain')}/{excel_result.get('secondary')}")
+        logger.info(f"[Excel] Poems (Inner Voice): {poems[:1]}... ({len(poems)} total)")
+        logger.info(f"[Excel] Tips (Regulate): {tips[:1]}... ({len(tips)} total)")
+        
+        # Meta information
+        meta = {
+            'source': 'excel',
+            'domain_primary': excel_result.get('domain'),
+            'wheel_secondary': excel_result.get('secondary'),
+            'total_available': excel_result.get('total_available', len(tuples)),
+            'amuse_lines': amuse_lines,  # Store for future 3-part interlude
+            'found': True
+        }
+        
+        logger.info(f"Successfully fetched Excel dialogue for {raw_domain_primary}/{raw_wheel_secondary}")
+        return poems, tips, meta
+    
+    except Exception as e:
+        logger.error(f"[Excel] ❌ Dialogue fetch failed: {e}")
+        logger.exception(e)  # Full stack trace
+        
+        # Safe fallback
+        return (
+            ['noted.', 'here.', 'okay.'],
+            ['pause.', 'breathe.', 'notice.'],
+            {
+                'source': 'fallback',
+                'error': str(e),
+                'found': False
+            }
+        )
+
+
 if __name__ == "__main__":
     # Test with sample data
     test_fetch("work", "Frustrated")
