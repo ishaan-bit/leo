@@ -235,9 +235,11 @@ export default function DialogueInterlude({
             transition={{ duration: 0.6, ease: EASING }}
           >
             <ComicBubble
-              text={regulate}
-              mood="calm"
-              variant="speech"
+              content={regulate}
+              state="text"
+              anchorPosition={{ x: 50, y: 85 }} // Center bottom (where pig is)
+              tailDirection="down"
+              type="tip"
               maxWidth={600}
             />
           </motion.div>
