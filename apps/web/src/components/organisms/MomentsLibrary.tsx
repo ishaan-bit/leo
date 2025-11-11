@@ -394,6 +394,33 @@ export default function MomentsLibrary({
     }
   }, [phase, moments.length]);
 
+  // GUEST DATA PURGE: After library phase loads, purge guest data (transient mode)
+  useEffect(() => {
+    if (phase === 'library' && !session?.user) {
+      // Wait for library animation to complete, then purge
+      const purgeTimer = setTimeout(async () => {
+        console.log('[MomentsLibrary] 🗑️ Guest mode detected - purging data after display');
+        
+        try {
+          const res = await fetch('/api/guest/purge', {
+            method: 'POST',
+          });
+          
+          if (res.ok) {
+            const data = await res.json();
+            console.log('[MomentsLibrary] ✅ Guest data purged:', data);
+          } else {
+            console.error('[MomentsLibrary] ❌ Failed to purge guest data');
+          }
+        } catch (error) {
+          console.error('[MomentsLibrary] ❌ Error purging guest data:', error);
+        }
+      }, 120000); // Wait 2 minutes (120s) after library loads - let user explore their moment
+      
+      return () => clearTimeout(purgeTimer);
+    }
+  }, [phase, session?.user]);
+
   // Idle window blink animation - hints at interactivity
   useEffect(() => {
     if (phase !== 'library' || moments.length === 0) return;

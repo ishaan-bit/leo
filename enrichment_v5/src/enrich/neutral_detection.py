@@ -40,7 +40,7 @@ else:
     TAU_EMOTION = 0.06  # Reduced by half from 0.12
     TAU_EMOTION_SUBTLE = 0.06
 
-TAU_EVENT = 0.12    # Min density for specific event (normalized by token count)
+TAU_EVENT = 0.06    # Min density for specific event (normalized by token count) - reduced by half
 
 # Routine event markers (mundane, expected occurrences)
 ROUTINE_EVENT_PATTERN = re.compile(

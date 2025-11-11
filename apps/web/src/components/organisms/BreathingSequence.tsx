@@ -133,14 +133,8 @@ export default function BreathingSequence({
   }, [audio]);
 
   // Poll for Stage-2 enrichment (post_enrichment payload)
-  // CRITICAL: Skip polling for null emotions - they don't get Stage 2
+  // NOTE: ALL emotions (including null) get poems/tips orchestration
   useEffect(() => {
-    // Skip Stage 2 for null emotions
-    if (isNullEmotion) {
-      console.log('[Stage2] 🌙 Null emotion detected, skipping Stage 2 enrichment polling');
-      return;
-    }
-    
     const pollInterval = setInterval(async () => {
       try {
         const response = await fetch(`/api/reflect/${reflectionId}`);
@@ -180,32 +174,7 @@ export default function BreathingSequence({
     }, 2000);
     
     return () => clearInterval(pollInterval);
-  }, [reflectionId, stage2Complete, stage2Payload, isNullEmotion]);
-
-  // Null emotion handling: Complete after 3 cycles without Stage 2
-  useEffect(() => {
-    if (!isNullEmotion || !isReady) return;
-    
-    if (cycleCount >= targetCycles) {
-      console.log('[Breathing] 🌙 Null emotion: 3 cycles complete, going to orchestrator');
-      // Fade audio
-      if (audioRef.current) {
-        const fadeOut = setInterval(() => {
-          if (audioRef.current && audioRef.current.volume > 0.05) {
-            audioRef.current.volume -= 0.05;
-          } else {
-            clearInterval(fadeOut);
-            audioRef.current?.pause();
-          }
-        }, 100);
-      }
-      
-      // Skip Stage 2, go directly to orchestrator
-      setTimeout(() => {
-        onComplete();
-      }, 1500);
-    }
-  }, [isNullEmotion, isReady, cycleCount, targetCycles, onComplete]);
+  }, [reflectionId, stage2Complete, stage2Payload]);
 
   // Continuous breathing animation loop with proper 4-phase cycle
   useEffect(() => {
@@ -595,7 +564,7 @@ export default function BreathingSequence({
             }}
             animate={{ 
               opacity: isInhaling ? [0, 1, 1, 0.7] : [0.7, 1, 1, 0],
-              scale: isInhaling ? [0.92, 1.12, 1.12, 1.02] : [1.02, 1.12, 1.12, 0.92],
+              scale: isInhaling ? [0.95, 1.15, 1.15, 1.0] : [1.0, 0.8, 0.8, 0.95], // Inhale: both pig AND text grow together, Exhale: both pig AND text shrink together
             }}
             transition={{ 
               duration: isInhaling ? activeCycle.in : activeCycle.out,

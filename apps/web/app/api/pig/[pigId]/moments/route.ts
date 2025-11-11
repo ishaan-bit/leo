@@ -66,27 +66,8 @@ export async function GET(
           ? JSON.parse(reflectionData) 
           : reflectionData;
         
-        // CRITICAL FIX: Filter reflections based on ownership
-        // Strategy: Only show reflections that match the current pigId context
-        // - If owner_id = "guest:<pigId>", this is a guest reflection for this pig → SHOW
-        // - If owner_id != "guest:*" AND user_id = pigId, this is auth reflection for this user → SHOW  
-        // - Otherwise → SKIP
-        
-        const isGuestReflection = data.owner_id && String(data.owner_id).startsWith('guest:');
-        const isOwnGuestReflection = data.owner_id === `guest:${pigId}`;
-        const isOwnAuthReflection = !isGuestReflection && data.user_id === pigId;
-        
-        // Only show if it's this user's guest OR auth reflection
-        if (!isOwnGuestReflection && !isOwnAuthReflection) {
-          console.log('[API /pig/moments] 🚫 Skipping reflection not owned by this pig:', {
-            rid,
-            owner_id: data.owner_id,
-            user_id: data.user_id,
-            pigId,
-            isGuest: isGuestReflection,
-          });
-          continue;
-        }
+        // NOTE: No filtering needed here - pig_reflections:${pigId} sorted set already contains
+        // only reflections belonging to this pig (added via saveReflection in reflect/route.ts)
         
         console.log('[API /pig/moments] ✅ Loaded reflection:', {
           rid: data.rid,

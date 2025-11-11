@@ -612,38 +612,15 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     }
   };
 
-  // Handle breathing completion → transition to moments library OR reset for null emotion
+  // Handle breathing completion → ALWAYS transition to moments library
   const handleBreathingComplete = () => {
-    console.log('[Scene_Reflect] 🌅 Breathing complete, transitioning...');
+    console.log('[Scene_Reflect] 🌅 Breathing complete, transitioning to Living City...');
     console.log('[Scene_Reflect] Current context:', breathingContext);
     
-    // Check if this was a null emotion (no primary detected)
-    const isNullEmotion = breathingContext?.primary === null;
-    
-    if (isNullEmotion) {
-      console.log('[Scene_Reflect] 🌙 Null emotion detected → Completing scene, ready for next reflection');
-      // Hide breathing, reset scene for next reflection
-      setShowBreathing(false);
-      
-      setTimeout(() => {
-        setCurrentReflectionId(null);
-        setBreathingContext(null);
-        setScenePhase('entering');
-        setIsSubmitting(false);
-        
-        // Reset dialogue to time-based greeting
-        const timeGreeting = getTimeBasedGreeting(pigName);
-        setDialogue(timeGreeting);
-        
-        console.log('[Scene_Reflect] ✅ Null emotion flow complete, ready for next reflection');
-      }, 600); // Wait for breathing fade-out
-    } else {
-      // Normal flow: go to moments library
-      console.log('[Scene_Reflect] 🏛️ Normal flow → Moments Library');
-      // Show library immediately, hide breathing (AnimatePresence handles crossfade)
-      setShowMomentsLibrary(true);
-      setShowBreathing(false);
-    }
+    // ALL emotions (including null) go to Living City after breathing + orchestration
+    console.log('[Scene_Reflect] 🏛️ Going to Moments Library');
+    setShowMomentsLibrary(true);
+    setShowBreathing(false);
   };
   
   // Handle moments library - new reflection request
