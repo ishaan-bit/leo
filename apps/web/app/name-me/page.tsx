@@ -11,7 +11,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { submitPigName } from './actions.js';
+import { submitPigName } from './actions';
 
 export default function NameMePage() {
   const [pigName, setPigName] = useState('');
