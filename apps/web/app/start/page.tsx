@@ -5,7 +5,7 @@
  * Device-aware routing with localStorage hints
  * 
  * Boot logic:
- * 1. Signed in → redirect to /reflect
+ * 1. Signed in → fetch pig → redirect to /reflect/[pigName]
  * 2. Has local pig name → redirect to /signin?prefillPig=1 (same device fast-path)
  * 3. Fresh → redirect to /name
  */
@@ -27,10 +27,28 @@ export default function StartPage() {
     // Wait for session to load
     if (status === 'loading') return;
 
-    // 1. If signed in → go to reflect
+    // 1. If signed in → fetch pig and redirect to /reflect/[pigName]
     if (session?.user) {
-      console.log('[Start] User signed in, redirecting to /reflect');
-      router.replace('/reflect');
+      console.log('[Start] User signed in, fetching pig...');
+      
+      // Fetch user's pig
+      fetch('/api/pig/fetch')
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.pigName) {
+            console.log('[Start] Found pig, redirecting to /reflect/' + data.pigName);
+            router.replace(`/reflect/${data.pigName}`);
+          } else {
+            // User is signed in but has no pig → go to naming flow
+            console.log('[Start] No pig found, redirecting to /name');
+            router.replace('/name');
+          }
+        })
+        .catch(err => {
+          console.error('[Start] Error fetching pig:', err);
+          // On error, redirect to naming flow
+          router.replace('/name');
+        });
       return;
     }
 
