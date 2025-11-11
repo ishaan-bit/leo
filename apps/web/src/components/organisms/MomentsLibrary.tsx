@@ -120,11 +120,19 @@ export default function MomentsLibrary({
   const containerRef = useRef<HTMLDivElement>(null);
   const leoRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
+  const hadMomentOpenRef = useRef(false); // Track if we actually opened a moment
 
   // Log component mount
   useEffect(() => {
     console.log('[MomentsLibrary] 🎬 Component mounted!', { pigId, pigName, currentPrimary });
   }, []);
+
+  // Track when moment opens
+  useEffect(() => {
+    if (selectedMoment) {
+      hadMomentOpenRef.current = true;
+    }
+  }, [selectedMoment]);
 
   // Reset language state when modal closes
   useEffect(() => {
@@ -147,9 +155,10 @@ export default function MomentsLibrary({
       });
       
       // Show preservation bubble when moment is closed
-      // Only show if we previously had a moment open (not initial load)
-      if (phase === 'library' && moments.length > 0) {
+      // Only show if we actually had a moment open (not initial load)
+      if (phase === 'library' && moments.length > 0 && hadMomentOpenRef.current) {
         setShowPreservationBubble(true);
+        hadMomentOpenRef.current = false; // Reset flag
         
         // Auto-hide after 3 seconds
         setTimeout(() => setShowPreservationBubble(false), 3000);
