@@ -265,7 +265,7 @@ export default function BreathingSequence({
     
     if (tips.length < 3) {
       console.error('[Bubble Sequence] ❌ CRITICAL: Less than 3 tips available:', tips.length, 'This will break the 3-tip flow!');
-```      console.error('[Bubble Sequence] All tips:', tips);
+      console.error('[Bubble Sequence] All tips:', tips);
     }
     
     // Cycle 1: Poem 1 floats → Tip 1 from Leo → Mark Done
