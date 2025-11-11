@@ -113,9 +113,50 @@ export default function NamePage() {
       return;
     }
 
-    await signIn(provider, {
-      callbackUrl: '/app', // After sign-in, go to app (will show pig list)
+    // Sign in first, then check for pig
+    const result = await signIn(provider, {
+      redirect: false,
     });
+
+    if (result?.ok) {
+      // Check if user has a pig
+      await checkUserPig();
+    }
+  };
+
+  const checkUserPig = async () => {
+    try {
+      const res = await fetch('/api/effective');
+      if (!res.ok) {
+        setError('No pig found for this account');
+        setTimeout(() => {
+          setMode('name');
+          setError(null);
+        }, 2000);
+        return;
+      }
+
+      const identity = await res.json();
+      
+      if (!identity.pigName) {
+        setError('No pig found for this account');
+        setTimeout(() => {
+          setMode('name');
+          setError(null);
+        }, 2000);
+        return;
+      }
+
+      // Success - redirect to app
+      router.push('/app');
+    } catch (err) {
+      console.error('[Fetch] Error checking pig:', err);
+      setError('No pig found for this account');
+      setTimeout(() => {
+        setMode('name');
+        setError(null);
+      }, 2000);
+    }
   };
 
   const handleSendOtp = async (e: React.FormEvent) => {
@@ -462,16 +503,29 @@ export default function NamePage() {
                   )}
                 </div>
 
-                {/* Submit button */}
-                <motion.button
-                  type="submit"
-                  disabled={!pigName.trim() || isSubmitting}
-                  className="px-8 py-3 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-medium shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  {isSubmitting ? 'Saving...' : 'Continue as Guest'}
-                </motion.button>
+                {/* Mode selection buttons */}
+                <div className="flex gap-3 w-full">
+                  <motion.button
+                    type="submit"
+                    disabled={!pigName.trim() || isSubmitting}
+                    className="flex-1 py-3 px-6 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-medium shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {isSubmitting ? 'Saving...' : 'Name New Pig'}
+                  </motion.button>
+
+                  <motion.button
+                    type="button"
+                    onClick={() => setMode('fetch')}
+                    disabled={isSubmitting}
+                    className="flex-1 py-3 px-6 rounded-full bg-white/80 backdrop-blur-sm border-2 border-pink-300 text-pink-700 font-medium shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Fetch My Pig
+                  </motion.button>
+                </div>
 
                 {/* Error message */}
                 <AnimatePresence>
@@ -486,47 +540,67 @@ export default function NamePage() {
                     </motion.div>
                   )}
                 </AnimatePresence>
-
-                <p className="text-pink-400 text-xs text-center mt-2">
-                  Sign in later to save across devices
-                </p>
               </motion.form>
             )}
           </>
         )}
 
-        {/* FETCH MODE - Sign-in Options */}
+        {/* FETCH MODE - Sign-in Options (with same poetic design) */}
         {mode === 'fetch' && !isOtpFlow && (
-          <motion.div
-            className="w-full max-w-md px-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            {/* Pig icon */}
+          <>
+            {/* Pig Character - same entrance animation */}
             <motion.div
-              animate={{
-                y: [0, -10, 0],
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ 
+                y: -5, 
+                opacity: 1,
+                rotate: 3
               }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                ease: 'easeInOut',
+              transition={{ 
+                y: { duration: 1.2, ease: [0.34, 1.56, 0.64, 1] },
+                opacity: { duration: 0.8 },
+                rotate: { duration: 0.6 }
               }}
-              className="text-7xl text-center mb-6"
+              className="mb-4"
             >
-              🐷
+              <PinkPig 
+                size={240} 
+                state="idle"
+              />
             </motion.div>
 
-            <h2 className="text-2xl font-serif text-pink-800 text-center mb-4">
-              Fetch Your Pig
-            </h2>
+            {/* Poetic text for fetch mode */}
+            <motion.div
+              className="flex flex-col gap-3 items-center text-center px-6 max-w-md mb-8"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6, duration: 0.6 }}
+            >
+              <motion.p
+                className="text-pink-800 text-base font-serif italic"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, delay: 0.8 }}
+              >
+                I remember you.
+              </motion.p>
+              <motion.p
+                className="text-pink-800 text-base font-serif italic"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, delay: 1.4 }}
+              >
+                Sign in, and I'll find my way back to you.
+              </motion.p>
+            </motion.div>
 
-            <p className="text-center text-pink-700 text-sm mb-8">
-              Sign in to access your pig from any device
-            </p>
-
-            <div className="space-y-4">
+            <motion.div
+              className="w-full max-w-md px-6"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 2.0, duration: 0.8 }}
+            >
+              <div className="space-y-4">
               <button
                 onClick={() => handleFetchPig('google')}
                 className="w-full flex items-center justify-center gap-3 bg-white/80 backdrop-blur-sm border-2 border-pink-200 text-pink-900 font-medium py-3 px-6 rounded-2xl shadow-md hover:shadow-lg hover:border-pink-300 transition-all duration-300"
@@ -562,21 +636,41 @@ export default function NamePage() {
                 </motion.div>
               )}
             </AnimatePresence>
-          </motion.div>
+            </motion.div>
+          </>
         )}
 
-        {/* PHONE OTP FLOW */}
+        {/* PHONE OTP FLOW (with same poetic design) */}
         {isOtpFlow && (
-          <motion.div
-            className="w-full max-w-md px-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            {/* Pig icon */}
-            <div className="text-6xl text-center mb-6">🐷</div>
+          <>
+            {/* Pig Character - same entrance animation */}
+            <motion.div
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ 
+                y: -5, 
+                opacity: 1,
+                rotate: 3
+              }}
+              transition={{ 
+                y: { duration: 1.2, ease: [0.34, 1.56, 0.64, 1] },
+                opacity: { duration: 0.8 },
+                rotate: { duration: 0.6 }
+              }}
+              className="mb-6"
+            >
+              <PinkPig 
+                size={240} 
+                state="idle"
+              />
+            </motion.div>
 
-            {!otpSent ? (
+            <motion.div
+              className="w-full max-w-md px-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              {!otpSent ? (
               <form onSubmit={handleSendOtp} className="space-y-6">
                 <h2 className="text-2xl font-serif text-pink-800 text-center">
                   Sign In with Phone
@@ -674,7 +768,8 @@ export default function NamePage() {
                 </motion.div>
               )}
             </AnimatePresence>
-          </motion.div>
+            </motion.div>
+          </>
         )}
       </div>
     </section>
