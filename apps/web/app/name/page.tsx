@@ -69,6 +69,25 @@ export default function NamePage() {
           setIsSubmitting(false);
           return;
         }
+
+        const { pigId } = await res.json();
+
+        // Save locally
+        localStorage.setItem('leo_pig_name_local', pigName.trim());
+
+        console.log('[Name] Pig created:', pigId, pigName.trim());
+        
+        // Show confetti celebration
+        setShowConfetti(true);
+        setTimeout(() => {
+          setShowConfetti(false);
+          // Show 5s settle screen
+          setShowSettle(true);
+          setTimeout(() => {
+            // Redirect to /reflect/[pigId]
+            router.push(`/reflect/${pigId}`);
+          }, 5000);
+        }, 2000);
       } else {
         // Guest user: create ephemeral pig
         let deviceUid = localStorage.getItem('leo_guest_uid');
@@ -92,24 +111,24 @@ export default function NamePage() {
           setIsSubmitting(false);
           return;
         }
-      }
 
-      // Save locally
-      localStorage.setItem('leo_pig_name_local', pigName.trim());
+        // Save locally
+        localStorage.setItem('leo_pig_name_local', pigName.trim());
 
-      console.log('[Name] Pig created:', pigName.trim());
-      
-      // Show confetti celebration
-      setShowConfetti(true);
-      setTimeout(() => {
-        setShowConfetti(false);
-        // Show 5s settle screen
-        setShowSettle(true);
+        console.log('[Name] Guest pig created:', pigName.trim());
+        
+        // Show confetti celebration
+        setShowConfetti(true);
         setTimeout(() => {
-          // Redirect directly to /reflect/[pigName] to avoid identity resolver timing issues
-          router.push(`/reflect/${pigName.trim()}`);
-        }, 5000);
-      }, 2000);
+          setShowConfetti(false);
+          // Show 5s settle screen
+          setShowSettle(true);
+          setTimeout(() => {
+            // Redirect to guest flow
+            router.push(`/reflect/${pigName.trim()}`);
+          }, 5000);
+        }, 2000);
+      }
     } catch (err) {
       console.error('[Name] Error:', err);
       setError('Something went wrong. Please try again.');

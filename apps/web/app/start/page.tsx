@@ -20,7 +20,7 @@ export default function StartPage() {
   };
 
   const handlePhoneSignIn = () => {
-    router.push('/name?mode=phone');
+    router.push('/auth/phone');
   };
 
   return (

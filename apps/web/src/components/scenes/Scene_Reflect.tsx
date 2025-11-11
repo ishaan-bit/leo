@@ -1065,6 +1065,9 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
             <FloatingSignInButton onClick={() => setShowSignInModal(true)} />
           )}
         </AnimatePresence>
+
+        {/* Ambient Sound Toggle */}
+        <SoundToggle />
       </div>
       </div>
     </motion.div>
