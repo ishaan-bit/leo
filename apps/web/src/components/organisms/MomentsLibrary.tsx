@@ -121,6 +121,7 @@ export default function MomentsLibrary({
   const leoRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const hadMomentOpenRef = useRef(false); // Track if we actually opened a moment
+  const autoOpenCompletedRef = useRef(false); // Track if auto-open has run
 
   // Log component mount
   useEffect(() => {
@@ -398,24 +399,9 @@ export default function MomentsLibrary({
     sequence();
   }, [phase, currentPrimary]);
 
-  // Show intro bubble when library phase loads
+  // Auto-open today's brightest moment when library phase loads (ONCE)
   useEffect(() => {
-    if (phase === 'library' && moments.length > 0) {
-      // Wait 1s for everything to settle, then show bubble
-      const timer = setTimeout(() => {
-        setShowIntroBubble(true);
-        
-        // Auto-hide after 4 seconds
-        setTimeout(() => setShowIntroBubble(false), 4000);
-      }, 1000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [phase, moments.length]);
-
-  // Auto-open today's brightest moment when library phase loads
-  useEffect(() => {
-    if (phase === 'library' && moments.length > 0 && !selectedMoment) {
+    if (phase === 'library' && moments.length > 0 && !autoOpenCompletedRef.current) {
       // Find the newest moment (today's brightest window)
       const newestMoment = moments.reduce((newest, current) => {
         return new Date(current.timestamp) > new Date(newest.timestamp) ? current : newest;
@@ -426,11 +412,13 @@ export default function MomentsLibrary({
       // Wait for animations to settle (2.5s after library loads)
       const timer = setTimeout(() => {
         setSelectedMoment(newestMoment);
+        hadMomentOpenRef.current = true; // Track that moment was opened
+        autoOpenCompletedRef.current = true; // Prevent re-running
       }, 2500);
       
       return () => clearTimeout(timer);
     }
-  }, [phase, moments, selectedMoment]);
+  }, [phase, moments]); // Removed selectedMoment dependency to prevent loop
 
   // GUEST DATA PURGE: After library phase loads, purge guest data (transient mode)
   useEffect(() => {
@@ -726,51 +714,21 @@ export default function MomentsLibrary({
         </motion.div>
       </motion.div>
 
-      {/* Intro bubble - "You can glance at today's moment through this window" */}
-      <AnimatePresence>
-        {showIntroBubble && (
-          <motion.div
-            className="absolute top-[15%] left-1/2 -translate-x-1/2 z-50 pointer-events-none"
-            initial={{ opacity: 0, y: -10, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.9 }}
-            transition={{ duration: 0.6, ease: EASING }}
-          >
-            <div
-              className="px-6 py-4 rounded-2xl shadow-2xl max-w-sm text-center"
-              style={{
-                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 250, 245, 0.98) 100%)',
-                backdropFilter: 'blur(20px)',
-                border: '2px solid rgba(156, 31, 95, 0.15)',
-                boxShadow: '0 12px 40px rgba(156, 31, 95, 0.15), 0 4px 12px rgba(0,0,0,0.1)',
-              }}
-            >
-              <p
-                className="text-base font-medium"
-                style={{
-                  fontFamily: '"EB Garamond", "Georgia", serif',
-                  color: '#2D2D2D',
-                  lineHeight: '1.5',
-                  letterSpacing: '0.3px',
-                }}
-              >
-                You can glance at today's moment through this window
-              </p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* REMOVED: Intro bubble - now only showing preservation bubble */}
 
       {/* Preservation bubble - "Today's Moment has been preserved here" */}
       <AnimatePresence>
         {showPreservationBubble && (
           <motion.div
-            className="absolute top-[15%] left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+            className="absolute top-[20%] left-1/2 -translate-x-1/2 z-50 pointer-events-none"
             initial={{ opacity: 0, y: -10, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.9 }}
             transition={{ duration: 0.6, ease: EASING }}
           >
+            {/* Pointer arrow down toward brightest window */}
+            <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[12px] border-r-[12px] border-t-[12px] border-l-transparent border-r-transparent border-t-white/95 drop-shadow-lg" />
+            
             <div
               className="px-6 py-4 rounded-2xl shadow-2xl max-w-sm text-center"
               style={{

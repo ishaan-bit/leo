@@ -1,0 +1,24 @@
+# Enrichment Pipeline v5
+# Uses HuggingFace Inference API (HTTP-based, no local models)
+
+# Core dependencies
+python-dotenv>=1.0.0
+requests>=2.31.0
+
+# FastAPI for HF Spaces deployment
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+
+# Excel reading for dialogue tuples
+openpyxl>=3.1.2
+
+# NOT REQUIRED (we use HF Inference API via HTTP):
+# transformers (would need torch>=2.6 due to CVE-2025-32434)
+# torch
+# numpy
+# scipy
+# scikit-learn
+
+# Optional: For local testing/development
+pytest>=7.4.0

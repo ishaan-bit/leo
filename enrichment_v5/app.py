@@ -10,7 +10,7 @@ import requests
 from typing import Optional
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
@@ -22,6 +22,10 @@ load_dotenv()
 sys.path.insert(0, str(Path(__file__).parent / 'src'))
 
 from enrich.full_pipeline import enrich
+
+# Import dialogue fetchers
+sys.path.insert(0, str(Path(__file__).parent / 'dialogue'))
+from excel_dialogue_fetcher import fetch_dialogue_tuples
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -100,6 +104,7 @@ async def root():
         "endpoints": {
             "/health": "Health check",
             "/enrich": "POST - Enrich reflection text",
+            "/dialogue-tuples": "GET - Fetch 3 random dialogue tuples from Excel (params: domain, secondary)",
             "/docs": "API documentation (Swagger UI)"
         }
     }
@@ -295,6 +300,62 @@ async def test_endpoint():
         return {
             "test": "failed",
             "error": str(e)
+        }
+
+
+@app.get("/dialogue-tuples")
+async def get_dialogue_tuples(
+    domain: str = Query(..., description="Domain primary (work, self, relationship, etc.)"),
+    secondary: str = Query(..., description="Wheel secondary emotion (Frustrated, Anxious, etc.)")
+):
+    """
+    Fetch 3 random dialogue tuples from Guide to Urban Loneliness.xlsx.
+    
+    Each tuple contains: [Inner Voice of Reason, Regulate, Amuse]
+    
+    Query Parameters:
+        - domain: Domain primary (work, self, relationship, health, family, social, creative, financial)
+        - secondary: Wheel secondary emotion (Frustrated, Anxious, Jealous, etc.)
+    
+    Returns:
+        {
+            "found": true,
+            "domain": "Work",
+            "secondary": "Frustrated",
+            "tuples": [
+                ["Inner Voice 1", "Regulate 1", "Amuse 1"],
+                ["Inner Voice 2", "Regulate 2", "Amuse 2"],
+                ["Inner Voice 3", "Regulate 3", "Amuse 3"]
+            ],
+            "source": "excel",
+            "total_available": 8
+        }
+    
+    If domain/secondary not found:
+        {
+            "found": false,
+            "error": "Description"
+        }
+    
+    Frontend should skip to Living City after first breathing cycle if found=false.
+    """
+    try:
+        logger.info(f"[Dialogue Tuples] Request: domain={domain}, secondary={secondary}")
+        
+        result = fetch_dialogue_tuples(domain, secondary)
+        
+        if result.get('found'):
+            logger.info(f"[Dialogue Tuples] ✅ Found {len(result.get('tuples', []))} tuples")
+        else:
+            logger.warning(f"[Dialogue Tuples] ❌ Not found: {result.get('error')}")
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"[Dialogue Tuples] Error: {str(e)}", exc_info=True)
+        return {
+            "found": False,
+            "error": f"Server error: {str(e)}"
         }
 
 
