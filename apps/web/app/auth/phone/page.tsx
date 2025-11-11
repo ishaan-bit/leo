@@ -12,6 +12,7 @@ export default function PhoneAuthPage() {
   const [otpSent, setOtpSent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [devOtp, setDevOtp] = useState<string | null>(null);
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,6 +33,13 @@ export default function PhoneAuthPage() {
         setError(apiError || 'Failed to send OTP');
         setIsSubmitting(false);
         return;
+      }
+
+      const data = await res.json();
+      
+      // In development, show the OTP code
+      if (data.dev_otp) {
+        setDevOtp(data.dev_otp);
       }
 
       setOtpSent(true);
@@ -154,6 +162,24 @@ export default function PhoneAuthPage() {
             </form>
           ) : (
             <form onSubmit={handleVerifyOtp} className="space-y-4">
+              {devOtp && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-pink-100 border-2 border-pink-300 rounded-2xl p-4 mb-4"
+                >
+                  <p className="text-pink-800 text-sm font-serif italic text-center mb-2">
+                    🔐 Development Mode
+                  </p>
+                  <p className="text-pink-900 text-2xl font-bold text-center tracking-wider">
+                    {devOtp}
+                  </p>
+                  <p className="text-pink-600 text-xs text-center mt-2">
+                    (Twilio not configured - use this code)
+                  </p>
+                </motion.div>
+              )}
+              
               <input
                 type="text"
                 value={otpCode}

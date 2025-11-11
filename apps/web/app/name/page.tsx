@@ -42,8 +42,11 @@ export default function NamePage() {
       const hasGoogleAuth = !!session?.user?.email;
       const hasPhoneAuth = document.cookie.includes('leo-phone-session');
       
+      console.log('[Name] 🔍 Checking existing pig - Google:', hasGoogleAuth, 'Phone:', hasPhoneAuth);
+      
       if (!hasGoogleAuth && !hasPhoneAuth) {
         // Guest user - no check needed
+        console.log('[Name] 👤 Guest user detected - no existing pig check');
         setIsCheckingExisting(false);
         return;
       }
@@ -54,9 +57,11 @@ export default function NamePage() {
           const data = await res.json();
           if (data.pigId) {
             // User already has a pig - redirect to reflect page
-            console.log('[Name] User already has pig:', data.pigId);
+            console.log('[Name] 🐷 RETURNING USER - Already has pig:', data.pigId, '- Skipping settle screen and redirecting immediately');
             router.push(`/reflect/${data.pigId}`);
             return;
+          } else {
+            console.log('[Name] ✨ NEW USER - No existing pig found, showing name form');
           }
         }
       } catch (err) {
@@ -118,11 +123,14 @@ export default function NamePage() {
         // Show confetti celebration
         playChimeSound();
         setShowConfetti(true);
+        console.log('[Name] ✨ Starting confetti animation');
         setTimeout(() => {
           setShowConfetti(false);
           // Show 5s settle screen
           setShowSettle(true);
+          console.log('[Name] 🎯 Settle screen should now be visible (showSettle=true)');
           setTimeout(() => {
+            console.log('[Name] ➡️ Redirecting to /reflect/', pigId);
             // Redirect to /reflect/[pigId]
             router.push(`/reflect/${pigId}`);
           }, 5000);
@@ -139,7 +147,7 @@ export default function NamePage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            deviceUid,
+            guest_session_id: deviceUid,
             pigName: pigName.trim(),
           }),
         });
@@ -159,11 +167,14 @@ export default function NamePage() {
         // Show confetti celebration
         playChimeSound();
         setShowConfetti(true);
+        console.log('[Name] ✨ Starting guest confetti animation');
         setTimeout(() => {
           setShowConfetti(false);
           // Show 5s settle screen
           setShowSettle(true);
+          console.log('[Name] 🎯 Guest settle screen should now be visible (showSettle=true)');
           setTimeout(() => {
+            console.log('[Name] ➡️ Redirecting guest to /reflect/', pigName.trim());
             // Redirect to guest flow
             router.push(`/reflect/${pigName.trim()}`);
           }, 5000);
@@ -178,6 +189,7 @@ export default function NamePage() {
 
   // Show settle screen after naming
   if (showSettle) {
+    console.log('[Name] 🌟 Rendering settle screen for:', pigName);
     return (
       <section 
         className="relative flex flex-col items-center justify-center h-[100dvh] w-full overflow-hidden px-6"

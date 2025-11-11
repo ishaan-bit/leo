@@ -168,7 +168,7 @@ export default function StartPage() {
           </motion.button>
 
           <p className="text-center text-pink-600/80 text-sm font-serif italic pt-2">
-            Guest mode: Your pig will be remembered for 3 minutes
+            Sign in so your pigs on the wing remembers you
           </p>
         </motion.div>
       </div>

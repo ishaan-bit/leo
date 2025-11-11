@@ -369,7 +369,7 @@ export default function GuestNamePigPage() {
             </AnimatePresence>
 
             <p className="text-pink-600 text-sm italic text-center mt-2">
-              Guest mode: Your pig will be remembered for 3 minutes
+              Sign in so your pigs on the wing remembers you
             </p>
           </motion.form>
         )}
