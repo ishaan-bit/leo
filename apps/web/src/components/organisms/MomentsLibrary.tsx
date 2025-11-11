@@ -490,6 +490,53 @@ export default function MomentsLibrary({
 
   // Get the newest moment ID across all towers (for brightest glow)
   const newestMomentId = moments[0]?.id || null;
+  
+  // Calculate position of the brightest window (newest moment) for preservation bubble
+  const getBrightestWindowPosition = (): { x: number, y: number, zone: string | null } | null => {
+    if (!newestMomentId) return null;
+    
+    // Find which tower contains the newest moment
+    for (const tower of TOWER_CONFIGS) {
+      const towerMoments = momentsByZone[tower.id] || [];
+      const momentIndex = towerMoments.findIndex(m => m.id === newestMomentId);
+      
+      if (momentIndex !== -1) {
+        // Calculate tower position (horizontal)
+        // Sable (index 5) is positioned from right, others from left
+        let towerXPercent: number;
+        if (tower.index === 5) {
+          // Sable tower from right edge (2% from right + half tower width)
+          towerXPercent = 98 - 2.6; // ~95.4% (right: 2% means center at 98% - half of 5.2%)
+        } else {
+          towerXPercent = parseFloat(getBuildingPosition(tower.index, 52));
+        }
+        
+        // Calculate window position within tower grid (4 columns)
+        const col = momentIndex % 4;
+        const row = Math.floor(momentIndex / 4);
+        
+        // Tower width is 52px, windows are in a 4-column grid with gap-2 (8px)
+        // Window offset within tower: each column is ~25% of tower width
+        const windowXOffset = 2 + (col * 1.2); // Base padding + column * width (in %)
+        
+        // Tower height varies, windows start from top with padding
+        // Using vh units: tower is (height * 1.5)px at bottom-0
+        // Approximate: each row is ~3vh down from tower top
+        const towerHeightVh = (tower.height * 1.5) / 10; // Rough conversion to vh
+        const windowYFromBottom = towerHeightVh - (row * 3) - 5; // From top of tower minus row offset
+        
+        return { 
+          x: towerXPercent + windowXOffset, 
+          y: Math.max(5, windowYFromBottom), // Ensure at least 5vh from bottom
+          zone: tower.id 
+        };
+      }
+    }
+    
+    return null;
+  };
+  
+  const brightestWindowPos = getBrightestWindowPosition();
 
   return (
     <motion.div 
@@ -714,32 +761,37 @@ export default function MomentsLibrary({
         </motion.div>
       </motion.div>
 
-      {/* REMOVED: Intro bubble - now only showing preservation bubble */}
-
       {/* Preservation bubble - "Today's Moment has been preserved here" */}
       <AnimatePresence>
-        {showPreservationBubble && (
+        {showPreservationBubble && brightestWindowPos && (
           <motion.div
-            className="absolute top-[20%] left-1/2 -translate-x-1/2 z-50 pointer-events-none"
-            initial={{ opacity: 0, y: -10, scale: 0.9 }}
+            className="absolute z-50 pointer-events-none"
+            style={{
+              left: `${brightestWindowPos.x}%`,
+              bottom: `${brightestWindowPos.y + 15}%`, // Position above the window
+              transform: 'translateX(-50%)', // Center on window
+            }}
+            initial={{ opacity: 0, y: 10, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.9 }}
+            exit={{ opacity: 0, y: 10, scale: 0.9 }}
             transition={{ duration: 0.6, ease: EASING }}
           >
             {/* Pointer arrow down toward brightest window */}
             <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[12px] border-r-[12px] border-t-[12px] border-l-transparent border-r-transparent border-t-white/95 drop-shadow-lg" />
             
             <div
-              className="px-6 py-4 rounded-2xl shadow-2xl max-w-sm text-center"
+              className="px-4 py-3 rounded-2xl shadow-2xl text-center whitespace-nowrap"
               style={{
                 background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 250, 245, 0.98) 100%)',
                 backdropFilter: 'blur(20px)',
                 border: '2px solid rgba(156, 31, 95, 0.15)',
                 boxShadow: '0 12px 40px rgba(156, 31, 95, 0.15), 0 4px 12px rgba(0,0,0,0.1)',
+                fontSize: 'clamp(0.75rem, 2vw, 0.875rem)', // Responsive font size for mobile
+                maxWidth: '90vw', // Ensure it fits on mobile
               }}
             >
               <p
-                className="text-base font-medium"
+                className="font-medium"
                 style={{
                   fontFamily: '"EB Garamond", "Georgia", serif',
                   color: '#2D2D2D',
