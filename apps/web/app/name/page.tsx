@@ -147,8 +147,8 @@ export default function NamePage() {
         return;
       }
 
-      // Success - redirect to app
-      router.push('/app');
+      // Success - redirect to reflect
+      router.push('/reflect');
     } catch (err) {
       console.error('[Fetch] Error checking pig:', err);
       setError('No pig found for this account');
@@ -210,7 +210,12 @@ export default function NamePage() {
       }
 
       if (result?.ok) {
-        router.push('/app');
+        console.log('[Name] Phone OTP sign-in successful');
+        setIsOtpFlow(false);
+        setOtpSent(false);
+        setIsSubmitting(false);
+        // Check if user has a pig
+        await checkUserPig();
       }
     } catch (err) {
       console.error('[Name] OTP verify error:', err);

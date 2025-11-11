@@ -5,9 +5,9 @@
  * Device-aware routing with localStorage hints
  * 
  * Boot logic:
- * 1. Signed in → redirect to /app
+ * 1. Signed in → redirect to /reflect
  * 2. Has local pig name → redirect to /signin?prefillPig=1 (same device fast-path)
- * 3. Fresh → show Name Pig + Fetch My Pig options
+ * 3. Fresh → redirect to /name
  */
 
 'use client';
@@ -27,10 +27,10 @@ export default function StartPage() {
     // Wait for session to load
     if (status === 'loading') return;
 
-    // 1. If signed in → go to app
+    // 1. If signed in → go to reflect
     if (session?.user) {
-      console.log('[Start] User signed in, redirecting to /app');
-      router.replace('/app');
+      console.log('[Start] User signed in, redirecting to /reflect');
+      router.replace('/reflect');
       return;
     }
 
