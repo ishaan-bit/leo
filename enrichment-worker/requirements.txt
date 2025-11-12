@@ -10,6 +10,9 @@ requests==2.31.0
 numpy>=1.24.0
 scipy>=1.10.0
 
+# Sentiment analysis backends
+vaderSentiment==3.3.2
+
 # Timezone handling
 pytz==2023.3.post1
 

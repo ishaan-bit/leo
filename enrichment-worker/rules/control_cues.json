@@ -1,0 +1,39 @@
+{
+  "low_control_cues": {
+    "passive_voice": [
+      "was told", "got fired", "was forced", "had to", "made to",
+      "got rejected", "was denied", "got delayed"
+    ],
+    "helpless_markers": [
+      "couldn't", "unable to", "can't", "cannot", "overwhelmed",
+      "helpless", "powerless", "stuck", "trapped", "no choice"
+    ],
+    "external_causatives": [
+      "because of traffic", "boss said", "they decided", "system crashed",
+      "weather cancelled", "family emergency", "unexpected"
+    ]
+  },
+  "high_control_cues": {
+    "volition_verbs": [
+      "decided to", "chose to", "I set", "I led", "I organized",
+      "I initiated", "I planned", "I managed", "I created", "I built"
+    ],
+    "success_markers": [
+      "I fixed", "I solved", "I completed", "I finished", "I achieved",
+      "I accomplished", "I delivered", "I handled", "I resolved"
+    ],
+    "agency_markers": [
+      "took control", "made it happen", "in my hands", "up to me",
+      "my decision", "my choice"
+    ]
+  },
+  "medium_control_cues": {
+    "ongoing_effort": [
+      "I'm trying", "working on it", "trying to", "attempting to",
+      "in progress", "still working", "doing my best"
+    ],
+    "mixed_signals": [
+      "partly my fault", "some control", "depends on", "working with"
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "positive_event_anchors": [
+    "promoted", "hired", "passed", "recovered", "healed", "bonus", "appreciation",
+    "support", "resolved", "completed", "on time", "under budget", "reconciled",
+    "achieved", "success", "received support", "approved", "accepted", "won",
+    "graduated", "celebrated", "relief", "breakthrough", "improved", "praised",
+    "recognized", "advancement", "growth", "progress", "accomplishment"
+  ],
+  "negative_event_anchors": [
+    "missed", "failed", "cancelled", "postponed", "rejected", "laid off",
+    "insulted", "debt", "injury", "accident", "delay", "traffic", "overload",
+    "breakup", "argument", "hospital", "fired", "deadline", "setback", "loss",
+    "denied", "criticized", "conflict", "punishment", "damage", "crisis",
+    "emergency", "illness", "surgery", "terminated", "divorce", "death"
+  ],
+  "sarcasm_positive_tokens": [
+    "great", "awesome", "perfect", "amazing", "wonderful", "fantastic",
+    "brilliant", "excellent", "lovely", "nice"
+  ],
+  "sarcasm_discourse_markers": [
+    "yeah right", "as if", "of course", "sure thing", "oh great",
+    "just what i needed", "just perfect"
+  ]
+}

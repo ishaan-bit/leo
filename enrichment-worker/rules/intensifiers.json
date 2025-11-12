@@ -1,0 +1,26 @@
+{
+  "intensifiers_positive": {
+    "very": 0.15,
+    "really": 0.12,
+    "extremely": 0.20,
+    "absolutely": 0.18,
+    "totally": 0.16,
+    "completely": 0.17,
+    "incredibly": 0.19,
+    "super": 0.13,
+    "so": 0.10,
+    "utterly": 0.20,
+    "deeply": 0.16
+  },
+  "intensifiers_negative": {
+    "slightly": -0.10,
+    "a bit": -0.07,
+    "barely": -0.12,
+    "somewhat": -0.08,
+    "kinda": -0.06,
+    "sort of": -0.07,
+    "kind of": -0.07,
+    "a little": -0.08,
+    "mildly": -0.09
+  }
+}

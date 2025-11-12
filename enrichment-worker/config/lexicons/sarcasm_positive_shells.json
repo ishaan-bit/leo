@@ -1,0 +1,15 @@
+{
+  "phrases": [
+    "love that", "love this for us", "great", "awesome", "amazing", "fantastic",
+    "brilliant", "wonderful", "so glad", "nice", "cool", "perfect", "just perfect",
+    "good for us", "exactly what we needed", "can't wait", "what a treat",
+    "beautiful", "delightful", "lovely", "splendid", "incredible", "phenomenal",
+    "superb", "classic", "of course", "because why not"
+  ],
+  "markers": [
+    "as if", "yeah right", "sure", "thanks for nothing", "what a joke",
+    "feels like a joke", "cool cool cool", "just great", "just awesome"
+  ],
+  "punctuation_cues": ["...", "—", "–", "!!", "!?"],
+  "emoji": ["🙃", "🙄", "😒", "🤡", "💀"]
+}

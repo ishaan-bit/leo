@@ -1,0 +1,194 @@
+{
+  "cores": [
+    {
+      "name": "Happy",
+      "codename": "Vera",
+      "nuances": [
+        {
+          "name": "Excited",
+          "micro": ["Energetic", "Curious", "Stimulated", "Playful", "Inspired", "Cheerful"]
+        },
+        {
+          "name": "Interested",
+          "micro": ["Engaged", "Intrigued", "Focused", "Attentive", "Curious", "Involved"]
+        },
+        {
+          "name": "Energetic",
+          "micro": ["Driven", "Lively", "Motivated", "Active", "Vibrant", "Charged"]
+        },
+        {
+          "name": "Playful",
+          "micro": ["Fun", "Lighthearted", "Amused", "Silly", "Cheerful", "Jovial"]
+        },
+        {
+          "name": "Creative",
+          "micro": ["Imaginative", "Inventive", "Expressive", "Artistic", "Visionary", "Experimental"]
+        },
+        {
+          "name": "Optimistic",
+          "micro": ["Hopeful", "Upbeat", "Confident", "Expectant", "Positive", "Forward-looking"]
+        }
+      ]
+    },
+    {
+      "name": "Strong",
+      "codename": "Ashmere",
+      "nuances": [
+        {
+          "name": "Confident",
+          "micro": ["Assured", "Secure", "Capable", "Bold", "Competent", "Self-reliant"]
+        },
+        {
+          "name": "Proud",
+          "micro": ["Accomplished", "Honored", "Esteemed", "Fulfilled", "Worthy", "Respected"]
+        },
+        {
+          "name": "Respected",
+          "micro": ["Valued", "Trusted", "Admired", "Recognized", "Honorable", "Appreciated"]
+        },
+        {
+          "name": "Courageous",
+          "micro": ["Brave", "Adventurous", "Daring", "Fearless", "Determined", "Heroic"]
+        },
+        {
+          "name": "Hopeful",
+          "micro": ["Inspired", "Aspiring", "Positive", "Expectant", "Reassured", "Uplifted"]
+        },
+        {
+          "name": "Resilient",
+          "micro": ["Tough", "Steady", "Rebounding", "Enduring", "Adaptable", "Persistent"]
+        }
+      ]
+    },
+    {
+      "name": "Peaceful",
+      "codename": "Haven",
+      "nuances": [
+        {
+          "name": "Loving",
+          "micro": ["Caring", "Compassionate", "Affectionate", "Warm", "Tender", "Kind"]
+        },
+        {
+          "name": "Grateful",
+          "micro": ["Thankful", "Appreciative", "Blessed", "Content", "Relieved", "Peaceful"]
+        },
+        {
+          "name": "Thoughtful",
+          "micro": ["Reflective", "Considerate", "Mindful", "Pensive", "Contemplative", "Understanding"]
+        },
+        {
+          "name": "Content",
+          "micro": ["Comfortable", "Satisfied", "Fulfilled", "Calm", "Settled", "At-ease"]
+        },
+        {
+          "name": "Serene",
+          "micro": ["Tranquil", "Still", "Quiet", "Harmonious", "Relaxed", "Balanced"]
+        },
+        {
+          "name": "Thankful",
+          "micro": ["Appreciative", "Aware", "Satisfied", "Gentle", "Humble", "Calm"]
+        }
+      ]
+    },
+    {
+      "name": "Sad",
+      "codename": "Vanta",
+      "nuances": [
+        {
+          "name": "Lonely",
+          "micro": ["Abandoned", "Isolated", "Forsaken", "Forgotten", "Distant", "Alone"]
+        },
+        {
+          "name": "Vulnerable",
+          "micro": ["Exposed", "Fragile", "Unsafe", "Sensitive", "Helpless", "Unprotected"]
+        },
+        {
+          "name": "Hurt",
+          "micro": ["Wounded", "Injured", "Offended", "Pained", "Damaged", "Aching"]
+        },
+        {
+          "name": "Depressed",
+          "micro": ["Hopeless", "Empty", "Low", "Exhausted", "Melancholic", "Despairing"]
+        },
+        {
+          "name": "Guilty",
+          "micro": ["Ashamed", "Regretful", "Responsible", "Remorseful", "Embarrassed", "Contrite"]
+        },
+        {
+          "name": "Grief",
+          "micro": ["Mourning", "Bereaved", "Sorrowful", "Heartbroken", "Loss", "Weeping"]
+        }
+      ]
+    },
+    {
+      "name": "Angry",
+      "codename": "Sable",
+      "nuances": [
+        {
+          "name": "Mad",
+          "micro": ["Furious", "Enraged", "Outraged", "Irritated", "Heated", "Wild"]
+        },
+        {
+          "name": "Disappointed",
+          "micro": ["Betrayed", "Jealous", "Let-down", "Resentful", "Displeased", "Dismayed"]
+        },
+        {
+          "name": "Humiliated",
+          "micro": ["Ashamed", "Inferior", "Embarrassed", "Belittled", "Exposed", "Dishonored"]
+        },
+        {
+          "name": "Aggressive",
+          "micro": ["Provoked", "Violent", "Hostile", "Combative", "Threatening", "Confrontational"]
+        },
+        {
+          "name": "Frustrated",
+          "micro": ["Annoyed", "Impatient", "Restless", "Defeated", "Irritated", "Blocked"]
+        },
+        {
+          "name": "Critical",
+          "micro": ["Dismissive", "Judgmental", "Harsh", "Skeptical", "Sarcastic", "Demanding"]
+        }
+      ]
+    },
+    {
+      "name": "Fearful",
+      "codename": "Vire",
+      "nuances": [
+        {
+          "name": "Anxious",
+          "micro": ["Nervous", "Uneasy", "Tense", "Worried", "Restless", "Alarmed"]
+        },
+        {
+          "name": "Insecure",
+          "micro": ["Uncertain", "Self-doubting", "Hesitant", "Fearful", "Guarded", "Timid"]
+        },
+        {
+          "name": "Overwhelmed",
+          "micro": ["Stressed", "Exhausted", "Flooded", "Pressured", "Burdened", "Distracted"]
+        },
+        {
+          "name": "Weak",
+          "micro": ["Powerless", "Fragile", "Small", "Dependent", "Vulnerable", "Ineffective"]
+        },
+        {
+          "name": "Rejected",
+          "micro": ["Excluded", "Disillusioned", "Dismissed", "Neglected", "Abandoned", "Ignored"]
+        },
+        {
+          "name": "Helpless",
+          "micro": ["Worthless", "Defeated", "Stuck", "Lost", "Hopeless", "Paralyzed"]
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "tiers": [6, 6, 6],
+    "states": 216,
+    "rules": [
+      "No extrapolated terms",
+      "No synonyms",
+      "No fuzzy sentiment expansions",
+      "All mappings must draw from this cube"
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "work": ["work", "meeting", "standup", "deadline", "boss", "manager", "client", "project", "sprint", "repo", "deploy", "deployment", "office", "email", "calendar", "presentation", "all-hands", "call", "zoom", "slack"],
+  "relationships": ["partner", "girlfriend", "boyfriend", "husband", "wife", "spouse", "breakup", "date", "argue", "fight", "apologize", "apology"],
+  "health": ["doctor", "test", "diagnosis", "fever", "cold", "migraine", "therapy", "workout", "gym", "sleep", "rest", "injury", "pain", "hospital", "clinic"],
+  "family": ["mom", "mother", "dad", "father", "parents", "sibling", "brother", "sister", "child", "kids", "grandma", "grandpa", "home"],
+  "finance": ["money", "rent", "salary", "raise", "bonus", "loan", "debt", "credit", "bills", "budget", "tax"],
+  "social": ["party", "friends", "hangout", "dinner", "club", "invited", "invite", "gathering"],
+  "personal": ["journal", "journaling", "habit", "routine", "meditation", "myself", "me"]
+}

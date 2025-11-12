@@ -1,0 +1,9 @@
+# Valid Secondary Emotions per Primary (Willcox Wheel)
+# Format: Primary: [List of valid secondaries]
+
+Happy: [Excited, Interested, Energetic, Playful, Creative, Optimistic]
+Strong: [Confident, Proud, Respected, Courageous, Hopeful, Resilient]
+Peaceful: [Loving, Grateful, Thoughtful, Content, Serene, Thankful]
+Sad: [Lonely, Vulnerable, Hurt, Depressed, Guilty, Grief]
+Angry: [Mad, Disappointed, Humiliated, Aggressive, Frustrated, Critical]
+Fearful: [Anxious, Insecure, Overwhelmed, Weak, Rejected, Helpless]

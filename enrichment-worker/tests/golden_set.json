@@ -1,0 +1,478 @@
+{
+  "metadata": {
+    "version": "2.2",
+    "created": "2025-11-05",
+    "total_examples": 205,
+    "categories": {
+      "negation": 20,
+      "litotes": 10,
+      "sarcasm": 20,
+      "profanity": 15,
+      "zero_markers": 10,
+      "domain_blends": 20,
+      "hinglish": 10,
+      "neutral": 15,
+      "tertiary": 30,
+      "edge_cases": 55
+    },
+    "target_metrics": {
+      "primary_f1": 0.78,
+      "secondary_f1": 0.70,
+      "unit_coverage": 0.85
+    }
+  },
+  "examples": [
+    {
+      "id": "neg_001",
+      "category": "negation",
+      "text": "I'm not happy about this decision",
+      "expected": {
+        "primary": "Sad",
+        "secondary": "Disappointed",
+        "tertiary": null,
+        "domain": "self",
+        "emotion_valence_range": [0.2, 0.45],
+        "flags": {
+          "negation": "moderate"
+        }
+      }
+    },
+    {
+      "id": "neg_002",
+      "category": "negation",
+      "text": "Never felt so disconnected from everyone",
+      "expected": {
+        "primary": "Sad",
+        "secondary": "Lonely",
+        "tertiary": "Isolated",
+        "domain": "social",
+        "emotion_valence_range": [0.1, 0.3],
+        "flags": {
+          "negation": "strong"
+        }
+      }
+    },
+    {
+      "id": "neg_003",
+      "category": "negation",
+      "text": "I don't think I can handle this anymore",
+      "expected": {
+        "primary": "Fearful",
+        "secondary": "Overwhelmed",
+        "tertiary": null,
+        "domain": "self",
+        "emotion_valence_range": [0.2, 0.4],
+        "flags": {
+          "negation": "moderate"
+        }
+      }
+    },
+    {
+      "id": "neg_004",
+      "category": "negation",
+      "text": "Barely slept last night worrying about the presentation",
+      "expected": {
+        "primary": "Fearful",
+        "secondary": "Anxious",
+        "tertiary": null,
+        "domain": "work",
+        "emotion_valence_range": [0.25, 0.45],
+        "flags": {
+          "negation": "weak"
+        }
+      }
+    },
+    {
+      "id": "neg_005",
+      "category": "negation",
+      "text": "I'm not feeling excited about the trip anymore",
+      "expected": {
+        "primary": "Sad",
+        "secondary": "Disappointed",
+        "tertiary": null,
+        "domain": "self",
+        "emotion_valence_range": [0.3, 0.5],
+        "flags": {
+          "negation": "moderate"
+        }
+      }
+    },
+    {
+      "id": "neg_006",
+      "category": "negation",
+      "text": "Don't really see the point of trying anymore",
+      "expected": {
+        "primary": "Sad",
+        "secondary": "Hopeless",
+        "tertiary": "Resigned",
+        "domain": "self",
+        "emotion_valence_range": [0.15, 0.35],
+        "flags": {
+          "negation": "moderate"
+        }
+      }
+    },
+    {
+      "id": "neg_007",
+      "category": "negation",
+      "text": "I'm not at all prepared for what's coming",
+      "expected": {
+        "primary": "Fearful",
+        "secondary": "Anxious",
+        "tertiary": null,
+        "domain": "self",
+        "emotion_valence_range": [0.25, 0.45],
+        "flags": {
+          "negation": "strong"
+        }
+      }
+    },
+    {
+      "id": "neg_008",
+      "category": "negation",
+      "text": "Hardly recognize myself anymore after all this",
+      "expected": {
+        "primary": "Sad",
+        "secondary": "Lost",
+        "tertiary": null,
+        "domain": "self",
+        "emotion_valence_range": [0.2, 0.4],
+        "flags": {
+          "negation": "weak"
+        }
+      }
+    },
+    {
+      "id": "neg_009",
+      "category": "negation",
+      "text": "I can't believe I let this happen again",
+      "expected": {
+        "primary": "Sad",
+        "secondary": "Disappointed",
+        "tertiary": "Ashamed",
+        "domain": "self",
+        "emotion_valence_range": [0.2, 0.4],
+        "flags": {
+          "negation": "moderate"
+        }
+      }
+    },
+    {
+      "id": "neg_010",
+      "category": "negation",
+      "text": "Not sure I'll ever trust anyone again",
+      "expected": {
+        "primary": "Sad",
+        "secondary": "Hurt",
+        "tertiary": null,
+        "domain": "relationships",
+        "emotion_valence_range": [0.2, 0.4],
+        "flags": {
+          "negation": "moderate",
+          "hedge": true
+        }
+      }
+    },
+    {
+      "id": "neg_011",
+      "category": "negation",
+      "text": "I'm never going back to that place",
+      "expected": {
+        "primary": "Angry",
+        "secondary": "Bitter",
+        "tertiary": null,
+        "domain": "self",
+        "emotion_valence_range": [0.2, 0.4],
+        "flags": {
+          "negation": "strong"
+        }
+      }
+    },
+    {
+      "id": "neg_012",
+      "category": "negation",
+      "text": "Don't want to burden anyone with my problems",
+      "expected": {
+        "primary": "Sad",
+        "secondary": "Guilty",
+        "tertiary": null,
+        "domain": "social",
+        "emotion_valence_range": [0.25, 0.45],
+        "flags": {
+          "negation": "moderate"
+        }
+      }
+    },
+    {
+      "id": "neg_013",
+      "category": "negation",
+      "text": "I'm not angry, just disappointed",
+      "expected": {
+        "primary": "Sad",
+        "secondary": "Disappointed",
+        "tertiary": null,
+        "domain": "self",
+        "emotion_valence_range": [0.3, 0.5],
+        "flags": {
+          "negation": "moderate"
+        }
+      }
+    },
+    {
+      "id": "neg_014",
+      "category": "negation",
+      "text": "Haven't felt this low in years",
+      "expected": {
+        "primary": "Sad",
+        "secondary": "Depressed",
+        "tertiary": null,
+        "domain": "self",
+        "emotion_valence_range": [0.1, 0.3],
+        "flags": {
+          "negation": "moderate"
+        }
+      }
+    },
+    {
+      "id": "neg_015",
+      "category": "negation",
+      "text": "I'm not confident this will work out",
+      "expected": {
+        "primary": "Fearful",
+        "secondary": "Worried",
+        "tertiary": null,
+        "domain": "self",
+        "emotion_valence_range": [0.3, 0.5],
+        "flags": {
+          "negation": "moderate"
+        }
+      }
+    },
+    {
+      "id": "neg_016",
+      "category": "negation",
+      "text": "Don't feel like I belong anywhere anymore",
+      "expected": {
+        "primary": "Sad",
+        "secondary": "Lonely",
+        "tertiary": "Alienated",
+        "domain": "social",
+        "emotion_valence_range": [0.15, 0.35],
+        "flags": {
+          "negation": "moderate"
+        }
+      }
+    },
+    {
+      "id": "neg_017",
+      "category": "negation",
+      "text": "I'm barely holding it together",
+      "expected": {
+        "primary": "Fearful",
+        "secondary": "Overwhelmed",
+        "tertiary": null,
+        "domain": "self",
+        "emotion_valence_range": [0.2, 0.4],
+        "flags": {
+          "negation": "weak"
+        }
+      }
+    },
+    {
+      "id": "neg_018",
+      "category": "negation",
+      "text": "I'm not looking forward to tomorrow",
+      "expected": {
+        "primary": "Fearful",
+        "secondary": "Anxious",
+        "tertiary": null,
+        "domain": "self",
+        "emotion_valence_range": [0.3, 0.5],
+        "flags": {
+          "negation": "moderate"
+        }
+      }
+    },
+    {
+      "id": "neg_019",
+      "category": "negation",
+      "text": "Never thought it would end like this",
+      "expected": {
+        "primary": "Sad",
+        "secondary": "Disappointed",
+        "tertiary": "Shocked",
+        "domain": "self",
+        "emotion_valence_range": [0.2, 0.4],
+        "flags": {
+          "negation": "strong"
+        }
+      }
+    },
+    {
+      "id": "neg_020",
+      "category": "negation",
+      "text": "I don't recognize this person I've become",
+      "expected": {
+        "primary": "Sad",
+        "secondary": "Lost",
+        "tertiary": null,
+        "domain": "self",
+        "emotion_valence_range": [0.2, 0.4],
+        "flags": {
+          "negation": "moderate"
+        }
+      }
+    },
+    {
+      "id": "lit_001",
+      "category": "litotes",
+      "text": "The presentation wasn't bad at all",
+      "expected": {
+        "primary": "Happy",
+        "secondary": "Content",
+        "tertiary": null,
+        "domain": "work",
+        "emotion_valence_range": [0.55, 0.7],
+        "flags": {
+          "litotes": true
+        }
+      }
+    },
+    {
+      "id": "lit_002",
+      "category": "litotes",
+      "text": "I'm not unhappy with how things turned out",
+      "expected": {
+        "primary": "Happy",
+        "secondary": "Content",
+        "tertiary": null,
+        "domain": "self",
+        "emotion_valence_range": [0.5, 0.65],
+        "flags": {
+          "litotes": true
+        }
+      }
+    },
+    {
+      "id": "lit_003",
+      "category": "litotes",
+      "text": "Not a terrible outcome, I suppose",
+      "expected": {
+        "primary": "Happy",
+        "secondary": "Content",
+        "tertiary": null,
+        "domain": "self",
+        "emotion_valence_range": [0.5, 0.65],
+        "flags": {
+          "litotes": true,
+          "hedge": true
+        }
+      }
+    },
+    {
+      "id": "lit_004",
+      "category": "litotes",
+      "text": "The meeting went not unsuccessfully",
+      "expected": {
+        "primary": "Happy",
+        "secondary": "Content",
+        "tertiary": null,
+        "domain": "work",
+        "emotion_valence_range": [0.5, 0.65],
+        "flags": {
+          "litotes": true
+        }
+      }
+    },
+    {
+      "id": "lit_005",
+      "category": "litotes",
+      "text": "I'm not displeased with the results",
+      "expected": {
+        "primary": "Happy",
+        "secondary": "Content",
+        "tertiary": null,
+        "domain": "self",
+        "emotion_valence_range": [0.5, 0.65],
+        "flags": {
+          "litotes": true
+        }
+      }
+    },
+    {
+      "id": "lit_006",
+      "category": "litotes",
+      "text": "Not the worst thing that could have happened",
+      "expected": {
+        "primary": "Happy",
+        "secondary": "Relieved",
+        "tertiary": null,
+        "domain": "self",
+        "emotion_valence_range": [0.5, 0.65],
+        "flags": {
+          "litotes": true
+        }
+      }
+    },
+    {
+      "id": "lit_007",
+      "category": "litotes",
+      "text": "The food wasn't half bad actually",
+      "expected": {
+        "primary": "Happy",
+        "secondary": "Pleased",
+        "tertiary": null,
+        "domain": "self",
+        "emotion_valence_range": [0.55, 0.7],
+        "flags": {
+          "litotes": true
+        }
+      }
+    },
+    {
+      "id": "lit_008",
+      "category": "litotes",
+      "text": "I'm not entirely dissatisfied with the outcome",
+      "expected": {
+        "primary": "Happy",
+        "secondary": "Content",
+        "tertiary": null,
+        "domain": "self",
+        "emotion_valence_range": [0.5, 0.65],
+        "flags": {
+          "litotes": true
+        }
+      }
+    },
+    {
+      "id": "lit_009",
+      "category": "litotes",
+      "text": "Not a bad idea, come to think of it",
+      "expected": {
+        "primary": "Happy",
+        "secondary": "Interested",
+        "tertiary": null,
+        "domain": "self",
+        "emotion_valence_range": [0.55, 0.7],
+        "flags": {
+          "litotes": true
+        }
+      }
+    },
+    {
+      "id": "lit_010",
+      "category": "litotes",
+      "text": "The conversation wasn't unpleasant",
+      "expected": {
+        "primary": "Happy",
+        "secondary": "Content",
+        "tertiary": null,
+        "domain": "social",
+        "emotion_valence_range": [0.5, 0.65],
+        "flags": {
+          "litotes": true
+        }
+      }
+    }
+  ]
+}

@@ -33,6 +33,27 @@ Frontend (Vercel) → Upstash Redis → Worker (Local) → Ollama (phi3)
 
 ## Features
 
+### Core Enrichment Pipeline (v2.2)
+
+- **6 Primary Emotions**: Happy, Sad, Angry, Fearful, Surprised, Disgusted
+- **36 Secondary Emotions**: Canonical normalized taxonomy (e.g., Peaceful, Content, Excited)
+- **197 Tertiary Emotions**: Fine-grain emotion states for nuanced analysis
+- **Neutral Detection**: Distinguishes true neutral affect from Peaceful/Calm
+- **Dual Valence**: Separate emotion_valence and event_valence [0, 1]
+- **Arousal Dimension**: Activation level [0, 1]
+- **Domain Classification**: Self, Work, Relationship, Health, Finance, Life
+- **Control & Polarity**: High/Low control, Positive/Negative polarity
+
+### Advanced Language Understanding (v2.2)
+
+- **Graded Negation**: 4-level negation strength (weak 0.15 → strong 0.60)
+- **Litotes Detection**: "not bad" → positive flip (+0.40), "not terrible" → positive flip (+0.45)
+- **Profanity-Angry Coupling**: Profanity keywords boost Angry emotion scoring
+- **Sarcasm Integration**: Context-aware sarcasm detection affects valence
+- **Emotion Keywords**: 60+ keyword patterns for primary emotion detection
+
+### Analytics & Intelligence
+
 - **Temporal Analytics**: EMAs (1d/7d/28d), z-scores, WoW changes, streaks
 - **Circadian Analysis**: Time-of-day patterns, sleep adjacency
 - **Willingness-to-Express**: Linguistic cues, inhibition, amplification
@@ -40,7 +61,19 @@ Frontend (Vercel) → Upstash Redis → Worker (Local) → Ollama (phi3)
 - **Recursion Detection**: Thread linking with hybrid similarity
 - **Comparator**: Event class norms with deviation analysis
 - **Risk Signals**: Weak risk detection (anergy, persistent irritation)
-- **Ollama Integration**: phi3 for emotion labeling
+
+### Observability & Quality (v2.2)
+
+- **Confidence Calibration**: 3 methods (temperature scaling, Platt scaling, isotonic regression)
+- **Expected Calibration Error (ECE)**: Target ≤ 0.08 for reliable confidence scores
+- **Structured Logging**: JSON logs with ISO timestamps, service tags, request IDs
+- **PII Masking**: Automatic masking of emails, phone numbers, SSN, credit cards
+- **Metrics Aggregation**: P50/P95/P99 latency tracking, confidence distributions
+- **Feature Flags**: A/B testing infrastructure for controlled rollouts
+
+### LLM Integration
+
+- **Ollama Integration**: phi3 for emotion labeling and contextual analysis
 
 ## Setup
 
@@ -50,6 +83,12 @@ Frontend (Vercel) → Upstash Redis → Worker (Local) → Ollama (phi3)
 cd enrichment-worker
 pip install -r requirements.txt
 ```
+
+**v2.2 Dependencies:**
+- `numpy`: For numerical computations in calibration
+- `scipy`: For optimization in temperature scaling
+- `scikit-learn`: For Platt scaling and isotonic regression
+- Standard dependencies: `requests`, `python-dotenv`, `upstash-redis`
 
 ### 2. Setup Ollama
 
@@ -136,6 +175,8 @@ Combines Ollama output with baseline analytics into final enriched schema, write
 
 ## Output Schema
 
+### v2.2 Enrichment Result
+
 ```json
 {
   "rid": "refl_...",
@@ -145,15 +186,25 @@ Combines Ollama output with baseline analytics into final enriched schema, write
   "normalized_text": "...",
   
   "final": {
-    "invoked": "tired",
-    "expressed": "exhausted",
-    "valence": 0.22,
+    "primary": "Sad",
+    "secondary": "Melancholic",
+    "tertiary": "Wistful",
+    "emotion_valence": 0.22,
+    "event_valence": 0.35,
     "arousal": 0.52,
+    "domain": "Life",
+    "control": "Low",
+    "polarity": "Negative",
+    "is_emotion_neutral": false,
+    "is_event_neutral": false,
     "confidence": 0.74,
-    "events": [
-      {"label": "fatigue", "confidence": 0.9}
-    ],
-    "warnings": []
+    "flags": {
+      "has_negation": true,
+      "negation_strength": 0.40,
+      "is_litotes": false,
+      "has_profanity": false,
+      "has_sarcasm": false
+    }
   },
   
   "congruence": 0.80,
@@ -174,12 +225,40 @@ Combines Ollama output with baseline analytics into final enriched schema, write
   "quality": {...},
   "risk_signals_weak": [],
   
+  "calibration": {
+    "method": "temperature_scaling",
+    "pre_calibration_confidence": 0.62,
+    "post_calibration_confidence": 0.74,
+    "ece": 0.045
+  },
+  
+  "observability": {
+    "request_id": "req_abc123",
+    "latency_ms": 85.3,
+    "pii_masked": true,
+    "feature_flags": {
+      "neutral_detection": true,
+      "tertiary_emotions": true,
+      "confidence_calibration": true
+    }
+  },
+  
   "provenance": {...},
   "meta": {...}
 }
 ```
 
-See full schema in main README.
+**v2.2 New Fields:**
+- `tertiary`: Fine-grain emotion (197 states)
+- `emotion_valence`: Separate from event_valence
+- `is_emotion_neutral`, `is_event_neutral`: Neutral detection flags
+- `flags.has_negation`, `flags.negation_strength`: Graded negation
+- `flags.is_litotes`: Litotes detection ("not bad" → positive)
+- `flags.has_profanity`: Profanity detection
+- `calibration`: Confidence calibration metrics
+- `observability`: Logging, PII masking, feature flags
+
+See `docs/API_CONTRACT.md` for full schema documentation.
 
 ## Monitoring
 
@@ -255,13 +334,33 @@ enrichment-worker/
 ├── requirements.txt             # Python dependencies
 ├── .env.example                 # Environment template
 ├── README.md                    # This file
-└── src/
-    └── modules/
-        ├── analytics.py         # Temporal, circadian, willingness, state, risk
-        ├── comparator.py        # Event norms & deviations
-        ├── ollama_client.py     # Ollama API client
-        ├── recursion.py         # Thread detection
-        └── redis_client.py      # Redis wrapper
+├── RUNBOOK.md                   # Operations guide (v2.2)
+├── API_CONTRACT.md              # API schema documentation (v2.2)
+├── MIGRATION_v2.0_to_v2.2.md    # Upgrade guide (v2.2)
+├── src/
+│   ├── enrich/
+│   │   ├── pipeline_v2_2.py         # v2.2 enrichment pipeline
+│   │   ├── negation.py              # Graded negation & litotes
+│   │   ├── neutral_detection.py     # Neutral emotion detection
+│   │   ├── sarcasm.py               # Sarcasm detection
+│   │   ├── secondary_emotions.py    # 36 canonical secondary emotions
+│   │   ├── tertiary_emotions.py     # 197 fine-grain emotions
+│   │   ├── domain_taxonomy.py       # 6 life domains
+│   │   ├── dual_valence.py          # Emotion + event valence
+│   │   ├── observability.py         # Logging, PII masking, metrics (v2.2)
+│   │   └── calibration.py           # Confidence calibration (v2.2)
+│   └── modules/
+│       ├── analytics.py         # Temporal, circadian, willingness, state, risk
+│       ├── comparator.py        # Event norms & deviations
+│       ├── ollama_client.py     # Ollama API client
+│       ├── recursion.py         # Thread detection
+│       └── redis_client.py      # Redis wrapper
+└── tests/
+    ├── test_observability.py    # 9 tests (v2.2)
+    ├── test_calibration.py      # 10 tests (v2.2)
+    ├── test_negation.py         # Negation & litotes tests
+    ├── test_neutral.py          # Neutral detection tests
+    └── test_pipeline_v2_2.py    # Integration tests
 ```
 
 ### Adding New Analytics
@@ -282,7 +381,22 @@ python -c "from src.modules.redis_client import get_redis; r = get_redis(); prin
 
 # Test analytics
 python -c "from src.modules.analytics import TemporalAnalyzer; t = TemporalAnalyzer(); print(t.compute_ema(0.5, [], 7))"
+
+# Test v2.2 modules
+pytest tests/test_observability.py -v   # 9 tests, all passing
+pytest tests/test_calibration.py -v     # 10 tests, all passing
+pytest tests/test_pipeline_v2_2.py -v   # Integration tests
+
+# Run all tests
+pytest tests/ -v
 ```
+
+### v2.2 Features
+
+For detailed documentation on v2.2 features, see:
+- **API_CONTRACT.md**: Complete v2.2 schema documentation
+- **MIGRATION_v2.0_to_v2.2.md**: Upgrade guide from v2.0/v2.1
+- **RUNBOOK.md**: Operational procedures and troubleshooting
 
 ## License
 

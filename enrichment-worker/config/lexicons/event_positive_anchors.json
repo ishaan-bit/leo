@@ -1,0 +1,7 @@
+{
+  "career": ["promoted", "promotion", "raise", "bonus", "hired", "approved", "greenlit", "award", "published", "graduated"],
+  "delivery": ["shipped", "launched", "released", "deployed", "delivered", "completed", "finished", "resolved", "fixed", "closed", "closed deal", "landed", "secured", "signed", "merged", "pushed"],
+  "relationship": ["told", "shared", "opened up", "confessed", "apologized", "made up", "forgave", "forgiven", "reconnected", "asked out", "said yes"],
+  "health": ["healed", "recovered", "all clear", "negative test", "normal", "cleared"],
+  "education": ["passed", "admitted", "accepted"]
+}

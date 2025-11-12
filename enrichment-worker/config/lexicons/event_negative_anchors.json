@@ -1,0 +1,12 @@
+{
+  "lateness": ["late", "running late", "started late", "behind schedule", "overrun", "overran", "overdue"],
+  "delay": ["delay", "delayed", "pushed", "postponed", "rescheduled"],
+  "cancellation": ["cancelled", "canceled", "called off", "no-show"],
+  "blockers": ["blocked", "stalled", "stuck", "trapped", "held up", "bottleneck"],
+  "outages": ["outage", "downtime", "server down", "crashed", "bug", "broken", "error", "issue", "problem"],
+  "neg_outcomes": ["failed", "rejected", "denied", "declined", "missed", "lost", "slipped", "leaked", "breach"],
+  "workload": ["overbudget", "over budget", "ran over"],
+  "commute": ["traffic", "jam", "gridlock"],
+  "penalties": ["penalty", "fine"],
+  "hr_events": ["fired", "laid off", "pay cut"]
+}

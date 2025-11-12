@@ -1,0 +1,3 @@
+# Requirements for HuggingFace Spaces Gradio Demo
+
+gradio==4.44.0
