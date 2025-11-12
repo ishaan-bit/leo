@@ -28,6 +28,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ pig
       // NEW format: sid:{sid}:profile
       profileKey = `sid:${pigId}:profile`;
       profile = await kv.get<PigProfile>(profileKey);
+      
+      console.log(`[API /pig/[pigId]] Guest lookup at ${profileKey}:`, profile ? 'Found' : 'Not found');
     } else {
       // Authenticated user - try NEW format first, then OLD
       
@@ -35,27 +37,47 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ pig
       profileKey = `user:${pigId}:profile`;
       profile = await kv.get<PigProfile>(profileKey);
       
+      console.log(`[API /pig/[pigId]] New format lookup at ${profileKey}:`, profile ? 'Found' : 'Not found');
+      
       // FALLBACK: OLD format: pig:{authId}
       if (!profile) {
         const oldKey = `pig:${pigId}`;
-        const oldProfile = await kv.get<any>(oldKey);
         
-        if (oldProfile && oldProfile.pig_name) {
-          console.log(`[API /pig/[pigId]] Found pig in old format (pig:${pigId}), migrating...`);
+        console.log(`[API /pig/[pigId]] Trying old format at ${oldKey}...`);
+        
+        const oldProfile = await kv.get(oldKey);
+        
+        console.log(`[API /pig/[pigId]] Old format result:`, oldProfile);
+        
+        if (oldProfile) {
+          // Handle both string and object formats
+          let parsedProfile: any;
           
-          // Return old format for now
-          profile = {
-            pig_name: oldProfile.pig_name,
-            created_at: oldProfile.created_at || new Date().toISOString(),
-          };
+          if (typeof oldProfile === 'string') {
+            try {
+              parsedProfile = JSON.parse(oldProfile);
+            } catch (e) {
+              console.error(`[API /pig/[pigId]] Failed to parse old profile:`, e);
+              parsedProfile = null;
+            }
+          } else {
+            parsedProfile = oldProfile;
+          }
           
-          // TODO: Optionally migrate to new format
-          // await kv.set(profileKey, profile);
+          if (parsedProfile && parsedProfile.pig_name) {
+            console.log(`[API /pig/[pigId]] ✅ Found pig in old format: ${parsedProfile.pig_name}`);
+            
+            profile = {
+              pig_name: parsedProfile.pig_name,
+              created_at: parsedProfile.created_at || new Date().toISOString(),
+            };
+          }
         }
       }
     }
 
     if (!profile || !profile.pig_name) {
+      console.log(`[API /pig/[pigId]] ❌ No pig found for ${pigId}`);
       return NextResponse.json({ 
         pigId, 
         named: false, 
@@ -63,17 +85,18 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ pig
       });
     }
     
+    console.log(`[API /pig/[pigId]] ✅ Returning pig: ${profile.pig_name}`);
+    
     return NextResponse.json({ 
       pigId, 
       named: true, 
       name: profile.pig_name
     });
   } catch (error) {
-    console.error('[API /pig/[pigId]] Error fetching pig:', error);
+    console.error('[API /pig/[pigId]] ❌ Error fetching pig:', error);
     return NextResponse.json({ 
-      pigId, 
-      named: false, 
-      name: null 
+      error: 'Failed to fetch pig',
+      details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }
 }
