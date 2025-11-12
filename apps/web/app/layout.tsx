@@ -1,6 +1,7 @@
 import '../src/styles/globals.css';
 import type { Metadata, Viewport } from 'next';
 import { AuthProvider } from '@/providers/AuthProvider';
+import SoundToggle from '@/components/atoms/SoundToggle';
 
 export const metadata: Metadata = {
   title: 'Name Me',
@@ -57,6 +58,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         }}
       >
         <AuthProvider>
+          {/* Global ambient sound toggle - appears on all pages */}
+          <SoundToggle />
           {children}
         </AuthProvider>
       </body>

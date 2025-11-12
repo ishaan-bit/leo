@@ -363,7 +363,7 @@ export default function GuestNamePigPage() {
             </AnimatePresence>
 
             <p className="text-pink-600 text-sm italic text-center mt-2">
-              Sign in so your pigs on the wing remembers you
+              If you lose me, scan my mark
             </p>
           </motion.form>
         )}

@@ -8,7 +8,6 @@ import NotebookInput from '../atoms/NotebookInput';
 import VoiceOrb from '../atoms/VoiceOrb';
 import CameraUpload from '../atoms/CameraUpload';
 import AuthStateIndicator from '../atoms/AuthStateIndicator';
-import SoundToggle from '../atoms/SoundToggle';
 import MomentsNavIcon from '../atoms/MomentsNavIcon';
 import TopNav from '../molecules/TopNav';
 import GuestSignInModal from '../molecules/GuestSignInModal';
@@ -1066,8 +1065,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
           )}
         </AnimatePresence>
 
-        {/* Ambient Sound Toggle */}
-        <SoundToggle />
+        {/* Ambient Sound Toggle - now in layout.tsx, no need here */}
       </div>
       </div>
     </motion.div>
