@@ -315,55 +315,47 @@ export default function DialogueInterlude({
         )}
       </AnimatePresence>
       
-      {/* Pig Character - Center bottom */}
+      {/* Pig Character - Match BreathingSequence position (top 28%, centered) */}
       <div
         ref={leoContainerRef}
-        className="absolute bottom-[15%] left-1/2 -translate-x-1/2 z-30"
+        className="absolute left-1/2 top-[28%] z-30"
+        style={{ transform: 'translate(-50%, -50%)' }}
       >
         <motion.div
-          initial={{ y: 100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1, ease: EASING }}
         >
-          <motion.div
-            animate={{
-              scale: showPigBubble ? 1.05 : 1,
-            }}
-            transition={{ duration: 0.7, ease: EASING }}
-          >
-            <Image 
-              src="/images/leo.svg" 
-              alt={pigName} 
-              width={180} 
-              height={180} 
-              priority 
-            />
-          </motion.div>
+          <Image 
+            src="/images/leo.svg" 
+            alt={pigName} 
+            width={200} 
+            height={200} 
+            priority 
+          />
         </motion.div>
       </div>
       
-      {/* Regulate - Pig speech bubble */}
+      {/* Regulate - Pig speech bubble (points to Leo at 28% top) */}
       <AnimatePresence>
         {showPigBubble && regulate && (
           <motion.div
             className="absolute z-40"
             style={{
-              bottom: leoContainerRef.current 
-                ? `calc(15% + ${leoContainerRef.current.offsetHeight}px + 20px)`
-                : '50%',
+              top: 'calc(28% + 120px)', // Below Leo (who is at 28%)
               left: '50%',
               transform: 'translateX(-50%)',
             }}
-            initial={{ opacity: 0, scale: 0.9, y: 10 }}
+            initial={{ opacity: 0, scale: 0.9, y: -10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 10 }}
+            exit={{ opacity: 0, scale: 0.9, y: -10 }}
             transition={{ duration: 0.6, ease: EASING }}
           >
             <ComicBubble
               content={regulate}
               state="text"
-              anchorPosition={{ x: 50, y: 85 }} // Center bottom (where pig is)
-              tailDirection="down"
+              anchorPosition={{ x: 50, y: 0 }} // Points up to Leo
+              tailDirection="up"
               type="tip"
               maxWidth={600}
             />
@@ -371,67 +363,76 @@ export default function DialogueInterlude({
         )}
       </AnimatePresence>
       
-      {/* Amuse - Window bubble (appears IN the building window) */}
+      {/* Amuse - Window bubble (points to glowing window in top floor of building) */}
       <AnimatePresence>
         {showWindowBubble && amuse && towerConfig && (
-          <motion.div
-            className="absolute z-40"
-            style={{
-              // Position near the top-middle of the building
-              bottom: `${(towerConfig.height * 1.8) * 0.65}px`, // 65% up the building
-              left: `${towerConfig.x}%`,
-              transform: 'translateX(-50%)',
-            }}
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ 
-              opacity: 1, 
-              scale: [1, 1.02, 1], 
-              y: 0 
-            }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ 
-              opacity: { duration: 0.8, ease: EASING },
-              scale: { 
-                duration: 2, 
-                repeat: Infinity, 
-                ease: 'easeInOut',
-                delay: 0.5,
-              },
-              y: { duration: 0.8, ease: EASING, delay: 0.2 },
-            }}
-          >
-            <div
-              className="px-4 py-3 rounded-xl shadow-2xl max-w-xs text-center"
+          <>
+            {/* Glowing window in top floor */}
+            <motion.div
+              className="absolute z-25 rounded-sm"
               style={{
-                background: `linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, ${towerConfig.color}25 100%)`,
-                backdropFilter: 'blur(15px)',
-                border: `2px solid ${towerConfig.color}40`,
+                bottom: `${(towerConfig.height * 1.8) - 40}px`, // Top floor (40px from top)
+                left: `calc(${towerConfig.x}% + 15px)`, // Second window from left in 4-col grid
+                width: '14px',
+                height: '12px',
+                background: `linear-gradient(135deg, ${towerConfig.color} 0%, rgba(255, 230, 200, 0.95) 100%)`,
                 boxShadow: `
-                  0 8px 40px ${towerConfig.color}30,
-                  0 0 60px ${towerConfig.color}20,
-                  inset 0 1px 2px rgba(255, 255, 255, 0.5)
+                  0 0 20px ${towerConfig.color},
+                  0 0 40px ${towerConfig.color}80,
+                  0 0 60px ${towerConfig.color}40,
+                  inset 0 0 10px rgba(255, 255, 255, 0.6)
                 `,
               }}
-            >
-              <p className="text-sm md:text-base font-sans leading-relaxed" style={{ color: '#2D2D2D' }}>
-                {amuse}
-              </p>
-            </div>
-            
-            {/* Glow effect around window bubble */}
-            <div
-              className="absolute inset-0 -z-10 rounded-xl"
-              style={{
-                background: `radial-gradient(circle, ${towerConfig.color}40 0%, transparent 70%)`,
-                filter: 'blur(20px)',
-                transform: 'scale(1.5)',
+              animate={{
+                opacity: [0.9, 1, 0.9],
+                boxShadow: [
+                  `0 0 20px ${towerConfig.color}, 0 0 40px ${towerConfig.color}80, 0 0 60px ${towerConfig.color}40, inset 0 0 10px rgba(255, 255, 255, 0.6)`,
+                  `0 0 30px ${towerConfig.color}, 0 0 60px ${towerConfig.color}90, 0 0 90px ${towerConfig.color}50, inset 0 0 15px rgba(255, 255, 255, 0.8)`,
+                  `0 0 20px ${towerConfig.color}, 0 0 40px ${towerConfig.color}80, 0 0 60px ${towerConfig.color}40, inset 0 0 10px rgba(255, 255, 255, 0.6)`,
+                ],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: 'easeInOut',
               }}
             />
-          </motion.div>
+            
+            {/* Bubble pointing to the glowing window */}
+            <motion.div
+              className="absolute z-40"
+              style={{
+                bottom: `${(towerConfig.height * 1.8) - 20}px`, // Near top floor
+                left: `${towerConfig.x}%`,
+                transform: 'translateX(60px)', // Offset to the right of building
+              }}
+              initial={{ opacity: 0, scale: 0.9, x: -20 }}
+              animate={{ 
+                opacity: 1, 
+                scale: 1,
+                x: 0,
+              }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ 
+                opacity: { duration: 0.8, ease: EASING },
+                scale: { duration: 0.8, ease: EASING },
+                x: { duration: 0.8, ease: EASING },
+              }}
+            >
+              <ComicBubble
+                content={amuse}
+                state="text"
+                anchorPosition={{ x: 0, y: 50 }} // Points left to window
+                tailDirection="left"
+                type="amuse"
+                maxWidth={350}
+              />
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
       
-      {/* Proceed button */}
+      {/* Proceed button - bottom centered with progressive messages */}
       <AnimatePresence>
         {showProceedButton && (
           <motion.div
@@ -468,7 +469,7 @@ export default function DialogueInterlude({
                 },
               }}
             >
-              {currentTupleIndex < tuples.length - 1 ? "That helps." : "I'm ready."}
+              {currentTupleIndex === 0 ? "On We Go" : currentTupleIndex === 1 ? "One More Breath" : "And So it Goes"}
             </motion.button>
           </motion.div>
         )}
