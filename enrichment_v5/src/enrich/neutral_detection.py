@@ -390,7 +390,7 @@ def detect_neutral_states(
         'hate', 'hated', 'hating', 'hates',
         'angry', 'anger', 'mad', 'pissed', 'furious', 'enraged',
         'frustrated', 'frustrating', 'frustration',
-        'demeaning', 'narcissistic', 'toxic', 'abusive',
+        'demeaning', 'narcissistic', 'toxic', 'abusive', 'abuse', 'abusing',
         'depressed', 'depression', 'hopeless', 'worthless',
         'anxious', 'anxiety', 'panic', 'terrified', 'scared',
         'sad', 'sadness', 'miserable', 'heartbroken',
@@ -399,6 +399,7 @@ def detect_neutral_states(
         'lonely', 'isolated', 'alone', 'abandoned',
         'hurt', 'betrayed', 'humiliated', 'ashamed', 'guilty',
         'fuck', 'fucking', 'shit', 'bullshit', 'goddamn',
+        'dick', 'asshole', 'bastard', 'bitch',
     ]
     
     text_lower = text.lower()

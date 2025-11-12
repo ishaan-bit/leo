@@ -163,20 +163,21 @@ def enrich(
     event_presence = event_presence_map.get(neutral_result.event_presence, "explicit")
     is_neutral = neutral_result.is_emotion_neutral and neutral_result.is_event_neutral
     
-    # If emotion_presence is None, handle based on use_none_gate flag
-    if emotion_presence is None:
+    # CRITICAL FIX: Check is_emotion_neutral flag, NOT emotion_presence density classification
+    # This prevents false neutral classification when strong emotion keywords present
+    if neutral_result.is_emotion_neutral:
         if use_none_gate:
             # Gate is ON: Return None emotions (original behavior)
             best_primary = None
             best_secondary = None
             best_tertiary = None
-            print("[pipeline] emotion_presence is None + use_none_gate=True -> setting all emotions to None")
+            print("[pipeline] is_emotion_neutral=True + use_none_gate=True -> setting all emotions to None")
         else:
             # Gate is OFF: Fallback to Neutral/Calm instead of None
             best_primary = "Peaceful"  # Neutral primary
             best_secondary = "Serene"  # Calm secondary
             best_tertiary = "soft"     # Gentle tertiary
-            print("[pipeline] emotion_presence is None + use_none_gate=False -> fallback to Peaceful/Serene/soft")
+            print("[pipeline] is_emotion_neutral=True + use_none_gate=False -> fallback to Peaceful/Serene/soft")
     
     # 10. Compute overall confidence
     overall_confidence, conf_components = conf_module.compute_overall_confidence(
