@@ -424,7 +424,7 @@ export default function DialogueInterlude({
                 state="text"
                 anchorPosition={{ x: 0, y: 50 }} // Points left to window
                 tailDirection="left"
-                type="amuse"
+                type="tip"
                 maxWidth={350}
               />
             </motion.div>
