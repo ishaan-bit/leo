@@ -32,11 +32,6 @@ const TOWERS = [
   { id: 'mad', name: 'Sable', color: '#C1121F', x: 85, height: 170 },        // Red - Anger
 ];
 
-// Get repositioned X for primary tower (center-left at 35%)
-const getPrimaryTowerX = (towerId: string) => {
-  return 35; // Center-left position
-};
-
 const MIN_CYCLES = 3;
 const EASING = [0.42, 0, 0.58, 1] as const; // easeInOutSine
 
@@ -395,7 +390,7 @@ export default function BreathingSequence({
           towerConfig={primaryTower ? {
             name: primaryTower.name,
             color: primaryTower.color,
-            x: getPrimaryTowerX(primaryTower.id),
+            x: primaryTower.x, // Use original position, NOT getPrimaryTowerX
             height: primaryTower.height,
           } : undefined}
           onComplete={onComplete}

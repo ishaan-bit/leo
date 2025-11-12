@@ -96,6 +96,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Guest data purged successfully',
+      clearLocalStorage: true, // Signal frontend to clear guest UID
       ...summary,
     });
 

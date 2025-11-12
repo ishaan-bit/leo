@@ -436,6 +436,13 @@ export default function MomentsLibrary({
           if (res.ok) {
             const data = await res.json();
             console.log('[MomentsLibrary] ? Guest data purged:', data);
+            
+            // Clear localStorage if backend signals to do so
+            if (data.clearLocalStorage && typeof window !== 'undefined') {
+              console.log('[MomentsLibrary] ?️ Clearing guest localStorage (leo_guest_uid, leo_pig_name_local)');
+              localStorage.removeItem('leo_guest_uid');
+              localStorage.removeItem('leo_pig_name_local');
+            }
           } else {
             console.error('[MomentsLibrary] ? Failed to purge guest data');
           }
@@ -781,14 +788,14 @@ export default function MomentsLibrary({
             <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[12px] border-r-[12px] border-t-[12px] border-l-transparent border-r-transparent border-t-white/95 drop-shadow-lg" />
             
             <div
-              className="px-4 py-3 rounded-2xl shadow-2xl text-center whitespace-nowrap"
+              className="px-4 py-3 rounded-2xl shadow-2xl text-center"
               style={{
                 background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 250, 245, 0.98) 100%)',
                 backdropFilter: 'blur(20px)',
                 border: '2px solid rgba(156, 31, 95, 0.15)',
                 boxShadow: '0 12px 40px rgba(156, 31, 95, 0.15), 0 4px 12px rgba(0,0,0,0.1)',
                 fontSize: 'clamp(0.75rem, 2vw, 0.875rem)', // Responsive font size for mobile
-                maxWidth: '90vw', // Ensure it fits on mobile
+                maxWidth: '85vw', // Reduced from 90vw to fit better
               }}
             >
               <p
@@ -798,9 +805,12 @@ export default function MomentsLibrary({
                   color: '#2D2D2D',
                   lineHeight: '1.5',
                   letterSpacing: '0.3px',
+                  whiteSpace: 'normal', // Allow wrapping
+                  wordWrap: 'break-word',
                 }}
               >
-                Today's Moment has been preserved here
+                <span className="hidden md:inline">Today's Moment has been preserved here</span>
+                <span className="md:hidden">Your moment is safe here</span>
               </p>
             </div>
           </motion.div>
@@ -1100,9 +1110,12 @@ export default function MomentsLibrary({
                 <AnimatePresence>
                   {phase === 'library' && isVisible && hasMoments && (
                     <motion.div
-                      className="absolute left-0 right-0 whitespace-nowrap z-30 text-center"
+                      className="absolute whitespace-nowrap z-30 text-center"
                       style={{
                         top: '-6rem', // Moved up slightly from -top-28 (-7rem) for better spacing
+                        left: tower.index === 5 ? '-70px' : '-50px', // Shift Sable left more to avoid cutoff
+                        right: tower.index === 5 ? 'auto' : '-50px',
+                        width: tower.index === 5 ? '180px' : 'auto', // Fixed width for Sable
                       }}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ 
@@ -1781,10 +1794,10 @@ export default function MomentsLibrary({
                           }}
                           whileTap={{ scale: isTranslating ? 1 : 0.95 }}
                           aria-label={language === 'en' ? 'Translate to Hindi' : 'Show in English'}
-                          title={language === 'en' ? '?????' : 'English'}
+                          title={language === 'en' ? 'हिंदी' : 'English'}
                         >
                           <span className="text-xs font-semibold" style={{ color: atmosphere.textColor }}>
-                            {isTranslating ? '...' : (language === 'en' ? '??' : 'En')}
+                            {isTranslating ? '...' : (language === 'en' ? 'हि' : 'En')}
                           </span>
                         </motion.button>
 
@@ -1916,7 +1929,7 @@ export default function MomentsLibrary({
                           whileTap={{ scale: 0.95 }}
                           aria-label="Close"
                         >
-                          <span className="text-xl leading-none" style={{ color: atmosphere.textColor }}>�</span>
+                          <span className="text-xl leading-none" style={{ color: atmosphere.textColor }}>×</span>
                         </motion.button>
                       </div>
                     </div>
@@ -2557,7 +2570,7 @@ export default function MomentsLibrary({
             }}
           >
             <p className="text-sm font-serif text-pink-800 mb-2 text-center">
-              {pigName ? `${pigName} whispers: your moments are fleeting�` : 'Your moments are fleeting�'}
+              {pigName ? `${pigName} whispers: your moments are fleeting…` : 'Your moments are fleeting…'}
             </p>
             <button
               onClick={() => signIn('google', { callbackUrl: '/start' })}
