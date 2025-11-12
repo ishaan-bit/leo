@@ -80,7 +80,7 @@ export default function GuestConfirmedPage() {
           ease: 'easeOut',
         }}
       >
-        <PinkPig size={180} state="excited" />
+        <PinkPig size={180} state="happy" />
       </motion.div>
 
       {/* Settle text */}
