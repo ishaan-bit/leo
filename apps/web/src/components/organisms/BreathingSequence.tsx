@@ -252,42 +252,59 @@ export default function BreathingSequence({
 
   // NEW ORCHESTRATION: Check for dialogue_tuples and trigger DialogueInterlude
   // WAIT for transition phases to complete AND one breathing cycle
+  // CRITICAL: This must re-check whenever ANY dependency changes (not just when tuples arrive)
   useEffect(() => {
     if (!stage2Complete || !stage2Payload) {
+      console.log('[BreathingSequence] ⏳ Waiting for stage2 completion...', {
+        stage2Complete,
+        hasPayload: !!stage2Payload,
+      });
       return;
     }
     
     if (orchestrationStartedRef.current) {
+      console.log('[BreathingSequence] ℹ️ Orchestration already started, skipping');
       return;
     }
     
     // Check if we have dialogue_tuples from Excel system
     const dialogueTuples = stage2Payload.dialogue_tuples || stage2Payload.meta?.dialogue_tuples;
     
-    if (dialogueTuples && dialogueTuples.length >= 3) {
-      console.log('[BreathingSequence] 🎬 Excel dialogue tuples found');
-      console.log('[BreathingSequence] Tuples:', dialogueTuples);
-      console.log('[BreathingSequence] Current transition phase:', transitionPhase);
-      console.log('[BreathingSequence] First cycle complete:', firstCycleComplete);
-      
-      // Only trigger if we're in breathing phase AND first cycle is complete
-      if (transitionPhase === 'breathing' && firstCycleComplete) {
-        console.log('[BreathingSequence] ✅ Ready to start DialogueInterlude');
-        orchestrationStartedRef.current = true;
-        
-        // Brief delay to let breathing settle
-        setTimeout(() => {
-          console.log('[BreathingSequence] 🎭 Starting DialogueInterlude');
-          setShowDialogueInterlude(true);
-        }, 500);
-      }
-      
+    if (!dialogueTuples || dialogueTuples.length < 3) {
+      console.error('[BreathingSequence] ❌ No dialogue tuples found in post_enrichment!');
+      console.error('[BreathingSequence] Stage2 payload:', stage2Payload);
       return;
     }
     
-    // NO FALLBACK: If no dialogue tuples, log error
-    console.error('[BreathingSequence] ❌ No dialogue tuples found in post_enrichment!');
-    console.error('[BreathingSequence] Stage2 payload:', stage2Payload);
+    // Log state every time this effect runs (helps debug timing issues)
+    console.log('[BreathingSequence] 🔍 Checking DialogueInterlude trigger conditions:', {
+      tupleCount: dialogueTuples.length,
+      transitionPhase,
+      firstCycleComplete,
+      readyToTrigger: transitionPhase === 'breathing' && firstCycleComplete,
+    });
+    
+    // Only trigger if BOTH conditions are met
+    if (transitionPhase === 'breathing' && firstCycleComplete) {
+      console.log('[BreathingSequence] ✅ Ready to start DialogueInterlude');
+      console.log('[BreathingSequence] Tuples:', dialogueTuples);
+      
+      orchestrationStartedRef.current = true;
+      
+      // Brief delay to let breathing settle
+      setTimeout(() => {
+        console.log('[BreathingSequence] 🎭 Starting DialogueInterlude NOW');
+        setShowDialogueInterlude(true);
+      }, 500);
+    } else {
+      // Log what we're waiting for
+      if (transitionPhase !== 'breathing') {
+        console.log(`[BreathingSequence] ⏳ Waiting for breathing phase (current: ${transitionPhase})`);
+      }
+      if (!firstCycleComplete) {
+        console.log('[BreathingSequence] ⏳ Waiting for first breathing cycle to complete');
+      }
+    }
   }, [stage2Complete, stage2Payload, transitionPhase, firstCycleComplete]);
 
   // Breathing helpers - 4-phase cycle: inhale -> hold1 -> exhale -> hold2
