@@ -165,19 +165,14 @@ def enrich(
     
     # CRITICAL FIX: Check is_emotion_neutral flag, NOT emotion_presence density classification
     # This prevents false neutral classification when strong emotion keywords present
-    if neutral_result.is_emotion_neutral:
-        if use_none_gate:
-            # Gate is ON: Return None emotions (original behavior)
-            best_primary = None
-            best_secondary = None
-            best_tertiary = None
-            print("[pipeline] is_emotion_neutral=True + use_none_gate=True -> setting all emotions to None")
-        else:
-            # Gate is OFF: Fallback to Neutral/Calm instead of None
-            best_primary = "Peaceful"  # Neutral primary
-            best_secondary = "Serene"  # Calm secondary
-            best_tertiary = "soft"     # Gentle tertiary
-            print("[pipeline] is_emotion_neutral=True + use_none_gate=False -> fallback to Peaceful/Serene/soft")
+    # When use_none_gate=False, NEVER override - always use the emotion from rerank scores
+    if neutral_result.is_emotion_neutral and use_none_gate:
+        # Gate is ON + truly neutral: Return None emotions
+        best_primary = None
+        best_secondary = None
+        best_tertiary = None
+        print("[pipeline] is_emotion_neutral=True + use_none_gate=True -> setting all emotions to None")
+    # If use_none_gate=False, we keep best_primary from rerank (don't override)
     
     # 10. Compute overall confidence
     overall_confidence, conf_components = conf_module.compute_overall_confidence(
