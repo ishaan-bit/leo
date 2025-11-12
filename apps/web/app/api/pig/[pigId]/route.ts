@@ -10,13 +10,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { kv } from '@vercel/kv';
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 type PigProfile = {
   pig_name: string;
   created_at: string;
 };
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ pigId: string }> }) {
-  const { pigId } = await params;
+  let pigId: string;
+  
+  try {
+    const resolvedParams = await params;
+    pigId = resolvedParams.pigId;
+    
+    console.log(`[API /pig/[pigId]] Request for pigId: ${pigId}`);
+  } catch (error) {
+    console.error('[API /pig/[pigId]] ❌ Failed to resolve params:', error);
+    return NextResponse.json({ 
+      pigId: 'unknown', 
+      named: false, 
+      name: null,
+      error: 'Invalid request'
+    }, { status: 400 });
+  }
   
   try {
     // Try both NEW and OLD formats
@@ -94,9 +112,13 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ pig
     });
   } catch (error) {
     console.error('[API /pig/[pigId]] ❌ Error fetching pig:', error);
+    console.error('[API /pig/[pigId]] Stack:', error instanceof Error ? error.stack : 'No stack');
+    
+    // Always return the expected shape, even on error
     return NextResponse.json({ 
-      error: 'Failed to fetch pig',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+      pigId, 
+      named: false, 
+      name: null
+    }, { status: 200 }); // Return 200 to avoid breaking client
   }
 }
