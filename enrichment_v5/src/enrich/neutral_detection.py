@@ -394,12 +394,14 @@ def detect_neutral_states(
         'depressed', 'depression', 'hopeless', 'worthless',
         'anxious', 'anxiety', 'panic', 'terrified', 'scared',
         'sad', 'sadness', 'miserable', 'heartbroken',
-        'annoyed', 'irritated', 'irritable', 'agitated',
+        'annoyed', 'irritated', 'irritable', 'agitated', 'irritating',
         'stressed', 'overwhelmed', 'exhausted', 'drained',
         'lonely', 'isolated', 'alone', 'abandoned',
         'hurt', 'betrayed', 'humiliated', 'ashamed', 'guilty',
         'fuck', 'fucking', 'shit', 'bullshit', 'goddamn',
         'dick', 'asshole', 'bastard', 'bitch',
+        'terribly', 'terrible', 'horrible', 'awful',  # Intensity words
+        'boss around', 'doesnt do', 'doesn\'t do',  # Workplace frustration phrases
     ]
     
     text_lower = text.lower()

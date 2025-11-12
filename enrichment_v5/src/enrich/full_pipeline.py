@@ -45,6 +45,7 @@ def classify_emotion_hf(text: str) -> Dict[str, float]:
     }
     
     try:
+        print(f"[HF API] Calling classify_emotion_hf for text: {text[:80]}...")
         response = requests.post(
             HF_ZEROSHOT_URL,
             headers={"Authorization": f"Bearer {HF_TOKEN}"},
@@ -52,8 +53,11 @@ def classify_emotion_hf(text: str) -> Dict[str, float]:
             timeout=TIMEOUT
         )
         
+        print(f"[HF API] Response status: {response.status_code}")
+        
         if response.status_code != 200:
-            print(f"HF API error: {response.status_code} - {response.text[:200]}")
+            print(f"[HF API] ERROR {response.status_code}: {response.text[:200]}")
+            print(f"[HF API] Falling back to keyword classifier")
             return _mock_classify(text)
         
         result = response.json()
@@ -66,10 +70,11 @@ def classify_emotion_hf(text: str) -> Dict[str, float]:
                 emotion_map.get(item['label'], item['label'].capitalize()): item['score']
                 for item in result
             }
+            print(f"[HF API] SUCCESS - Top scores: {sorted(scores.items(), key=lambda x: x[1], reverse=True)[:3]}")
             return scores
         
         # Fallback for unexpected format
-        print(f"Unexpected HF API response format: {type(result)}")
+        print(f"[HF API] Unexpected response format: {type(result)}, falling back")
         return _mock_classify(text)
         
     except requests.Timeout:
@@ -86,14 +91,31 @@ def _mock_classify(text: str) -> Dict[str, float]:
     """
     Fallback keyword-based classifier when HF API unavailable.
     
-    Enhanced with sarcasm/negation awareness to avoid misclassifying
-    sarcastic "great" as Happy instead of Angry.
+    Enhanced with sarcasm/negation awareness and workplace frustration detection.
     """
+    print(f"[FALLBACK] Using keyword classifier for: {text[:80]}...")
+    
     text_lower = text.lower()
     primaries = ['Happy', 'Strong', 'Peaceful', 'Sad', 'Angry', 'Fearful']
     scores = {p: 1.0/len(primaries) for p in primaries}
     
-    # Check for sarcasm first (positive word + negative context)
+    # Check for frustration/irritation keywords FIRST (workplace anger)
+    frustration_words = [
+        'irritating', 'irritated', 'frustrat', 'annoyed', 'annoying',
+        'boss around', 'doesnt do shit', 'doesn\'t do shit', 'useless manager',
+        'terrible manager', 'new manager', 'micromanag', 'waste of time',
+        'pain in the ass', 'driving me crazy', 'sick of', 'fed up'
+    ]
+    has_frustration = any(word in text_lower for word in frustration_words)
+    
+    if has_frustration:
+        print("[FALLBACK] Detected frustration/irritation → Angry")
+        scores['Angry'] = 0.6
+        scores['Fearful'] = 0.2
+        total = sum(scores.values())
+        return {k: v/total for k, v in scores.items()}
+    
+    # Check for sarcasm (positive word + negative context)
     has_sarcasm = False
     positive_words = ['great', 'wonderful', 'perfect', 'amazing', 'fantastic', 'love']
     negative_context = ['deadline', 'stress', 'problem', 'issue', 'fail', 'delay', 'late']
