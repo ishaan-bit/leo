@@ -469,10 +469,10 @@ export default function BreathingSequence({
         </motion.div>
       </motion.div>
 
-      {/* Breathing prompt - positioned below Leo - Show ONLY during breathing phase */}
-      {/* Show during first cycle with inhale/exhale synced to pulse */}
+      {/* Breathing prompt - positioned below Leo - Shows throughout breathing phase */}
+      {/* Continuous inhale/exhale text that transitions smoothly */}
       <AnimatePresence>
-        {showInhaleExhale && transitionPhase === 'breathing' && (!stage2Complete || cycleCount < 1) && (isInhaling || isExhaling) && (
+        {showInhaleExhale && transitionPhase === 'breathing' && (!stage2Complete || cycleCount < 1) && (
           <motion.div
             className="absolute left-1/2 z-30 pointer-events-none"
             style={{
@@ -487,14 +487,19 @@ export default function BreathingSequence({
             transition={{ 
               opacity: { duration: 0.5, ease: 'easeOut' },
               scale: {
-                duration: isInhaling ? activeCycle.in : activeCycle.out,
+                duration: isInhaling ? activeCycle.in : isExhaling ? activeCycle.out : 0.5,
                 ease: EASING,
               }
             }}
             exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.5, ease: 'easeOut' } }}
           >
-            {/* Show only inhale or exhale - synced to breathing pulse */}
-            <div
+            {/* Show inhale or exhale - always visible, smooth transitions */}
+            <motion.div
+              key={isInhaling || isHoldingIn ? 'inhale' : 'exhale'}
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -5 }}
+              transition={{ duration: 0.4, ease: 'easeInOut' }}
               className="text-2xl font-sans tracking-widest lowercase font-light"
               style={{
                 color: 'rgba(255, 255, 255, 0.95)',
@@ -506,8 +511,8 @@ export default function BreathingSequence({
                 letterSpacing: '0.35em',
               }}
             >
-              {isInhaling ? 'inhale' : 'exhale'}
-            </div>
+              {isInhaling || isHoldingIn ? 'inhale' : 'exhale'}
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -627,7 +632,7 @@ export default function BreathingSequence({
                   )}
                 </AnimatePresence>
 
-                {/* Breathing halo */}
+                {/* Breathing halo - pulses with breath rhythm */}
                 {isPrimary && isReady && (
                   <motion.div
                     className="absolute left-1/2 -translate-x-1/2 w-64 h-64 rounded-full pointer-events-none"
@@ -636,8 +641,20 @@ export default function BreathingSequence({
                       background: `radial-gradient(circle, ${tower.color}66 0%, transparent 70%)`,
                       filter: 'blur(40px)',
                     }}
-                    animate={{ scale: isInhaling ? 1.4 : 0.8 }}
-                    transition={{ duration: activeCycle.in, ease: EASING }}
+                    animate={{ 
+                      scale: isInhaling || isHoldingIn ? 1.4 : 0.8,
+                      opacity: isInhaling || isHoldingIn ? 1 : 0.6,
+                    }}
+                    transition={{ 
+                      scale: {
+                        duration: isInhaling ? activeCycle.in : isExhaling ? activeCycle.out : 0.5,
+                        ease: EASING,
+                      },
+                      opacity: {
+                        duration: isInhaling ? activeCycle.in : isExhaling ? activeCycle.out : 0.5,
+                        ease: EASING,
+                      },
+                    }}
                   />
                 )}
               </div>
