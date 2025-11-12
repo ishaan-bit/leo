@@ -269,7 +269,7 @@ export default function BreathingSequence({
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [transitionPhase, activeCycle]); // REMOVED cycleCount and firstCycleComplete from deps
+  }, [transitionPhase, activeCycle.in, activeCycle.h1, activeCycle.out, activeCycle.h2]); // FIXED: Depend on primitive values not object reference
 
   // NEW ORCHESTRATION: Check for dialogue_tuples and trigger DialogueInterlude
   // WAIT for transition phases to complete AND one breathing cycle
