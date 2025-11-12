@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useSession, signIn } from 'next-auth/react';
 import { getZone, type PrimaryEmotion } from '@/lib/zones';
 import { translateToHindi } from '@/lib/translation';
+import ComicSpeechBubble from '@/components/atoms/ComicSpeechBubble';
 
 interface Moment {
   id: string;
@@ -62,7 +63,7 @@ interface MomentsLibraryProps {
 const EASING = [0.65, 0, 0.35, 1] as const;
 
 // Tower configuration with corrected zone labels
-// MAPPING: joyful→Vera, powerful→Ashmere, peaceful→Haven, sad→Vanta, scared→Vire, mad→Sable
+// MAPPING: joyful?Vera, powerful?Ashmere, peaceful?Haven, sad?Vanta, scared?Vire, mad?Sable
 // ZONE LABELS: Vera (Joyful), Ashmere (Powerful), Haven (Peaceful), Vanta (Sad), Vire (Fearful), Sable (Angry)
 // Responsive layout: positions calculated dynamically based on screen width
 const TOWER_CONFIGS = [
@@ -125,7 +126,7 @@ export default function MomentsLibrary({
 
   // Log component mount
   useEffect(() => {
-    console.log('[MomentsLibrary] 🎬 Component mounted!', { pigId, pigName, currentPrimary });
+    console.log('[MomentsLibrary] ?? Component mounted!', { pigId, pigName, currentPrimary });
   }, []);
 
   // Track when moment opens
@@ -171,7 +172,7 @@ export default function MomentsLibrary({
   useEffect(() => {
     if (selectedMoment?.image_base64 && !imageRendered && !imageLoadError) {
       // Log successful image render (once per modal open)
-      console.log('[MomentsLibrary] 📸 Image rendered successfully', {
+      console.log('[MomentsLibrary] ?? Image rendered successfully', {
         momentId: selectedMoment.id,
         imageSize: selectedMoment.image_base64.length,
         timestamp: new Date().toISOString(),
@@ -307,7 +308,7 @@ export default function MomentsLibrary({
       const retryDelay = 2000; // 2s between retries
       
       try {
-        console.log(`[MomentsLibrary] 📡 Fetching moments for pig: ${pigId} (attempt ${retryCount + 1}/${maxRetries + 1})`);
+        console.log(`[MomentsLibrary] ?? Fetching moments for pig: ${pigId} (attempt ${retryCount + 1}/${maxRetries + 1})`);
         
         const response = await fetch(`/api/pig/${pigId}/moments`);
         
@@ -317,7 +318,7 @@ export default function MomentsLibrary({
         }
         
         const data = await response.json();
-        console.log('[MomentsLibrary] ✅ Successfully fetched moments:', {
+        console.log('[MomentsLibrary] ? Successfully fetched moments:', {
           count: data.count,
           success: data.success,
           hasMoments: !!data.moments,
@@ -330,28 +331,28 @@ export default function MomentsLibrary({
             acc[m.zone] = (acc[m.zone] || 0) + 1;
             return acc;
           }, {});
-          console.log('[MomentsLibrary] 📊 Moments by zone:', zoneCount);
+          console.log('[MomentsLibrary] ?? Moments by zone:', zoneCount);
         } else {
-          console.log('[MomentsLibrary] 🏜️ No moments found - city is empty');
+          console.log('[MomentsLibrary] ??? No moments found - city is empty');
         }
         
         setMoments(data.moments || []);
         
         // Additional debugging
-        console.log('[MomentsLibrary] 🔍 Moments state set:', {
+        console.log('[MomentsLibrary] ?? Moments state set:', {
           totalMoments: data.moments?.length || 0,
           firstMoment: data.moments?.[0],
         });
       } catch (error) {
-        console.error(`[MomentsLibrary] ❌ Error fetching moments (attempt ${retryCount + 1}):`, error);
+        console.error(`[MomentsLibrary] ? Error fetching moments (attempt ${retryCount + 1}):`, error);
         
         // Retry logic
         if (retryCount < maxRetries) {
-          console.log(`[MomentsLibrary] 🔄 Retrying in ${retryDelay/1000}s...`);
+          console.log(`[MomentsLibrary] ?? Retrying in ${retryDelay/1000}s...`);
           await new Promise(resolve => setTimeout(resolve, retryDelay));
           return fetchMoments(retryCount + 1);
         } else {
-          console.error('[MomentsLibrary] ❌ Max retries reached. Showing empty state.');
+          console.error('[MomentsLibrary] ? Max retries reached. Showing empty state.');
           setMoments([]);
         }
       } finally {
@@ -362,37 +363,37 @@ export default function MomentsLibrary({
     fetchMoments();
   }, [pigId]);
 
-  // Phase A → B: Tower re-introduction sequence
+  // Phase A ? B: Tower re-introduction sequence
   useEffect(() => {
     if (phase !== 'intro') return;
 
-    console.log('[MomentsLibrary] 🏛️ Starting intro phase with current tower:', currentPrimary);
+    console.log('[MomentsLibrary] ??? Starting intro phase with current tower:', currentPrimary);
 
     const sequence = async () => {
       // Wait 1.2s idle after intro
-      console.log('[MomentsLibrary] ⏳ Waiting 1.2s before skyline rebuild...');
+      console.log('[MomentsLibrary] ? Waiting 1.2s before skyline rebuild...');
       await new Promise(resolve => setTimeout(resolve, 1200));
       
       // Trigger tower re-introduction
-      console.log('[MomentsLibrary] 🌆 Transitioning to skyline phase');
+      console.log('[MomentsLibrary] ?? Transitioning to skyline phase');
       setPhase('skyline');
       
       // Sequentially reveal towers
       const towerOrder = TOWER_CONFIGS.filter(t => t.id !== currentPrimary).map(t => t.id);
-      console.log('[MomentsLibrary] 🏗️ Revealing towers in order:', towerOrder);
+      console.log('[MomentsLibrary] ??? Revealing towers in order:', towerOrder);
       
       for (let i = 0; i < towerOrder.length; i++) {
         await new Promise(resolve => setTimeout(resolve, 160)); // 160ms stagger
-        console.log('[MomentsLibrary] ✨ Revealing tower:', towerOrder[i]);
+        console.log('[MomentsLibrary] ? Revealing tower:', towerOrder[i]);
         setVisibleTowers(prev => new Set([...prev, towerOrder[i]]));
       }
       
       // Wait for all towers to settle
-      console.log('[MomentsLibrary] ⏳ All towers revealed, settling...');
+      console.log('[MomentsLibrary] ? All towers revealed, settling...');
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Transition to library phase
-      console.log('[MomentsLibrary] 📚 Transitioning to library phase');
+      console.log('[MomentsLibrary] ?? Transitioning to library phase');
       setPhase('library');
     };
 
@@ -407,7 +408,7 @@ export default function MomentsLibrary({
         return new Date(current.timestamp) > new Date(newest.timestamp) ? current : newest;
       });
       
-      console.log('[MomentsLibrary] 🎯 Auto-opening newest moment:', newestMoment.id);
+      console.log('[MomentsLibrary] ?? Auto-opening newest moment:', newestMoment.id);
       
       // Wait for animations to settle (2.5s after library loads)
       const timer = setTimeout(() => {
@@ -425,7 +426,7 @@ export default function MomentsLibrary({
     if (phase === 'library' && !session?.user) {
       // Wait for library animation to complete, then purge
       const purgeTimer = setTimeout(async () => {
-        console.log('[MomentsLibrary] 🗑️ Guest mode detected - purging data after display');
+        console.log('[MomentsLibrary] ??? Guest mode detected - purging data after display');
         
         try {
           const res = await fetch('/api/guest/purge', {
@@ -434,12 +435,12 @@ export default function MomentsLibrary({
           
           if (res.ok) {
             const data = await res.json();
-            console.log('[MomentsLibrary] ✅ Guest data purged:', data);
+            console.log('[MomentsLibrary] ? Guest data purged:', data);
           } else {
-            console.error('[MomentsLibrary] ❌ Failed to purge guest data');
+            console.error('[MomentsLibrary] ? Failed to purge guest data');
           }
         } catch (error) {
-          console.error('[MomentsLibrary] ❌ Error purging guest data:', error);
+          console.error('[MomentsLibrary] ? Error purging guest data:', error);
         }
       }, 120000); // Wait 2 minutes (120s) after library loads - let user explore their moment
       
@@ -869,7 +870,7 @@ export default function MomentsLibrary({
               {/* Individual crescent slices for each null moment - like windows */}
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 p-3">
                 {nullEmotionMoments.slice(0, 6).map((moment, i) => {
-                  const angle = -40 + (i * 15); // Arc from -40° to +35°
+                  const angle = -40 + (i * 15); // Arc from -40� to +35�
                   const radius = 22; // Distance from center
                   const x = Math.cos((angle * Math.PI) / 180) * radius;
                   const y = Math.sin((angle * Math.PI) / 180) * radius;
@@ -1312,7 +1313,7 @@ export default function MomentsLibrary({
                     ease: 'easeInOut',
                   }}
                 >
-                  ✨
+                  ?
                 </motion.span>
               </motion.div>
               
@@ -1780,10 +1781,10 @@ export default function MomentsLibrary({
                           }}
                           whileTap={{ scale: isTranslating ? 1 : 0.95 }}
                           aria-label={language === 'en' ? 'Translate to Hindi' : 'Show in English'}
-                          title={language === 'en' ? 'हिंदी' : 'English'}
+                          title={language === 'en' ? '?????' : 'English'}
                         >
                           <span className="text-xs font-semibold" style={{ color: atmosphere.textColor }}>
-                            {isTranslating ? '...' : (language === 'en' ? 'हि' : 'En')}
+                            {isTranslating ? '...' : (language === 'en' ? '??' : 'En')}
                           </span>
                         </motion.button>
 
@@ -1915,7 +1916,7 @@ export default function MomentsLibrary({
                           whileTap={{ scale: 0.95 }}
                           aria-label="Close"
                         >
-                          <span className="text-xl leading-none" style={{ color: atmosphere.textColor }}>×</span>
+                          <span className="text-xl leading-none" style={{ color: atmosphere.textColor }}>�</span>
                         </motion.button>
                       </div>
                     </div>
@@ -1959,7 +1960,7 @@ export default function MomentsLibrary({
                           transition: { duration: 0.3 }
                         }}
                         onError={() => {
-                          console.warn('[MomentsLibrary] ⚠️ Image failed to load', {
+                          console.warn('[MomentsLibrary] ?? Image failed to load', {
                             momentId: selectedMoment.id,
                             timestamp: new Date().toISOString(),
                           });
@@ -2173,7 +2174,7 @@ export default function MomentsLibrary({
                           textShadow: '0 1px 1px rgba(0,0,0,0.1)',
                         }}
                       >
-                        Ways the Day Could Bloom 🌸
+                        Ways the Day Could Bloom ??
                       </h3>
                       <div className="space-y-4">
                         {(language === 'hi' && translatedContent ? translatedContent.tips : selectedMoment.tips).map((tip, i) => (
@@ -2277,7 +2278,7 @@ export default function MomentsLibrary({
                             textShadow: '0 1px 1px rgba(0,0,0,0.1)',
                           }}
                         >
-                          A song found for your moment 🎵
+                          A song found for your moment ??
                         </h3>
                         
                         {/* Fallback notice */}
@@ -2364,7 +2365,7 @@ export default function MomentsLibrary({
                                 allowFullScreen
                                 loading="lazy"
                                 title={title ? `${title} by ${artist}` : 'Song recommendation'}
-                                aria-label={title ? `YouTube player — ${title} by ${artist}` : 'YouTube player'}
+                                aria-label={title ? `YouTube player � ${title} by ${artist}` : 'YouTube player'}
                                 onLoad={(e) => {
                                   const iframe = e.currentTarget as HTMLIFrameElement;
                                   
@@ -2456,7 +2457,7 @@ export default function MomentsLibrary({
                                     opacity: 0.7,
                                   }}
                                 >
-                                  {artist}{year ? ` • ${year}` : ''}
+                                  {artist}{year ? ` � ${year}` : ''}
                                 </div>
                               )}
                             </motion.div>
@@ -2493,7 +2494,7 @@ export default function MomentsLibrary({
                           ease: 'easeInOut',
                         }}
                       >
-                        ✨
+                        ?
                       </motion.span>
                       
                       <motion.p
@@ -2530,7 +2531,7 @@ export default function MomentsLibrary({
                           delay: 1.5,
                         }}
                       >
-                        ✨
+                        ?
                       </motion.span>
                     </motion.div>
                   )}
@@ -2556,7 +2557,7 @@ export default function MomentsLibrary({
             }}
           >
             <p className="text-sm font-serif text-pink-800 mb-2 text-center">
-              {pigName ? `${pigName} whispers: your moments are fleeting…` : 'Your moments are fleeting…'}
+              {pigName ? `${pigName} whispers: your moments are fleeting�` : 'Your moments are fleeting�'}
             </p>
             <button
               onClick={() => signIn('google', { callbackUrl: '/start' })}

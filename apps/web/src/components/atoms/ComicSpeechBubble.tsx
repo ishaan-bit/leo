@@ -32,7 +32,10 @@ interface ComicSpeechBubbleProps {
   tailOffsetY?: number;
   
   /** Shadow depth level (1-3) */
-  shadowLevel?: number;`n  `n  /** Optional max width for bubble */`n  maxWidth?: number;
+  shadowLevel?: number;
+  
+  /** Optional max width for bubble */
+  maxWidth?: number;
   
   /** Callback when bubble appears */
   onAppear?: () => void;
@@ -50,7 +53,8 @@ export default function ComicSpeechBubble({
   tailOffsetX = 50,
   tailOffsetY = 50,
   shadowLevel = UI_BALLOON_SHADOW_LEVEL,
-  onAppear,`n  maxWidth,
+  onAppear,
+  maxWidth,
 }: ComicSpeechBubbleProps) {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
@@ -175,7 +179,9 @@ export default function ComicSpeechBubble({
     >
       {/* Bubble body */}
       <motion.div
-        className="relative px-4 py-3 rounded-[28px] max-w-[320px] md:max-w-[400px]"`n        style={{`n          ...(maxWidth ? { maxWidth: `${maxWidth}px` } : {}),`n          {
+        className="relative px-4 py-3 rounded-[28px] max-w-[320px] md:max-w-[400px]"
+        style={{
+          ...(maxWidth ? { maxWidth: `${maxWidth}px` } : {}),
           background: currentStyle.background,
           border: `1.5px solid ${currentStyle.borderColor}`,
           boxShadow: shadowDepth,
