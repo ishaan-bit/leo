@@ -255,36 +255,30 @@ export default function CityInterlude({
       setPrimaryLocked(true);
       setPrimaryEmotion(primary); // Store primary for highlighting
       
-      // Immediate transition - no artificial delays
+      // SEAMLESS TRANSITION: Skip phase 5, go directly to breathing
+      // Buildings stay visible and pulsing for BreathingSequence to inherit
       setTimeout(() => {
-        console.log('[CityInterlude] ✨ Showing zone name, fading other towers');
-        setCurrentPhase(5); // Transition phase
-        setZoomStartTime(Date.now());
+        const event = {
+          type: 'stage1_transition_complete',
+          payload: {
+            sid: reflectionId,
+            zone: zone.name,
+            primary,
+            interlude_version: 'v1',
+            timestamp: new Date().toISOString(),
+          },
+        };
         
-        // Complete transition after 1.5s (brief moment to show zone)
-        setTimeout(() => {
-          const event = {
-            type: 'stage1_transition_complete',
-            payload: {
-              sid: reflectionId,
-              zone: zone.name,
-              primary,
-              interlude_version: 'v1',
-              timestamp: new Date().toISOString(),
-            },
-          };
-          
-          console.log('[CityInterlude] 🎯 Transition complete, moving to breathing sequence');
-          
-          // Dispatch custom event
-          if (typeof window !== 'undefined') {
-            window.dispatchEvent(new CustomEvent('stage1_transition_complete', { detail: event.payload }));
-          }
-          
-          // Call onComplete callback
-          onComplete(primary);
-        }, 1500); // 1.5s transition (was 3s)
-      }, 200); // Brief 200ms pause (was 1s)
+        console.log('[CityInterlude] 🎯 Seamless transition to breathing sequence (no fade/center)');
+        
+        // Dispatch custom event
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('stage1_transition_complete', { detail: event.payload }));
+        }
+        
+        // Call onComplete callback
+        onComplete(primary);
+      }, 200); // Brief pause then immediate transition
     }
   }, [reflection, primaryLocked, currentPhase, reflectionId, onComplete]);
 
@@ -812,16 +806,13 @@ export default function CityInterlude({
           className="absolute bottom-0 left-0 right-0 z-25"
           style={{ height: '50vh' }}
         >
-          {/* Six emotional towers - no zoom, just fade/highlight transition */}
+          {/* Six emotional towers - seamless handoff to breathing (no phase 5 fade/center) */}
           {TOWERS.map((tower, idx) => {
             const isPrimary = primaryEmotion === tower.id;
-            const isTransitionPhase = currentPhase === 5;
             const baseOpacity = getCityPulseBrightness();
             const towerOpacity = isPrimary ? 0.8 : baseOpacity;
             
-            // During transition: fade out non-primary towers, reposition primary to center
-            const fadeOutOpacity = isTransitionPhase && !isPrimary ? 0.1 : 1;
-            const repositionX = isTransitionPhase && isPrimary ? '50%' : `${tower.x}%`;
+            // NO PHASE 5: Buildings stay visible and positioned for BreathingSequence
             
             return (
               <motion.div
@@ -837,11 +828,9 @@ export default function CityInterlude({
                   opacity: 0 
                 }}
                 animate={{ 
-                  left: repositionX,
-                  transform: isPrimary && isTransitionPhase ? 'translateX(-50%)' : 'translateX(0)',
+                  left: `${tower.x}%`, // Stay in original position
                   y: 0, 
-                  opacity: fadeOutOpacity,
-                  scale: isPrimary && isTransitionPhase ? 1.2 : 1,
+                  opacity: 1, // All buildings stay visible
                 }}
                 transition={{
                   initial: {
@@ -849,10 +838,6 @@ export default function CityInterlude({
                     delay: idx * 0.2, // Reduced stagger from 0.5s to 0.2s (1.2s total vs 3s)
                     ease: [0.22, 1, 0.36, 1],
                   },
-                  left: { duration: 2, ease: [0.22, 1, 0.36, 1] },
-                  transform: { duration: 2, ease: [0.22, 1, 0.36, 1] },
-                  opacity: { duration: 1.5, ease: 'easeOut' },
-                  scale: { duration: 2, ease: [0.22, 1, 0.36, 1] },
                 }}
               >
                 {/* Tower silhouette with gradient */}
@@ -937,37 +922,14 @@ export default function CityInterlude({
                       animate={{ 
                         opacity: 1, 
                         y: 0,
-                        scale: isTransitionPhase ? [1, 1.2] : 1, // Grow during transition
                       }}
                       transition={{ 
                         duration: 2, 
                         ease: 'easeOut',
-                        scale: { duration: 3, ease: [0.22, 1, 0.36, 1] }
                       }}
                     >
                       {tower.name}
                     </motion.div>
-                  )}
-                  
-                  {/* Halo emergence (Phase 5 transition) */}
-                  {isPrimary && isTransitionPhase && zoomStartTime && (
-                    <motion.div
-                      className="absolute -top-20 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full pointer-events-none"
-                      style={{
-                        background: `radial-gradient(circle, ${tower.color}40 0%, transparent 70%)`,
-                        filter: 'blur(15px)',
-                      }}
-                      initial={{ opacity: 0, scale: 0 }}
-                      animate={{
-                        opacity: [0, 0.6, 0.8],
-                        scale: [0, 1.2, 1],
-                      }}
-                      transition={{
-                        duration: 2,
-                        delay: 0.5, // Start quickly
-                        ease: [0.22, 1, 0.36, 1],
-                      }}
-                    />
                   )}
                 </div>
               </motion.div>
