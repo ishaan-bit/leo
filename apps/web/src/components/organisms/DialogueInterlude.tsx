@@ -164,29 +164,149 @@ export default function DialogueInterlude({
   
   return (
     <div className="relative w-full h-screen overflow-hidden">
-      {/* Gradient background */}
+      {/* Ghibli Night Sky Background - seamless from BreathingSequence */}
       <div 
         className="absolute inset-0 -z-10"
         style={{
-          background: `linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, ${zoneColor}15 100%)`,
+          background: 'linear-gradient(180deg, #0A0714 0%, #1A1530 100%)',
         }}
       />
       
-      {/* Inner Voice - Floating text above city */}
+      {/* Stars - inherited from breathing sequence aesthetic */}
+      <div className="absolute inset-0 z-5 pointer-events-none">
+        {Array.from({ length: 60 }).map((_, i) => {
+          const x = Math.random() * 100;
+          const y = Math.random() * 70;
+          const size = 1 + Math.random() * 2;
+          const baseOpacity = 0.3 + Math.random() * 0.4;
+          const delay = Math.random() * 3;
+          
+          return (
+            <motion.div
+              key={`star-${i}`}
+              className="absolute rounded-full bg-white"
+              style={{
+                left: `${x}%`,
+                top: `${y}%`,
+                width: `${size}px`,
+                height: `${size}px`,
+              }}
+              animate={{ 
+                opacity: [baseOpacity * 0.5, baseOpacity, baseOpacity * 0.5],
+                scale: [1, 1.2, 1],
+              }}
+              transition={{
+                opacity: { duration: 2.5 + delay, repeat: Infinity, ease: 'easeInOut' },
+                scale: { duration: 2.5 + delay, repeat: Infinity, ease: 'easeInOut' },
+              }}
+            />
+          );
+        })}
+      </div>
+      
+      {/* Crescent Moon - soft ambient light */}
+      <motion.div
+        className="absolute top-12 right-24 w-16 h-16 pointer-events-none z-10"
+        style={{
+          borderRadius: '50%',
+          boxShadow: 'inset -8px 0px 0px 0px rgba(255, 255, 255, 0.9)',
+          background: 'transparent',
+          transform: 'rotate(-20deg)',
+        }}
+        animate={{ 
+          opacity: [0.85, 0.95, 0.85],
+          scale: [0.98, 1.02, 0.98],
+        }}
+        transition={{ 
+          duration: 4,
+          repeat: Infinity,
+          ease: 'easeInOut',
+        }}
+      />
+      
+      {/* Primary Tower - visible and pulsing (from BreathingSequence) */}
+      {towerConfig && (
+        <div
+          className="absolute bottom-0 z-20"
+          style={{
+            left: `${towerConfig.x}%`,
+            transform: 'translateX(-50%)',
+            width: '80px',
+            height: `${towerConfig.height * 1.8}px`,
+          }}
+        >
+          {/* Tower body */}
+          <div
+            className="w-full h-full relative"
+            style={{
+              background: `linear-gradient(180deg, ${towerConfig.color}50 0%, ${towerConfig.color}25 60%, ${towerConfig.color}15 100%)`,
+              border: `1px solid ${towerConfig.color}40`,
+              borderRadius: '2px 2px 0 0',
+            }}
+          >
+            {/* Windows grid - breathing pulse */}
+            <div className="absolute inset-4 grid grid-cols-4 gap-2">
+              {Array.from({ length: Math.floor((towerConfig.height * 1.8) / 25) * 4 }).map((_, i) => {
+                const breathPattern = Math.random();
+                const baseDelay = i * 0.15;
+                const cycleDuration = 2.5 + breathPattern * 3.5;
+                const minOpacity = 0.15 + (breathPattern * 0.15);
+                const maxOpacity = 0.4 + (breathPattern * 0.3);
+                
+                return (
+                  <motion.div
+                    key={`window-${i}`}
+                    className="rounded-[1px]"
+                    animate={{
+                      backgroundColor: [
+                        `rgba(248, 216, 181, ${minOpacity})`,
+                        `rgba(255, 230, 200, ${maxOpacity})`,
+                        `rgba(248, 216, 181, ${minOpacity})`,
+                      ],
+                    }}
+                    transition={{
+                      duration: cycleDuration,
+                      repeat: Infinity,
+                      delay: baseDelay,
+                      ease: 'easeInOut',
+                    }}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Inner Voice - Floating text mid-screen with gentle fade loop */}
       <AnimatePresence>
         {phase === 'inner_voice' && innerVoice && (
           <motion.div
-            className="absolute top-[20%] left-1/2 z-40 text-center px-6"
-            initial={{ opacity: 0, y: 20, x: '-50%' }}
-            animate={{ opacity: 1, y: 0, x: '-50%' }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 1.5, ease: EASING }}
+            className="absolute top-[35%] left-1/2 z-40 text-center px-6"
+            initial={{ opacity: 0, y: 30, x: '-50%' }}
+            animate={{ 
+              opacity: [0, 1, 1, 0.7, 1, 1, 0],
+              y: [30, 0, -5, -10, -15, -20, -30],
+              x: '-50%',
+            }}
+            exit={{ opacity: 0, y: -40 }}
+            transition={{ 
+              duration: 5,
+              times: [0, 0.15, 0.4, 0.6, 0.75, 0.9, 1],
+              ease: [0.4, 0, 0.2, 1],
+            }}
           >
             <p
-              className="text-2xl md:text-3xl font-serif italic leading-relaxed max-w-2xl"
+              className="text-xl md:text-2xl lg:text-3xl font-serif italic leading-relaxed max-w-2xl"
               style={{
-                color: zoneColor,
-                textShadow: '0 2px 20px rgba(0,0,0,0.1)',
+                color: '#FFD700', // Golden color like floating words in breathing
+                textShadow: `
+                  0 0 20px #FFD700,
+                  0 0 40px #FFD700,
+                  0 0 60px #FFD70080,
+                  0 4px 12px rgba(0,0,0,0.4)
+                `,
+                WebkitFontSmoothing: 'antialiased',
               }}
             >
               {innerVoice}
@@ -251,28 +371,46 @@ export default function DialogueInterlude({
         )}
       </AnimatePresence>
       
-      {/* Amuse - Window/building bubble */}
+      {/* Amuse - Window bubble (appears IN the building window) */}
       <AnimatePresence>
         {showWindowBubble && amuse && towerConfig && (
           <motion.div
-            className="absolute z-35"
+            className="absolute z-40"
             style={{
-              bottom: '25%',
+              // Position near the top-middle of the building
+              bottom: `${(towerConfig.height * 1.8) * 0.65}px`, // 65% up the building
               left: `${towerConfig.x}%`,
               transform: 'translateX(-50%)',
             }}
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.8, ease: EASING, delay: 0.2 }}
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ 
+              opacity: 1, 
+              scale: [1, 1.02, 1], 
+              y: 0 
+            }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ 
+              opacity: { duration: 0.8, ease: EASING },
+              scale: { 
+                duration: 2, 
+                repeat: Infinity, 
+                ease: 'easeInOut',
+                delay: 0.5,
+              },
+              y: { duration: 0.8, ease: EASING, delay: 0.2 },
+            }}
           >
             <div
-              className="px-4 py-3 rounded-xl shadow-xl max-w-xs text-center"
+              className="px-4 py-3 rounded-xl shadow-2xl max-w-xs text-center"
               style={{
-                background: `linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, ${towerConfig.color}20 100%)`,
-                backdropFilter: 'blur(10px)',
-                border: `2px solid ${towerConfig.color}30`,
-                boxShadow: `0 8px 30px ${towerConfig.color}20`,
+                background: `linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, ${towerConfig.color}25 100%)`,
+                backdropFilter: 'blur(15px)',
+                border: `2px solid ${towerConfig.color}40`,
+                boxShadow: `
+                  0 8px 40px ${towerConfig.color}30,
+                  0 0 60px ${towerConfig.color}20,
+                  inset 0 1px 2px rgba(255, 255, 255, 0.5)
+                `,
               }}
             >
               <p className="text-sm md:text-base font-sans leading-relaxed" style={{ color: '#2D2D2D' }}>
@@ -280,13 +418,13 @@ export default function DialogueInterlude({
               </p>
             </div>
             
-            {/* Arrow pointing to window */}
+            {/* Glow effect around window bubble */}
             <div
-              className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0"
+              className="absolute inset-0 -z-10 rounded-xl"
               style={{
-                borderLeft: '10px solid transparent',
-                borderRight: '10px solid transparent',
-                borderTop: `10px solid ${towerConfig.color}30`,
+                background: `radial-gradient(circle, ${towerConfig.color}40 0%, transparent 70%)`,
+                filter: 'blur(20px)',
+                transform: 'scale(1.5)',
               }}
             />
           </motion.div>
@@ -298,10 +436,10 @@ export default function DialogueInterlude({
         {showProceedButton && (
           <motion.div
             className="absolute bottom-[8%] left-1/2 -translate-x-1/2 z-50"
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 5, scale: 0.95 }}
-            transition={{ duration: 1.5, ease: EASING }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            transition={{ duration: 1, ease: EASING }}
           >
             <motion.button
               onClick={handleProceed}
@@ -335,21 +473,6 @@ export default function DialogueInterlude({
           </motion.div>
         )}
       </AnimatePresence>
-      
-      {/* Tower silhouette for context (optional) */}
-      {towerConfig && (
-        <div
-          className="absolute bottom-0 z-20 opacity-20"
-          style={{
-            left: `${towerConfig.x}%`,
-            transform: 'translateX(-50%)',
-            width: '60px',
-            height: `${towerConfig.height}px`,
-            background: `linear-gradient(180deg, ${towerConfig.color}40 0%, ${towerConfig.color}15 100%)`,
-            borderRadius: '2px 2px 0 0',
-          }}
-        />
-      )}
       
       {/* Progress indicator */}
       <div className="absolute top-8 left-1/2 -translate-x-1/2 z-30 flex gap-2">

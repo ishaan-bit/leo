@@ -207,6 +207,9 @@ export default function BreathingSequence({
   useEffect(() => {
     if (transitionPhase !== 'breathing') return; // Only run during breathing phase
     
+    // Reset startTime when breathing phase begins (only once)
+    startTimeRef.current = Date.now();
+    
     const animate = () => {
       const elapsed = Date.now() - startTimeRef.current;
       const totalCycleDuration = (activeCycle.in + activeCycle.h1 + activeCycle.out + activeCycle.h2) * 1000;
@@ -227,7 +230,7 @@ export default function BreathingSequence({
       const currentCycle = Math.floor(elapsed / totalCycleDuration);
       if (currentCycle > cycleCount) {
         setCycleCount(currentCycle);
-        console.log('[Breathing] Cycle', currentCycle, 'complete');
+        console.log('[Breathing] ✅ Cycle', currentCycle, 'complete');
         
         // Mark first cycle complete after one full inhale/hold/exhale/hold
         if (currentCycle >= 1 && !firstCycleComplete) {
@@ -239,8 +242,6 @@ export default function BreathingSequence({
       animationFrameRef.current = requestAnimationFrame(animate);
     };
     
-    // Reset startTime when breathing phase begins
-    startTimeRef.current = Date.now();
     animationFrameRef.current = requestAnimationFrame(animate);
     
     return () => {
@@ -248,7 +249,7 @@ export default function BreathingSequence({
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [transitionPhase, activeCycle, cycleCount, firstCycleComplete]);
+  }, [transitionPhase, activeCycle]); // REMOVED cycleCount and firstCycleComplete from deps
 
   // NEW ORCHESTRATION: Check for dialogue_tuples and trigger DialogueInterlude
   // WAIT for transition phases to complete AND one breathing cycle
