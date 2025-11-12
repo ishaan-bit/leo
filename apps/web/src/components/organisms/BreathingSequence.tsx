@@ -64,6 +64,10 @@ export default function BreathingSequence({
   const [stage2Complete, setStage2Complete] = useState(false);
   const [firstCycleComplete, setFirstCycleComplete] = useState(false); // Track first breathing cycle
   
+  // NEW: Transition states for building fade and centering
+  const [transitionPhase, setTransitionPhase] = useState<'initial' | 'fade_buildings' | 'center_primary' | 'breathing' | 'complete'>('initial');
+  const [showInhaleExhale, setShowInhaleExhale] = useState(false);
+  
   // NEW ARCHITECTURE: Poems float as complete lines, tips from Leo only
   type BubbleSequenceStep = 
     | 'idle' 
@@ -109,9 +113,38 @@ export default function BreathingSequence({
   
   const primaryTower = TOWERS.find(t => t.id === effectivePrimary) || TOWERS[0];
 
-  // Start audio and reveal
+  // NEW: Orchestrate the entrance sequence
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    
+    console.log('[BreathingSequence] 🎬 Starting entrance orchestration');
+    
+    // Phase 1: START with all pulsing buildings visible (inherit from CityInterlude)
+    // Wait briefly, then fade out non-primary buildings over 2s
+    setTimeout(() => {
+      console.log('[BreathingSequence] Phase 1: Fading non-primary buildings');
+      setTransitionPhase('fade_buildings');
+      
+      // Phase 2: After fade completes, center the primary building over 2s
+      setTimeout(() => {
+        console.log('[BreathingSequence] Phase 2: Centering primary building');
+        setTransitionPhase('center_primary');
+        
+        // Phase 3: After centering, catch pig on next inhale and show breathing words
+        setTimeout(() => {
+          console.log('[BreathingSequence] Phase 3: Starting breathing cycle');
+          setTransitionPhase('breathing');
+          setShowInhaleExhale(true);
+          setIsReady(true);
+        }, 2000); // 2s for centering animation
+      }, 2000); // 2s for fade animation
+    }, 500); // Brief delay to show initial state
+  }, []);
+
+  // Start audio when breathing starts
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (transitionPhase !== 'breathing') return;
     
     // Load audio
     if (audio) {
@@ -122,16 +155,13 @@ export default function BreathingSequence({
       audioRef.current = audioEl;
     }
     
-    // Reveal delay
-    setTimeout(() => setIsReady(true), 2000);
-    
     return () => {
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
       }
     };
-  }, [audio]);
+  }, [audio, transitionPhase]);
 
   // Poll for Stage-2 enrichment (post_enrichment payload)
   // NOTE: ALL emotions (including null) get poems/tips orchestration
@@ -175,7 +205,7 @@ export default function BreathingSequence({
 
   // Continuous breathing animation loop with proper 4-phase cycle
   useEffect(() => {
-    if (!isReady) return;
+    if (transitionPhase !== 'breathing') return; // Only run during breathing phase
     
     const animate = () => {
       const elapsed = Date.now() - startTimeRef.current;
@@ -202,13 +232,15 @@ export default function BreathingSequence({
         // Mark first cycle complete after one full inhale/hold/exhale/hold
         if (currentCycle >= 1 && !firstCycleComplete) {
           setFirstCycleComplete(true);
-          console.log('[Breathing] ✅ First breathing cycle complete - ready for floating words');
+          console.log('[Breathing] ✅ First breathing cycle complete - ready for DialogueInterlude');
         }
       }
       
       animationFrameRef.current = requestAnimationFrame(animate);
     };
     
+    // Reset startTime when breathing phase begins
+    startTimeRef.current = Date.now();
     animationFrameRef.current = requestAnimationFrame(animate);
     
     return () => {
@@ -216,10 +248,10 @@ export default function BreathingSequence({
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [isReady, cycleDuration, cycleCount, firstCycleComplete, stage2Complete, onComplete]);
+  }, [transitionPhase, activeCycle, cycleCount, firstCycleComplete]);
 
   // NEW ORCHESTRATION: Check for dialogue_tuples and trigger DialogueInterlude
-  // WAIT for PRIMARY CENTERS, then ONE FULL inhale+exhale cycle, THEN DialogueInterlude
+  // WAIT for transition phases to complete AND one breathing cycle
   useEffect(() => {
     if (!stage2Complete || !stage2Payload) {
       return;
@@ -235,35 +267,28 @@ export default function BreathingSequence({
     if (dialogueTuples && dialogueTuples.length >= 3) {
       console.log('[BreathingSequence] 🎬 Excel dialogue tuples found');
       console.log('[BreathingSequence] Tuples:', dialogueTuples);
-      console.log('[BreathingSequence] Waiting for PRIMARY to center, then 1 full breathing cycle...');
+      console.log('[BreathingSequence] Current transition phase:', transitionPhase);
+      console.log('[BreathingSequence] First cycle complete:', firstCycleComplete);
       
-      // Wait for primary to center (tower animation completes)
-      // Then wait for ONE full breathing cycle (inhale + exhale)
-      // THEN trigger DialogueInterlude
-      
-      orchestrationStartedRef.current = true;
-      
-      // Tower centering takes ~2s, then wait for first breathing cycle to complete
-      setTimeout(() => {
-        console.log('[BreathingSequence] ✅ Tower centered, waiting for first breathing cycle...');
+      // Only trigger if we're in breathing phase AND first cycle is complete
+      if (transitionPhase === 'breathing' && firstCycleComplete) {
+        console.log('[BreathingSequence] ✅ Ready to start DialogueInterlude');
+        orchestrationStartedRef.current = true;
         
-        // Wait for first cycle flag
-        const waitForCycle = setInterval(() => {
-          if (firstCycleComplete) {
-            clearInterval(waitForCycle);
-            console.log('[BreathingSequence] ✅ First breathing cycle complete, starting DialogueInterlude');
-            setShowDialogueInterlude(true);
-          }
-        }, 100);
-      }, 2000);
+        // Brief delay to let breathing settle
+        setTimeout(() => {
+          console.log('[BreathingSequence] 🎭 Starting DialogueInterlude');
+          setShowDialogueInterlude(true);
+        }, 500);
+      }
       
-      return;  // Skip old orchestration
+      return;
     }
     
     // NO FALLBACK: If no dialogue tuples, log error
     console.error('[BreathingSequence] ❌ No dialogue tuples found in post_enrichment!');
     console.error('[BreathingSequence] Stage2 payload:', stage2Payload);
-  }, [stage2Complete, stage2Payload, firstCycleComplete]);
+  }, [stage2Complete, stage2Payload, transitionPhase, firstCycleComplete]);
 
   // Breathing helpers - 4-phase cycle: inhale -> hold1 -> exhale -> hold2
   const inDuration = activeCycle.in / (activeCycle.in + activeCycle.h1 + activeCycle.out + activeCycle.h2);
@@ -426,25 +451,29 @@ export default function BreathingSequence({
         </motion.div>
       </motion.div>
 
-      {/* Breathing prompt - positioned below Leo - Show ONLY inhale/exhale synced to pulse */}
-      {/* Keep visible during first cycle even if stage2 completes early */}
+      {/* Breathing prompt - positioned below Leo - Show ONLY during breathing phase */}
+      {/* Show during first cycle with inhale/exhale synced to pulse */}
       <AnimatePresence>
-        {(!stage2Complete || cycleCount < 1) && (isInhaling || isExhaling) && (
+        {showInhaleExhale && transitionPhase === 'breathing' && (!stage2Complete || cycleCount < 1) && (isInhaling || isExhaling) && (
           <motion.div
             className="absolute left-1/2 z-30 pointer-events-none"
             style={{
               x: '-50%',
               top: 'calc(28% + 160px)', // Below Leo
             }}
+            initial={{ opacity: 0, scale: 0.8 }}
             animate={{ 
-              opacity: isInhaling || isHoldingIn ? 1 : 0.7, // Simpler fade matching pig pulse
-              scale: isInhaling || isHoldingIn ? 1.1 : 0.9, // Follow pig's pulse (1.15/0.92 scaled to text size)
+              opacity: 1,
+              scale: isInhaling || isHoldingIn ? 1.1 : 0.9, // Follow pig's pulse
             }}
             transition={{ 
-              duration: isInhaling ? activeCycle.in : activeCycle.out,
-              ease: EASING,
+              opacity: { duration: 0.5, ease: 'easeOut' },
+              scale: {
+                duration: isInhaling ? activeCycle.in : activeCycle.out,
+                ease: EASING,
+              }
             }}
-            exit={{ opacity: 0, transition: { duration: 0.3, ease: 'easeOut' } }}
+            exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.5, ease: 'easeOut' } }}
           >
             {/* Show only inhale or exhale - synced to breathing pulse */}
             <div
@@ -470,7 +499,8 @@ export default function BreathingSequence({
       {/* All text has faded out above */}
 
       {/* City skyline with towers - primary repositioned to center-left */}
-      {/* FIX: Hide all buildings if primary is null - show only moon */}
+      {/* START with ALL buildings visible and pulsing (from CityInterlude) */}
+      {/* Then fade non-primary, then center primary */}
       {primary && (
         <motion.div
           ref={buildingContainerRef}
@@ -479,9 +509,18 @@ export default function BreathingSequence({
         >
           {TOWERS.map(tower => {
             const isPrimary = tower.id === primary;
-            // All buildings start visible, then non-primary fade to 0.2 (not 0)
-            const towerOpacity = isReady ? (isPrimary ? 1 : 0.2) : 0;
-            const displayX = isPrimary ? getPrimaryTowerX(tower.id) : tower.x;
+            
+            // Opacity logic based on transition phase
+            let towerOpacity = 1; // Start fully visible (ALL buildings pulsing)
+            if (transitionPhase === 'fade_buildings' || transitionPhase === 'center_primary' || transitionPhase === 'breathing') {
+              towerOpacity = isPrimary ? 1 : 0.2; // Fade non-primary to 0.2
+            }
+            
+            // Position logic: center primary during center_primary phase
+            let displayX = tower.x;
+            if (transitionPhase === 'center_primary' || transitionPhase === 'breathing') {
+              displayX = isPrimary ? getPrimaryTowerX(tower.id) : tower.x;
+            }
           
           return (
             <motion.div
@@ -492,16 +531,20 @@ export default function BreathingSequence({
                 width: '80px',
                 height: `${tower.height * 1.8}px`,
               }}
-              initial={{ opacity: 0 }} // Start hidden
+              initial={{ opacity: 1, scale: 1 }} // Start fully visible (from CityInterlude)
               animate={{
                 opacity: towerOpacity,
-                scale: isPrimary ? ((isInhaling || isHoldingIn) ? 1.02 : 0.98) : 1,
+                left: `${displayX}%`,
+                scale: isPrimary ? ((isInhaling || isHoldingIn) && transitionPhase === 'breathing' ? 1.02 : 0.98) : 1,
               }}
               transition={{ 
                 opacity: { 
-                  duration: isPrimary ? 1.5 : 2, // Smooth fade for all
-                  delay: isPrimary ? 0 : 0.5, // Non-primary fade slightly after
+                  duration: 2, // 2s fade for non-primary
                   ease: 'easeInOut',
+                },
+                left: {
+                  duration: 2, // 2s for centering
+                  ease: [0.22, 1, 0.36, 1], // Smooth easing
                 },
                 scale: { 
                   duration: isInhaling ? activeCycle.in : isExhaling ? activeCycle.out : 0.3,
