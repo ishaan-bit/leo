@@ -344,7 +344,7 @@ export default function DialogueInterlude({
             className="absolute z-40"
             style={{
               top: 'calc(28% - 80px)', // Above Leo (Leo at 28%, bubble 80px higher)
-              left: 'calc(50% + 120px)', // Right of Leo (Leo centered at 50%, bubble 120px right)
+              left: 'calc(50% + 60px)', // Right of Leo (Leo centered at 50%, bubble 120px right)
               transform: 'translateX(0)', // No centering, positioned relative to Leo
             }}
             initial={{ opacity: 0, y: -10 }}
@@ -354,7 +354,7 @@ export default function DialogueInterlude({
           >
             <ComicSpeechBubble
               content={regulate}
-              variant="pig"
+              variant="pig" maxWidth={280}
               tailDirection="left" // Tail points left toward Leo (bubble is to the right)
               tailOffsetX={50}
               shadowLevel={2}
@@ -367,21 +367,8 @@ export default function DialogueInterlude({
       <AnimatePresence>
         {showWindowBubble && amuse && towerConfig && (
           <>
-            {/* Glowing window in top floor with radial halo */}
-            <motion.div
-              className="absolute z-25 rounded-sm"
-              style={{
-                bottom: `${(towerConfig.height * 1.8) - 40}px`, // Top floor (40px from top)
-                left: `calc(${towerConfig.x}% + 15px)`, // Second window from left in 4-col grid
-                width: '14px',
-                height: '12px',
-                background: `linear-gradient(135deg, ${towerConfig.color} 0%, rgba(255, 230, 200, 0.95) 100%)`,
-                boxShadow: `
-                  0 0 8px ${towerConfig.color}80,
-                  inset 0 0 6px rgba(255, 255, 255, 0.5)
-                `,
-              }}
-            />
+            {/* NO GLOWING WINDOW - removed per user request */}
+
             
             {/* Floating words rising from building */}
             <FloatingWords
@@ -436,7 +423,7 @@ export default function DialogueInterlude({
           >
             <motion.button
               onClick={handleProceed}
-              className="px-8 py-3 rounded-full font-serif text-base md:text-lg shadow-xl"
+              className="px-8 py-3 rounded-full font-serif text-base md:text-lg shadow-xl whitespace-nowrap"
               style={{
                 background: `linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, ${zoneColor}10 100%)`,
                 backdropFilter: 'blur(20px)',

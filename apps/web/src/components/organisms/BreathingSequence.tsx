@@ -471,7 +471,7 @@ export default function BreathingSequence({
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ 
               opacity: 1,
-              scale: isInhaling || isHoldingIn ? 1.1 : 0.9, // Follow pig's pulse
+              scale: 1, // Keep text constant size - don't pulse with pig
             }}
             transition={{ 
               opacity: { duration: 0.5, ease: 'easeOut' },

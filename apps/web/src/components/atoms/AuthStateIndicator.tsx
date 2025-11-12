@@ -95,33 +95,19 @@ export default function AuthStateIndicator({ userName, isGuest }: AuthStateIndic
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="fixed inset-0 z-50 bg-pink-50 flex items-center justify-center"
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{
+            background: 'linear-gradient(135deg, #FFF1F7 0%, #FFE4F0 50%, #FFD6E8 100%)',
+          }}
         >
-          <motion.div
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.6, type: 'spring' }}
-            className="text-center space-y-4"
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="text-pink-900/80 text-2xl md:text-3xl font-serif italic text-center px-6"
           >
-            {/* Floating feather animation */}
-            <motion.div
-              animate={{
-                y: [0, -20, 0],
-                rotate: [0, 10, -10, 0],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
-              className="text-6xl"
-            >
-              🪶
-            </motion.div>
-            <p className="text-pink-800 text-lg font-serif italic">
-              Until we meet again...
-            </p>
-          </motion.div>
+            Until we meet again...
+          </motion.p>
         </motion.div>
       )}
     </>

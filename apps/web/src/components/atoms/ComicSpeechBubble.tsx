@@ -32,7 +32,7 @@ interface ComicSpeechBubbleProps {
   tailOffsetY?: number;
   
   /** Shadow depth level (1-3) */
-  shadowLevel?: number;
+  shadowLevel?: number;`n  `n  /** Optional max width for bubble */`n  maxWidth?: number;
   
   /** Callback when bubble appears */
   onAppear?: () => void;
@@ -50,7 +50,7 @@ export default function ComicSpeechBubble({
   tailOffsetX = 50,
   tailOffsetY = 50,
   shadowLevel = UI_BALLOON_SHADOW_LEVEL,
-  onAppear,
+  onAppear,`n  maxWidth,
 }: ComicSpeechBubbleProps) {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
@@ -78,7 +78,7 @@ export default function ComicSpeechBubble({
       glowColor: 'rgba(255, 248, 240, 0.6)',
     },
     window: {
-      background: 'linear-gradient(135deg, #F0F5FF 0%, #E8EEF8 100%)',
+      background: 'linear-gradient(135deg, #FFFBF0 0%, #FFF4E0 100%)',
       borderColor: 'rgba(99, 117, 139, 0.15)',
       textColor: '#2D3342',
       glowColor: 'rgba(240, 245, 255, 0.6)',
@@ -175,8 +175,7 @@ export default function ComicSpeechBubble({
     >
       {/* Bubble body */}
       <motion.div
-        className="relative px-6 py-4 rounded-[28px] max-w-[320px] md:max-w-[400px]"
-        style={{
+        className="relative px-4 py-3 rounded-[28px] max-w-[320px] md:max-w-[400px]"`n        style={{`n          ...(maxWidth ? { maxWidth: `${maxWidth}px` } : {}),`n          {
           background: currentStyle.background,
           border: `1.5px solid ${currentStyle.borderColor}`,
           boxShadow: shadowDepth,
@@ -218,7 +217,7 @@ export default function ComicSpeechBubble({
         
         {/* Text content */}
         <p 
-          className="relative font-serif text-base md:text-lg leading-relaxed italic"
+          className="relative font-serif text-sm md:text-base leading-relaxed italic"
           style={{
             color: currentStyle.textColor,
             letterSpacing: '0.01em',

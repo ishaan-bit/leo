@@ -103,9 +103,7 @@ export default function SoundToggle({ autoHintDelayMs = 2000, autoHideDelayMs = 
           focus:outline-none focus:ring-2 focus:ring-pink-300/60 
           transition-all duration-300 ${initialized ? '' : 'opacity-60 cursor-not-allowed'}`}
         style={{ 
-          minWidth: '32px', 
-          minHeight: '32px', 
-          padding: '6px',
+          width: '32px',`n          height: '32px',`n          padding: 0,`n          display: 'flex',`n          alignItems: 'center',`n          justifyContent: 'center',
           background: enabled ? 'rgba(255, 255, 255, 0.5)' : 'rgba(255, 255, 255, 0.35)'
         }}
         aria-pressed={enabled}
@@ -113,16 +111,7 @@ export default function SoundToggle({ autoHintDelayMs = 2000, autoHideDelayMs = 
       >
         {/* Halo pulse when enabled - smaller */}
         {enabled && (
-          <>
-            <motion.div
-              className="absolute inset-0 rounded-full bg-pink-300/30 -z-10"
-              animate={{ 
-                scale: [1, 1.3, 1],
-                opacity: [0.5, 0, 0.5] 
-              }}
-              transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-            />
-            <motion.div
+          <>`n            <motion.div
               className="absolute inset-0 rounded-full bg-pink-400/20"
               animate={{ opacity: [0.3, 0.6, 0.3] }}
               transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}

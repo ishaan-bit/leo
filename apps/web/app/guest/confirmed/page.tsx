@@ -9,6 +9,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import PinkPig from '@/components/atoms/PinkPig';
 import { useRouter } from 'next/navigation';
 
 export default function GuestConfirmedPage() {
@@ -61,6 +62,26 @@ export default function GuestConfirmedPage() {
           ease: 'linear'
         }}
       />
+
+      {/* Animated pig floating upward */}
+      <motion.div
+        className="absolute left-1/2 z-10 pointer-events-none"
+        style={{
+          x: '-50%',
+          top: '20%',
+        }}
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ 
+          opacity: 1, 
+          y: -30,
+        }}
+        transition={{ 
+          duration: 2, 
+          ease: 'easeOut',
+        }}
+      >
+        <PinkPig size={180} state="excited" />
+      </motion.div>
 
       {/* Settle text */}
       <motion.div
