@@ -22,7 +22,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import ComicBubble from '../atoms/ComicBubble';
+import ComicSpeechBubble from '../atoms/ComicSpeechBubble';
+import FloatingWords from '../atoms/FloatingWords';
+import WindowHalo from '../atoms/WindowHalo';
 
 interface DialogueInterludeProps {
   /** 3 dialogue tuples: [[Inner, Regulate, Amuse], ...] */
@@ -346,18 +348,17 @@ export default function DialogueInterlude({
               left: '50%',
               transform: 'translateX(-50%)',
             }}
-            initial={{ opacity: 0, scale: 0.9, y: -10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: -10 }}
-            transition={{ duration: 0.6, ease: EASING }}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.35, ease: EASING }}
           >
-            <ComicBubble
+            <ComicSpeechBubble
               content={regulate}
-              state="text"
-              anchorPosition={{ x: 50, y: 0 }} // Points up to Leo
+              variant="pig"
               tailDirection="up"
-              type="tip"
-              maxWidth={600}
+              tailOffsetX={50}
+              shadowLevel={2}
             />
           </motion.div>
         )}
@@ -367,7 +368,7 @@ export default function DialogueInterlude({
       <AnimatePresence>
         {showWindowBubble && amuse && towerConfig && (
           <>
-            {/* Glowing window in top floor */}
+            {/* Glowing window in top floor with radial halo */}
             <motion.div
               className="absolute z-25 rounded-sm"
               style={{
@@ -377,25 +378,28 @@ export default function DialogueInterlude({
                 height: '12px',
                 background: `linear-gradient(135deg, ${towerConfig.color} 0%, rgba(255, 230, 200, 0.95) 100%)`,
                 boxShadow: `
-                  0 0 20px ${towerConfig.color},
-                  0 0 40px ${towerConfig.color}80,
-                  0 0 60px ${towerConfig.color}40,
-                  inset 0 0 10px rgba(255, 255, 255, 0.6)
+                  0 0 8px ${towerConfig.color}80,
+                  inset 0 0 6px rgba(255, 255, 255, 0.5)
                 `,
               }}
-              animate={{
-                opacity: [0.9, 1, 0.9],
-                boxShadow: [
-                  `0 0 20px ${towerConfig.color}, 0 0 40px ${towerConfig.color}80, 0 0 60px ${towerConfig.color}40, inset 0 0 10px rgba(255, 255, 255, 0.6)`,
-                  `0 0 30px ${towerConfig.color}, 0 0 60px ${towerConfig.color}90, 0 0 90px ${towerConfig.color}50, inset 0 0 15px rgba(255, 255, 255, 0.8)`,
-                  `0 0 20px ${towerConfig.color}, 0 0 40px ${towerConfig.color}80, 0 0 60px ${towerConfig.color}40, inset 0 0 10px rgba(255, 255, 255, 0.6)`,
-                ],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
+            >
+              {/* Radial halo (no rectangular artifacts) */}
+              <WindowHalo 
+                color={towerConfig.color}
+                pulse={true}
+                size={3}
+                intensity={0.4}
+              />
+            </motion.div>
+            
+            {/* Floating words rising from building */}
+            <FloatingWords
+              words={[amuse]}
+              startY={`${(towerConfig.height * 1.8) - 60}px`}
+              startX={`calc(${towerConfig.x}% - 20px)`}
+              floatDistance={140}
+              maxConcurrent={2}
+              enabled={true}
             />
             
             {/* Bubble pointing to the glowing window */}
@@ -406,26 +410,23 @@ export default function DialogueInterlude({
                 left: `${towerConfig.x}%`,
                 transform: 'translateX(60px)', // Offset to the right of building
               }}
-              initial={{ opacity: 0, scale: 0.9, x: -20 }}
+              initial={{ opacity: 0, x: -20 }}
               animate={{ 
                 opacity: 1, 
-                scale: 1,
                 x: 0,
               }}
-              exit={{ opacity: 0, scale: 0.9 }}
+              exit={{ opacity: 0 }}
               transition={{ 
-                opacity: { duration: 0.8, ease: EASING },
-                scale: { duration: 0.8, ease: EASING },
-                x: { duration: 0.8, ease: EASING },
+                duration: 0.35,
+                ease: EASING,
               }}
             >
-              <ComicBubble
+              <ComicSpeechBubble
                 content={amuse}
-                state="text"
-                anchorPosition={{ x: 0, y: 50 }} // Points left to window
+                variant="window"
                 tailDirection="left"
-                type="tip"
-                maxWidth={350}
+                tailOffsetY={30}
+                shadowLevel={2}
               />
             </motion.div>
           </>
