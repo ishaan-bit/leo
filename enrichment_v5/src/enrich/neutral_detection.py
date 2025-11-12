@@ -383,9 +383,35 @@ def detect_neutral_states(
     emotion_presence = classify_emotion_presence(emotion_density)
     event_presence = classify_event_presence(event_density, is_routine)
     
+    # CRITICAL FIX: Check for strong emotion keywords BEFORE determining neutrality
+    # Even if density is low, explicit emotion words (hate, angry, frustrated, etc.) 
+    # should NEVER result in neutral classification
+    STRONG_EMOTION_KEYWORDS = [
+        'hate', 'hated', 'hating', 'hates',
+        'angry', 'anger', 'mad', 'pissed', 'furious', 'enraged',
+        'frustrated', 'frustrating', 'frustration',
+        'demeaning', 'narcissistic', 'toxic', 'abusive',
+        'depressed', 'depression', 'hopeless', 'worthless',
+        'anxious', 'anxiety', 'panic', 'terrified', 'scared',
+        'sad', 'sadness', 'miserable', 'heartbroken',
+        'annoyed', 'irritated', 'irritable', 'agitated',
+        'stressed', 'overwhelmed', 'exhausted', 'drained',
+        'lonely', 'isolated', 'alone', 'abandoned',
+        'hurt', 'betrayed', 'humiliated', 'ashamed', 'guilty',
+        'fuck', 'fucking', 'shit', 'bullshit', 'goddamn',
+    ]
+    
+    text_lower = text.lower()
+    has_strong_emotion = any(keyword in text_lower for keyword in STRONG_EMOTION_KEYWORDS)
+    
     # Determine neutrality flags
-    # Routine context: treat "subtle" emotion as neutral (mundane activities have weak valence)
-    is_emotion_neutral = (emotion_presence == "none") or (is_routine and emotion_presence == "subtle")
+    # NEVER neutral if strong emotion keywords present
+    if has_strong_emotion:
+        is_emotion_neutral = False
+    else:
+        # Routine context: treat "subtle" emotion as neutral (mundane activities have weak valence)
+        is_emotion_neutral = (emotion_presence == "none") or (is_routine and emotion_presence == "subtle")
+    
     is_event_neutral = event_presence in ["none", "routine"]
     
     # Compute confidence adjustment
