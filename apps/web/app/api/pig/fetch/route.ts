@@ -7,6 +7,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { resolveIdentity } from '@/lib/identity-resolver';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     // Resolve current identity
