@@ -65,7 +65,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ pig
         
         const oldProfile = await kv.get(oldKey);
         
-        console.log(`[API /pig/[pigId]] Old format result:`, oldProfile);
+        console.log(`[API /pig/[pigId]] Old format result type:`, typeof oldProfile);
+        console.log(`[API /pig/[pigId]] Old format result value:`, JSON.stringify(oldProfile));
         
         if (oldProfile) {
           // Handle both string and object formats
@@ -74,21 +75,31 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ pig
           if (typeof oldProfile === 'string') {
             try {
               parsedProfile = JSON.parse(oldProfile);
+              console.log(`[API /pig/[pigId]] Parsed string to:`, parsedProfile);
             } catch (e) {
               console.error(`[API /pig/[pigId]] Failed to parse old profile:`, e);
               parsedProfile = null;
             }
           } else {
             parsedProfile = oldProfile;
+            console.log(`[API /pig/[pigId]] Using object directly:`, parsedProfile);
           }
           
-          if (parsedProfile && parsedProfile.pig_name) {
-            console.log(`[API /pig/[pigId]] ✅ Found pig in old format: ${parsedProfile.pig_name}`);
+          console.log(`[API /pig/[pigId]] Checking for pig_name field...`);
+          console.log(`[API /pig/[pigId]] parsedProfile?.pig_name:`, parsedProfile?.pig_name);
+          console.log(`[API /pig/[pigId]] parsedProfile?.name:`, parsedProfile?.name);
+          console.log(`[API /pig/[pigId]] All keys:`, Object.keys(parsedProfile || {}));
+          
+          if (parsedProfile && (parsedProfile.pig_name || parsedProfile.name)) {
+            const pigNameValue = parsedProfile.pig_name || parsedProfile.name;
+            console.log(`[API /pig/[pigId]] ✅ Found pig in old format: ${pigNameValue}`);
             
             profile = {
-              pig_name: parsedProfile.pig_name,
+              pig_name: pigNameValue,
               created_at: parsedProfile.created_at || new Date().toISOString(),
             };
+          } else {
+            console.log(`[API /pig/[pigId]] ❌ No pig_name or name field found in old format`);
           }
         }
       }
