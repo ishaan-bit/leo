@@ -24,7 +24,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import ComicSpeechBubble from '../atoms/ComicSpeechBubble';
 import FloatingWords from '../atoms/FloatingWords';
-import WindowHalo from '../atoms/WindowHalo';
 
 interface DialogueInterludeProps {
   /** 3 dialogue tuples: [[Inner, Regulate, Amuse], ...] */
@@ -344,9 +343,9 @@ export default function DialogueInterlude({
           <motion.div
             className="absolute z-40"
             style={{
-              top: 'calc(28% + 120px)', // Below Leo (who is at 28%)
-              left: '50%',
-              transform: 'translateX(-50%)',
+              top: 'calc(28% - 80px)', // Above Leo (Leo at 28%, bubble 80px higher)
+              left: 'calc(50% + 120px)', // Right of Leo (Leo centered at 50%, bubble 120px right)
+              transform: 'translateX(0)', // No centering, positioned relative to Leo
             }}
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -356,7 +355,7 @@ export default function DialogueInterlude({
             <ComicSpeechBubble
               content={regulate}
               variant="pig"
-              tailDirection="up"
+              tailDirection="left" // Tail points left toward Leo (bubble is to the right)
               tailOffsetX={50}
               shadowLevel={2}
             />
@@ -382,15 +381,7 @@ export default function DialogueInterlude({
                   inset 0 0 6px rgba(255, 255, 255, 0.5)
                 `,
               }}
-            >
-              {/* Radial halo (no rectangular artifacts) */}
-              <WindowHalo 
-                color={towerConfig.color}
-                pulse={true}
-                size={3}
-                intensity={0.4}
-              />
-            </motion.div>
+            />
             
             {/* Floating words rising from building */}
             <FloatingWords

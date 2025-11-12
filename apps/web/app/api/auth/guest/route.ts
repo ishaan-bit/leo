@@ -1,14 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getOrCreateGuestSession } from '@/lib/guest-session';
+import { resolveIdentity } from '@/lib/identity-resolver';
 
 export async function POST(req: NextRequest) {
   try {
-    // Create or get guest session
-    const guestUid = await getOrCreateGuestSession();
+    // Use identity-resolver to get/create guest session
+    // It automatically handles sid_xxx format and cookie management
+    const identity = await resolveIdentity();
+    
+    // Verify it's a guest session (not authenticated)
+    if (identity.effectiveScope !== 'sid') {
+      return NextResponse.json(
+        { error: 'Expected guest session but got authenticated user' },
+        { status: 400 }
+      );
+    }
     
     return NextResponse.json({ 
       ok: true,
-      uid: guestUid,
+      uid: identity.sid,  // Returns sid_xxx format (correct)
       type: 'guest'
     });
   } catch (error) {
