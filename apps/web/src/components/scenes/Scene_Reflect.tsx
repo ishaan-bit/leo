@@ -484,6 +484,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...data,
+          pigId, // CRITICAL: Include pigId for proper moment scoping
           pigName, // Include pig name from props
           deviceInfo: getDeviceInfo(),
           timestamp: new Date().toISOString(),
