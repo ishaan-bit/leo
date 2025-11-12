@@ -63,43 +63,66 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ pig
         
         console.log(`[API /pig/[pigId]] Trying old format at ${oldKey}...`);
         
-        const oldProfile = await kv.get(oldKey);
-        
-        console.log(`[API /pig/[pigId]] Old format result type:`, typeof oldProfile);
-        console.log(`[API /pig/[pigId]] Old format result value:`, JSON.stringify(oldProfile));
-        
-        if (oldProfile) {
-          // Handle both string and object formats
-          let parsedProfile: any;
+        // Try HASH format first (hgetall)
+        try {
+          const oldProfileHash = await kv.hgetall(oldKey);
           
-          if (typeof oldProfile === 'string') {
-            try {
-              parsedProfile = JSON.parse(oldProfile);
-              console.log(`[API /pig/[pigId]] Parsed string to:`, parsedProfile);
-            } catch (e) {
-              console.error(`[API /pig/[pigId]] Failed to parse old profile:`, e);
-              parsedProfile = null;
-            }
-          } else {
-            parsedProfile = oldProfile;
-            console.log(`[API /pig/[pigId]] Using object directly:`, parsedProfile);
-          }
+          console.log(`[API /pig/[pigId]] Old format HASH result:`, oldProfileHash);
           
-          console.log(`[API /pig/[pigId]] Checking for pig_name field...`);
-          console.log(`[API /pig/[pigId]] parsedProfile?.pig_name:`, parsedProfile?.pig_name);
-          console.log(`[API /pig/[pigId]] parsedProfile?.name:`, parsedProfile?.name);
-          console.log(`[API /pig/[pigId]] All keys:`, Object.keys(parsedProfile || {}));
-          
-          if (parsedProfile && (parsedProfile.pig_name || parsedProfile.name)) {
-            const pigNameValue = parsedProfile.pig_name || parsedProfile.name;
-            console.log(`[API /pig/[pigId]] ✅ Found pig in old format: ${pigNameValue}`);
+          if (oldProfileHash && Object.keys(oldProfileHash).length > 0) {
+            console.log(`[API /pig/[pigId]] All HASH keys:`, Object.keys(oldProfileHash));
+            console.log(`[API /pig/[pigId]] pig_name:`, oldProfileHash.pig_name);
+            console.log(`[API /pig/[pigId]] name:`, oldProfileHash.name);
             
-            profile = {
-              pig_name: pigNameValue,
-              created_at: parsedProfile.created_at || new Date().toISOString(),
-            };
-          } else {
-            console.log(`[API /pig/[pigId]] ❌ No pig_name or name field found in old format`);
+            if (oldProfileHash.pig_name || oldProfileHash.name) {
+              const pigNameValue = oldProfileHash.pig_name || oldProfileHash.name;
+              console.log(`[API /pig/[pigId]] ✅ Found pig in old HASH format: ${pigNameValue}`);
+              
+              profile = {
+                pig_name: String(pigNameValue),
+                created_at: String(oldProfileHash.created_at || new Date().toISOString()),
+              };
+            }
+          }
+        } catch (hashError) {
+          console.log(`[API /pig/[pigId]] HASH lookup failed, trying STRING format:`, hashError);
+          
+          // Fallback to STRING format (kv.get)
+          try {
+            const oldProfile = await kv.get(oldKey);
+            
+            console.log(`[API /pig/[pigId]] Old format STRING result type:`, typeof oldProfile);
+            console.log(`[API /pig/[pigId]] Old format STRING result value:`, JSON.stringify(oldProfile));
+            
+            if (oldProfile) {
+              // Handle both string and object formats
+              let parsedProfile: any;
+              
+              if (typeof oldProfile === 'string') {
+                try {
+                  parsedProfile = JSON.parse(oldProfile);
+                  console.log(`[API /pig/[pigId]] Parsed string to:`, parsedProfile);
+                } catch (e) {
+                  console.error(`[API /pig/[pigId]] Failed to parse old profile:`, e);
+                  parsedProfile = null;
+                }
+              } else {
+                parsedProfile = oldProfile;
+                console.log(`[API /pig/[pigId]] Using object directly:`, parsedProfile);
+              }
+              
+              if (parsedProfile && (parsedProfile.pig_name || parsedProfile.name)) {
+                const pigNameValue = parsedProfile.pig_name || parsedProfile.name;
+                console.log(`[API /pig/[pigId]] ✅ Found pig in old STRING format: ${pigNameValue}`);
+                
+                profile = {
+                  pig_name: pigNameValue,
+                  created_at: parsedProfile.created_at || new Date().toISOString(),
+                };
+              }
+            }
+          } catch (stringError) {
+            console.error(`[API /pig/[pigId]] Both HASH and STRING lookup failed:`, stringError);
           }
         }
       }
