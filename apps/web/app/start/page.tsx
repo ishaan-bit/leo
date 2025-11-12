@@ -7,17 +7,64 @@
 
 'use client';
 
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import PinkPig from '@/components/molecules/PinkPig';
 
 export default function StartPage() {
   const router = useRouter();
+  const [showRememberMessage, setShowRememberMessage] = useState(false);
 
   const handleGoogleSignIn = async () => {
-    await signIn('google', { callbackUrl: '/name' });
+    setShowRememberMessage(true);
+    
+    // Wait 2s to show message, then proceed with sign-in
+    setTimeout(async () => {
+      await signIn('google', { callbackUrl: '/name' });
+    }, 2000);
   };
+
+  // Show "Now I'll remember you too..." message before auth
+  if (showRememberMessage) {
+    return (
+      <section 
+        className="relative flex flex-col items-center justify-center h-[100dvh] w-full overflow-hidden px-6"
+        style={{
+          paddingTop: 'max(1rem, env(safe-area-inset-top))',
+          paddingBottom: 'max(2.5rem, env(safe-area-inset-bottom))',
+        }}
+      >
+        <motion.div 
+          className="fixed inset-0 -z-10"
+          style={{
+            background: 'linear-gradient(135deg, #fce7f3, #e9d5ff, #fbcfe8)',
+            backgroundSize: '200% 200%'
+          }}
+          animate={{
+            backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
+          }}
+          transition={{
+            duration: 15,
+            repeat: Infinity,
+            ease: 'linear'
+          }}
+        />
+        
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8 }}
+          className="text-center"
+        >
+          <p className="text-pink-800 text-base md:text-lg font-serif italic leading-relaxed">
+            Now I'll remember you too...
+          </p>
+        </motion.div>
+      </section>
+    );
+  }
 
   return (
     <section 
@@ -150,11 +197,11 @@ export default function StartPage() {
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
             </svg>
-            Sign in with Google
+            Let me Remember you
           </motion.button>
 
           <p className="text-center text-pink-600/80 text-sm font-serif italic pt-2">
-            Sign in so your pigs on the wing remembers you
+            If you lose me, scan my mark again; I'll come flying back.
           </p>
         </motion.div>
       </div>

@@ -215,20 +215,34 @@ export default function NamePage() {
           }}
         />
 
-        {/* Animated Pig - floats up to final position */}
+        {/* Animated Pig - floats up with wing flutter */}
         <motion.div
           className="mb-8"
           initial={{ y: 100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
+          animate={{ 
+            y: [100, -5, -10, -8, -10], 
+            opacity: 1,
+            rotate: [0, 2, -2, 1, -1, 0],
+          }}
           transition={{ 
-            duration: 2,
-            ease: [0.34, 1.56, 0.64, 1]
+            y: { 
+              duration: 3,
+              ease: [0.34, 1.56, 0.64, 1],
+              times: [0, 0.4, 0.6, 0.8, 1]
+            },
+            opacity: { duration: 0.8 },
+            rotate: {
+              duration: 2,
+              repeat: Infinity,
+              ease: 'easeInOut',
+              delay: 1.5
+            }
           }}
         >
           <PinkPig size={180} state="idle" />
         </motion.div>
 
-        {/* Settle text */}
+        {/* Settle text - uniform styling */}
         <motion.div
           className="text-center space-y-4 max-w-md"
           initial={{ opacity: 0, y: 20 }}
@@ -245,16 +259,16 @@ export default function NamePage() {
           </motion.p>
           
           <motion.p
-            className="text-pink-900 text-lg md:text-xl font-serif italic leading-relaxed"
+            className="text-pink-800 text-base md:text-lg font-serif italic leading-relaxed"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 1.0, duration: 1.2 }}
           >
-            I am <span className="text-pink-600 font-bold">{pigName}</span>.
+            I am <span className="font-bold">{pigName}</span>.
           </motion.p>
 
           <motion.p
-            className="text-pink-700 text-sm md:text-base font-serif italic leading-relaxed pt-2"
+            className="text-pink-800 text-base md:text-lg font-serif italic leading-relaxed"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 2.0, duration: 1 }}
