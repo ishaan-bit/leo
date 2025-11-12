@@ -870,7 +870,7 @@ export default function MomentsLibrary({
               {/* Individual crescent slices for each null moment - like windows */}
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 p-3">
                 {nullEmotionMoments.slice(0, 6).map((moment, i) => {
-                  const angle = -40 + (i * 15); // Arc from -40° to +35°
+                  const angle = -40 + (i * 15); // Arc from -40ï¿½ to +35ï¿½
                   const radius = 22; // Distance from center
                   const x = Math.cos((angle * Math.PI) / 180) * radius;
                   const y = Math.sin((angle * Math.PI) / 180) * radius;
@@ -1916,7 +1916,7 @@ export default function MomentsLibrary({
                           whileTap={{ scale: 0.95 }}
                           aria-label="Close"
                         >
-                          <span className="text-xl leading-none" style={{ color: atmosphere.textColor }}>×</span>
+                          <span className="text-xl leading-none" style={{ color: atmosphere.textColor }}>ï¿½</span>
                         </motion.button>
                       </div>
                     </div>
@@ -2365,7 +2365,7 @@ export default function MomentsLibrary({
                                 allowFullScreen
                                 loading="lazy"
                                 title={title ? `${title} by ${artist}` : 'Song recommendation'}
-                                aria-label={title ? `YouTube player — ${title} by ${artist}` : 'YouTube player'}
+                                aria-label={title ? `YouTube player ï¿½ ${title} by ${artist}` : 'YouTube player'}
                                 onLoad={(e) => {
                                   const iframe = e.currentTarget as HTMLIFrameElement;
                                   
@@ -2457,7 +2457,7 @@ export default function MomentsLibrary({
                                     opacity: 0.7,
                                   }}
                                 >
-                                  {artist}{year ? ` • ${year}` : ''}
+                                  {artist}{year ? ` ï¿½ ${year}` : ''}
                                 </div>
                               )}
                             </motion.div>
@@ -2557,7 +2557,7 @@ export default function MomentsLibrary({
             }}
           >
             <p className="text-sm font-serif text-pink-800 mb-2 text-center">
-              {pigName ? `${pigName} whispers: your moments are fleeting…` : 'Your moments are fleeting…'}
+              {pigName ? `${pigName} whispers: your moments are fleetingï¿½` : 'Your moments are fleetingï¿½'}
             </p>
             <button
               onClick={() => signIn('google', { callbackUrl: '/start' })}

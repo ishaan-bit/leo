@@ -9,7 +9,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import PinkPig from '@/components/atoms/PinkPig';
+import PinkPig from '@/components/molecules/PinkPig';
 import { useRouter } from 'next/navigation';
 
 export default function GuestConfirmedPage() {
