@@ -2559,7 +2559,7 @@ export default function MomentsLibrary({
               {pigName ? `${pigName} whispers: your moments are fleeting…` : 'Your moments are fleeting…'}
             </p>
             <button
-              onClick={() => signIn('google')}
+              onClick={() => signIn('google', { callbackUrl: '/start' })}
               className="w-full bg-pink-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-pink-700 transition-colors"
             >
               Save Moments
