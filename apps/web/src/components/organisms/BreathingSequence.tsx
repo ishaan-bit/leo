@@ -205,12 +205,20 @@ export default function BreathingSequence({
 
   // Continuous breathing animation loop with proper 4-phase cycle
   useEffect(() => {
-    if (transitionPhase !== 'breathing') return; // Only run during breathing phase
+    if (transitionPhase !== 'breathing') {
+      console.log('[Breathing] ❌ Animation loop NOT running - transitionPhase:', transitionPhase);
+      return;
+    }
+    
+    console.log('[Breathing] 🎬 Starting animation loop');
+    console.log('[Breathing] Active cycle params:', activeCycle);
     
     // Reset startTime when breathing phase begins (only once)
     startTimeRef.current = Date.now();
+    let frameCount = 0;
     
     const animate = () => {
+      frameCount++;
       const elapsed = Date.now() - startTimeRef.current;
       const totalCycleDuration = (activeCycle.in + activeCycle.h1 + activeCycle.out + activeCycle.h2) * 1000;
       const cyclePosition = (elapsed % totalCycleDuration) / totalCycleDuration;
@@ -223,6 +231,17 @@ export default function BreathingSequence({
       const phase1End = inDuration;
       const phase2End = inDuration + h1Duration;
       const phase3End = inDuration + h1Duration + outDuration;
+      
+      // Determine current phase for logging
+      const currentPhase = cyclePosition < phase1End ? 'inhale'
+        : cyclePosition < phase2End ? 'hold-in'
+        : cyclePosition < phase3End ? 'exhale'
+        : 'hold-out';
+      
+      // Log every 60 frames (roughly once per second at 60fps)
+      if (frameCount % 60 === 0) {
+        console.log(`[Breathing] 🔄 Frame ${frameCount} | Phase: ${currentPhase} | Progress: ${(cyclePosition * 100).toFixed(1)}% | Elapsed: ${(elapsed / 1000).toFixed(1)}s`);
+      }
       
       setBreathProgress(cyclePosition);
       
@@ -245,6 +264,7 @@ export default function BreathingSequence({
     animationFrameRef.current = requestAnimationFrame(animate);
     
     return () => {
+      console.log('[Breathing] 🛑 Stopping animation loop - ran for', frameCount, 'frames');
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
