@@ -230,8 +230,8 @@ export default function DialogueInterlude({
         <div
           className="absolute bottom-0 z-20"
           style={{
-            left: `${towerConfig.x}%`,
-            transform: 'translateX(-50%)',
+            left: '35%', // FIXED: Same as BreathingSequence primary position, no shift
+            transform: 'none', // No centering transform to avoid position change
             width: '80px',
             height: `${towerConfig.height * 1.8}px`,
           }}
@@ -415,15 +415,22 @@ export default function DialogueInterlude({
       <AnimatePresence>
         {showProceedButton && (
           <motion.div
-            className="absolute bottom-[8%] left-1/2 -translate-x-1/2 z-50"
+            className="absolute bottom-[8%] z-50"
+            style={{ left: '50%', transform: 'translateX(-50%)' }} // Explicit centering
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 1, ease: EASING }}
           >
             <motion.button
-              onClick={handleProceed}
-              className="px-8 py-3 rounded-full font-serif text-base md:text-lg shadow-xl whitespace-nowrap"
+              onClick={() => {
+                // Play chime sound (reuse from breathing sequence)
+                const chime = new Audio('/audio/chime.mp3');
+                chime.volume = 0.5;
+                chime.play().catch(() => {});
+                handleProceed();
+              }}
+              className="px-6 py-2 rounded-full font-serif text-sm shadow-xl whitespace-nowrap" // Reduced from px-8 py-3 text-base
               style={{
                 background: `linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, ${zoneColor}10 100%)`,
                 backdropFilter: 'blur(20px)',

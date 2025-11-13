@@ -523,20 +523,21 @@ export default function BreathingSequence({
                 width: '80px',
                 height: `${tower.height * 1.8}px`,
               }}
-              initial={{ opacity: 1, scale: 1, left: `${tower.x}%` }} // Start from original position
+              initial={{ opacity: 1, scale: 1, left: `${tower.x}%` }} // Inherit from CityInterlude
               animate={{
                 opacity: towerOpacity,
                 scale: isPrimary ? ((isInhaling || isHoldingIn) ? 1.02 : 0.98) : 1,
-                left: `${displayX}%`, // Animate to final position
+                left: `${displayX}%`, // Primary stays centered at 35%, others keep position
               }}
               transition={{ 
                 opacity: { 
-                  duration: 1.5, // Smooth complete fade
+                  duration: 2, // Slower fade for seamless transition
                   ease: 'easeInOut',
+                  delay: 0.3, // Slight delay to ensure overlap with interlude
                 },
                 left: {
-                  duration: 1.8, // Smooth centering animation
-                  ease: [0.4, 0, 0.2, 1], // Ease-out curve
+                  duration: 0, // No movement - primary already centered from interlude
+                  ease: [0.4, 0, 0.2, 1],
                 },
                 scale: { 
                   duration: isInhaling ? activeCycle.in : isExhaling ? activeCycle.out : 0.3,

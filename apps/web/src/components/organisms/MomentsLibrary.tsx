@@ -1204,11 +1204,11 @@ export default function MomentsLibrary({
                         {tower.name}
                       </motion.div>
                       
-                      {/* Zone label - enhanced visibility with background and stronger contrast, centered */}
+                      {/* Zone label removed per user request - no emotion name on hover */}
                       <motion.div
                         className="text-xs md:text-sm font-medium px-2 md:px-3 py-0.5 md:py-1 rounded-full inline-block"
                         initial={{ opacity: 0 }}
-                        animate={{ opacity: isHovered ? 1 : 0 }}
+                        animate={{ opacity: 0 }} // REMOVED: was isHovered ? 1 : 0
                         transition={{ duration: 0.3 }}
                         style={{
                           fontFamily: '"Inter", -apple-system, sans-serif',
