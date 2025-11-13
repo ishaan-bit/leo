@@ -93,9 +93,31 @@ export function useEnrichmentStatus(
       
       setReflection(data);
 
-      // Check if enrichment is complete (has 'final' field)
+      // OPTIMIZED: Check if enrichment_v5 complete (has 'final.wheel.primary')
+      // This is the ONLY data we need - everything else derives from it
+      // Stop polling immediately once detected to save Upstash reads
+      if (data.final?.wheel?.primary) {
+        console.log('[useEnrichmentStatus] ✅ Primary emotion detected!', data.final.wheel.primary);
+        setIsReady(true);
+        setIsLoading(false);
+        
+        // Stop polling
+        if (pollTimerRef.current) {
+          clearTimeout(pollTimerRef.current);
+        }
+
+        // Log success
+        if (process.env.NODE_ENV === 'development') {
+          const duration = Date.now() - startTimeRef.current;
+          console.log(`[useEnrichmentStatus] Primary ready after ${duration}ms`);
+        }
+
+        return;
+      }
+
+      // Fallback: Check for complete 'final' object (legacy support)
       if (data.final) {
-        console.log('[useEnrichmentStatus] ✅ Enrichment complete!', data.final.wheel);
+        console.log('[useEnrichmentStatus] ✅ Enrichment complete (legacy)!', data.final.wheel);
         setIsReady(true);
         setIsLoading(false);
         

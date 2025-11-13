@@ -107,6 +107,10 @@ export default function InterludeFlow({
     : false;
   
   // Poll enrichment status
+  // OPTIMIZED: Only poll AFTER "time holding its breath" appears (8s delay)
+  // This saves 2-3 polling cycles (6-10 Upstash reads) per session
+  const shouldStartPolling = phase === 'interlude_active' && currentLineIndex >= 2;
+  
   const { 
     isReady, 
     isLoading, 
@@ -114,7 +118,7 @@ export default function InterludeFlow({
     elapsedTime,
     reflection, // Get reflection data for emotion
   } = useEnrichmentStatus(reflectionId, {
-    enabled: phase === 'interlude_active',
+    enabled: shouldStartPolling,
     pollInterval: 3500, // 3.5s with jitter
     onTimeout: () => {
       if (onTimeout) {

@@ -136,10 +136,12 @@ export default function BreathingSequence({
     };
   }, [audio]);
 
-  // Poll for Stage-2 enrichment (post_enrichment payload)
-  // NOTE: ALL emotions (including null) get poems/tips orchestration
+  // REMOVED: Wasteful polling during breathing sequence
+  // Stage-2 post_enrichment is loaded once on mount from reflection data
+  // Frontend doesn't need to poll - all data is ready by the time breathing starts
   useEffect(() => {
-    const pollInterval = setInterval(async () => {
+    // One-time fetch on mount to get post_enrichment if already available
+    async function checkPostEnrichment() {
       try {
         const response = await fetch(`/api/reflect/${reflectionId}`);
         if (!response.ok) return;
@@ -149,32 +151,22 @@ export default function BreathingSequence({
         // Check for post_enrichment payload
         const postEnrichment = reflection.post_enrichment || reflection.final?.post_enrichment;
         if (postEnrichment && !stage2Payload) {
-          console.log('[Stage2] Post-enrichment received:', postEnrichment);
-          console.log('[Stage2] dialogue_tuples:', postEnrichment.dialogue_tuples || postEnrichment.meta?.dialogue_tuples);
-          console.log('[Stage2] dialogue_tuples count:', (postEnrichment.dialogue_tuples || postEnrichment.meta?.dialogue_tuples)?.length);
+          console.log('[Stage2] Post-enrichment loaded on mount:', postEnrichment);
           
           setStage2Payload({
             dialogue_tuples: postEnrichment.dialogue_tuples || postEnrichment.meta?.dialogue_tuples,
             meta: postEnrichment.meta,
           });
           
-          // Trigger Stage 2 sequence
-          setStage2Complete(true);
-        }
-        
-        // Backup: Check completion status
-        const status = reflection.status || reflection.final?.status;
-        if (status === 'complete' && !stage2Complete && !stage2Payload) {
-          console.log('[Breathing] Enrichment complete (backup trigger)');
           setStage2Complete(true);
         }
       } catch (error) {
-        console.error('[Breathing] Poll error:', error);
+        console.error('[Breathing] Failed to load post_enrichment:', error);
       }
-    }, 2000);
+    }
     
-    return () => clearInterval(pollInterval);
-  }, [reflectionId, stage2Complete, stage2Payload]);
+    checkPostEnrichment();
+  }, [reflectionId]); // Only run once on mount
 
   // Continuous breathing animation loop with proper 4-phase cycle
   useEffect(() => {
