@@ -41,6 +41,10 @@ interface Moment {
       why: string;
     };
   };
+  // Dialogue tuples from Excel (3 tuples, each = [Inner Voice, Regulate, Amuse])
+  dialogue_tuples?: Array<[string, string, string]>;
+  // Dream letter state: 'locked' (not ready), 'available' (ready to read), 'read' (already viewed)
+  dreamLetterState?: 'locked' | 'available' | 'read';
 }
 
 interface TranslatedMoment {
@@ -79,13 +83,16 @@ const TOWER_CONFIGS = [
 const getBuildingPosition = (index: number, buildingWidth: number = 52): string => {
   const totalBuildings = TOWER_CONFIGS.length;
   const leftPadding = 2; // 2% padding on left
-  const rightPadding = 8; // More padding on right to ensure Sable is visible
-  const availableSpace = 100 - leftPadding - rightPadding; // 90% available
+  const rightPadding = 14; // Increased padding on right to prevent Vire overlapping with Sable
+  const availableSpace = 100 - leftPadding - rightPadding; // 84% available for first 5 towers
   
-  // Calculate spacing: divide available space by (buildings - 1) for gaps between buildings
+  // Calculate spacing: divide available space by total buildings (not buildings-1)
+  // This creates equal slots for each building
   if (totalBuildings === 1) return `${leftPadding}%`;
   
-  const spacing = availableSpace / (totalBuildings - 1);
+  // For towers 0-4 (Vera, Ashmere, Haven, Vanta, Vire), distribute across 84% space
+  // This leaves room for Sable which is positioned separately from right
+  const spacing = availableSpace / 5; // 5 towers sharing the left space
   return `${leftPadding + (index * spacing)}%`;
 };
 
@@ -528,33 +535,58 @@ export default function MomentsLibrary({
       const momentIndex = towerMoments.findIndex(m => m.id === newestMomentId);
       
       if (momentIndex !== -1) {
-        // Calculate tower position (horizontal)
-        // Sable (index 5) is positioned from right, others from left
+        // CORRECTED: Calculate actual tower position matching getBuildingPosition()
+        const totalBuildings = TOWER_CONFIGS.length;
+        const buildingWidth = 52; // Width in px (but we convert to %)
+        const leftPadding = 2; // 2% left padding
+        const rightPadding = 2; // 2% right padding (for Sable)
+        const availableSpace = 100 - leftPadding - rightPadding; // 96%
+        const spacing = availableSpace / totalBuildings; // ~16% per building slot
+        
         let towerXPercent: number;
         if (tower.index === 5) {
-          // Sable tower from right edge (2% from right + half tower width)
-          towerXPercent = 98 - 2.6; // ~95.4% (right: 2% means center at 98% - half of 5.2%)
+          // Sable: positioned from right edge with 2% padding
+          towerXPercent = 100 - rightPadding - (buildingWidth / window.innerWidth * 100) / 2; // Right edge minus half building width
         } else {
-          towerXPercent = parseFloat(getBuildingPosition(tower.index, 52));
+          // Other towers: evenly spaced from left
+          towerXPercent = leftPadding + (tower.index * spacing) + (spacing / 2); // Center of slot
         }
         
-        // Calculate window position within tower grid (4 columns)
+        // CORRECTED: Calculate window position within grid-cols-4 gap-2 (tailwind grid)
+        // Tower has inset-4 (16px padding), grid-cols-4 with gap-2 (8px gap)
+        // Tower width = 52px, inner width after inset = 52 - 32 = 20px... wait that's wrong
+        // Actually tower width is defined by getBuildingPosition spacing, not hardcoded 52px
+        
+        // Window grid: 4 columns, each column is ~25% of tower interior
         const col = momentIndex % 4;
         const row = Math.floor(momentIndex / 4);
         
-        // Tower width is 52px, windows are in a 4-column grid with gap-2 (8px)
-        // Window offset within tower: each column is ~25% of tower width
-        const windowXOffset = 2 + (col * 1.2); // Base padding + column * width (in %)
+        // Window position within tower (accounting for inset-4 and gap-2)
+        // Each window is roughly 25% wide with 8px gaps between them
+        // Approximate window center within tower: column position + half window width
+        const windowOffsetPercent = (col * 0.5) + 0.25; // Rough estimate in % of tower width
         
-        // Tower height varies, windows start from top with padding
-        // Using vh units: tower is (height * 1.5)px at bottom-0
-        // Approximate: each row is ~3vh down from tower top
-        const towerHeightVh = (tower.height * 1.5) / 10; // Rough conversion to vh
-        const windowYFromBottom = towerHeightVh - (row * 3) - 5; // From top of tower minus row offset
+        // Tower height in vh (varies by tower config)
+        const towerHeightPx = tower.height * 1.5; // Height multiplier from rendering
+        const towerHeightVh = (towerHeightPx / window.innerHeight) * 100; // Convert to vh
+        
+        // Window Y position from bottom: tower height minus (row * window height + padding)
+        // Grid starts inset-4 from top of tower, each row is ~10-15% of tower height
+        const windowRowHeight = towerHeightVh / 6; // Approximate (6 rows max visible)
+        const windowYFromBottom = towerHeightVh - (row * windowRowHeight) - (windowRowHeight / 2);
+        
+        console.log('[MomentsLibrary] Brightest window position:', {
+          tower: tower.name,
+          momentIndex,
+          col,
+          row,
+          towerX: towerXPercent,
+          windowY: windowYFromBottom,
+        });
         
         return { 
-          x: towerXPercent + windowXOffset, 
-          y: Math.max(5, windowYFromBottom), // Ensure at least 5vh from bottom
+          x: towerXPercent + windowOffsetPercent, 
+          y: Math.max(8, Math.min(85, windowYFromBottom)), // Clamp between 8-85vh
           zone: tower.id 
         };
       }
@@ -2018,16 +2050,16 @@ export default function MomentsLibrary({
                     transition={{ duration: 1.2, delay: 0.3 }}
                   >
                     <div 
-                      className="text-xs italic mb-6"
+                      className="text-[0.7rem] uppercase tracking-widest mb-6"
                       style={{
-                        fontFamily: '"Playfair Display", "Lora", "Georgia", serif',
+                        fontFamily: '"Inter", -apple-system, sans-serif',
                         color: atmosphere.textMuted,
-                        letterSpacing: '0.02em',
+                        letterSpacing: '0.15em',
                         opacity: 0.7,
                         textShadow: '0 1px 1px rgba(0,0,0,0.1)',
                       }}
                     >
-                      You wrote:
+                      What you shared today
                     </div>
                     <p
                       className="text-[16px] md:text-[18px]"
@@ -2130,7 +2162,7 @@ export default function MomentsLibrary({
                     )}
                   </motion.div>
 
-                  {/* What the Wind Remembered (Poems) */}
+                  {/* Poem from Upstash (from Excel) */}
                   {selectedMoment.poems && selectedMoment.poems.length > 0 && (
                     <motion.div
                       className="mb-12"
@@ -2149,7 +2181,7 @@ export default function MomentsLibrary({
                           textShadow: '0 1px 1px rgba(0,0,0,0.1)',
                         }}
                       >
-                        What the Wind Remembered
+                        A small poem from today
                       </h3>
                       <div className="space-y-6">
                         {(language === 'hi' && translatedContent ? translatedContent.poems : selectedMoment.poems).map((poem, i) => {
@@ -2189,6 +2221,155 @@ export default function MomentsLibrary({
                                   {line}
                                 </motion.div>
                               ))}
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Three Companions from Today (Dialogue Tuples) */}
+                  {selectedMoment.dialogue_tuples && selectedMoment.dialogue_tuples.length === 3 && (
+                    <motion.div
+                      className="mb-12"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.8, delay: 1.3 }}
+                    >
+                      <h3
+                        className="text-[14px] italic mb-6"
+                        style={{
+                          fontFamily: '"Playfair Display", "Lora", "Georgia", serif',
+                          color: atmosphere.textMuted,
+                          letterSpacing: '0.02em',
+                          fontWeight: 400,
+                          opacity: 0.7,
+                          textShadow: '0 1px 1px rgba(0,0,0,0.1)',
+                        }}
+                      >
+                        Three companions from today
+                      </h3>
+                      <div className="space-y-6">
+                        {selectedMoment.dialogue_tuples.map((tuple, i) => {
+                          const [innerVoice, regulate, amuse] = tuple;
+                          const companionLabel = ['Companion One', 'Companion Two', 'Companion Three'][i];
+                          
+                          return (
+                            <motion.div
+                              key={i}
+                              className="p-5 rounded-xl backdrop-blur-sm"
+                              style={{
+                                background: `linear-gradient(135deg, ${atmosphere.accentColor}08, rgba(255,255,255,0.02))`,
+                                border: `1px solid ${atmosphere.accentColor}15`,
+                                boxShadow: `0 4px 12px ${atmosphere.gradient[0]}10`,
+                              }}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{
+                                duration: 0.6,
+                                delay: 1.5 + (i * 0.2),
+                              }}
+                              whileHover={{
+                                boxShadow: `0 6px 16px ${atmosphere.gradient[0]}20`,
+                                borderColor: `${atmosphere.accentColor}25`,
+                              }}
+                            >
+                              {/* Companion subtitle */}
+                              <div
+                                className="text-[0.65rem] uppercase tracking-widest mb-4"
+                                style={{
+                                  fontFamily: '"Inter", -apple-system, sans-serif',
+                                  color: atmosphere.textMuted,
+                                  letterSpacing: '0.15em',
+                                  opacity: 0.6,
+                                }}
+                              >
+                                {companionLabel}
+                              </div>
+
+                              {/* Mind said - Inner Voice */}
+                              <div className="mb-3">
+                                <div
+                                  className="text-[0.7rem] uppercase tracking-wider mb-1.5"
+                                  style={{
+                                    fontFamily: '"Inter", -apple-system, sans-serif',
+                                    color: atmosphere.accentColor,
+                                    letterSpacing: '0.12em',
+                                    opacity: 0.8,
+                                    fontWeight: 500,
+                                  }}
+                                >
+                                  Mind said
+                                </div>
+                                <div
+                                  className="text-[15px]"
+                                  style={{
+                                    fontFamily: '"Cormorant Garamond", "EB Garamond", serif',
+                                    color: atmosphere.textColor,
+                                    lineHeight: '1.7',
+                                    fontWeight: 400,
+                                    letterSpacing: '0.01em',
+                                  }}
+                                >
+                                  {innerVoice}
+                                </div>
+                              </div>
+
+                              {/* Body did - Regulate */}
+                              <div className="mb-3">
+                                <div
+                                  className="text-[0.7rem] uppercase tracking-wider mb-1.5"
+                                  style={{
+                                    fontFamily: '"Inter", -apple-system, sans-serif',
+                                    color: atmosphere.accentColor,
+                                    letterSpacing: '0.12em',
+                                    opacity: 0.8,
+                                    fontWeight: 500,
+                                  }}
+                                >
+                                  Body did
+                                </div>
+                                <div
+                                  className="text-[15px]"
+                                  style={{
+                                    fontFamily: '"Cormorant Garamond", "EB Garamond", serif',
+                                    color: atmosphere.textColor,
+                                    lineHeight: '1.7',
+                                    fontWeight: 400,
+                                    letterSpacing: '0.01em',
+                                  }}
+                                >
+                                  {regulate}
+                                </div>
+                              </div>
+
+                              {/* Spark added - Amuse */}
+                              <div>
+                                <div
+                                  className="text-[0.7rem] uppercase tracking-wider mb-1.5"
+                                  style={{
+                                    fontFamily: '"Inter", -apple-system, sans-serif',
+                                    color: atmosphere.accentColor,
+                                    letterSpacing: '0.12em',
+                                    opacity: 0.8,
+                                    fontWeight: 500,
+                                  }}
+                                >
+                                  Spark added
+                                </div>
+                                <div
+                                  className="text-[15px]"
+                                  style={{
+                                    fontFamily: '"Cormorant Garamond", "EB Garamond", serif',
+                                    color: atmosphere.textColor,
+                                    lineHeight: '1.7',
+                                    fontWeight: 400,
+                                    letterSpacing: '0.01em',
+                                  }}
+                                >
+                                  {amuse}
+                                </div>
+                              </div>
                             </motion.div>
                           );
                         })}
@@ -2576,6 +2757,190 @@ export default function MomentsLibrary({
                       </motion.span>
                     </motion.div>
                   )}
+
+                  {/* Dream Letter Teaser - Tomorrow Morning */}
+                  <motion.div
+                    className="mt-10 pt-8 border-t"
+                    style={{ borderColor: `${atmosphere.accentColor}20` }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 1.0, ease: EASING }}
+                  >
+                    {/* Locked state - dream letter not yet generated */}
+                    {(!selectedMoment.dreamLetterState || selectedMoment.dreamLetterState === 'locked') && (
+                      <div className="text-center px-4">
+                        <motion.div
+                          className="inline-flex items-center justify-center mb-4"
+                          animate={{
+                            opacity: [0.4, 0.7, 0.4],
+                          }}
+                          transition={{
+                            duration: 3,
+                            repeat: Infinity,
+                            ease: 'easeInOut',
+                          }}
+                        >
+                          {/* Lock icon with soft glow */}
+                          <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            style={{
+                              color: atmosphere.accentColor,
+                              filter: `drop-shadow(0 0 8px ${atmosphere.accentGlow})`,
+                            }}
+                          >
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                          </svg>
+                        </motion.div>
+
+                        <p
+                          className="text-[15px] italic mb-2 max-w-md mx-auto"
+                          style={{
+                            fontFamily: '"Cormorant Garamond", "EB Garamond", "Georgia", serif',
+                            color: atmosphere.textColor,
+                            fontWeight: 400,
+                            letterSpacing: '0.02em',
+                            lineHeight: '1.8',
+                            opacity: 0.75,
+                          }}
+                        >
+                          When {pigName} sleeps tonight, they'll turn this moment and these companions into a dream letter.
+                        </p>
+                        <p
+                          className="text-xs italic max-w-sm mx-auto"
+                          style={{
+                            fontFamily: '"Inter", -apple-system, sans-serif',
+                            color: atmosphere.textMuted,
+                            opacity: 0.6,
+                            letterSpacing: '0.01em',
+                          }}
+                        >
+                          Come back tomorrow morning to read what they wrote for you.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Available state - dream letter ready to read */}
+                    {selectedMoment.dreamLetterState === 'available' && (
+                      <div className="text-center px-4">
+                        <motion.div
+                          className="inline-flex items-center justify-center mb-4"
+                          animate={{
+                            scale: [1, 1.1, 1],
+                            opacity: [0.6, 1, 0.6],
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: 'easeInOut',
+                          }}
+                        >
+                          {/* Envelope icon with glow */}
+                          <svg
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            style={{
+                              color: atmosphere.accentColor,
+                              filter: `drop-shadow(0 0 12px ${atmosphere.accentGlow})`,
+                            }}
+                          >
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                            <polyline points="22,6 12,13 2,6"></polyline>
+                          </svg>
+                        </motion.div>
+
+                        <p
+                          className="text-[15px] italic mb-5 max-w-md mx-auto"
+                          style={{
+                            fontFamily: '"Cormorant Garamond", "EB Garamond", "Georgia", serif',
+                            color: atmosphere.textColor,
+                            fontWeight: 400,
+                            letterSpacing: '0.02em',
+                            lineHeight: '1.8',
+                            opacity: 0.8,
+                          }}
+                        >
+                          {pigName} has written your dream letter from this moment.
+                        </p>
+
+                        {/* CTA Button */}
+                        <motion.button
+                          onClick={() => {
+                            // TODO: Open dream letter view
+                            console.log('[Dream Letter] Opening dream letter for moment:', selectedMoment.id);
+                          }}
+                          className="px-8 py-3 rounded-full text-sm font-medium transition-all"
+                          style={{
+                            fontFamily: '"Inter", -apple-system, sans-serif',
+                            background: `linear-gradient(135deg, ${atmosphere.gradient[0]}, ${atmosphere.gradient[1]})`,
+                            color: '#FFFFFF',
+                            letterSpacing: '0.05em',
+                            boxShadow: `0 4px 16px ${atmosphere.accentColor}30`,
+                          }}
+                          whileHover={{
+                            scale: 1.05,
+                            boxShadow: `0 6px 20px ${atmosphere.accentColor}40`,
+                          }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          Read Dream Letter
+                        </motion.button>
+                      </div>
+                    )}
+
+                    {/* Already read state - can revisit */}
+                    {selectedMoment.dreamLetterState === 'read' && (
+                      <div className="text-center px-4">
+                        <p
+                          className="text-xs italic mb-4 max-w-sm mx-auto"
+                          style={{
+                            fontFamily: '"Inter", -apple-system, sans-serif',
+                            color: atmosphere.textMuted,
+                            opacity: 0.6,
+                            letterSpacing: '0.01em',
+                          }}
+                        >
+                          You can revisit your dream letter from this moment anytime.
+                        </p>
+
+                        {/* Secondary CTA */}
+                        <motion.button
+                          onClick={() => {
+                            // TODO: Open dream letter view
+                            console.log('[Dream Letter] Re-opening dream letter for moment:', selectedMoment.id);
+                          }}
+                          className="px-6 py-2 rounded-full text-xs font-medium transition-all"
+                          style={{
+                            fontFamily: '"Inter", -apple-system, sans-serif',
+                            background: `${atmosphere.accentColor}15`,
+                            color: atmosphere.textColor,
+                            letterSpacing: '0.05em',
+                            border: `1px solid ${atmosphere.accentColor}25`,
+                          }}
+                          whileHover={{
+                            background: `${atmosphere.accentColor}25`,
+                            borderColor: `${atmosphere.accentColor}40`,
+                          }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          Read Again
+                        </motion.button>
+                      </div>
+                    )}
+                  </motion.div>
                 </div>
                 </div> {/* Close inner wrapper for backgrounds */}
               </motion.div>

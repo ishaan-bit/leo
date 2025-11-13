@@ -152,13 +152,15 @@ export async function GET(
           timestamp: data.timestamp || new Date().toISOString(),
           invoked: data.final?.invoked || '',
           expressed: data.final?.expressed || '',
-          poems: data.post_enrichment?.poems || [],
+          poems: data.post_enrichment?.poems || data.final?.post_enrichment?.poems || [],
           tips: data.post_enrichment?.tips || [],
           closingLine: data.post_enrichment?.closing_line || '',
           valence: data.final?.valence || data.valence || 0.5,
           arousal: data.final?.arousal || data.arousal || 0.5,
           songs: data.songs || null, // Include songs data from enrichment worker
           image_base64: data.image_base64 || data.caption?.image_base64 || undefined, // Include image data if present
+          dialogue_tuples: data.post_enrichment?.dialogue_tuples || data.final?.post_enrichment?.dialogue_tuples || undefined, // Include dialogue tuples from Excel
+          dreamLetterState: 'locked' as const, // TODO: Implement actual dream letter generation logic
         };
         
         moments.push(moment);
