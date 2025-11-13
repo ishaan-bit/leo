@@ -59,14 +59,26 @@ export async function POST(request: NextRequest) {
     
     // Extract poems from Excel data (Poem En 1 / Poem En 2)
     // The HuggingFace API should return these in _dialogue_meta
+    // Poems are stored as COMPLETE STRINGS (not split into lines)
     const poemsFromExcel: string[] = [];
     
-    // Check if _dialogue_meta contains poem data
-    if (_dialogue_meta?.poem_en_1) {
-      poemsFromExcel.push(_dialogue_meta.poem_en_1);
+    // Check if _dialogue_meta contains poem data (try multiple possible key formats)
+    // Keys could be: poem_en_1, Poem En 1, poem_1, etc.
+    const poem1 = _dialogue_meta?.poem_en_1 
+      || _dialogue_meta?.['Poem En 1'] 
+      || _dialogue_meta?.poem_1 
+      || _dialogue_meta?.poem1;
+      
+    const poem2 = _dialogue_meta?.poem_en_2 
+      || _dialogue_meta?.['Poem En 2'] 
+      || _dialogue_meta?.poem_2 
+      || _dialogue_meta?.poem2;
+    
+    if (poem1) {
+      poemsFromExcel.push(poem1); // Store complete poem string as-is
     }
-    if (_dialogue_meta?.poem_en_2) {
-      poemsFromExcel.push(_dialogue_meta.poem_en_2);
+    if (poem2) {
+      poemsFromExcel.push(poem2); // Store complete poem string as-is
     }
     
     // Fallback: If Excel poems not available, extract from first dialogue tuple (legacy)
@@ -80,9 +92,9 @@ export async function POST(request: NextRequest) {
     
     console.log(`[Enrichment Callback] Extracted ${poemsFromExcel.length} poems from Excel data`);
     if (poemsFromExcel.length > 0) {
-      console.log(`[Enrichment Callback] Poem 1: ${poemsFromExcel[0]?.substring(0, 50)}...`);
+      console.log(`[Enrichment Callback] Poem 1: ${poemsFromExcel[0]?.substring(0, 80)}...`);
       if (poemsFromExcel[1]) {
-        console.log(`[Enrichment Callback] Poem 2: ${poemsFromExcel[1]?.substring(0, 50)}...`);
+        console.log(`[Enrichment Callback] Poem 2: ${poemsFromExcel[1]?.substring(0, 80)}...`);
       }
     }
 

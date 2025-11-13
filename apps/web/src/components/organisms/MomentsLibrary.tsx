@@ -2153,7 +2153,9 @@ export default function MomentsLibrary({
                       </h3>
                       <div className="space-y-6">
                         {(language === 'hi' && translatedContent ? translatedContent.poems : selectedMoment.poems).map((poem, i) => {
-                          const lines = poem.split(',').map(l => l.trim());
+                          // Poems from Excel are complete strings with natural line breaks
+                          // Split on actual newlines (\n), NOT commas
+                          const lines = poem.split('\n').map(l => l.trim()).filter(l => l.length > 0);
                           return (
                             <motion.div
                               key={i}
