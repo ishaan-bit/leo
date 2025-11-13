@@ -31,7 +31,7 @@ export async function GET(
     }
 
     // Resolve identity to determine if this is a guest request
-    const { authId, sid } = await resolveIdentity(request);
+    const { authId, sid } = await resolveIdentity();
     const isGuest = authId === null;
 
     // Try guest namespace first if guest, otherwise authenticated namespace
