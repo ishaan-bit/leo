@@ -1,18 +1,49 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import Scene_Reflect from '@/components/scenes/Scene_Reflect';
 
 export default function ReflectPage() {
   const params = useParams();
+  const router = useRouter();
+  const { data: session, status } = useSession();
   const pigId = params.pigId as string;
   const [pigName, setPigName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchPigName() {
+    async function validateAndFetchPigName() {
       try {
+        // CRITICAL FIX: For guest sessions, verify pigId matches current localStorage session
+        if (status === 'unauthenticated' && pigId?.startsWith('sid_')) {
+          const currentSid = localStorage.getItem('guestSessionId');
+          const expectedPigId = currentSid ? `sid_${currentSid}` : null;
+          
+          console.log('[ReflectPage] Guest session validation:', {
+            urlPigId: pigId,
+            currentSid,
+            expectedPigId,
+            matches: pigId === expectedPigId
+          });
+          
+          // If URL pigId doesn't match current session, redirect to correct one
+          if (expectedPigId && pigId !== expectedPigId) {
+            console.warn('[ReflectPage] ⚠️ URL pigId mismatch! Redirecting to current session:', expectedPigId);
+            router.replace(`/reflect/${expectedPigId}`);
+            return; // Don't fetch old pig name
+          }
+          
+          // If no current session but URL has old pigId, clear it and go to start
+          if (!currentSid) {
+            console.warn('[ReflectPage] ⚠️ No current session but URL has pigId. Redirecting to start.');
+            router.replace('/start');
+            return;
+          }
+        }
+        
+        // Fetch pig name for the validated pigId
         const response = await fetch(`/api/pig/${pigId}`);
         if (response.ok) {
           const data = await response.json();
@@ -32,10 +63,10 @@ export default function ReflectPage() {
       }
     }
 
-    if (pigId) {
-      fetchPigName();
+    if (pigId && status !== 'loading') {
+      validateAndFetchPigName();
     }
-  }, [pigId]);
+  }, [pigId, status, router]);
 
   if (loading) {
     return (
