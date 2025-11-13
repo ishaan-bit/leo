@@ -18,7 +18,7 @@ interface Moment {
   timestamp: string;
   invoked: string;
   expressed: string;
-  poems: string[];
+  poem?: string | null;
   tips: string[];
   closingLine: string;
   valence: number;
@@ -251,7 +251,7 @@ export default function MomentsLibrary({
               text: textResult.translatedText,
               invoked: invokedResult.translatedText,
               expressed: expressedResult.translatedText,
-              poems: poemResults.map(r => r.translatedText),
+              poem: poemResult?.translatedText || null,
             }),
           });
         } catch (err) {
@@ -1892,10 +1892,10 @@ export default function MomentsLibrary({
                             shareText += `${content.expressed}\n\n`;
                             
                             // Poem (if available) with decorative spacing
-                            if (content.poems?.[0]) {
+                            if (content.poem) {
                               shareText += `${'.'.repeat(35)}\n\n`;
                               shareText += `~ A gentle whisper ~\n\n`;
-                              shareText += `${content.poems[0]}\n\n`;
+                              shareText += `${content.poem}\n\n`;
                             }
                             
                             // Song recommendation - use language-specific song
