@@ -9,6 +9,7 @@ import VoiceOrb from '../atoms/VoiceOrb';
 import CameraUpload from '../atoms/CameraUpload';
 import AuthStateIndicator from '../atoms/AuthStateIndicator';
 import MomentsNavIcon from '../atoms/MomentsNavIcon';
+import DreamLetterNudge from '../atoms/DreamLetterNudge';
 import TopNav from '../molecules/TopNav';
 import GuestSignInModal from '../molecules/GuestSignInModal';
 import FloatingSignInButton from '../atoms/FloatingSignInButton';
@@ -25,6 +26,7 @@ import { generateHeartPuff } from '@/lib/pig-animations';
 import { playAmbientSound, isMuted, pauseAmbientSound, resumeAmbientSound } from '@/lib/sound';
 import dialogueData from '@/lib/copy/reflect.dialogue.json';
 import { getZone, type PrimaryEmotion } from '@/lib/zones';
+import { useDreamLetterStore } from '@/stores/dreamLetterStore';
 
 interface Scene_ReflectProps {
   pigId: string;
@@ -154,6 +156,60 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
 
     fetchMicroDream();
   }, []);
+
+  // Check for pending dream letters on mount (authenticated users only)
+  const { pendingDreamLetter, setPendingDreamLetter } = useDreamLetterStore();
+  
+  useEffect(() => {
+    // Only check for dream letters for authenticated users
+    if (status !== 'authenticated' || !session?.user) {
+      return;
+    }
+    
+    console.log('💌 Checking for dream letters...');
+    
+    async function checkDreamLetter() {
+      try {
+        // Fetch the most recent reflection for this pig
+        const response = await fetch(`/api/pig/${pigId}/moments`);
+        
+        if (!response.ok) {
+          console.error('💌 Failed to fetch moments:', response.status);
+          return;
+        }
+        
+        const data = await response.json();
+        
+        if (!data.moments || data.moments.length === 0) {
+          console.log('💌 No moments found');
+          return;
+        }
+        
+        // Get the most recent moment
+        const mostRecentMoment = data.moments[0];
+        
+        // Check if it has a dream letter
+        if (mostRecentMoment.dream_letter?.letter_text) {
+          console.log('💌 Dream letter found!', {
+            reflectionId: mostRecentMoment.id,
+            pigName,
+          });
+          
+          setPendingDreamLetter({
+            reflectionId: mostRecentMoment.id,
+            pigName,
+            hasDreamLetter: true,
+          });
+        } else {
+          console.log('💌 No dream letter for most recent reflection');
+        }
+      } catch (error) {
+        console.error('💌 Error checking for dream letters:', error);
+      }
+    }
+    
+    checkDreamLetter();
+  }, [status, session?.user, pigId, pigName, setPendingDreamLetter]);
 
   // Set up time-based theme
   useEffect(() => {
@@ -750,6 +806,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
                 currentPrimary={(breathingContext?.primary || 'joy') as PrimaryEmotion}
                 onNewReflection={handleNewReflection}
                 onMomentSelected={setIsMomentExpanded}
+                autoOpenReflectionId={pendingDreamLetter?.reflectionId}
               />
             </motion.div>
           )}
@@ -814,7 +871,11 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
       <TopNav
         leftElement={
           !showBreathing && !showMomentsLibrary ? (
-            <MomentsNavIcon onClick={() => setShowMomentsLibrary(true)} />
+            <MomentsNavIcon onClick={() => {
+              setShowMomentsLibrary(true);
+              // Clear the pending dream letter state when navigating to Living City
+              // but keep it in store temporarily for auto-open
+            }} />
           ) : undefined
         }
         centerElement={
@@ -830,6 +891,17 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
           </motion.div>
         }
       />
+      
+      {/* Dream Letter Nudge - shown when a dream letter is waiting */}
+      {!showBreathing && !showMomentsLibrary && pendingDreamLetter?.hasDreamLetter && status === 'authenticated' && (
+        <DreamLetterNudge
+          pigName={pendingDreamLetter.pigName}
+          onDismiss={() => {
+            // Clear the pending state when dismissed
+            setPendingDreamLetter(null);
+          }}
+        />
+      )}
       
       {/* Atmospheric particles with time-based colors */}
       <div className="absolute inset-0 pointer-events-none">

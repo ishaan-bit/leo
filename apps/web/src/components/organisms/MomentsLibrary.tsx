@@ -7,6 +7,7 @@ import { useSession, signIn } from 'next-auth/react';
 import { getZone, type PrimaryEmotion } from '@/lib/zones';
 import { translateToHindi } from '@/lib/translation';
 import ComicSpeechBubble from '@/components/atoms/ComicSpeechBubble';
+import { useDreamLetterStore } from '@/stores/dreamLetterStore';
 
 interface Moment {
   id: string;
@@ -43,8 +44,10 @@ interface Moment {
   };
   // Dialogue tuples from Excel (3 tuples, each = [Inner Voice, Regulate, Amuse])
   dialogue_tuples?: Array<[string, string, string]>;
-  // Dream letter state: 'locked' (not ready), 'available' (ready to read), 'read' (already viewed)
-  dreamLetterState?: 'locked' | 'available' | 'read';
+  // Dream letter from nightly generation
+  dream_letter?: {
+    letter_text: string;
+  };
 }
 
 interface TranslatedMoment {
@@ -62,6 +65,7 @@ interface MomentsLibraryProps {
   currentPrimary: PrimaryEmotion; // Today's zone to start with
   onNewReflection: () => void;
   onMomentSelected?: (selected: boolean) => void; // Notify parent when moment is expanded/closed
+  autoOpenReflectionId?: string; // Optional reflection ID to auto-open (for dream letters)
 }
 
 const EASING = [0.65, 0, 0.35, 1] as const;
@@ -102,6 +106,7 @@ export default function MomentsLibrary({
   currentPrimary,
   onNewReflection,
   onMomentSelected,
+  autoOpenReflectionId,
 }: MomentsLibraryProps) {
   const { data: session, status } = useSession();
   const [phase, setPhase] = useState<'intro' | 'skyline' | 'library'>('intro');
@@ -427,26 +432,52 @@ export default function MomentsLibrary({
     sequence();
   }, [phase, currentPrimary]);
 
-  // Auto-open today's brightest moment when library phase loads (ONCE)
+  // Auto-open today's brightest moment OR dream letter moment when library phase loads (ONCE)
+  const { clearPendingDreamLetter } = useDreamLetterStore();
+  
   useEffect(() => {
     if (phase === 'library' && moments.length > 0 && !autoOpenCompletedRef.current) {
-      // Find the newest moment (today's brightest window)
-      const newestMoment = moments.reduce((newest, current) => {
-        return new Date(current.timestamp) > new Date(newest.timestamp) ? current : newest;
-      });
+      // Prioritize auto-opening the dream letter reflection if specified
+      let momentToOpen: Moment | null = null;
       
-      console.log('[MomentsLibrary] ?? Auto-opening newest moment:', newestMoment.id);
+      if (autoOpenReflectionId) {
+        // Find the moment with the dream letter
+        momentToOpen = moments.find(m => m.id === autoOpenReflectionId) || null;
+        
+        if (momentToOpen) {
+          console.log('[MomentsLibrary] 💌 Auto-opening dream letter moment:', momentToOpen.id);
+        } else {
+          console.warn('[MomentsLibrary] ⚠️ Dream letter reflection not found:', autoOpenReflectionId);
+        }
+      }
+      
+      // Fallback to newest moment if no dream letter specified or not found
+      if (!momentToOpen) {
+        // Find the newest moment (today's brightest window)
+        momentToOpen = moments.reduce((newest, current) => {
+          return new Date(current.timestamp) > new Date(newest.timestamp) ? current : newest;
+        });
+        
+        console.log('[MomentsLibrary] 🌟 Auto-opening newest moment:', momentToOpen.id);
+      }
       
       // Wait for animations to settle (2.5s after library loads)
       const timer = setTimeout(() => {
-        setSelectedMoment(newestMoment);
-        hadMomentOpenRef.current = true; // Track that moment was opened
-        autoOpenCompletedRef.current = true; // Prevent re-running
+        if (momentToOpen) {
+          setSelectedMoment(momentToOpen);
+          hadMomentOpenRef.current = true; // Track that moment was opened
+          autoOpenCompletedRef.current = true; // Prevent re-running
+          
+          // Clear the pending dream letter state after auto-opening
+          if (autoOpenReflectionId) {
+            clearPendingDreamLetter();
+          }
+        }
       }, 2500);
       
       return () => clearTimeout(timer);
     }
-  }, [phase, moments]); // Removed selectedMoment dependency to prevent loop
+  }, [phase, moments, autoOpenReflectionId, clearPendingDreamLetter]); // Removed selectedMoment dependency to prevent loop
 
   // GUEST DATA PURGE: After library phase loads, purge guest data (transient mode)
   useEffect(() => {
@@ -2752,16 +2783,98 @@ export default function MomentsLibrary({
                     </motion.div>
                   )}
 
-                  {/* Dream Letter Teaser - Tomorrow Morning */}
-                  <motion.div
-                    className="mt-10 pt-8 border-t"
-                    style={{ borderColor: `${atmosphere.accentColor}20` }}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 1.0, ease: EASING }}
-                  >
-                    {/* Locked state - dream letter not yet generated */}
-                    {(!selectedMoment.dreamLetterState || selectedMoment.dreamLetterState === 'locked') && (
+                  {/* Dream Letter Section */}
+                  {selectedMoment.dream_letter?.letter_text ? (
+                    <motion.div
+                      className="mt-10 pt-8 border-t"
+                      style={{ borderColor: `${atmosphere.accentColor}20` }}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.8, delay: 1.0, ease: EASING }}
+                    >
+                      {/* Dream Letter Header */}
+                      <h3
+                        className="text-[15px] italic mb-6 text-center"
+                        style={{
+                          fontFamily: '"Playfair Display", "Lora", "Georgia", serif',
+                          color: atmosphere.textColor,
+                          letterSpacing: '0.02em',
+                          fontWeight: 500,
+                          opacity: 0.85,
+                          textShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                        }}
+                      >
+                        Dream Letter from {pigName}
+                      </h3>
+
+                      {/* Optional introductory line */}
+                      <p
+                        className="text-[13px] italic mb-5 text-center"
+                        style={{
+                          fontFamily: '"Cormorant Garamond", "EB Garamond", serif',
+                          color: atmosphere.textMuted,
+                          letterSpacing: '0.01em',
+                          opacity: 0.7,
+                        }}
+                      >
+                        Last night, {pigName} brought this back for you:
+                      </p>
+
+                      {/* Letter Content with Epistolary Styling */}
+                      <motion.div
+                        className="px-6 py-6 rounded-xl mx-auto"
+                        style={{
+                          maxWidth: '580px',
+                          background: `linear-gradient(135deg, rgba(255,255,255,0.65), ${atmosphere.accentColor}05)`,
+                          border: `1px solid ${atmosphere.accentColor}15`,
+                          boxShadow: `
+                            0 2px 8px rgba(0,0,0,0.08),
+                            inset 0 1px 0 rgba(255,255,255,0.5)
+                          `,
+                        }}
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.6, delay: 1.2 }}
+                      >
+                        {/* Render letter text with preserved line breaks */}
+                        {selectedMoment.dream_letter.letter_text.split('\n').map((paragraph, i) => {
+                          // Skip empty lines
+                          if (!paragraph.trim()) return null;
+                          
+                          return (
+                            <motion.p
+                              key={i}
+                              className="mb-4 last:mb-0"
+                              style={{
+                                fontFamily: '"Cormorant Garamond", "EB Garamond", serif',
+                                fontSize: '16px',
+                                lineHeight: '1.9',
+                                color: atmosphere.textColor,
+                                letterSpacing: '0.01em',
+                                opacity: 0.9,
+                              }}
+                              initial={{ opacity: 0, y: 5 }}
+                              animate={{ opacity: 0.9, y: 0 }}
+                              transition={{
+                                duration: 0.5,
+                                delay: 1.3 + (i * 0.1),
+                              }}
+                            >
+                              {paragraph}
+                            </motion.p>
+                          );
+                        })}
+                      </motion.div>
+                    </motion.div>
+                  ) : (
+                    /* Show "come back tomorrow" teaser when no dream letter exists */
+                    <motion.div
+                      className="mt-10 pt-8 border-t"
+                      style={{ borderColor: `${atmosphere.accentColor}20` }}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.8, delay: 1.0, ease: EASING }}
+                    >
                       <div className="text-center px-4">
                         <motion.div
                           className="inline-flex items-center justify-center mb-4"
@@ -2819,122 +2932,8 @@ export default function MomentsLibrary({
                           Come back tomorrow morning to read what they wrote for you.
                         </p>
                       </div>
-                    )}
-
-                    {/* Available state - dream letter ready to read */}
-                    {selectedMoment.dreamLetterState === 'available' && (
-                      <div className="text-center px-4">
-                        <motion.div
-                          className="inline-flex items-center justify-center mb-4"
-                          animate={{
-                            scale: [1, 1.1, 1],
-                            opacity: [0.6, 1, 0.6],
-                          }}
-                          transition={{
-                            duration: 2,
-                            repeat: Infinity,
-                            ease: 'easeInOut',
-                          }}
-                        >
-                          {/* Envelope icon with glow */}
-                          <svg
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            style={{
-                              color: atmosphere.accentColor,
-                              filter: `drop-shadow(0 0 12px ${atmosphere.accentGlow})`,
-                            }}
-                          >
-                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                            <polyline points="22,6 12,13 2,6"></polyline>
-                          </svg>
-                        </motion.div>
-
-                        <p
-                          className="text-[15px] italic mb-5 max-w-md mx-auto"
-                          style={{
-                            fontFamily: '"Cormorant Garamond", "EB Garamond", "Georgia", serif',
-                            color: atmosphere.textColor,
-                            fontWeight: 400,
-                            letterSpacing: '0.02em',
-                            lineHeight: '1.8',
-                            opacity: 0.8,
-                          }}
-                        >
-                          {pigName} has written your dream letter from this moment.
-                        </p>
-
-                        {/* CTA Button */}
-                        <motion.button
-                          onClick={() => {
-                            // TODO: Open dream letter view
-                            console.log('[Dream Letter] Opening dream letter for moment:', selectedMoment.id);
-                          }}
-                          className="px-8 py-3 rounded-full text-sm font-medium transition-all"
-                          style={{
-                            fontFamily: '"Inter", -apple-system, sans-serif',
-                            background: `linear-gradient(135deg, ${atmosphere.gradient[0]}, ${atmosphere.gradient[1]})`,
-                            color: '#FFFFFF',
-                            letterSpacing: '0.05em',
-                            boxShadow: `0 4px 16px ${atmosphere.accentColor}30`,
-                          }}
-                          whileHover={{
-                            scale: 1.05,
-                            boxShadow: `0 6px 20px ${atmosphere.accentColor}40`,
-                          }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          Read Dream Letter
-                        </motion.button>
-                      </div>
-                    )}
-
-                    {/* Already read state - can revisit */}
-                    {selectedMoment.dreamLetterState === 'read' && (
-                      <div className="text-center px-4">
-                        <p
-                          className="text-xs italic mb-4 max-w-sm mx-auto"
-                          style={{
-                            fontFamily: '"Inter", -apple-system, sans-serif',
-                            color: atmosphere.textMuted,
-                            opacity: 0.6,
-                            letterSpacing: '0.01em',
-                          }}
-                        >
-                          You can revisit your dream letter from this moment anytime.
-                        </p>
-
-                        {/* Secondary CTA */}
-                        <motion.button
-                          onClick={() => {
-                            // TODO: Open dream letter view
-                            console.log('[Dream Letter] Re-opening dream letter for moment:', selectedMoment.id);
-                          }}
-                          className="px-6 py-2 rounded-full text-xs font-medium transition-all"
-                          style={{
-                            fontFamily: '"Inter", -apple-system, sans-serif',
-                            background: `${atmosphere.accentColor}15`,
-                            color: atmosphere.textColor,
-                            letterSpacing: '0.05em',
-                            border: `1px solid ${atmosphere.accentColor}25`,
-                          }}
-                          whileHover={{
-                            background: `${atmosphere.accentColor}25`,
-                            borderColor: `${atmosphere.accentColor}40`,
-                          }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          Read Again
-                        </motion.button>
-                      </div>
-                    )}
-                  </motion.div>
+                    </motion.div>
+                  )}
                 </div>
                 </div> {/* Close inner wrapper for backgrounds */}
               </motion.div>
