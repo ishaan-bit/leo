@@ -792,11 +792,15 @@ export default function MomentsLibrary({
       <AnimatePresence>
         {showPreservationBubble && brightestWindowPos && (
           <motion.div
-            className="absolute z-50 pointer-events-none"
+            className="absolute z-50 pointer-events-none px-4" // Added px-4 for horizontal padding from edges
             style={{
-              left: `${brightestWindowPos.x}%`,
+              // Clamp bubble position to stay within screen bounds
+              // If window is <20%, bubble goes right (left: 5%)
+              // If window is >80%, bubble goes left (left: 95%)
+              // Otherwise, center on window
+              left: brightestWindowPos.x < 20 ? '5%' : brightestWindowPos.x > 80 ? '95%' : `${brightestWindowPos.x}%`,
               bottom: `${brightestWindowPos.y + 15}%`, // Position above the window
-              transform: 'translateX(-50%)', // Center on window
+              transform: brightestWindowPos.x < 20 ? 'translateX(0)' : brightestWindowPos.x > 80 ? 'translateX(-100%)' : 'translateX(-50%)', // Align based on position
             }}
             initial={{ opacity: 0, y: 10, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -2595,7 +2599,7 @@ export default function MomentsLibrary({
               {pigName ? `${pigName} whispers: your moments are fleeting…` : 'Your moments are fleeting…'}
             </p>
             <button
-              onClick={() => signIn('google', { callbackUrl: '/start' })}
+              onClick={() => window.location.href = '/start'}
               className="w-full bg-pink-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-pink-700 transition-colors"
             >
               Save Moments

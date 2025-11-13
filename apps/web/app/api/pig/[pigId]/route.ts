@@ -43,8 +43,11 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ pig
 
     // Check if pigId starts with sid_ (guest session)
     if (pigId.startsWith('sid_')) {
+      // Extract actual SID from pigId (format: sid_XXXXXXXXX)
+      const sid = pigId.substring(4); // Remove 'sid_' prefix
+      
       // NEW format: sid:{sid}:profile
-      profileKey = `sid:${pigId}:profile`;
+      profileKey = `sid:${sid}:profile`;
       profile = await kv.get<PigProfile>(profileKey);
       
       console.log(`[API /pig/[pigId]] Guest lookup at ${profileKey}:`, profile ? 'Found' : 'Not found');

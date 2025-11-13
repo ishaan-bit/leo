@@ -466,7 +466,8 @@ export default function BreathingSequence({
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ 
               opacity: 1,
-              scale: 1, // Keep text constant size - don't pulse with pig
+              // Pulse with breathing - grow on inhale, shrink on exhale
+              scale: isInhaling || isHoldingIn ? 1.15 : 0.9,
             }}
             transition={{ 
               opacity: { duration: 0.5, ease: 'easeOut' },
@@ -765,7 +766,11 @@ export default function BreathingSequence({
       <AnimatePresence>
         {showMarkDoneButton && (
           <motion.div
-            className="fixed bottom-8 left-0 right-0 z-60 flex justify-center items-center"
+            className="fixed bottom-8 z-60 w-full flex justify-center items-center px-4"
+            style={{
+              left: 0,
+              right: 0,
+            }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
