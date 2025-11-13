@@ -510,9 +510,9 @@ export default function BreathingSequence({
           {TOWERS.map(tower => {
             const isPrimary = tower.id === primary;
             
-            // SEAMLESS: Inherit buildings from CityInterlude - fade non-primary, keep all visible
-            const towerOpacity = isPrimary ? 1 : 0.3; // Fade non-primary slightly
-            const displayX = tower.x; // Keep original positions
+            // COMPLETE fade-out for non-primary towers, center primary tower
+            const towerOpacity = isPrimary ? 1 : 0; // COMPLETE fade-out (0, not 0.3)
+            const displayX = isPrimary ? 35 : tower.x; // Center primary at 35%, keep others at original position
           
           return (
             <motion.div
@@ -523,15 +523,20 @@ export default function BreathingSequence({
                 width: '80px',
                 height: `${tower.height * 1.8}px`,
               }}
-              initial={{ opacity: 1, scale: 1 }} // Inherit fully visible state from CityInterlude
+              initial={{ opacity: 1, scale: 1, left: `${tower.x}%` }} // Start from original position
               animate={{
                 opacity: towerOpacity,
                 scale: isPrimary ? ((isInhaling || isHoldingIn) ? 1.02 : 0.98) : 1,
+                left: `${displayX}%`, // Animate to final position
               }}
               transition={{ 
                 opacity: { 
-                  duration: 2, // Gentle fade
+                  duration: 1.5, // Smooth complete fade
                   ease: 'easeInOut',
+                },
+                left: {
+                  duration: 1.8, // Smooth centering animation
+                  ease: [0.4, 0, 0.2, 1], // Ease-out curve
                 },
                 scale: { 
                   duration: isInhaling ? activeCycle.in : isExhaling ? activeCycle.out : 0.3,
