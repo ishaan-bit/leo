@@ -51,7 +51,7 @@ interface TranslatedMoment {
   text: string;
   invoked: string;
   expressed: string;
-  poems: string[];
+  poem?: string | null;
   tips: string[];
   closingLine: string;
 }
@@ -219,12 +219,13 @@ export default function MomentsLibrary({
       setIsTranslating(true);
       
       try {
-        const [textResult, invokedResult, expressedResult, ...poemResults] = await Promise.all([
+        const [textResult, invokedResult, expressedResult] = await Promise.all([
           translateToHindi(selectedMoment.text),
           translateToHindi(selectedMoment.invoked),
           translateToHindi(selectedMoment.expressed),
-          ...selectedMoment.poems.map(poem => translateToHindi(poem)),
         ]);
+
+        const poemResult = selectedMoment.poem ? await translateToHindi(selectedMoment.poem) : null;
 
         const tipsResults = await Promise.all(
           selectedMoment.tips.map(tip => translateToHindi(tip))
@@ -236,7 +237,7 @@ export default function MomentsLibrary({
           text: textResult.translatedText,
           invoked: invokedResult.translatedText,
           expressed: expressedResult.translatedText,
-          poems: poemResults.map(r => r.translatedText),
+          poem: poemResult?.translatedText || null,
           tips: tipsResults.map(r => r.translatedText),
           closingLine: closingResult.translatedText,
         });
@@ -1869,7 +1870,7 @@ export default function MomentsLibrary({
                               text: selectedMoment.text,
                               invoked: selectedMoment.invoked,
                               expressed: selectedMoment.expressed,
-                              poems: selectedMoment.poems,
+                              poem: selectedMoment.poem,
                             };
                             
                             // Build beautifully formatted greeting card message
@@ -2162,8 +2163,8 @@ export default function MomentsLibrary({
                     )}
                   </motion.div>
 
-                  {/* Poem from Upstash (from Excel) */}
-                  {selectedMoment.poems && selectedMoment.poems.length > 0 && (
+                  {/* Poem from Upstash (from Excel - randomly selected) */}
+                  {selectedMoment.poem && (
                     <motion.div
                       className="mb-12"
                       initial={{ opacity: 0 }}
@@ -2181,49 +2182,42 @@ export default function MomentsLibrary({
                           textShadow: '0 1px 1px rgba(0,0,0,0.1)',
                         }}
                       >
-                        A small poem from today
+                        A poetic companion
                       </h3>
-                      <div className="space-y-6">
-                        {(language === 'hi' && translatedContent ? translatedContent.poems : selectedMoment.poems).map((poem, i) => {
-                          // Poems from Excel are complete strings with natural line breaks
-                          // Split on actual newlines (\n), NOT commas
-                          const lines = poem.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-                          return (
+                      <div className="space-y-3">
+                        {(() => {
+                          // Get poem (translated or original)
+                          const poemText = (language === 'hi' && translatedContent?.poem) 
+                            ? translatedContent.poem 
+                            : selectedMoment.poem;
+                          
+                          // Split on actual newlines (\n) to preserve formatting
+                          const lines = poemText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+                          
+                          return lines.map((line, j) => (
                             <motion.div
-                              key={i}
-                              className="space-y-3"
-                              initial={{ opacity: 0, x: -10 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ 
-                                duration: 0.8, 
-                                delay: 0.9 + (i * 0.3),
+                              key={j}
+                              className="text-lg"
+                              style={{
+                                fontFamily: '"Cormorant Garamond", "EB Garamond", serif',
+                                color: atmosphere.textColor,
+                                lineHeight: '1.9',
+                                fontWeight: 400,
+                                letterSpacing: '0.02em',
+                                textShadow: '0 1px 2px rgba(0,0,0,0.15)',
+                                fontStyle: 'italic',
+                              }}
+                              initial={{ opacity: 0, y: 5 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{
+                                duration: 0.6,
+                                delay: 0.9 + (j * 0.15),
                               }}
                             >
-                              {lines.map((line, j) => (
-                                <motion.div
-                                  key={j}
-                                  className="text-lg"
-                                  style={{
-                                    fontFamily: '"Cormorant Garamond", "EB Garamond", serif',
-                                    color: atmosphere.textColor,
-                                    lineHeight: '1.8',
-                                    fontWeight: 400,
-                                    letterSpacing: '0.02em',
-                                    textShadow: '0 1px 2px rgba(0,0,0,0.15)',
-                                  }}
-                                  initial={{ opacity: 0, y: 5 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  transition={{
-                                    duration: 0.6,
-                                    delay: 1.1 + (i * 0.3) + (j * 0.2),
-                                  }}
-                                >
-                                  {line}
-                                </motion.div>
-                              ))}
+                              {line}
                             </motion.div>
-                          );
-                        })}
+                          ));
+                        })()}
                       </div>
                     </motion.div>
                   )}

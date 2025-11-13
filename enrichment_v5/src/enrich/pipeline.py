@@ -261,12 +261,13 @@ def enrich(
         }
     }
     
-    # 14. Append playful dialogue (poems + tips) from Excel (Guide to Urban Loneliness)
+    # 14. Append playful dialogue (poems + tips) + poem from Excel (Guide to Urban Loneliness)
     try:
         from dialogue.excel_dialogue_fetcher import build_dialogue_from_excel
         poems, tips, dialogue_meta = build_dialogue_from_excel(result)
         result['poems'] = poems
         result['tips'] = tips
+        result['poem'] = dialogue_meta.get('poem')  # 🔥 NEW: Single poem from Excel
         result['_dialogue_meta'] = dialogue_meta
     except Exception as e:
         import logging

@@ -21,7 +21,7 @@ except ImportError:
     logger.warning("⚠️ openpyxl not installed - Excel dialogue fetching disabled")
 
 # HuggingFace Space URL for Excel file
-EXCEL_URL = "https://huggingface.co/spaces/purist-vagabond/micro-content-api/resolve/main/data/Guide%20to%20Urban%20Loneliness.xlsx"
+EXCEL_URL = "https://huggingface.co/spaces/purist-vagabond/enrichment-api-v5/resolve/main/dialogue/Guide%20to%20Urban%20Loneliness.xlsx"
 
 # Domain name mapping (enrichment_v5 → Excel sheet names)
 DOMAIN_MAPPING = {
@@ -128,6 +128,52 @@ def _extract_dialogue_tuples_from_row(row: List) -> List[Tuple[str, str, str]]:
     return tuples
 
 
+def _extract_poem_from_row(row: List) -> str | None:
+    """
+    Extract a random poem from Excel row.
+    
+    Expected row format:
+    [Domain, Secondary, Dialogue En 1, ..., Poem En 1, Poem En 2]
+    
+    Randomly selects between Poem En 1 and Poem En 2.
+    
+    Args:
+        row: Row from Excel sheet
+        
+    Returns:
+        Selected poem text with preserved line breaks, or None if both empty
+    """
+    poems = []
+    
+    # Find Poem En 1 and Poem En 2 columns (after dialogue columns)
+    for cell_idx, cell_value in enumerate(row):
+        # Look for cells after dialogue tuples
+        if cell_value is None:
+            continue
+            
+        cell_str = str(cell_value).strip()
+        
+        # Check if this is a poem column (not a dialogue tuple format)
+        # Poems are multi-line strings, not list literals
+        if cell_str and not cell_str.startswith('[') and cell_idx >= 2:
+            # Skip if this looks like Domain or Secondary column content
+            if cell_idx <= 1:
+                continue
+            
+            # This is likely a poem - add to collection
+            poems.append(cell_str)
+    
+    if not poems:
+        logger.debug("No poems found in row")
+        return None
+    
+    # Randomly select one poem
+    selected_poem = random.choice(poems)
+    logger.info(f"Selected poem (length: {len(selected_poem)} chars) from {len(poems)} available")
+    
+    return selected_poem
+
+
 def fetch_dialogue_tuples(domain: str, secondary: str) -> Dict:
     """
     Fetch 3 random dialogue tuples from Excel for given domain/secondary.
@@ -230,11 +276,15 @@ def fetch_dialogue_tuples(domain: str, secondary: str) -> Dict:
     
     logger.info(f"🎲 Selected {len(selected_tuples)} dialogue tuples for {sheet_name}/{secondary}")
     
+    # Extract poem from same row
+    poem = _extract_poem_from_row(list(found_row))
+    
     return {
         "found": True,
         "domain": sheet_name,
         "secondary": secondary,
         "tuples": [list(t) for t in selected_tuples],  # Convert to list of lists
+        "poem": poem,  # Random selection from Poem En 1 or Poem En 2
         "source": "excel",
         "total_available": len(all_tuples)
     }
@@ -321,22 +371,27 @@ def build_dialogue_from_excel(
         # Frontend should use meta['dialogue_tuples'] for the full 3-phase display
         poems = [t[0] for t in tuples[:3]]
         
+        # Extract poem (random selection from Poem En 1 or Poem En 2)
+        poem = excel_result.get('poem')
+        
         logger.info(f"[Excel] ✅ Fetched {len(tuples)} dialogue tuples")
         logger.info(f"[Excel] Tuple 1: {tuples[0] if tuples else 'N/A'}")
         logger.info(f"[Excel] Tuple 2: {tuples[1] if len(tuples) > 1 else 'N/A'}")
         logger.info(f"[Excel] Tuple 3: {tuples[2] if len(tuples) > 2 else 'N/A'}")
+        logger.info(f"[Excel] Poem: {'Found' if poem else 'None'} ({len(poem) if poem else 0} chars)")
         
-        # Meta information with FULL tuple structure
+        # Meta information with FULL tuple structure and poem
         meta = {
             'source': 'excel',
             'domain_primary': excel_result.get('domain'),
             'wheel_secondary': excel_result.get('secondary'),
             'total_available': excel_result.get('total_available', len(tuples)),
             'dialogue_tuples': tuples[:3],  # 🔥 NEW: Full 3-part tuples [[Inner, Regulate, Amuse], ...]
+            'poem': poem,  # 🔥 NEW: Randomly selected poem from Excel
             'found': True
         }
         
-        logger.info(f"Successfully fetched Excel dialogue tuples for {raw_domain_primary}/{raw_wheel_secondary}")
+        logger.info(f"Successfully fetched Excel dialogue tuples + poem for {raw_domain_primary}/{raw_wheel_secondary}")
         return poems, [], meta  # tips now empty, frontend uses meta['dialogue_tuples']
     
     except Exception as e:
@@ -357,6 +412,7 @@ def build_dialogue_from_excel(
                 'source': 'fallback',
                 'error': str(e),
                 'dialogue_tuples': fallback_tuples,
+                'poem': None,  # No poem in fallback
                 'found': False
             }
         )

@@ -135,6 +135,7 @@ export type Reflection = {
       confidence: number;
     }>;
     warnings: string[];           // Processing warnings
+    poem?: string | null;         // 🔥 Single poem from Excel (random selection from Poem En 1/2)
   };
   
   congruence?: number;            // Invoked↔expressed coherence (0..1)
