@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { kv } from '@vercel/kv';
+import { getGuestReflectionKey } from '@/lib/guest-session';
+import { resolveIdentity } from '@/lib/identity-resolver';
 
 /**
  * GET /api/reflect/[rid]
  * 
  * Fetch a single reflection by ID
  * Used by interlude polling to check if enrichment is complete
+ * Supports both authenticated and guest reflections
  */
 
 // CRITICAL: Disable all caching - this endpoint must always fetch fresh data
@@ -27,9 +30,41 @@ export async function GET(
       );
     }
 
-    // Fetch from Upstash
-    const key = `reflection:${rid}`;
-    const reflection = await kv.get(key);
+    // Resolve identity to determine if this is a guest request
+    const { userId, sessionId } = await resolveIdentity(request);
+    const isGuest = userId === null;
+
+    // Try guest namespace first if guest, otherwise authenticated namespace
+    let reflection = null;
+    let reflectionKey = '';
+
+    if (isGuest && sessionId) {
+      // Guest reflection - use namespaced key
+      const guestUid = sessionId.startsWith('sid_') 
+        ? sessionId.substring(4) // Strip sid_ prefix
+        : sessionId;
+      reflectionKey = getGuestReflectionKey(guestUid, rid);
+      reflection = await kv.get(reflectionKey);
+      
+      console.log('[GET /api/reflect/[rid]] Guest lookup:', {
+        sessionId,
+        guestUid,
+        key: reflectionKey,
+        found: !!reflection,
+      });
+    }
+
+    if (!reflection) {
+      // Fallback to global namespace (authenticated users or legacy data)
+      reflectionKey = `reflection:${rid}`;
+      reflection = await kv.get(reflectionKey);
+      
+      console.log('[GET /api/reflect/[rid]] Global lookup:', {
+        key: reflectionKey,
+        found: !!reflection,
+        wasGuestAttempt: isGuest,
+      });
+    }
 
     if (!reflection) {
       return NextResponse.json(
