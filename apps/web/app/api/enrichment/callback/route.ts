@@ -57,6 +57,35 @@ export async function POST(request: NextRequest) {
       ? JSON.parse(existingData)
       : existingData;
     
+    // Extract poems from Excel data (Poem En 1 / Poem En 2)
+    // The HuggingFace API should return these in _dialogue_meta
+    const poemsFromExcel: string[] = [];
+    
+    // Check if _dialogue_meta contains poem data
+    if (_dialogue_meta?.poem_en_1) {
+      poemsFromExcel.push(_dialogue_meta.poem_en_1);
+    }
+    if (_dialogue_meta?.poem_en_2) {
+      poemsFromExcel.push(_dialogue_meta.poem_en_2);
+    }
+    
+    // Fallback: If Excel poems not available, extract from first dialogue tuple (legacy)
+    if (poemsFromExcel.length === 0 && _dialogue_meta?.dialogue_tuples?.length > 0) {
+      const firstTuple = _dialogue_meta.dialogue_tuples[0];
+      if (Array.isArray(firstTuple) && firstTuple.length >= 3) {
+        // Use first 2 lines from first tuple as fallback poems
+        poemsFromExcel.push(firstTuple[0], firstTuple[1]);
+      }
+    }
+    
+    console.log(`[Enrichment Callback] Extracted ${poemsFromExcel.length} poems from Excel data`);
+    if (poemsFromExcel.length > 0) {
+      console.log(`[Enrichment Callback] Poem 1: ${poemsFromExcel[0]?.substring(0, 50)}...`);
+      if (poemsFromExcel[1]) {
+        console.log(`[Enrichment Callback] Poem 2: ${poemsFromExcel[1]?.substring(0, 50)}...`);
+      }
+    }
+
     // Add 'final' field with enrichment data
     reflection.final = {
       wheel: {
@@ -71,9 +100,10 @@ export async function POST(request: NextRequest) {
       control,
       polarity,
       confidence,
-      // NEW: Store dialogue_tuples directly in post_enrichment (Excel system)
+      // NEW: Store dialogue_tuples AND poems from Excel
       post_enrichment: {
         dialogue_tuples: _dialogue_meta?.dialogue_tuples || [],
+        poems: poemsFromExcel, // Use actual poems from Excel (Poem En 1 / Poem En 2)
         meta: _dialogue_meta || {},
       },
     };
@@ -93,6 +123,7 @@ export async function POST(request: NextRequest) {
       console.log(`[Enrichment Callback]    Primary: ${primary}`);
       console.log(`[Enrichment Callback]    Valence: ${valence}`);
       console.log(`[Enrichment Callback]    Dialogue Tuples: ${_dialogue_meta?.dialogue_tuples?.length || 0} tuples`);
+      console.log(`[Enrichment Callback]    Poems: ${poemsFromExcel.length} poems from Excel`);
       
       return NextResponse.json({
         success: true,
