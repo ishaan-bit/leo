@@ -125,12 +125,14 @@ export async function resolveIdentity(): Promise<ResolvedIdentity> {
 
   // 3. Compute effective identity
   const effectiveScope: 'user' | 'sid' = authId ? 'user' : 'sid';
-  const effectiveId = authId ? `${USER_PREFIX}${authId}` : `sid:${sid}`;
+  // For guest sessions, sid already has 'sid_' prefix, so strip it when building effectiveId
+  const strippedSid = sid.startsWith(SID_PREFIX) ? sid.substring(SID_PREFIX.length) : sid;
+  const effectiveId = authId ? `${USER_PREFIX}${authId}` : `sid:${strippedSid}`;
 
   // 4. Read pig profile from the appropriate scope
   const profileKey = authId
     ? `user:${authId}:profile`
-    : `sid:${sid}:profile`;
+    : `sid:${strippedSid}:profile`;
 
   const profile = await readPigProfile(profileKey);
 
