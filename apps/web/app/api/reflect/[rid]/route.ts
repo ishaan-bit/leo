@@ -31,23 +31,23 @@ export async function GET(
     }
 
     // Resolve identity to determine if this is a guest request
-    const { userId, sessionId } = await resolveIdentity(request);
-    const isGuest = userId === null;
+    const { authId, sid } = await resolveIdentity(request);
+    const isGuest = authId === null;
 
     // Try guest namespace first if guest, otherwise authenticated namespace
     let reflection = null;
     let reflectionKey = '';
 
-    if (isGuest && sessionId) {
+    if (isGuest && sid) {
       // Guest reflection - use namespaced key
-      const guestUid = sessionId.startsWith('sid_') 
-        ? sessionId.substring(4) // Strip sid_ prefix
-        : sessionId;
+      const guestUid = sid.startsWith('sid_') 
+        ? sid.substring(4) // Strip sid_ prefix
+        : sid;
       reflectionKey = getGuestReflectionKey(guestUid, rid);
       reflection = await kv.get(reflectionKey);
       
       console.log('[GET /api/reflect/[rid]] Guest lookup:', {
-        sessionId,
+        sid,
         guestUid,
         key: reflectionKey,
         found: !!reflection,
