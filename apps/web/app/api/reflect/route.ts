@@ -8,6 +8,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { kv, logKvOperation, generateReflectionId } from '@/lib/kv';
 import { getAuth, getSid, kvKeys, buildOwnerId } from '@/lib/auth-helpers';
 import { processReflectionText } from '@/lib/translation';
+import { 
+  getGuestReflectionKey, 
+  getGuestReflectionsSetKey, 
+  extractGuestUidFromPigId 
+} from '@/lib/guest-session';
 import type {
   Reflection,
   ReflectionInput,
@@ -270,13 +275,26 @@ export async function POST(request: NextRequest) {
       version,
     };
 
-    // 11. Write reflection:{rid} - GUEST MODE: Use short TTL for unauthenticated users
+    // 11. Write reflection:{rid} - GUEST MODE: Use short TTL + namespaced keys
     const isGuest = userId === null;
-    const reflectionKey = kvKeys.reflection(rid);
+    const guestUid = isGuest ? extractGuestUidFromPigId(body.pigId) : null;
+    
+    // Determine reflection key based on user type
+    const reflectionKey = isGuest && guestUid
+      ? getGuestReflectionKey(guestUid, rid)
+      : kvKeys.reflection(rid);
+    
     const ttl = isGuest ? 300 : REFLECTION_TTL; // 5 min for guests, 30 days for authenticated
     
     logKvOperation({ op: 'SETEX', key: reflectionKey, phase: 'start', sid, rid });
-    console.log(`💾 Saving reflection ${rid} - Guest: ${isGuest}, TTL: ${ttl}s`);
+    console.log(`💾 Saving reflection ${rid}`, {
+      isGuest,
+      guestUid: guestUid || 'N/A',
+      pigId: body.pigId,
+      namespace: isGuest ? 'guest' : 'global',
+      key: reflectionKey,
+      ttl: `${ttl}s`,
+    });
 
     try {
       await kv.set(reflectionKey, JSON.stringify(reflection), { ex: ttl });
@@ -320,23 +338,38 @@ export async function POST(request: NextRequest) {
       console.warn(`⚠️ ENRICHMENT_WEBHOOK_URL not set - enrichment disabled`);
     }
 
-    // 12. Add to sorted sets (for querying) - GUESTS: Add but will expire with reflection TTL
-    const ownerKey = kvKeys.reflectionsByOwner(ownerId);
-    const pigKey = kvKeys.reflectionsByPig(body.pigId);
-    const globalKey = kvKeys.reflectionsAll();
+    // 12. Add to sorted sets (for querying) - GUESTS: Use namespaced keys with TTL
     const score = Date.now();
 
     try {
-      await Promise.all([
-        kv.zadd(ownerKey, { score, member: rid }),
-        kv.zadd(pigKey, { score, member: rid }),
-        kv.zadd(globalKey, { score, member: rid }),
-      ]);
-      
-      logKvOperation({ op: 'ZADD', key: ownerKey, phase: 'ok', sid, rid });
-      
-      if (isGuest) {
-        console.log(`👤 Guest reflection ${rid} - added to index (will expire with reflection in 5 min)`);
+      if (isGuest && guestUid) {
+        // GUEST MODE: Only index in guest namespace (no global/owner indexing)
+        const guestReflectionsKey = getGuestReflectionsSetKey(guestUid);
+        
+        await kv.zadd(guestReflectionsKey, { score, member: rid });
+        // Set TTL on sorted set to match reflection TTL
+        await kv.expire(guestReflectionsKey, ttl);
+        
+        logKvOperation({ op: 'ZADD', key: guestReflectionsKey, phase: 'ok', sid, rid });
+        console.log(`👤 Guest reflection indexed:`, {
+          guestUid,
+          key: guestReflectionsKey,
+          rid,
+          ttl: `${ttl}s`,
+        });
+      } else {
+        // AUTHENTICATED MODE: Index in global/owner/pig sets
+        const ownerKey = kvKeys.reflectionsByOwner(ownerId);
+        const pigKey = kvKeys.reflectionsByPig(body.pigId);
+        const globalKey = kvKeys.reflectionsAll();
+        
+        await Promise.all([
+          kv.zadd(ownerKey, { score, member: rid }),
+          kv.zadd(pigKey, { score, member: rid }),
+          kv.zadd(globalKey, { score, member: rid }),
+        ]);
+        
+        logKvOperation({ op: 'ZADD', key: ownerKey, phase: 'ok', sid, rid });
       }
     } catch (error) {
       // Non-fatal: reflection is saved, just indexing failed
@@ -434,10 +467,32 @@ export async function POST(request: NextRequest) {
 
 // Get reflections by pig
 async function getReflectionsByPig(pigId: string, limit: number = 50) {
-  const reflectionIds = await kv.zrange(`pig_reflections:${pigId}`, 0, limit - 1, { rev: true }) as string[];
+  // Check if this is a guest session
+  const guestUid = extractGuestUidFromPigId(pigId);
+  const isGuest = guestUid !== null;
+  
+  // Use appropriate sorted set key
+  const pigKey = isGuest 
+    ? getGuestReflectionsSetKey(guestUid!) 
+    : `pig_reflections:${pigId}`;
+  
+  console.log('[GET /api/reflect] Fetching reflections:', {
+    pigId,
+    isGuest,
+    guestUid: guestUid || 'N/A',
+    key: pigKey,
+  });
+  
+  const reflectionIds = await kv.zrange(pigKey, 0, limit - 1, { rev: true }) as string[];
+  
   const reflections = await Promise.all(
     reflectionIds.map(async (id: string) => {
-      const data = await kv.get(`reflection:${id}`);
+      // Use appropriate reflection key
+      const reflectionKey = isGuest 
+        ? getGuestReflectionKey(guestUid!, id) 
+        : `reflection:${id}`;
+      
+      const data = await kv.get(reflectionKey);
       return data ? JSON.parse(data as string) : null;
     })
   );

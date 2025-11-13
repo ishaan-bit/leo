@@ -28,13 +28,21 @@ export async function GET() {
   try {
     const identity = await resolveIdentity();
 
-    // For guest users, use sid as pigId. For authenticated users, use authId
+    // For guest users, pigId is sid (already has sid_ prefix from identity-resolver)
+    // For authenticated users, use authId
     const pigId = identity.authId || identity.sid;
+
+    console.log('[API /effective] Resolved identity:', {
+      mode: identity.effectiveScope === 'user' ? 'auth' : 'guest',
+      pigId,
+      pigName: identity.pigName,
+      sid: identity.sid.substring(0, 12) + '...',
+    });
 
     return NextResponse.json({
       mode: identity.effectiveScope === 'user' ? 'auth' : 'guest',
       pigName: identity.pigName,
-      pigId: pigId, // Added pigId for routing
+      pigId: pigId, // This will be sid_xxx for guests, authId for authenticated
       effectiveId: identity.effectiveId,
       sid: identity.sid.substring(0, 12) + '...', // Truncated for security
       authId: identity.authId ? identity.authId.substring(0, 12) + '...' : null,

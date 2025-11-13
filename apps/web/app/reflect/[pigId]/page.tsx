@@ -4,6 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import Scene_Reflect from '@/components/scenes/Scene_Reflect';
+import { loadGuestSession, restoreFromUrl, validatePigId } from '@/lib/guest-session';
 
 export default function ReflectPage() {
   const params = useParams();
@@ -16,32 +17,35 @@ export default function ReflectPage() {
   useEffect(() => {
     async function validateAndFetchPigName() {
       try {
-        // CRITICAL FIX: For guest sessions, verify pigId matches current localStorage session
+        // CRITICAL FIX: For guest sessions, use centralized session management
         if (status === 'unauthenticated' && pigId?.startsWith('sid_')) {
-          const currentSid = localStorage.getItem('guestSessionId');
-          const expectedPigId = currentSid ? `sid_${currentSid}` : null;
+          const existingSession = loadGuestSession();
           
           console.log('[ReflectPage] Guest session validation:', {
             urlPigId: pigId,
-            currentSid,
-            expectedPigId,
-            matches: pigId === expectedPigId
+            hasExistingSession: !!existingSession,
+            existingPigId: existingSession?.pigId || null,
+            matches: existingSession?.pigId === pigId,
           });
           
-          // If URL pigId doesn't match current session, redirect to correct one
-          if (expectedPigId && pigId !== expectedPigId) {
-            console.warn('[ReflectPage] ⚠️ URL pigId mismatch! Redirecting to current session:', expectedPigId);
-            router.replace(`/reflect/${expectedPigId}`);
-            return; // Don't fetch old pig name
-          }
-          
-          // If no current session but URL has pigId, restore session from URL
-          // This handles cases like: shared links, bookmarks, localStorage cleared, etc.
-          if (!currentSid && pigId.startsWith('sid_')) {
-            const sessionIdFromUrl = pigId.replace('sid_', '');
-            console.log('[ReflectPage] 🔄 No localStorage session found. Restoring from URL:', sessionIdFromUrl);
-            localStorage.setItem('guestSessionId', sessionIdFromUrl);
-            // Continue to fetch pig name - session is now restored
+          // If localStorage has a session, validate it matches URL
+          if (existingSession) {
+            if (existingSession.pigId !== pigId) {
+              console.warn('[ReflectPage] ⚠️ URL pigId mismatch! Redirecting to current session:', existingSession.pigId);
+              router.replace(`/reflect/${existingSession.pigId}`);
+              return;
+            }
+            // Session matches - continue
+          } else {
+            // No localStorage session - restore from URL (one-time only)
+            console.log('[ReflectPage] 🔄 No localStorage session, attempting URL restore');
+            const restored = restoreFromUrl(pigId);
+            
+            if (!restored) {
+              console.error('[ReflectPage] ❌ URL restore failed');
+              router.replace('/start');
+              return;
+            }
           }
         }
         

@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { kv } from '@vercel/kv';
+import { 
+  extractGuestUidFromPigId, 
+  getGuestReflectionsSetKey, 
+  getGuestReflectionKey 
+} from '@/lib/guest-session';
 
 /**
  * GET /api/pig/[pigId]/moments
@@ -28,9 +33,21 @@ export async function GET(
 
     console.log('[API /pig/moments] 📡 Fetching moments for pigId:', pigId);
 
-    // Fetch reflection IDs from sorted set (newest first)
-    const pigKey = `pig_reflections:${pigId}`;
-    console.log('[API /pig/moments] 🔍 Querying key:', pigKey);
+    // Determine if this is a guest session (pigId starts with sid_)
+    const guestUid = extractGuestUidFromPigId(pigId);
+    const isGuest = guestUid !== null;
+    
+    // Use appropriate key based on user type
+    const pigKey = isGuest 
+      ? getGuestReflectionsSetKey(guestUid!) 
+      : `pig_reflections:${pigId}`;
+    
+    console.log('[API /pig/moments] 🔍 Querying key:', {
+      pigId,
+      isGuest,
+      guestUid: guestUid || 'N/A',
+      key: pigKey,
+    });
     
     const reflectionIds = await kv.zrange(pigKey, 0, -1, { rev: true });
     console.log('[API /pig/moments] 📋 Found reflection IDs:', reflectionIds);
@@ -50,7 +67,11 @@ export async function GET(
     // Fetch each reflection
     for (const rid of reflectionIds) {
       try {
-        const reflectionKey = `reflection:${rid}`;
+        // Use guest namespace if guest session
+        const reflectionKey = isGuest 
+          ? getGuestReflectionKey(guestUid!, String(rid)) 
+          : `reflection:${rid}`;
+        
         console.log('[API /pig/moments] 🔑 Fetching:', reflectionKey);
         
         const reflectionData = await kv.get(reflectionKey);
