@@ -29,6 +29,7 @@ export async function POST(req: NextRequest) {
 
     const sid = identity.sid;
     const ownerId = `guest:${sid}`;
+    const pigId = `sid_${sid}`; // Guest pig ID format
     
     console.log(`[Guest Purge] Starting purge for session: ${sid.substring(0, 20)}...`);
 
@@ -78,7 +79,12 @@ export async function POST(req: NextRequest) {
       console.log(`[Guest Purge] Deleted ${deletedReflections} reflections`);
     }
 
-    // 4. Optionally delete any metadata or cached data
+    // 4. Delete pig_reflections sorted set (critical - this is what Living City reads from!)
+    const pigReflectionsKey = `pig_reflections:${pigId}`;
+    await kv.del(pigReflectionsKey);
+    console.log(`[Guest Purge] Deleted pig_reflections sorted set: ${pigReflectionsKey}`);
+
+    // 5. Optionally delete any metadata or cached data
     // (Add more cleanup here if needed)
 
     const summary = {

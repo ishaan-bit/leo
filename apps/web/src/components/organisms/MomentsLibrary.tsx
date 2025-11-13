@@ -126,8 +126,27 @@ export default function MomentsLibrary({
 
   // Log component mount
   useEffect(() => {
-    console.log('[MomentsLibrary] ?? Component mounted!', { pigId, pigName, currentPrimary });
+    console.log('[MomentsLibrary] 🎬 Component mounted!', { pigId, pigName, currentPrimary });
   }, []);
+
+  // GUEST CLEANUP: Clear stale localStorage on mount for guest users
+  useEffect(() => {
+    if (!session?.user && typeof window !== 'undefined') {
+      // Guest mode - check if pigId matches stored guest_uid
+      const storedUid = localStorage.getItem('leo_guest_uid');
+      const expectedPigId = storedUid ? `sid_${storedUid}` : null;
+      
+      if (expectedPigId && pigId !== expectedPigId) {
+        // PigId mismatch - clear stale localStorage
+        console.log('[MomentsLibrary] 🧹 Detected stale guest localStorage, clearing...', {
+          stored: expectedPigId,
+          current: pigId,
+        });
+        localStorage.removeItem('leo_guest_uid');
+        localStorage.removeItem('leo_pig_name_local');
+      }
+    }
+  }, [pigId, session?.user]);
 
   // Track when moment opens
   useEffect(() => {
@@ -1271,7 +1290,7 @@ export default function MomentsLibrary({
 
             {/* Share a New Moment Icon - top-left, same size as sound toggle for visual consistency */}
             <motion.button
-              className="fixed left-2 md:left-4 z-50 pointer-events-auto rounded-full overflow-hidden group"
+              className="fixed z-50 pointer-events-auto rounded-full overflow-hidden group"
               onClick={onNewReflection}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ 
@@ -1293,9 +1312,12 @@ export default function MomentsLibrary({
                 height: '32px', // Match SoundToggle size
                 minWidth: '32px',
                 minHeight: '32px',
-                padding: '6px', // Match SoundToggle padding
+                padding: '0', // No padding to keep circular shape
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 top: 'max(1rem, env(safe-area-inset-top))', // Aligned with top navigation
-                paddingLeft: 'max(0.5rem, env(safe-area-inset-left))',
+                left: 'max(0.5rem, env(safe-area-inset-left))', // Position from left edge
               }}
             >
               {/* Sparkle with occasional pulse */}
@@ -1326,7 +1348,7 @@ export default function MomentsLibrary({
                     ease: 'easeInOut',
                   }}
                 >
-                  ?
+                  ✨
                 </motion.span>
               </motion.div>
               
