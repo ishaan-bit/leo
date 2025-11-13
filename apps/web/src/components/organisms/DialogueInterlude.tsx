@@ -170,6 +170,7 @@ export default function DialogueInterlude({
         className="absolute inset-0 -z-10"
         style={{
           background: 'linear-gradient(180deg, #0A0714 0%, #1A1530 100%)',
+          transition: 'background 700ms ease-in-out',
         }}
       />
       
@@ -230,7 +231,7 @@ export default function DialogueInterlude({
         <div
           className="absolute bottom-0 z-20"
           style={{
-            left: '35%', // FIXED: Same as BreathingSequence primary position, no shift
+            left: `${towerConfig.x}%`, // FIXED: Use towerConfig.x (35%) from BreathingSequence
             transform: 'none', // No centering transform to avoid position change
             width: '80px',
             height: `${towerConfig.height * 1.8}px`,
@@ -337,15 +338,15 @@ export default function DialogueInterlude({
         </motion.div>
       </div>
       
-      {/* Regulate - Pig speech bubble (points to Leo at 28% top) */}
+      {/* Regulate - Pig speech bubble (anchored to primary building top-left window) */}
       <AnimatePresence>
-        {showPigBubble && regulate && (
+        {showPigBubble && regulate && towerConfig && (
           <motion.div
             className="absolute z-40"
             style={{
-              top: 'calc(28% - 80px)', // Above Leo (Leo at 28%, bubble 80px higher)
-              left: 'calc(50% + 60px)', // Right of Leo (Leo centered at 50%, bubble 120px right)
-              transform: 'translateX(0)', // No centering, positioned relative to Leo
+              bottom: `${(towerConfig.height * 1.8) - 40}px`, // Near top floor of building
+              left: `calc(${towerConfig.x}% - 60px)`, // Left of building edge
+              transform: 'translateX(0)',
             }}
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -354,9 +355,10 @@ export default function DialogueInterlude({
           >
             <ComicSpeechBubble
               content={regulate}
-              variant="pig" maxWidth={280}
-              tailDirection="left" // Tail points left toward Leo (bubble is to the right)
-              tailOffsetX={50}
+              variant="pig" 
+              maxWidth={240} // 220-260px range, using midpoint
+              tailDirection="right" // Tail points right toward building top-left window
+              tailOffsetY={30} // Position tail toward upper part of bubble
               shadowLevel={2}
             />
           </motion.div>
@@ -374,7 +376,7 @@ export default function DialogueInterlude({
             <FloatingWords
               words={[amuse]}
               startY={`${(towerConfig.height * 1.8) - 60}px`}
-              startX={`calc(${towerConfig.x}% - 20px)`}
+              startX={`${Math.max(15, Math.min(85, towerConfig.x))}%`} // Clamp to 15-85% safe area
               floatDistance={140}
               maxConcurrent={2}
               enabled={true}
@@ -415,8 +417,7 @@ export default function DialogueInterlude({
       <AnimatePresence>
         {showProceedButton && (
           <motion.div
-            className="absolute bottom-[8%] z-50"
-            style={{ left: '50%', transform: 'translateX(-50%)' }} // Explicit centering
+            className="absolute bottom-[8%] left-0 right-0 z-50 flex justify-center"
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}

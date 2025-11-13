@@ -86,17 +86,26 @@ export default function FloatingWords({
     if (words.length === 0) return;
     if (activeWords.length >= maxConcurrent) return;
 
+    // Calculate safe drift based on spawn position to prevent clipping
+    const startXValue = typeof startX === 'string' ? 
+      parseFloat(startX.replace('%', '')) : // Extract percentage value
+      50; // Default fallback
+    
+    // Reduce drift for positions near viewport edges
+    const distanceFromEdge = Math.min(startXValue - 10, 90 - startXValue);
+    const maxSafeDrift = Math.max(1, Math.min(4, distanceFromEdge / 10)); // 1-4px based on edge distance
+
     const newWord: FloatingWord = {
       id: Date.now() + Math.random(),
       text: words[wordIndex % words.length],
       duration: 3 + Math.random() * 3, // 3-6s
       delay: 0,
-      drift: 2 + Math.random() * 4, // 2-6px horizontal drift
+      drift: 1 + Math.random() * maxSafeDrift, // Adaptive drift: 1-5px (reduced from 2-6px)
     };
 
     setActiveWords(prev => [...prev, newWord]);
     setWordIndex(prev => prev + 1);
-  }, [enabled, prefersReducedMotion, words, wordIndex, activeWords.length, maxConcurrent]);
+  }, [enabled, prefersReducedMotion, words, wordIndex, activeWords.length, maxConcurrent, startX]);
 
   // Remove word when animation completes
   const removeWord = useCallback((id: number) => {

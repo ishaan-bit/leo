@@ -383,9 +383,10 @@ export default function CityInterlude({
 
       {/* Breathing fluid background - updates at 60fps like water flowing */}
       <div
-        className="absolute inset-0 -z-10 transition-colors duration-300 ease-linear"
+        className="absolute inset-0 -z-10"
         style={{
           background: getBackgroundGradient(),
+          transition: 'background 700ms ease-in-out',
         }}
       />
 

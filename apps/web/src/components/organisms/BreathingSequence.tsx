@@ -343,10 +343,10 @@ export default function BreathingSequence({
   // Sky gradient based on lightness level (0 = night, 4 = pink gradient)
   const getSkyGradient = () => {
     switch (skyLightnessLevel) {
-      case 0: // Night
+      case 0: // Night - MATCHES CityInterlude phase 4 final gradient
         return isInhaling
           ? 'linear-gradient(to bottom, #1A1734, #3B3367, #1A1734)'
-          : 'linear-gradient(to bottom, #0A0714, #2B2357, #0A0714)';
+          : 'linear-gradient(180deg, #0A0714 0%, #1A1530 100%)'; // Exact match for smooth transition
       case 1: // Slightly lighter
         return isInhaling
           ? 'linear-gradient(to bottom, #2A2744, #4B4377, #2A2744)'
@@ -382,7 +382,7 @@ export default function BreathingSequence({
           towerConfig={primaryTower ? {
             name: primaryTower.name,
             color: primaryTower.color,
-            x: primaryTower.x, // Use original position, NOT getPrimaryTowerX
+            x: 35, // FIXED: Pass centered position (35%), not original position
             height: primaryTower.height,
           } : undefined}
           onComplete={onComplete}
@@ -399,7 +399,8 @@ export default function BreathingSequence({
         animate={{
           background: getSkyGradient(),
         }}
-        transition={{ duration: skyLightnessLevel >= 1 ? 2 : activeCycle.in, ease: EASING }}
+        transition={{ duration: skyLightnessLevel >= 1 ? 2 : 0.7, ease: EASING }}
+        style={{ transition: 'background 700ms ease-in-out' }}
       />
       
       {/* Stars */}
@@ -498,53 +499,51 @@ export default function BreathingSequence({
       {/* Sky, building, Leo, and ambient pulse continue */}
       {/* All text has faded out above */}
 
-      {/* City skyline with towers - primary repositioned to center-left */}
-      {/* START with ALL buildings visible and pulsing (from CityInterlude) */}
-      {/* Then fade non-primary, then center primary */}
-      {primary && (
-        <motion.div
-          ref={buildingContainerRef}
-          className="absolute bottom-0 left-0 right-0 z-25"
-          style={{ height: '50vh' }}
-        >
-          {TOWERS.map(tower => {
-            const isPrimary = tower.id === primary;
-            
-            // COMPLETE fade-out for non-primary towers, center primary tower
-            const towerOpacity = isPrimary ? 1 : 0; // COMPLETE fade-out (0, not 0.3)
-            const displayX = isPrimary ? 35 : tower.x; // Center primary at 35%, keep others at original position
+      {/* City skyline with towers - ALL buildings visible immediately (no conditions) */}
+      {/* Buildings appear at exact same positions as CityInterlude for seamless transition */}
+      <motion.div
+        ref={buildingContainerRef}
+        className="absolute bottom-0 left-0 right-0 z-25"
+        style={{ height: '50vh' }}
+      >
+        {TOWERS.map(tower => {
+          const isPrimary = tower.id === effectivePrimary;
           
-          return (
-            <motion.div
-              key={tower.id}
-              className="absolute bottom-0"
-              style={{
-                left: `${displayX}%`,
-                width: '80px',
-                height: `${tower.height * 1.8}px`,
-              }}
-              initial={{ opacity: 1, scale: 1, left: `${tower.x}%` }} // Inherit from CityInterlude
-              animate={{
-                opacity: towerOpacity,
-                scale: isPrimary ? ((isInhaling || isHoldingIn) ? 1.02 : 0.98) : 1,
-                left: `${displayX}%`, // Primary stays centered at 35%, others keep position
-              }}
-              transition={{ 
-                opacity: { 
-                  duration: 2, // Slower fade for seamless transition
-                  ease: 'easeInOut',
-                  delay: 0.3, // Slight delay to ensure overlap with interlude
-                },
-                left: {
-                  duration: 0, // No movement - primary already centered from interlude
-                  ease: [0.4, 0, 0.2, 1],
-                },
-                scale: { 
-                  duration: isInhaling ? activeCycle.in : isExhaling ? activeCycle.out : 0.3,
-                  ease: EASING 
-                }
-              }}
-            >
+          // COMPLETE fade-out for non-primary towers, center primary tower
+          const towerOpacity = isPrimary ? 1 : 0; // COMPLETE fade-out (0, not 0.3)
+          const displayX = isPrimary ? 35 : tower.x; // Center primary at 35%, keep others at original position
+        
+        return (
+          <motion.div
+            key={tower.id}
+            className="absolute bottom-0"
+            style={{
+              left: `${tower.x}%`, // Start at original position (seamless from CityInterlude)
+              width: '80px',
+              height: `${tower.height * 1.8}px`,
+            }}
+            initial={{ opacity: 1, scale: 1 }} // All buildings visible initially
+            animate={{
+              opacity: towerOpacity,
+              scale: isPrimary ? ((isInhaling || isHoldingIn) ? 1.02 : 0.98) : 1,
+              left: `${displayX}%`, // Primary stays centered at 35%, others keep position
+            }}
+            transition={{ 
+              opacity: { 
+                duration: 2, // Slower fade for seamless transition
+                ease: 'easeInOut',
+                delay: 0.3, // Slight delay to ensure overlap with interlude
+              },
+              left: {
+                duration: 0, // No movement - primary already centered from interlude
+                ease: [0.4, 0, 0.2, 1],
+              },
+              scale: { 
+                duration: isInhaling ? activeCycle.in : isExhaling ? activeCycle.out : 0.3,
+                ease: EASING 
+              }
+            }}
+          >
               {/* Tower body */}
               <div
                 className="w-full h-full relative"
@@ -632,7 +631,6 @@ export default function BreathingSequence({
           );
         })}
       </motion.div>
-      )}
 
       {/* Moon - shown ONLY when primary is null/none - CENTERED vertically and horizontally */}
       {!primary && isReady && (
