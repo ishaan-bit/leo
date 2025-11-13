@@ -35,11 +35,13 @@ export default function ReflectPage() {
             return; // Don't fetch old pig name
           }
           
-          // If no current session but URL has old pigId, clear it and go to start
-          if (!currentSid) {
-            console.warn('[ReflectPage] ⚠️ No current session but URL has pigId. Redirecting to start.');
-            router.replace('/start');
-            return;
+          // If no current session but URL has pigId, restore session from URL
+          // This handles cases like: shared links, bookmarks, localStorage cleared, etc.
+          if (!currentSid && pigId.startsWith('sid_')) {
+            const sessionIdFromUrl = pigId.replace('sid_', '');
+            console.log('[ReflectPage] 🔄 No localStorage session found. Restoring from URL:', sessionIdFromUrl);
+            localStorage.setItem('guestSessionId', sessionIdFromUrl);
+            // Continue to fetch pig name - session is now restored
           }
         }
         
