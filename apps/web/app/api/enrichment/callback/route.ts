@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     let guestUid = isGuest ? sessionId.substring(4) : null;
     
     // Try guest namespace first if we have a session ID
-    let reflectionKey: string;
+    let reflectionKey: string = `reflection:${rid}`; // Default to global namespace
     let existingData: any;
     
     if (isGuest && guestUid) {
