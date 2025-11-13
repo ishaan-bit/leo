@@ -90,6 +90,7 @@ class RedisClient:
     def set_enriched(self, rid: str, enriched_data: Dict, ttl: int = 2592000) -> bool:
         """
         Merge enriched data into existing reflection
+        Supports both authenticated (global) and guest (namespaced) reflections
         
         Args:
             rid: Reflection ID
@@ -99,21 +100,74 @@ class RedisClient:
         Returns:
             Success boolean
         """
-        key = f"reflection:{rid}"
+        # Try to find reflection in guest namespace first, then global
+        key = None
+        existing = None
         
-        # Get existing reflection
-        existing = self.get_reflection(rid)
+        # First, try global namespace (most common case for authenticated users)
+        global_key = f"reflection:{rid}"
+        existing = self.get(global_key)
+        
+        if existing:
+            try:
+                parsed = json.loads(existing)
+                # Check if this is actually a guest reflection
+                sid = parsed.get('sid') or parsed.get('session_id')
+                user_id = parsed.get('user_id') or parsed.get('userId')
+                
+                # If no userId but has session_id starting with sid_, it's a guest
+                if not user_id and sid and sid.startswith('sid_'):
+                    print(f"[!] Found guest reflection in global namespace: {global_key}")
+                    print(f"    Session: {sid}, No user_id")
+                    print(f"    Checking guest namespace...")
+                    
+                    # Extract guest UID and check guest namespace
+                    guest_uid = sid[4:] if sid.startswith('sid_') else sid  # Strip 'sid_' prefix
+                    guest_key = f"guest:{guest_uid}:reflection:{rid}"
+                    guest_data = self.get(guest_key)
+                    
+                    if guest_data:
+                        print(f"    Found in guest namespace: {guest_key}")
+                        key = guest_key
+                        existing = guest_data
+                        ttl = 300  # 5 minutes for guests
+                    else:
+                        print(f"    Not in guest namespace, using global key")
+                        key = global_key
+                else:
+                    # Authenticated user
+                    key = global_key
+            except json.JSONDecodeError:
+                print(f"[!] Failed to parse reflection {global_key}, using as-is")
+                key = global_key
+        else:
+            # Not in global namespace - might be a pure guest reflection
+            # We can't determine the guest UID without the existing reflection
+            # This shouldn't happen in normal flow (reflection should exist before enrichment)
+            print(f"[!] Reflection {rid} not found in global namespace")
+            print(f"    Cannot determine guest namespace without existing reflection")
+            print(f"    This may be a race condition - reflection not yet written")
+            return False
+        
         if not existing:
-            print(f"[!] Reflection {rid} not found, creating new key")
-            existing = {}
+            print(f"[!] Reflection {rid} not found in any namespace")
+            return False
+        
+        # Parse existing reflection
+        try:
+            reflection = json.loads(existing)
+        except json.JSONDecodeError:
+            print(f"[!] Failed to parse existing reflection")
+            return False
         
         # Merge enriched data into existing reflection
-        merged = {**existing, **enriched_data}
+        merged = {**reflection, **enriched_data}
         
-        # Write back to same key
+        # Write back to same key with appropriate TTL
         success = self.set(key, json.dumps(merged), ex=ttl)
         if success:
             print(f"[OK] Merged enriched data into {key}")
+            print(f"    TTL: {ttl}s ({'guest' if ttl == 300 else 'authenticated'})")
         else:
             print(f"[X] Failed to write enriched data to {key}")
         

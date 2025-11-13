@@ -5,8 +5,10 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { kv } from '@/lib/kv';
+import { getGuestReflectionKey } from '@/lib/guest-session';
 
 const REFLECTION_TTL = 2592000; // 30 days
+const GUEST_TTL = 300; // 5 minutes for guest reflections
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,6 +17,7 @@ export async function POST(request: NextRequest) {
     // Extract enrichment data
     const {
       rid,
+      sid, // Session ID to determine guest vs authenticated
       primary,
       secondary,
       tertiary,
@@ -38,13 +41,81 @@ export async function POST(request: NextRequest) {
     
     console.log(`[Enrichment Callback] Received enrichment for ${rid}`);
     console.log(`[Enrichment Callback] Primary: ${primary}, Valence: ${valence}, Arousal: ${arousal}`);
+    console.log(`[Enrichment Callback] Session ID from webhook: ${sid || 'NOT PROVIDED'}`);
     
-    // Get existing reflection
-    const reflectionKey = `reflection:${rid}`;
-    const existingData = await kv.get(reflectionKey);
+    // Determine if this is a guest reflection
+    // Try to get sid from webhook payload first, then fallback to reflection data
+    let sessionId = sid;
+    let isGuest = sessionId && sessionId.startsWith('sid_');
+    let guestUid = isGuest ? sessionId.substring(4) : null;
+    
+    // Try guest namespace first if we have a session ID
+    let reflectionKey: string;
+    let existingData: any;
+    
+    if (isGuest && guestUid) {
+      reflectionKey = getGuestReflectionKey(guestUid, rid);
+      existingData = await kv.get(reflectionKey);
+      
+      console.log(`[Enrichment Callback] Guest lookup (from webhook sid):`, {
+        sid: sessionId,
+        guestUid,
+        key: reflectionKey,
+        found: !!existingData,
+      });
+    }
     
     if (!existingData) {
-      console.error(`[Enrichment Callback] Reflection ${rid} not found in Upstash`);
+      // Fallback to global namespace
+      reflectionKey = `reflection:${rid}`;
+      existingData = await kv.get(reflectionKey);
+      
+      console.log(`[Enrichment Callback] Global lookup:`, {
+        key: reflectionKey,
+        found: !!existingData,
+        wasGuestAttempt: isGuest,
+      });
+      
+      // If found in global namespace, check if it's actually a guest reflection
+      // (This handles case where webhook didn't provide sid)
+      if (existingData) {
+        const parsedForCheck = typeof existingData === 'string' 
+          ? JSON.parse(existingData) 
+          : existingData;
+        
+        const reflSessionId = parsedForCheck.sid || parsedForCheck.session_id;
+        const reflUserId = parsedForCheck.user_id || parsedForCheck.userId;
+        
+        // If no userId but has session ID starting with sid_, it's a guest
+        if (!reflUserId && reflSessionId && reflSessionId.startsWith('sid_')) {
+          console.log(`[Enrichment Callback] Detected guest reflection from data:`, {
+            reflSessionId,
+            reflUserId,
+          });
+          
+          // This reflection should be in guest namespace! Try to move it or update both
+          const detectedGuestUid = reflSessionId.substring(4);
+          const guestKey = getGuestReflectionKey(detectedGuestUid, rid);
+          const guestData = await kv.get(guestKey);
+          
+          if (guestData) {
+            // Guest namespace has the reflection - use that key instead
+            reflectionKey = guestKey;
+            existingData = guestData;
+            isGuest = true;
+            guestUid = detectedGuestUid;
+            sessionId = reflSessionId;
+            
+            console.log(`[Enrichment Callback] Switched to guest namespace:`, {
+              key: reflectionKey,
+            });
+          }
+        }
+      }
+    }
+    
+    if (!existingData) {
+      console.error(`[Enrichment Callback] Reflection ${rid} not found in any namespace`);
       return NextResponse.json({
         error: 'Reflection not found',
         code: 'REFLECTION_NOT_FOUND',
@@ -127,11 +198,15 @@ export async function POST(request: NextRequest) {
       }
     });
     
-    // Update reflection in Upstash
+    // Update reflection in Upstash with appropriate TTL
+    const ttl = isGuest ? GUEST_TTL : REFLECTION_TTL;
+    
     try {
-      await kv.set(reflectionKey, JSON.stringify(reflection), { ex: REFLECTION_TTL });
+      await kv.set(reflectionKey, JSON.stringify(reflection), { ex: ttl });
       
       console.log(`[Enrichment Callback] ✅ Updated ${reflectionKey} with final data`);
+      console.log(`[Enrichment Callback]    Type: ${isGuest ? 'GUEST' : 'AUTHENTICATED'}`);
+      console.log(`[Enrichment Callback]    TTL: ${ttl}s`);
       console.log(`[Enrichment Callback]    Primary: ${primary}`);
       console.log(`[Enrichment Callback]    Valence: ${valence}`);
       console.log(`[Enrichment Callback]    Dialogue Tuples: ${_dialogue_meta?.dialogue_tuples?.length || 0} tuples`);
@@ -142,6 +217,7 @@ export async function POST(request: NextRequest) {
         rid,
         message: 'Enrichment saved',
         primary,
+        isGuest,
       });
       
     } catch (updateError) {
