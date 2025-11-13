@@ -232,6 +232,11 @@ export type Reflection = {
     ollama_latency_ms: number;
     warnings: string[];
   };
+  
+  // Dream Letter (generated nightly from previous reflection)
+  dream_letter?: {
+    letter_text: string;          // Multi-line text with '\n' for paragraphs
+  };
 };
 
 /**

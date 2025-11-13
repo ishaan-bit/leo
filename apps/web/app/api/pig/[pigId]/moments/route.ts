@@ -181,7 +181,7 @@ export async function GET(
           songs: data.songs || null, // Include songs data from enrichment worker
           image_base64: data.image_base64 || data.caption?.image_base64 || undefined, // Include image data if present
           dialogue_tuples: data.post_enrichment?.dialogue_tuples || data.final?.post_enrichment?.dialogue_tuples || undefined, // Include dialogue tuples from Excel
-          dreamLetterState: 'locked' as const, // TODO: Implement actual dream letter generation logic
+          dream_letter: data.dream_letter || undefined, // Include dream letter if present
         };
         
         moments.push(moment);
