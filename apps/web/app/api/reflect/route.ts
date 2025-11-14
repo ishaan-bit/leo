@@ -132,19 +132,29 @@ export async function POST(request: NextRequest) {
 
     // 2. Get auth state and session ID
     const auth = await getAuth();
-    const sid = await getSid();
+    const sessionCookie = await getSid(); // sess_xxx format from cookie
     const userId = auth?.userId || null;
-    const ownerId = buildOwnerId(userId, sid);
+    
+    // CRITICAL FIX: For guests, use pigId (sid_xxx) as the effective sid
+    // For authenticated users, use session cookie (sess_xxx)
+    const isGuestUser = userId === null;
+    const effectiveSid = isGuestUser && body.pigId?.startsWith('sid_') 
+      ? body.pigId 
+      : sessionCookie;
+    
+    const ownerId = buildOwnerId(userId, effectiveSid);
 
     console.log('🔐 Auth check:', {
       authPresent: !!auth,
       userId,
-      sid,
+      sessionCookie,
+      effectiveSid,
+      isGuest: isGuestUser,
       ownerId,
     });
 
-    // 3. Rate limiting
-    const rateCheck = await checkRateLimit(sid);
+    // 3. Rate limiting (use session cookie for rate limit key)
+    const rateCheck = await checkRateLimit(sessionCookie);
     if (!rateCheck.allowed) {
       return NextResponse.json({
         error: 'Rate limit exceeded',
@@ -152,7 +162,7 @@ export async function POST(request: NextRequest) {
         details: `Maximum ${RATE_LIMIT_MAX} reflections per minute`,
         count: rateCheck.count,
       }, { status: 429 });
-    }
+    };
 
     // 4. Generate reflection ID
     const rid = generateReflectionId();
@@ -235,7 +245,7 @@ export async function POST(request: NextRequest) {
     const reflection: Reflection = {
       // Core IDs
       rid,
-      sid,
+      sid: effectiveSid, // CRITICAL: Use sid_xxx for guests, sess_xxx for authenticated
       timestamp: body.timestamp,
       
       // Pig context
@@ -276,7 +286,7 @@ export async function POST(request: NextRequest) {
     };
 
     // 11. Write reflection:{rid} - GUEST MODE: Use short TTL + namespaced keys
-    const isGuest = userId === null;
+    const isGuest = isGuestUser; // Already defined above
     const guestUid = isGuest ? extractGuestUidFromPigId(body.pigId) : null;
     
     // Determine reflection key based on user type
@@ -286,7 +296,7 @@ export async function POST(request: NextRequest) {
     
     const ttl = isGuest ? 300 : REFLECTION_TTL; // 5 min for guests, 30 days for authenticated
     
-    logKvOperation({ op: 'SETEX', key: reflectionKey, phase: 'start', sid, rid });
+    logKvOperation({ op: 'SETEX', key: reflectionKey, phase: 'start', sid: effectiveSid, rid });
     console.log(`💾 Saving reflection ${rid}`, {
       isGuest,
       guestUid: guestUid || 'N/A',
@@ -298,9 +308,9 @@ export async function POST(request: NextRequest) {
 
     try {
       await kv.set(reflectionKey, JSON.stringify(reflection), { ex: ttl });
-      logKvOperation({ op: 'SETEX', key: reflectionKey, phase: 'ok', sid, rid });
+      logKvOperation({ op: 'SETEX', key: reflectionKey, phase: 'ok', sid: effectiveSid, rid });
     } catch (error) {
-      logKvOperation({ op: 'SETEX', key: reflectionKey, phase: 'error', sid, rid, error });
+      logKvOperation({ op: 'SETEX', key: reflectionKey, phase: 'error', sid: effectiveSid, rid, error });
       
       return NextResponse.json({
         error: 'Failed to save reflection',
@@ -313,9 +323,7 @@ export async function POST(request: NextRequest) {
     const enrichmentWebhookUrl = process.env.ENRICHMENT_WEBHOOK_URL;
     
     if (enrichmentWebhookUrl) {
-      // CRITICAL: For guest users, send pigId (sid_xxx) instead of session cookie (sess_xxx)
-      // so the callback can find the reflection in the correct namespace
-      const webhookSid = isGuest && body.pigId ? body.pigId : sid;
+      // CRITICAL: effectiveSid is already correct (sid_xxx for guests, sess_xxx for authenticated)
       
       // Call HF Spaces webhook endpoint asynchronously (don't wait for enrichment to complete)
       fetch(enrichmentWebhookUrl, {
@@ -323,13 +331,13 @@ export async function POST(request: NextRequest) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           rid,
-          sid: webhookSid, // Use pigId for guests, session cookie for authenticated
+          sid: effectiveSid, // sid_xxx for guests, sess_xxx for authenticated
           timestamp: body.timestamp,
           normalized_text: normalizedText,
         }),
       }).then(response => {
         if (response.ok) {
-          console.log(`✅ Enrichment webhook triggered for ${rid} (sid: ${webhookSid})`);
+          console.log(`✅ Enrichment webhook triggered for ${rid} (sid: ${effectiveSid})`);
         } else {
           console.error(`❌ Enrichment webhook failed for ${rid}: ${response.status}`);
         }
@@ -337,7 +345,7 @@ export async function POST(request: NextRequest) {
         console.error(`❌ Enrichment webhook error for ${rid}:`, error);
       });
       
-      console.log(`📤 Enrichment webhook triggered (async) for ${rid}, isGuest: ${isGuest}, webhookSid: ${webhookSid}`);
+      console.log(`📤 Enrichment webhook triggered (async) for ${rid}, isGuest: ${isGuest}, sid: ${effectiveSid}`);
     } else {
       console.warn(`⚠️ ENRICHMENT_WEBHOOK_URL not set - enrichment disabled`);
     }
@@ -354,7 +362,7 @@ export async function POST(request: NextRequest) {
         // Set TTL on sorted set to match reflection TTL
         await kv.expire(guestReflectionsKey, ttl);
         
-        logKvOperation({ op: 'ZADD', key: guestReflectionsKey, phase: 'ok', sid, rid });
+        logKvOperation({ op: 'ZADD', key: guestReflectionsKey, phase: 'ok', sid: effectiveSid, rid });
         console.log(`👤 Guest reflection indexed:`, {
           guestUid,
           key: guestReflectionsKey,
@@ -373,7 +381,7 @@ export async function POST(request: NextRequest) {
           kv.zadd(globalKey, { score, member: rid }),
         ]);
         
-        logKvOperation({ op: 'ZADD', key: ownerKey, phase: 'ok', sid, rid });
+        logKvOperation({ op: 'ZADD', key: ownerKey, phase: 'ok', sid: effectiveSid, rid });
       }
     } catch (error) {
       // Non-fatal: reflection is saved, just indexing failed
@@ -382,7 +390,7 @@ export async function POST(request: NextRequest) {
 
     // 13. Add to session recent_reflections list (for merge on sign-in) - SKIP FOR GUESTS
     if (!isGuest) {
-      const recentKey = kvKeys.sessionRecentReflections(sid);
+      const recentKey = kvKeys.sessionRecentReflections(sessionCookie);
       const score = Date.now();
       try {
         // Get existing list
@@ -400,7 +408,7 @@ export async function POST(request: NextRequest) {
         // Write back with TTL
         await kv.set(recentKey, JSON.stringify(trimmed), { ex: SESSION_RECENT_TTL });
         
-        logKvOperation({ op: 'SET', key: recentKey, phase: 'ok', sid, rid });
+        logKvOperation({ op: 'SET', key: recentKey, phase: 'ok', sid: sessionCookie, rid });
       } catch (error) {
         // Non-fatal
         console.error('Failed to update recent reflections:', error);
@@ -409,7 +417,7 @@ export async function POST(request: NextRequest) {
 
     // 14. Delete draft if exists
     try {
-      await kv.del(kvKeys.reflectionDraft(sid));
+      await kv.del(kvKeys.reflectionDraft(sessionCookie));
     } catch (error) {
       // Non-fatal
       console.error('Failed to delete draft:', error);
