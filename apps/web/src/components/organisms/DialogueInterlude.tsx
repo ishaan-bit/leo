@@ -165,12 +165,18 @@ export default function DialogueInterlude({
   
   return (
     <div className="relative w-full h-screen overflow-hidden">
-      {/* Ghibli Night Sky Background - seamless from BreathingSequence */}
-      <div 
+      {/* Ghibli Night Sky Background - smooth transition from BreathingSequence */}
+      <motion.div 
         className="absolute inset-0 -z-10"
-        style={{
-          background: 'linear-gradient(180deg, #0A0714 0%, #1A1530 100%)',
-          transition: 'background 700ms ease-in-out',
+        initial={{
+          background: 'linear-gradient(180deg, #0A0714 0%, #1A1530 100%)', // Match breathing exhale sky (skyLightnessLevel=0)
+        }}
+        animate={{
+          background: 'linear-gradient(180deg, #0A0714 0%, #1A1530 100%)', // Keep same gradient (no jump)
+        }}
+        transition={{
+          duration: 0, // No transition needed since they match
+          ease: 'easeInOut',
         }}
       />
       
@@ -226,9 +232,9 @@ export default function DialogueInterlude({
         }}
       />
       
-      {/* Primary Tower - visible and pulsing (from BreathingSequence) */}
+      {/* Primary Tower - locked position from BreathingSequence */}
       {towerConfig && (
-        <div
+        <motion.div
           className="absolute bottom-0 z-20"
           style={{
             left: `${towerConfig.x}%`, // FIXED: Use towerConfig.x (35%) from BreathingSequence
@@ -236,6 +242,9 @@ export default function DialogueInterlude({
             width: '80px',
             height: `${towerConfig.height * 1.8}px`,
           }}
+          initial={{ opacity: 1, scale: 0.98 }} // Match breathing sequence exhale state
+          animate={{ opacity: 1, scale: 1 }} // Gently return to normal scale
+          transition={{ duration: 0.6, ease: 'easeOut' }}
         >
           {/* Tower body */}
           <div
@@ -277,7 +286,7 @@ export default function DialogueInterlude({
               })}
             </div>
           </div>
-        </div>
+        </motion.div>
       )}
       
       {/* Inner Voice - Floating text mid-screen with gentle fade loop */}
@@ -338,15 +347,15 @@ export default function DialogueInterlude({
         </motion.div>
       </div>
       
-      {/* Regulate - Pig speech bubble (anchored to primary building top-left window) */}
+      {/* Regulate - Pig speech bubble (anchored to Leo pig character) */}
       <AnimatePresence>
-        {showPigBubble && regulate && towerConfig && (
+        {showPigBubble && regulate && (
           <motion.div
             className="absolute z-40"
             style={{
-              bottom: `${(towerConfig.height * 1.8) - 40}px`, // Near top floor of building
-              left: `calc(${towerConfig.x}% - 60px)`, // Left of building edge
-              transform: 'translateX(0)',
+              top: 'calc(28% - 50px)', // Top-right of Leo (who is at top: 28%)
+              left: 'calc(50% + 100px)', // Right of Leo (who is at left: 50%)
+              transform: 'translate(-50%, -50%)',
             }}
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -357,7 +366,7 @@ export default function DialogueInterlude({
               content={regulate}
               variant="pig" 
               maxWidth={240} // 220-260px range, using midpoint
-              tailDirection="right" // Tail points right toward building top-left window
+              tailDirection="left" // Tail points left toward Leo
               tailOffsetY={30} // Position tail toward upper part of bubble
               shadowLevel={2}
             />
@@ -382,13 +391,13 @@ export default function DialogueInterlude({
               enabled={true}
             />
             
-            {/* Bubble pointing to the glowing window */}
+            {/* Bubble pointing to top-left window */}
             <motion.div
               className="absolute z-40"
               style={{
                 bottom: `${(towerConfig.height * 1.8) - 20}px`, // Near top floor
                 left: `${towerConfig.x}%`,
-                transform: 'translateX(60px)', // Offset to the right of building
+                transform: 'translateX(-100px)', // Offset to the left of building
               }}
               initial={{ opacity: 0, x: -20 }}
               animate={{ 
@@ -404,7 +413,7 @@ export default function DialogueInterlude({
               <ComicSpeechBubble
                 content={amuse}
                 variant="window"
-                tailDirection="left"
+                tailDirection="right"
                 tailOffsetY={30}
                 shadowLevel={2}
               />

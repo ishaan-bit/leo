@@ -530,13 +530,14 @@ export default function BreathingSequence({
             }}
             transition={{ 
               opacity: { 
-                duration: 2, // Slower fade for seamless transition
-                ease: 'easeInOut',
-                delay: 0.3, // Slight delay to ensure overlap with interlude
+                duration: isPrimary ? 0 : 1.2, // Primary tower stays solid, others fade gradually
+                ease: 'easeOut',
+                delay: isPrimary ? 0 : 0.4, // Delayed fade for smooth transition
               },
               left: {
-                duration: 0, // No movement - primary already centered from interlude
+                duration: isPrimary ? 2.5 : 0, // Smooth re-centering for primary tower only
                 ease: [0.4, 0, 0.2, 1],
+                delay: 0.2, // Slight delay before starting movement
               },
               scale: { 
                 duration: isInhaling ? activeCycle.in : isExhaling ? activeCycle.out : 0.3,

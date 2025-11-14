@@ -118,6 +118,7 @@ export default function MomentsLibrary({
   const [language, setLanguage] = useState<'en' | 'hi'>('en');
   const [translatedContent, setTranslatedContent] = useState<TranslatedMoment | null>(null);
   const [isTranslating, setIsTranslating] = useState(false);
+  const [translatedDialogues, setTranslatedDialogues] = useState<Array<[string, string, string]> | null>(null);
   
   // Image rendering state
   const [imageLoadError, setImageLoadError] = useState(false);
@@ -233,6 +234,21 @@ export default function MomentsLibrary({
 
         const closingResult = await translateToHindi(selectedMoment.closingLine);
 
+        // Translate dialogue tuples if they exist
+        let dialogueResults: Array<[string, string, string]> | null = null;
+        if (selectedMoment.dialogue_tuples && selectedMoment.dialogue_tuples.length === 3) {
+          const dialoguePromises = selectedMoment.dialogue_tuples.map(async (tuple) => {
+            const [innerVoice, regulate, amuse] = tuple;
+            const [innerResult, regResult, amuseResult] = await Promise.all([
+              translateToHindi(innerVoice),
+              translateToHindi(regulate),
+              translateToHindi(amuse),
+            ]);
+            return [innerResult.translatedText, regResult.translatedText, amuseResult.translatedText] as [string, string, string];
+          });
+          dialogueResults = await Promise.all(dialoguePromises);
+        }
+
         setTranslatedContent({
           text: textResult.translatedText,
           invoked: invokedResult.translatedText,
@@ -241,6 +257,7 @@ export default function MomentsLibrary({
           tips: tipsResults.map(r => r.translatedText),
           closingLine: closingResult.translatedText,
         });
+        setTranslatedDialogues(dialogueResults);
 
         // Save translation to Redis for sharing
         try {
@@ -277,6 +294,7 @@ export default function MomentsLibrary({
     } else {
       // Switch back to English
       setLanguage('en');
+      setTranslatedDialogues(null);
       
       // Announce language change for accessibility
       const announcement = document.createElement('div');
@@ -2244,7 +2262,7 @@ export default function MomentsLibrary({
                         Three companions from today
                       </h3>
                       <div className="space-y-6">
-                        {selectedMoment.dialogue_tuples.map((tuple, i) => {
+                        {(language === 'hi' && translatedDialogues ? translatedDialogues : selectedMoment.dialogue_tuples).map((tuple, i) => {
                           const [innerVoice, regulate, amuse] = tuple;
                           const companionLabel = ['Companion One', 'Companion Two', 'Companion Three'][i];
                           
@@ -2805,18 +2823,7 @@ export default function MomentsLibrary({
                             opacity: 0.75,
                           }}
                         >
-                          When {pigName} sleeps tonight, they'll turn this moment and these companions into a dream letter.
-                        </p>
-                        <p
-                          className="text-xs italic max-w-sm mx-auto"
-                          style={{
-                            fontFamily: '"Inter", -apple-system, sans-serif',
-                            color: atmosphere.textMuted,
-                            opacity: 0.6,
-                            letterSpacing: '0.01em',
-                          }}
-                        >
-                          Come back tomorrow morning to read what they wrote for you.
+                          When {pigName} sleeps, sometimes a dream letter appears. Come back tomorrow and see if tonight was one of those nights.
                         </p>
                       </div>
                     )}
