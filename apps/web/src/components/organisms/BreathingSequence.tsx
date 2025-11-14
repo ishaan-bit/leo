@@ -509,9 +509,10 @@ export default function BreathingSequence({
         {TOWERS.map(tower => {
           const isPrimary = tower.id === effectivePrimary;
           
-          // COMPLETE fade-out for non-primary towers, center primary tower
-          const towerOpacity = isPrimary ? 1 : 0; // COMPLETE fade-out (0, not 0.3)
-          const displayX = isPrimary ? 35 : tower.x; // Center primary at 35%, keep others at original position
+          // Smooth fade: non-primary start at 0.15 (from CityInterlude), fade to 0 over 1.5s
+          // Primary tower centers smoothly after fade completes
+          const towerOpacity = isPrimary ? 1 : 0;
+          const displayX = isPrimary ? 35 : tower.x;
         
         return (
           <motion.div
@@ -522,22 +523,22 @@ export default function BreathingSequence({
               width: '80px',
               height: `${tower.height * 1.8}px`,
             }}
-            initial={{ opacity: 1, scale: 1 }} // All buildings visible initially
+            initial={{ opacity: isPrimary ? 1 : 0.15, scale: 1 }} // Match CityInterlude fade state
             animate={{
               opacity: towerOpacity,
               scale: isPrimary ? ((isInhaling || isHoldingIn) ? 1.02 : 0.98) : 1,
-              left: `${displayX}%`, // Primary stays centered at 35%, others keep position
+              left: `${displayX}%`, // Primary centers after others fade
             }}
             transition={{ 
               opacity: { 
-                duration: isPrimary ? 0 : 1.2, // Primary tower stays solid, others fade gradually
+                duration: isPrimary ? 0 : 1.5, // Smooth 1.5s fade for non-primary
                 ease: 'easeOut',
-                delay: isPrimary ? 0 : 0.4, // Delayed fade for smooth transition
+                delay: 0, // Start fading immediately
               },
               left: {
-                duration: isPrimary ? 2.5 : 0, // Smooth re-centering for primary tower only
+                duration: isPrimary ? 2.5 : 0, // Primary centers after 1.5s fade completes
                 ease: [0.4, 0, 0.2, 1],
-                delay: 0.2, // Slight delay before starting movement
+                delay: isPrimary ? 1.5 : 0, // Wait for fade to complete before centering
               },
               scale: { 
                 duration: isInhaling ? activeCycle.in : isExhaling ? activeCycle.out : 0.3,
@@ -813,7 +814,7 @@ export default function BreathingSequence({
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           >
-            <div className="bg-white/95 backdrop-blur-md px-6 py-2.5 rounded-full shadow-[0_4px_20px_rgba(107,142,106,0.15)] border border-[#8BA888]/20">
+            <div className="bg-white/95 backdrop-blur-md px-8 py-3 rounded-full shadow-[0_4px_20px_rgba(107,142,106,0.15)] border border-[#8BA888]/20">
               <p className="text-[#6B8E6A] font-light flex items-center gap-2 text-sm" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
                 <motion.span 
                   initial={{ scale: 0, rotate: -90 }}

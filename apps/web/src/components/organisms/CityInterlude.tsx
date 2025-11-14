@@ -304,13 +304,13 @@ export default function CityInterlude({
     };
     
     // Define color stops for continuous breathing flow
-    // FIX: Sky should be dark by time "time holding its breath" appears (10s)
+    // Sky gradually darkens to match BreathingSequence initial state (#3A2952 to #6B5B95)
     const colorStops = [
       { time: 0, top: '#FCE9EF', bottom: '#F9D8E3' },           // 0s: Blush
       { time: TIMING.PHASE1_DURATION, top: '#F9D8E3', bottom: '#D7B3DB' },  // 5s: Petal pink → mauve
       { time: TIMING.PHASE3_START - 2000, top: '#6B5B95', bottom: '#3A2952' }, // 8s: Deep twilight (2s before text)
-      { time: TIMING.PHASE3_START, top: '#2B2357', bottom: '#1A1530' },     // 10s: Dark night (when text appears)
-      { time: TIMING.PHASE4_START, top: '#0A0714', bottom: '#1A1530' },     // 30s: Deepest night
+      { time: TIMING.PHASE3_START, top: '#5A4A7D', bottom: '#2B2357' },     // 10s: Darker night (when text appears)
+      { time: TIMING.PHASE4_START, top: '#3A2952', bottom: '#6B5B95' },     // 30s: Match BreathingSequence initial state
     ];
     
     // Find which two color stops we're between
@@ -811,9 +811,10 @@ export default function CityInterlude({
           {TOWERS.map((tower, idx) => {
             const isPrimary = primaryEmotion === tower.id;
             const baseOpacity = getCityPulseBrightness();
-            const towerOpacity = isPrimary ? 0.8 : baseOpacity;
             
-            // NO PHASE 5: Buildings stay visible and positioned for BreathingSequence
+            // When primary is detected, fade non-primary buildings first, then center primary
+            const shouldFadeOut = primaryEmotion && !isPrimary;
+            const towerOpacity = shouldFadeOut ? 0.15 : (isPrimary && primaryEmotion ? 0.9 : baseOpacity);
             
             return (
               <motion.div
@@ -829,15 +830,20 @@ export default function CityInterlude({
                   opacity: 0 
                 }}
                 animate={{ 
-                  left: `${tower.x}%`, // Stay in original position
+                  left: `${tower.x}%`, // Stay in original position during city pulse
                   y: 0, 
-                  opacity: 1, // All buildings stay visible
+                  opacity: shouldFadeOut ? 0.15 : 1, // Fade non-primary buildings when primary detected
                 }}
                 transition={{
                   initial: {
                     duration: 1.5, // Faster rise from 2s
                     delay: idx * 0.2, // Reduced stagger from 0.5s to 0.2s (1.2s total vs 3s)
                     ease: [0.22, 1, 0.36, 1],
+                  },
+                  opacity: {
+                    duration: shouldFadeOut ? 1.5 : 0.8, // Smooth 1.5s fade for non-primary
+                    ease: 'easeOut',
+                    delay: shouldFadeOut ? 0 : 0,
                   },
                 }}
               >

@@ -46,7 +46,7 @@ export const PRIMARY_PRESETS: Record<PrimaryEmotion, PrimaryPreset> = {
   sad: {
     color: '#637DFF', // Indigo-blue (Vanta)
     audio: '/audio/breathe/hum_rain_sad.mp3',
-    cycle: { in: 9, h1: 1.5, out: 9, h2: 1.5 }, // Slow & heavy (was 6/1/6/1)
+    cycle: { in: 5, h1: 1.2, out: 5, h2: 1.2 }, // Slow but realistic (was 9/1.5/9/1.5)
     light: { mode: 'sink', intensity: [0.25, 0.8] },
   },
   mad: {
@@ -70,7 +70,7 @@ export const PRIMARY_PRESETS: Record<PrimaryEmotion, PrimaryPreset> = {
   powerful: {
     color: '#FF77C4', // Electric white-gold (Ashmere)
     audio: '/audio/breathe/resonant_power.mp3',
-    cycle: { in: 7.5, h1: 1.5, out: 7.5, h2: 1.5 }, // Expanding (was 5/1/5/1)
+    cycle: { in: 5, h1: 1.2, out: 5, h2: 1.2 }, // Expanding but realistic (was 7.5/1.5/7.5/1.5)
     light: { mode: 'surge', intensity: [0.45, 1.0] },
   },
 };

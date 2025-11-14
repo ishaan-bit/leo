@@ -212,9 +212,9 @@ export default function DialogueInterlude({
         })}
       </div>
       
-      {/* Crescent Moon - soft ambient light */}
+      {/* Crescent Moon - soft ambient light, positioned below nav */}
       <motion.div
-        className="absolute top-12 right-24 w-16 h-16 pointer-events-none z-10"
+        className="absolute top-20 right-24 w-16 h-16 pointer-events-none z-10"
         style={{
           borderRadius: '50%',
           boxShadow: 'inset -8px 0px 0px 0px rgba(255, 255, 255, 0.9)',
