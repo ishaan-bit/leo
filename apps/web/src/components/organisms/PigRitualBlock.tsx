@@ -153,19 +153,35 @@ export default function PigRitualBlock({ pigId, initialName }: PigRitualBlockPro
   async function handleContinueAsGuest() {
     setIsAuthenticating(true);
     try {
+      console.log('[PigRitual] Creating guest session for pigId:', pigId);
+      
       const res = await fetch('/api/auth/guest', {
         method: 'POST',
       });
 
       if (res.ok) {
+        const data = await res.json();
+        console.log('[PigRitual] Guest session created:', data);
+        
+        // Verify pigId before navigation
+        if (!pigId) {
+          console.error('[PigRitual] No pigId available for navigation!');
+          setError('Missing pig identifier. Please refresh and try again.');
+          setIsAuthenticating(false);
+          return;
+        }
+        
+        console.log('[PigRitual] Navigating to /reflect/' + pigId);
         // Navigate to reflect page
         window.location.href = `/reflect/${pigId}`;
       } else {
+        const errorData = await res.json().catch(() => ({}));
+        console.error('[PigRitual] Guest session creation failed:', res.status, errorData);
         setError('Could not create guest session');
         setIsAuthenticating(false);
       }
     } catch (err) {
-      console.error('Error creating guest session:', err);
+      console.error('[PigRitual] Error creating guest session:', err);
       setError('Something went wrong');
       setIsAuthenticating(false);
     }

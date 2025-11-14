@@ -44,10 +44,17 @@ export async function POST(request: NextRequest) {
     console.log(`[Enrichment Callback] Session ID from webhook: ${sid || 'NOT PROVIDED'}`);
     
     // Determine if this is a guest reflection
-    // Try to get sid from webhook payload first, then fallback to reflection data
+    // Guest sessions have pigId format: sid_{uuid}
+    // Authenticated sessions have cookie format: sess_{timestamp}_{random}
     let sessionId = sid;
     let isGuest = sessionId && sessionId.startsWith('sid_');
     let guestUid = isGuest ? sessionId.substring(4) : null;
+    
+    console.log(`[Enrichment Callback] Session type:`, {
+      sid: sessionId,
+      isGuest,
+      guestUid: guestUid ? guestUid.substring(0, 8) + '...' : null,
+    });
     
     // Try guest namespace first if we have a session ID
     let reflectionKey: string = `reflection:${rid}`; // Default to global namespace

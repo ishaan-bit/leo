@@ -52,6 +52,13 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ pig
       profile = await kv.get<PigProfile>(profileKey);
       
       console.log(`[API /pig/[pigId]] Guest lookup - pigId: ${pigId}, extracted sid: ${sid.substring(0, 12)}..., key: ${profileKey}, found:`, profile ? 'YES' : 'NO');
+      
+      // FALLBACK: Try old guest format guest:{uuid}:profile
+      if (!profile) {
+        const oldGuestKey = `guest:${sid}:profile`;
+        profile = await kv.get<PigProfile>(oldGuestKey);
+        console.log(`[API /pig/[pigId]] Old guest format lookup at ${oldGuestKey}:`, profile ? 'Found' : 'Not found');
+      }
     } else {
       // Authenticated user - try NEW format first, then OLD
       

@@ -83,11 +83,17 @@ export default function ReflectPage() {
   }
 
   if (!pigName) {
+    console.error('[ReflectPage] No pig name found for pigId:', pigId);
+    console.error('[ReflectPage] Status:', status);
+    
     return (
       <div className="min-h-screen bg-pink-50 flex items-center justify-center">
         <div className="text-center space-y-4">
           <p className="text-pink-800 text-lg font-serif italic">
             Could not load your companion...
+          </p>
+          <p className="text-pink-600 text-sm">
+            pigId: {pigId}
           </p>
           <a 
             href={`/p/${pigId}`}

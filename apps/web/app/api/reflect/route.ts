@@ -313,19 +313,23 @@ export async function POST(request: NextRequest) {
     const enrichmentWebhookUrl = process.env.ENRICHMENT_WEBHOOK_URL;
     
     if (enrichmentWebhookUrl) {
+      // CRITICAL: For guest users, send pigId (sid_xxx) instead of session cookie (sess_xxx)
+      // so the callback can find the reflection in the correct namespace
+      const webhookSid = isGuest && body.pigId ? body.pigId : sid;
+      
       // Call HF Spaces webhook endpoint asynchronously (don't wait for enrichment to complete)
       fetch(enrichmentWebhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           rid,
-          sid,
+          sid: webhookSid, // Use pigId for guests, session cookie for authenticated
           timestamp: body.timestamp,
           normalized_text: normalizedText,
         }),
       }).then(response => {
         if (response.ok) {
-          console.log(`✅ Enrichment webhook triggered for ${rid}`);
+          console.log(`✅ Enrichment webhook triggered for ${rid} (sid: ${webhookSid})`);
         } else {
           console.error(`❌ Enrichment webhook failed for ${rid}: ${response.status}`);
         }
@@ -333,7 +337,7 @@ export async function POST(request: NextRequest) {
         console.error(`❌ Enrichment webhook error for ${rid}:`, error);
       });
       
-      console.log(`📤 Enrichment webhook triggered (async) for ${rid}`);
+      console.log(`📤 Enrichment webhook triggered (async) for ${rid}, isGuest: ${isGuest}, webhookSid: ${webhookSid}`);
     } else {
       console.warn(`⚠️ ENRICHMENT_WEBHOOK_URL not set - enrichment disabled`);
     }
