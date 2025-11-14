@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { useSession, signIn } from 'next-auth/react';
+import { usePendingDream } from '@/contexts/PendingDreamContext';
 import { getZone, type PrimaryEmotion } from '@/lib/zones';
 import { translateToHindi } from '@/lib/translation';
 import ComicSpeechBubble from '@/components/atoms/ComicSpeechBubble';
@@ -68,6 +69,7 @@ interface MomentsLibraryProps {
   currentPrimary: PrimaryEmotion; // Today's zone to start with
   onNewReflection: () => void;
   onMomentSelected?: (selected: boolean) => void; // Notify parent when moment is expanded/closed
+  autoOpenMomentId?: string | null; // Optional: auto-open specific moment (for dream letters)
 }
 
 const EASING = [0.65, 0, 0.35, 1] as const;
@@ -108,8 +110,10 @@ export default function MomentsLibrary({
   currentPrimary,
   onNewReflection,
   onMomentSelected,
+  autoOpenMomentId = null, // Default to null (use newest moment)
 }: MomentsLibraryProps) {
   const { data: session, status } = useSession();
+  const { pendingDream, clearPendingDream } = usePendingDream(); // Access pending dream state
   const [phase, setPhase] = useState<'intro' | 'skyline' | 'library'>('intro');
   const [moments, setMoments] = useState<Moment[]>([]);
   const [selectedMoment, setSelectedMoment] = useState<Moment | null>(null);
@@ -135,6 +139,7 @@ export default function MomentsLibrary({
   const containerRef = useRef<HTMLDivElement>(null);
   const leoRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
+  const dreamLetterRef = useRef<HTMLDivElement>(null); // Ref for auto-scrolling to dream letter
   const hadMomentOpenRef = useRef(false); // Track if we actually opened a moment
   const autoOpenCompletedRef = useRef(false); // Track if auto-open has run
 
@@ -213,6 +218,35 @@ export default function MomentsLibrary({
       setImageRendered(true);
     }
   }, [selectedMoment, imageRendered, imageLoadError]);
+
+  // Attach pending dream to selected moment and auto-scroll
+  useEffect(() => {
+    if (!selectedMoment || !pendingDream) return;
+
+    // Attach pending dream letter to the selected moment
+    if (!selectedMoment.dream_letter) {
+      console.log('[MomentsLibrary] 💌 Attaching pending dream to selected moment:', selectedMoment.id);
+      
+      selectedMoment.dream_letter = {
+        letter_text: pendingDream.letter_text,
+        generated_at: pendingDream.created_at,
+      };
+      selectedMoment.dreamLetterState = 'available';
+    }
+
+    // Auto-scroll to dream letter section after a short delay (let animation settle)
+    const scrollTimer = setTimeout(() => {
+      if (dreamLetterRef.current) {
+        console.log('[MomentsLibrary] 📜 Scrolling to dream letter section...');
+        dreamLetterRef.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
+      }
+    }, 1500); // Wait for moment expand animation to complete
+
+    return () => clearTimeout(scrollTimer);
+  }, [selectedMoment, pendingDream]);
 
   // Songs are already enriched by enrichment worker - no need to fetch separately
   // They're loaded with the moment data from Redis
@@ -452,25 +486,35 @@ export default function MomentsLibrary({
   }, [phase, currentPrimary]);
 
   // Auto-open today's brightest moment when library phase loads (ONCE)
+  // If autoOpenMomentId is provided (e.g., for dream letter), open that moment instead
   useEffect(() => {
     if (phase === 'library' && moments.length > 0 && !autoOpenCompletedRef.current) {
-      // Find the newest moment (today's brightest window)
-      const newestMoment = moments.reduce((newest, current) => {
-        return new Date(current.timestamp) > new Date(newest.timestamp) ? current : newest;
-      });
+      let momentToOpen: Moment | null = null;
       
-      console.log('[MomentsLibrary] ?? Auto-opening newest moment:', newestMoment.id);
+      // Check if we should auto-open a specific moment (e.g., for dream letter)
+      if (autoOpenMomentId) {
+        momentToOpen = moments.find(m => m.id === autoOpenMomentId) || null;
+        console.log('[MomentsLibrary] 💌 Auto-opening specific moment for dream letter:', autoOpenMomentId, momentToOpen ? '✓' : '✗');
+      }
+      
+      // Fallback: Find the newest moment (today's brightest window)
+      if (!momentToOpen) {
+        momentToOpen = moments.reduce((newest, current) => {
+          return new Date(current.timestamp) > new Date(newest.timestamp) ? current : newest;
+        });
+        console.log('[MomentsLibrary] ✨ Auto-opening newest moment:', momentToOpen.id);
+      }
       
       // Wait for animations to settle (2.5s after library loads)
       const timer = setTimeout(() => {
-        setSelectedMoment(newestMoment);
+        setSelectedMoment(momentToOpen);
         hadMomentOpenRef.current = true; // Track that moment was opened
         autoOpenCompletedRef.current = true; // Prevent re-running
       }, 2500);
       
       return () => clearTimeout(timer);
     }
-  }, [phase, moments]); // Removed selectedMoment dependency to prevent loop
+  }, [phase, moments, autoOpenMomentId]); // Added autoOpenMomentId dependency
 
   // GUEST DATA PURGE: After library phase loads, purge guest data (transient mode)
   useEffect(() => {
@@ -2868,6 +2912,7 @@ export default function MomentsLibrary({
 
                   {/* Dream Letter Section */}
                   <motion.div
+                    ref={dreamLetterRef} // Add ref for auto-scrolling
                     className="mt-10 pt-8 border-t relative"
                     style={{ borderColor: `${atmosphere.accentColor}20` }}
                     initial={{ opacity: 0, y: 10 }}
@@ -3087,6 +3132,57 @@ export default function MomentsLibrary({
                                 </motion.div>
                               )}
                             </motion.div>
+                            
+                            {/* Mark as Read button - triggers whoosh animation and deletion */}
+                            {pendingDream && (
+                              <motion.button
+                                onClick={async () => {
+                                  console.log('[MomentsLibrary] 💨 Marking dream as read...');
+                                  
+                                  // Trigger exit animation first
+                                  setSelectedMoment(prev => {
+                                    if (prev && prev.dream_letter) {
+                                      return {
+                                        ...prev,
+                                        dreamLetterState: 'read' as const,
+                                      };
+                                    }
+                                    return prev;
+                                  });
+                                  
+                                  // Wait for animation
+                                  await new Promise(resolve => setTimeout(resolve, 600));
+                                  
+                                  // Delete from backend and clear context
+                                  await clearPendingDream();
+                                  
+                                  console.log('[MomentsLibrary] ✅ Dream marked as read and removed');
+                                }}
+                                className="mt-6 px-6 py-2 rounded-full text-xs font-medium transition-all w-full"
+                                style={{
+                                  fontFamily: '"Inter", -apple-system, sans-serif',
+                                  background: `linear-gradient(135deg, ${atmosphere.gradient[0]}, ${atmosphere.gradient[1]})`,
+                                  color: '#FFFFFF',
+                                  letterSpacing: '0.05em',
+                                  boxShadow: `0 2px 8px ${atmosphere.accentColor}20`,
+                                }}
+                                whileHover={{
+                                  scale: 1.02,
+                                  boxShadow: `0 4px 12px ${atmosphere.accentColor}30`,
+                                }}
+                                whileTap={{ scale: 0.98 }}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{
+                                  opacity: 0,
+                                  y: -50,
+                                  transition: { duration: 0.6, ease: [0.4, 0, 1, 1] }
+                                }}
+                                transition={{ duration: 0.8, delay: 2.0 }}
+                              >
+                                I've read this 💌
+                              </motion.button>
+                            )}
                           </motion.div>
                         ) : (
                           /* CTA Button - if letter not yet generated */

@@ -1,6 +1,7 @@
 import '../src/styles/globals.css';
 import type { Metadata, Viewport } from 'next';
 import { AuthProvider } from '@/providers/AuthProvider';
+import { PendingDreamProvider } from '@/contexts/PendingDreamContext';
 import SoundToggle from '@/components/atoms/SoundToggle';
 
 export const metadata: Metadata = {
@@ -58,9 +59,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         }}
       >
         <AuthProvider>
-          {/* Global ambient sound toggle - appears on all pages */}
-          <SoundToggle />
-          {children}
+          <PendingDreamProvider>
+            {/* Global ambient sound toggle - appears on all pages */}
+            <SoundToggle />
+            {children}
+          </PendingDreamProvider>
         </AuthProvider>
       </body>
     </html>
