@@ -143,8 +143,8 @@ export async function POST(request: NextRequest) {
     // Check if _dialogue_meta contains the randomly selected poem
     if (_dialogue_meta?.poem && typeof _dialogue_meta.poem === 'string') {
       poemFromExcel = _dialogue_meta.poem;
-      console.log(`[Enrichment Callback] ✅ Found Excel poem (${poemFromExcel.length} chars)`);
-      console.log(`[Enrichment Callback] Poem preview: ${poemFromExcel.substring(0, 100)}...`);
+      console.log(`[Enrichment Callback] ✅ Found Excel poem (${poemFromExcel!.length} chars)`);
+      console.log(`[Enrichment Callback] Poem preview: ${poemFromExcel!.substring(0, 100)}...`);
     } else {
       console.warn(`[Enrichment Callback] ⚠️ No Excel poem found in _dialogue_meta`);
     }
