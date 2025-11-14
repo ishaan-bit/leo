@@ -1561,15 +1561,16 @@ export default function MomentsLibrary({
               <motion.div
                 ref={modalRef}
                 className="relative max-w-2xl w-full max-h-[90vh] md:max-h-[85vh] overflow-y-auto custom-scrollbar"
-                initial={{ scale: 0.85, y: 30, opacity: 0 }}
-                animate={{ scale: 1, y: 0, opacity: 1 }}
+                initial={{ scale: 0.85, y: 30, opacity: 0, filter: 'brightness(0.8) blur(4px)' }}
+                animate={{ scale: 1, y: 0, opacity: 1, filter: 'brightness(1) blur(0px)' }}
                 exit={{ 
                   scale: 0.9, 
                   y: -20, 
                   opacity: 0,
+                  filter: 'brightness(0.8) blur(4px)',
                   transition: { duration: 0.4 }
                 }}
-                transition={{ duration: 0.6, ease: EASING }}
+                transition={{ duration: 0.7, ease: EASING }}
                 onClick={(e) => e.stopPropagation()}
                 onAnimationComplete={() => {
                   // Scroll to top when modal opens (fix for content pushed off-screen)
@@ -1628,6 +1629,63 @@ export default function MomentsLibrary({
                       opacity: 0.6,
                     }}
                   />
+                  
+                  {/* Micro-grain texture overlay */}
+                  <motion.div
+                    className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none rounded-[32px] z-0"
+                    style={{
+                      backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 400 400\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' /%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\' opacity=\'0.05\'/%3E%3C/svg%3E")',
+                      opacity: 0.04,
+                      mixBlendMode: 'overlay',
+                    }}
+                  />
+                  
+                  {/* Very slow gradient drift */}
+                  <motion.div
+                    className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none rounded-[32px] z-0 opacity-20"
+                    style={{
+                      background: `radial-gradient(circle at 50% 50%, ${atmosphere.gradient[0]}20 0%, transparent 50%)`,
+                    }}
+                    animate={{
+                      background: [
+                        `radial-gradient(circle at 30% 40%, ${atmosphere.gradient[0]}20 0%, transparent 50%)`,
+                        `radial-gradient(circle at 70% 60%, ${atmosphere.gradient[1]}20 0%, transparent 50%)`,
+                        `radial-gradient(circle at 30% 40%, ${atmosphere.gradient[0]}20 0%, transparent 50%)`,
+                      ],
+                    }}
+                    transition={{
+                      duration: 20,
+                      repeat: Infinity,
+                      ease: 'easeInOut',
+                    }}
+                  />
+                  
+                  {/* Barely-visible floating dust motes (cinematic) */}
+                  <div className="absolute top-0 left-0 right-0 bottom-0 overflow-hidden rounded-[32px] pointer-events-none z-0">
+                    {[...Array(3)].map((_, i) => (
+                      <motion.div
+                        key={`cinematic-dust-${i}`}
+                        className="absolute w-0.5 h-0.5 rounded-full"
+                        style={{
+                          background: `radial-gradient(circle, ${atmosphere.accentColor}50 0%, transparent 70%)`,
+                          left: `${20 + i * 30}%`,
+                          top: `${10 + i * 25}%`,
+                          filter: 'blur(0.5px)',
+                        }}
+                        animate={{
+                          y: [0, -30, 0],
+                          x: [0, 15 * (i % 2 === 0 ? 1 : -1), 0],
+                          opacity: [0.1, 0.3, 0.1],
+                        }}
+                        transition={{
+                          duration: 18 + i * 4,
+                          repeat: Infinity,
+                          ease: 'easeInOut',
+                          delay: i * 3,
+                        }}
+                      />
+                    ))}
+                  </div>
 
                   {/* Ambient motion particles based on emotion - constrained to background layer, max 40 particles */}
                   <div className="absolute top-0 left-0 right-0 bottom-0 overflow-hidden rounded-[32px] pointer-events-none z-0">
@@ -2078,7 +2136,7 @@ export default function MomentsLibrary({
                         textShadow: '0 1px 1px rgba(0,0,0,0.1)',
                       }}
                     >
-                      What you shared today
+                      Today, your heart said this
                     </div>
                     <p
                       className="text-[16px] md:text-[18px]"
@@ -2087,7 +2145,7 @@ export default function MomentsLibrary({
                         color: atmosphere.textColor,
                         fontWeight: 400,
                         letterSpacing: '0.02em',
-                        lineHeight: '1.8',
+                        lineHeight: '2.0', // Increased from 1.8 for poetic pacing
                         textShadow: '0 1px 2px rgba(0,0,0,0.15)',
                       }}
                     >
@@ -2184,11 +2242,36 @@ export default function MomentsLibrary({
                   {/* Poem from Upstash (from Excel - randomly selected) */}
                   {selectedMoment.poem && (
                     <motion.div
-                      className="mb-12"
+                      className="mb-12 relative"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ duration: 1.5, delay: 0.7 }}
                     >
+                      {/* Soft inner glow behind poem */}
+                      <div
+                        className="absolute inset-0 -m-6 rounded-2xl pointer-events-none"
+                        style={{
+                          background: `radial-gradient(ellipse at center, ${atmosphere.accentGlow} 0%, transparent 70%)`,
+                          opacity: 0.15,
+                          filter: 'blur(30px)',
+                        }}
+                      />
+                      
+                      {/* Decorative opening quote mark */}
+                      <motion.div
+                        className="absolute -left-8 top-0 text-6xl opacity-20 pointer-events-none"
+                        style={{
+                          fontFamily: '"Cormorant Garamond", serif',
+                          color: atmosphere.accentColor,
+                          lineHeight: '1',
+                        }}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 0.2, x: 0 }}
+                        transition={{ duration: 1, delay: 0.9 }}
+                      >
+                        "
+                      </motion.div>
+                      
                       <h3
                         className="text-[14px] italic mb-6"
                         style={{
@@ -2200,7 +2283,7 @@ export default function MomentsLibrary({
                           textShadow: '0 1px 1px rgba(0,0,0,0.1)',
                         }}
                       >
-                        A poetic companion
+                        A poem the day left you
                       </h3>
                       <div className="space-y-3">
                         {(() => {
@@ -2219,9 +2302,9 @@ export default function MomentsLibrary({
                               style={{
                                 fontFamily: '"Cormorant Garamond", "EB Garamond", serif',
                                 color: atmosphere.textColor,
-                                lineHeight: '1.9',
+                                lineHeight: '2.1', // Increased for poetic spacing
                                 fontWeight: 400,
-                                letterSpacing: '0.02em',
+                                letterSpacing: '0.03em', // Slightly more airy
                                 textShadow: '0 1px 2px rgba(0,0,0,0.15)',
                                 fontStyle: 'italic',
                               }}
@@ -2259,7 +2342,7 @@ export default function MomentsLibrary({
                           textShadow: '0 1px 1px rgba(0,0,0,0.1)',
                         }}
                       >
-                        Three companions from today
+                        Three guides that walked beside you
                       </h3>
                       <div className="space-y-6">
                         {(language === 'hi' && translatedDialogues ? translatedDialogues : selectedMoment.dialogue_tuples).map((tuple, i) => {
@@ -2269,21 +2352,25 @@ export default function MomentsLibrary({
                           return (
                             <motion.div
                               key={i}
-                              className="p-5 rounded-xl backdrop-blur-sm"
+                              className="p-5 rounded-xl backdrop-blur-sm border-l-2"
                               style={{
                                 background: `linear-gradient(135deg, ${atmosphere.accentColor}08, rgba(255,255,255,0.02))`,
                                 border: `1px solid ${atmosphere.accentColor}15`,
+                                borderLeftColor: atmosphere.accentColor,
+                                borderLeftWidth: '2px',
                                 boxShadow: `0 4px 12px ${atmosphere.gradient[0]}10`,
                               }}
-                              initial={{ opacity: 0, y: 10 }}
+                              initial={{ opacity: 0, y: 12 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{
                                 duration: 0.6,
                                 delay: 1.5 + (i * 0.2),
+                                ease: [0.16, 1, 0.3, 1], // Custom easing for smooth entry
                               }}
                               whileHover={{
                                 boxShadow: `0 6px 16px ${atmosphere.gradient[0]}20`,
                                 borderColor: `${atmosphere.accentColor}25`,
+                                y: -2, // Slight lift on hover
                               }}
                             >
                               {/* Companion subtitle */}
@@ -2299,10 +2386,10 @@ export default function MomentsLibrary({
                                 {companionLabel}
                               </div>
 
-                              {/* Mind said - Inner Voice */}
+                              {/* Mind murmured - Inner Voice */}
                               <div className="mb-3">
                                 <div
-                                  className="text-[0.7rem] uppercase tracking-wider mb-1.5"
+                                  className="text-[0.7rem] uppercase tracking-wider mb-1.5 flex items-center gap-2"
                                   style={{
                                     fontFamily: '"Inter", -apple-system, sans-serif',
                                     color: atmosphere.accentColor,
@@ -2311,7 +2398,8 @@ export default function MomentsLibrary({
                                     fontWeight: 500,
                                   }}
                                 >
-                                  Mind said
+                                  <span className="opacity-60">💭</span>
+                                  Mind murmured
                                 </div>
                                 <div
                                   className="text-[15px]"
@@ -2327,10 +2415,10 @@ export default function MomentsLibrary({
                                 </div>
                               </div>
 
-                              {/* Body did - Regulate */}
+                              {/* Body remembered - Regulate */}
                               <div className="mb-3">
                                 <div
-                                  className="text-[0.7rem] uppercase tracking-wider mb-1.5"
+                                  className="text-[0.7rem] uppercase tracking-wider mb-1.5 flex items-center gap-2"
                                   style={{
                                     fontFamily: '"Inter", -apple-system, sans-serif',
                                     color: atmosphere.accentColor,
@@ -2339,7 +2427,8 @@ export default function MomentsLibrary({
                                     fontWeight: 500,
                                   }}
                                 >
-                                  Body did
+                                  <span className="opacity-60">🌊</span>
+                                  Body remembered
                                 </div>
                                 <div
                                   className="text-[15px]"
@@ -2355,10 +2444,10 @@ export default function MomentsLibrary({
                                 </div>
                               </div>
 
-                              {/* Spark added - Amuse */}
+                              {/* Spark flickered - Amuse */}
                               <div>
                                 <div
-                                  className="text-[0.7rem] uppercase tracking-wider mb-1.5"
+                                  className="text-[0.7rem] uppercase tracking-wider mb-1.5 flex items-center gap-2"
                                   style={{
                                     fontFamily: '"Inter", -apple-system, sans-serif',
                                     color: atmosphere.accentColor,
@@ -2367,7 +2456,8 @@ export default function MomentsLibrary({
                                     fontWeight: 500,
                                   }}
                                 >
-                                  Spark added
+                                  <span className="opacity-60">✨</span>
+                                  Spark flickered
                                 </div>
                                 <div
                                   className="text-[15px]"
@@ -2770,14 +2860,24 @@ export default function MomentsLibrary({
                     </motion.div>
                   )}
 
-                  {/* Dream Letter Teaser - Tomorrow Morning */}
+                  {/* Dream Letter Section */}
                   <motion.div
-                    className="mt-10 pt-8 border-t"
+                    className="mt-10 pt-8 border-t relative"
                     style={{ borderColor: `${atmosphere.accentColor}20` }}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 1.0, ease: EASING }}
                   >
+                    {/* Soft inner glow behind dream letter section */}
+                    <div
+                      className="absolute inset-0 -m-8 rounded-2xl pointer-events-none"
+                      style={{
+                        background: `radial-gradient(ellipse at center, ${atmosphere.accentGlow} 0%, transparent 70%)`,
+                        opacity: 0.1,
+                        filter: 'blur(40px)',
+                      }}
+                    />
+                    
                     {/* Locked state - dream letter not yet generated */}
                     {(!selectedMoment.dreamLetterState || selectedMoment.dreamLetterState === 'locked') && (
                       <div className="text-center px-4">
@@ -2830,7 +2930,23 @@ export default function MomentsLibrary({
 
                     {/* Available state - dream letter ready to read */}
                     {selectedMoment.dreamLetterState === 'available' && (
-                      <div className="text-center px-4">
+                      <div className="text-center px-4 relative z-10">
+                        {/* Cinematic subtitle */}
+                        <motion.div
+                          className="text-[0.7rem] uppercase tracking-widest mb-3"
+                          style={{
+                            fontFamily: '"Inter", -apple-system, sans-serif',
+                            color: atmosphere.textMuted,
+                            letterSpacing: '0.15em',
+                            opacity: 0.6,
+                          }}
+                          initial={{ opacity: 0, y: -5 }}
+                          animate={{ opacity: 0.6, y: 0 }}
+                          transition={{ duration: 0.6, delay: 0.2 }}
+                        >
+                          Carried back from the night
+                        </motion.div>
+                        
                         <motion.div
                           className="inline-flex items-center justify-center mb-4"
                           animate={{
@@ -2862,20 +2978,21 @@ export default function MomentsLibrary({
                             <polyline points="22,6 12,13 2,6"></polyline>
                           </svg>
                         </motion.div>
-
-                        <p
-                          className="text-[15px] italic mb-5 max-w-md mx-auto"
+                        
+                        {/* Dream Letter Title */}
+                        <h3
+                          className="text-[18px] italic mb-5 max-w-md mx-auto"
                           style={{
                             fontFamily: '"Cormorant Garamond", "EB Garamond", "Georgia", serif',
                             color: atmosphere.textColor,
-                            fontWeight: 400,
+                            fontWeight: 500,
                             letterSpacing: '0.02em',
                             lineHeight: '1.8',
-                            opacity: 0.8,
+                            opacity: 0.85,
                           }}
                         >
-                          {pigName} has written your dream letter from this moment.
-                        </p>
+                          Your Dream Letter from {pigName}
+                        </h3>
 
                         {/* CTA Button */}
                         <motion.button
