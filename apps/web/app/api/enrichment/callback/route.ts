@@ -135,45 +135,18 @@ export async function POST(request: NextRequest) {
       ? JSON.parse(existingData)
       : existingData;
     
-    // Extract poems from Excel data (Poem En 1 / Poem En 2)
-    // The HuggingFace API should return these in _dialogue_meta
-    // Poems are stored as COMPLETE STRINGS (not split into lines)
-    const poemsFromExcel: string[] = [];
+    // Extract poem from Excel data (single randomly selected poem from Poem En 1 or Poem En 2)
+    // The HuggingFace API returns this in _dialogue_meta.poem
+    // Stored as a COMPLETE STRING (multiline poem with preserved line breaks)
+    let poemFromExcel: string | null = null;
     
-    // Check if _dialogue_meta contains poem data (try multiple possible key formats)
-    // Keys could be: poem_en_1, Poem En 1, poem_1, etc.
-    const poem1 = _dialogue_meta?.poem_en_1 
-      || _dialogue_meta?.['Poem En 1'] 
-      || _dialogue_meta?.poem_1 
-      || _dialogue_meta?.poem1;
-      
-    const poem2 = _dialogue_meta?.poem_en_2 
-      || _dialogue_meta?.['Poem En 2'] 
-      || _dialogue_meta?.poem_2 
-      || _dialogue_meta?.poem2;
-    
-    if (poem1) {
-      poemsFromExcel.push(poem1); // Store complete poem string as-is
-    }
-    if (poem2) {
-      poemsFromExcel.push(poem2); // Store complete poem string as-is
-    }
-    
-    // Fallback: If Excel poems not available, extract from first dialogue tuple (legacy)
-    if (poemsFromExcel.length === 0 && _dialogue_meta?.dialogue_tuples?.length > 0) {
-      const firstTuple = _dialogue_meta.dialogue_tuples[0];
-      if (Array.isArray(firstTuple) && firstTuple.length >= 3) {
-        // Use first 2 lines from first tuple as fallback poems
-        poemsFromExcel.push(firstTuple[0], firstTuple[1]);
-      }
-    }
-    
-    console.log(`[Enrichment Callback] Extracted ${poemsFromExcel.length} poems from Excel data`);
-    if (poemsFromExcel.length > 0) {
-      console.log(`[Enrichment Callback] Poem 1: ${poemsFromExcel[0]?.substring(0, 80)}...`);
-      if (poemsFromExcel[1]) {
-        console.log(`[Enrichment Callback] Poem 2: ${poemsFromExcel[1]?.substring(0, 80)}...`);
-      }
+    // Check if _dialogue_meta contains the randomly selected poem
+    if (_dialogue_meta?.poem) {
+      poemFromExcel = _dialogue_meta.poem;
+      console.log(`[Enrichment Callback] ✅ Found Excel poem (${poemFromExcel.length} chars)`);
+      console.log(`[Enrichment Callback] Poem preview: ${poemFromExcel.substring(0, 100)}...`);
+    } else {
+      console.warn(`[Enrichment Callback] ⚠️ No Excel poem found in _dialogue_meta`);
     }
 
     // Add 'final' field with enrichment data
@@ -190,17 +163,31 @@ export async function POST(request: NextRequest) {
       control,
       polarity,
       confidence,
-      // NEW: Store dialogue_tuples AND poems from Excel
+      // Store dialogue_tuples and poem from Excel (no redundant nesting)
       post_enrichment: {
+        // Full 3-part tuples: [[Inner Voice, Regulate, Amuse], ...]
         dialogue_tuples: _dialogue_meta?.dialogue_tuples || [],
-        poems: poemsFromExcel, // Use actual poems from Excel (Poem En 1 / Poem En 2)
-        meta: _dialogue_meta || {},
+        
+        // Single randomly selected poem from Excel (Poem En 1 or Poem En 2)
+        poem: poemFromExcel,
+        
+        // Metadata for debugging/analytics (without redundant dialogue_tuples)
+        meta: {
+          source: _dialogue_meta?.source || 'unknown',
+          domain_primary: _dialogue_meta?.domain_primary,
+          wheel_secondary: _dialogue_meta?.wheel_secondary,
+          total_available: _dialogue_meta?.total_available,
+          found: _dialogue_meta?.found,
+        },
       },
     };
     
-    // Add any other enrichment fields
+    // Add any other enrichment fields (excluding legacy dialogue/poem fields)
+    // Legacy fields to exclude: poems, tips, poem (these are now in post_enrichment only)
+    const legacyFields = ['poems', 'tips', 'poem'];
+    
     Object.keys(rest).forEach(key => {
-      if (!reflection.final[key]) {
+      if (!reflection.final[key] && !legacyFields.includes(key)) {
         reflection.final[key] = rest[key];
       }
     });
@@ -217,7 +204,7 @@ export async function POST(request: NextRequest) {
       console.log(`[Enrichment Callback]    Primary: ${primary}`);
       console.log(`[Enrichment Callback]    Valence: ${valence}`);
       console.log(`[Enrichment Callback]    Dialogue Tuples: ${_dialogue_meta?.dialogue_tuples?.length || 0} tuples`);
-      console.log(`[Enrichment Callback]    Poems: ${poemsFromExcel.length} poems from Excel`);
+      console.log(`[Enrichment Callback]    Poem: ${poemFromExcel ? 'Found' : 'None'} (from Excel)`);
       
       return NextResponse.json({
         success: true,

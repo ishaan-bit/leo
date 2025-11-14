@@ -1,0 +1,11 @@
+{
+  "split_timestamp": "2025-11-02T11:04:28.948764",
+  "embargo_days": 7,
+  "seed": 137,
+  "train_users_count": 560,
+  "val_users_count": 120,
+  "test_users_count": 120,
+  "train_items_count": 3646,
+  "val_items_count": 772,
+  "test_items_count": 782
+}

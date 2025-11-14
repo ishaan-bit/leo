@@ -54,6 +54,7 @@ export async function GET(
       invoked: moment.final?.invoked || '',
       expressed: moment.final?.expressed || '',
       poems: moment.post_enrichment?.poems || moment.final?.poems || [],
+      poem: moment.final?.post_enrichment?.poem || moment.final?.poem || null, // Single poem from Excel
       timestamp: moment.timestamp || moment.created_at,
       image_base64: moment.image_base64 || moment.caption?.image_base64,
       pig_name: moment.pig_name,

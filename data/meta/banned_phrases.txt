@@ -1,0 +1,112 @@
+# Banned Phrases - Do NOT use in "good" outputs
+
+## Absolute Bans (Zero Tolerance)
+you are valid
+you are enough
+you deserve
+just breathe
+stay hydrated
+it will all be fine
+everything happens for a reason
+this too shall pass
+be kind to yourself
+practice self-care
+you are not alone
+reach out if you need
+sending you love
+sending you light
+sending you hugs
+sending hugs
+you've got this
+you got this
+one day at a time
+stay strong
+stay positive
+trust the process
+the universe
+manifest
+toxic
+triggered
+trauma dumping
+boundaries are important
+
+## Prescriptive Patterns (Avoid)
+you should
+you must
+you need to
+try to
+have you tried
+have you considered
+don't forget
+remember to
+make sure to
+be sure to
+
+## Therapy Jargon (Avoid Unless Clinically Appropriate)
+trauma
+ptsd
+depression (as diagnosis)
+anxiety (as diagnosis)
+bipolar
+toxic relationship
+narcissist
+gaslighting
+trauma response
+fight or flight
+nervous breakdown
+
+## Western Wellness Clichés
+manifest your dreams
+trust the journey
+high vibrations
+good vibes only
+love and light
+namaste (when used superficially)
+yoga will fix it
+meditate on it
+find your zen
+chakras (unless contextually appropriate)
+
+## Moralizing/Judging
+you should leave him
+you should forgive
+you're too good for
+they don't deserve you
+you're better off without
+that's toxic behavior
+red flag
+set boundaries (prescriptive form)
+
+## Empty Reassurances
+it gets better
+time heals all wounds
+tomorrow is a new day
+this is just a phase
+you'll look back and laugh
+you're stronger than you think
+God has a plan
+everything works out
+
+## Wellness Commands
+drink water
+get some sleep
+take a walk
+go outside
+exercise more
+eat healthy
+journal about it
+talk to someone
+
+## Emoji Overuse in Serious Context
+❤️ (except sparingly in closing)
+💪
+🙏
+✨
+🌟
+💯
+🔥
+👊
+
+Note: These phrases are banned in GOOD outputs for SFT/DPO training.
+They may appear in BAD examples to teach the model what to avoid.
+Context matters - some phrases acceptable in casual chat, not in empathetic reflection.

@@ -173,7 +173,7 @@ export async function GET(
           timestamp: data.timestamp || new Date().toISOString(),
           invoked: data.final?.invoked || '',
           expressed: data.final?.expressed || '',
-          poem: data.final?.poem || null, // 🔥 Single poem from Excel (random selection)
+          poem: data.final?.post_enrichment?.poem || data.final?.poem || null, // Poem from Excel (Poem En 1 or Poem En 2 - random selection)
           tips: data.post_enrichment?.tips || [],
           closingLine: data.post_enrichment?.closing_line || '',
           valence: data.final?.valence || data.valence || 0.5,

@@ -1,0 +1,58 @@
+{
+  "crisis_variants": [
+    {
+      "tips": [
+        "This sounds overwhelming. If you're in immediate danger, call 112.",
+        "KIRAN Mental Health Helpline: 1800-599-0019 (24×7, toll-free)",
+        "AASRA: +91-22-2754 6669 (Mon–Sat, 8 PM–10 PM)",
+        "SNEHA: 044-2464 0050 (24×7)"
+      ],
+      "grounding": [
+        "Take a small sip of water",
+        "Feel your feet on the floor",
+        "Name 5 things you can see right now",
+        "Notice the temperature of the air on your skin",
+        "Place one hand on your chest, one on your belly"
+      ],
+      "closing_line": "You matter. Help is available. You don't have to face this alone."
+    },
+    {
+      "tips": [
+        "Right now matters. If you're unsafe, reach out: 112 for emergencies.",
+        "KIRAN can listen anytime: 1800-599-0019 (free call, 24×7)",
+        "Connect with AASRA: +91-22-2754 6669",
+        "SNEHA is available 24×7: 044-2464 0050"
+      ],
+      "grounding": [
+        "Hold something cold—ice, a cold can",
+        "Count backwards slowly from 100 by 7s",
+        "Describe aloud what you see around you",
+        "Press your palms together firmly",
+        "Listen for three different sounds"
+      ],
+      "closing_line": "This feeling is real, but it can change. You're not alone."
+    },
+    {
+      "tips": [
+        "If you're in immediate danger, please call 112 now.",
+        "KIRAN helpline is open 24×7: 1800-599-0019",
+        "AASRA offers support: +91-22-2754 6669 (Mon–Sat evenings)",
+        "SNEHA is here to listen: 044-2464 0050"
+      ],
+      "grounding": [
+        "Splash cold water on your face",
+        "Name 3 things you can touch",
+        "Breathe in slowly for 4 counts, out for 6",
+        "Look at something green or blue",
+        "Wiggle your toes, feel them move"
+      ],
+      "closing_line": "You deserve support. These numbers are safe to call."
+    }
+  ],
+  "meta": {
+    "version": "safety_copy_v1",
+    "region": "india",
+    "updated": "2025-01-01",
+    "notes": "Crisis-safe content with India-specific resources. No breath-holds, no vigorous physical prompts. Grounding is gentle, accessible, immediate."
+  }
+}
