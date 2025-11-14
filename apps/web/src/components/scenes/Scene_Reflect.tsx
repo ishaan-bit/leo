@@ -37,7 +37,7 @@ type InputMode = 'notebook' | 'voice';
 
 export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   const { data: session, status } = useSession();
-  const { pendingDream } = usePendingDream(); // Access pending dream letter state
+  const { pendingDream } = usePendingDream();
   const [sessionVariant, setSessionVariant] = useState<SessionVariant>('first');
   const [inputMode, setInputMode] = useState<InputMode>('notebook');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -667,7 +667,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   if (showInterlude || showBreathing || showMomentsLibrary) {
     return (
       <div className="fixed inset-0 bg-[#1A1734]">
-        <AnimatePresence mode="sync">{/* 🔥 FIX: Sync mode for seamless crossfade (no blank screen gap) */}
+        <AnimatePresence mode="wait">{/* Crossfade mode for smooth transitions - only one visible at a time */}
           {showInterlude && currentReflectionId && (
             <motion.div
               key="city-interlude"
@@ -689,7 +689,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
           {showBreathing && currentReflectionId && breathingContext && (
             <motion.div
               key="breathing-sequence"
-              initial={{ opacity: 0 }} {/* 🔥 FIX: Start hidden, fade in smoothly */}
+              initial={{ opacity: 1 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
@@ -832,8 +832,8 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
           </motion.div>
         }
       />
-      
-      {/* Dream letter notification - appears above Living City button when pending dream exists */}
+
+      {/* Dream letter notification - appears when pending dream exists */}
       <AnimatePresence>
         {pendingDream && !showBreathing && !showMomentsLibrary && (
           <motion.div
@@ -844,29 +844,14 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
             className="fixed top-20 left-6 z-50"
           >
             <div className="relative group">
-              {/* Glow effect */}
               <div className="absolute inset-0 bg-gradient-to-br from-purple-400/30 to-pink-400/30 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300" />
-              
-              {/* Notification card */}
               <div className="relative bg-gradient-to-br from-[#3A2952]/95 to-[#6B5B95]/95 backdrop-blur-md rounded-2xl px-6 py-4 shadow-2xl border border-purple-300/20 hover:border-purple-300/40 transition-all duration-300">
-                {/* Animated sparkle */}
                 <motion.div
                   className="absolute -top-1 -right-1 w-3 h-3 bg-pink-300 rounded-full"
-                  animate={{
-                    scale: [1, 1.3, 1],
-                    opacity: [0.7, 1, 0.7],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
+                  animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                 />
-                
-                {/* Letter icon */}
-                <div className="text-2xl mb-1">💌</div>
-                
-                {/* Text content */}
+                <div className="text-2xl mb-1 font-serif text-purple-200">&#9993;</div>
                 <p className="text-sm font-medium text-purple-100 mb-1">
                   {pigName} has written you a letter
                 </p>
