@@ -280,7 +280,40 @@ export default function DialogueInterlude({
         })}
       </div>
       
-      {/* Moon is already in CityInterlude and BreathingSequence - removed to avoid duplicate */}
+      {/* Crescent Moon - Same position as CityInterlude and BreathingSequence for continuity */}
+      <motion.div
+        className="absolute top-12 right-24 w-16 h-16 pointer-events-none z-50"
+        style={{
+          borderRadius: '50%',
+          boxShadow: 'inset -8px 0px 0px 0px rgba(255, 255, 255, 0.9)',
+          background: 'transparent',
+          transform: 'rotate(-20deg)',
+        }}
+        initial={{ opacity: 0.95, scale: 1 }}
+        animate={{ 
+          opacity: [0.85, 0.95, 0.85],
+          scale: [0.98, 1.02, 0.98],
+        }}
+        transition={{ 
+          opacity: { duration: 0.8 },
+          scale: { 
+            duration: 4,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          },
+        }}
+      />
+
+      {/* Moon glow */}
+      <motion.div
+        className="absolute top-10 right-20 w-32 h-32 rounded-full pointer-events-none z-40"
+        style={{
+          background: 'radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%)',
+          filter: typeof window !== 'undefined' && window.innerWidth < 768 ? 'blur(4px)' : 'blur(20px)',
+        }}
+        initial={{ opacity: 0.6 }}
+        animate={{ opacity: 0.6 }}
+      />
       
       {/* Primary Tower - locked position from BreathingSequence */}
       {towerConfig && (
