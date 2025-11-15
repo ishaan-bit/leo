@@ -27,7 +27,12 @@ export async function GET() {
     const identity = await resolveIdentity();
     const userId = identity.authId;
     
-    console.log('[API] /api/dreams/pending GET - userId:', userId);
+    console.log('[API] /api/dreams/pending GET - Full identity:', {
+      authId: userId,
+      effectiveId: identity.effectiveId,
+      effectiveScope: identity.effectiveScope,
+      hasPig: !!identity.pigName
+    });
     
     if (!userId) {
       console.log('[API] /api/dreams/pending - No userId, returning 401');
@@ -41,11 +46,36 @@ export async function GET() {
     const dreamKey = `user:${userId}:pending_dream`;
     console.log('[API] /api/dreams/pending - Checking key:', dreamKey);
     
-    const dreamData = await kv.get(dreamKey);
+    let dreamData = await kv.get(dreamKey);
     console.log('[API] /api/dreams/pending - Data found:', !!dreamData, 'Type:', typeof dreamData);
 
+    // DEBUGGING: If not found, try to find ANY pending dream for this user
+    // This helps diagnose if the userId format is different
     if (!dreamData) {
-      console.log('[API] /api/dreams/pending - No data, returning 404');
+      console.log('[API] /api/dreams/pending - Searching for alternate keys...');
+      try {
+        // Try common variations
+        const alternateKeys = [
+          `user:${userId}:pending_dream`,
+          `user_${userId}:pending_dream`,
+          `sid:${userId}:pending_dream`,
+        ];
+        
+        for (const altKey of alternateKeys) {
+          const altData = await kv.get(altKey);
+          if (altData) {
+            console.log('[API] /api/dreams/pending - FOUND with alternate key:', altKey);
+            dreamData = altData;
+            break;
+          }
+        }
+      } catch (err) {
+        console.error('[API] /api/dreams/pending - Error checking alternates:', err);
+      }
+    }
+
+    if (!dreamData) {
+      console.log('[API] /api/dreams/pending - No data after all checks, returning 404');
       return NextResponse.json(
         { exists: false },
         { status: 404 }
