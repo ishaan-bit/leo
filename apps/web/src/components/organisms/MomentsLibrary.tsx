@@ -241,15 +241,16 @@ export default function MomentsLibrary({
     }
 
     // Auto-scroll to dream letter section after a short delay (let animation settle)
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
     const scrollTimer = setTimeout(() => {
       if (dreamLetterRef.current) {
         console.log('[MomentsLibrary] 📜 Scrolling to dream letter section...');
         dreamLetterRef.current.scrollIntoView({
-          behavior: 'smooth',
+          behavior: isMobile ? 'auto' : 'smooth', // Instant on mobile to avoid jank
           block: 'center',
         });
       }
-    }, 1500); // Wait for moment expand animation to complete
+    }, isMobile ? 800 : 1500); // Faster on mobile
 
     return () => clearTimeout(scrollTimer);
   }, [selectedMoment, pendingDream]);
@@ -374,8 +375,9 @@ export default function MomentsLibrary({
   }, [selectedMoment]);
 
   // Scroll to top when modal opens (fix for content pushed off-screen bug)
+  // ONLY if NOT auto-opening for pending dream (which scrolls to bottom)
   useEffect(() => {
-    if (selectedMoment && modalRef.current) {
+    if (selectedMoment && modalRef.current && !pendingDream) {
       // Immediate scroll to top
       modalRef.current.scrollTop = 0;
       // Also scroll after a short delay to ensure DOM is rendered
@@ -385,7 +387,7 @@ export default function MomentsLibrary({
         }
       }, 50);
     }
-  }, [selectedMoment]);
+  }, [selectedMoment, pendingDream]);
 
   // Focus trap and initial focus
   useEffect(() => {
@@ -1649,15 +1651,9 @@ export default function MomentsLibrary({
                   }
                 }}
                 onClick={(e) => e.stopPropagation()}
-                onAnimationComplete={() => {
-                  // Scroll to top when modal opens (fix for content pushed off-screen)
-                  if (modalRef.current) {
-                    modalRef.current.scrollTop = 0;
-                  }
-                }}
                 tabIndex={-1}
                 style={{
-                  backdropFilter: 'blur(12px) saturate(120%) brightness(1.05)',
+                  backdropFilter: typeof window !== 'undefined' && window.innerWidth >= 768 ? 'blur(12px) saturate(120%) brightness(1.05)' : 'blur(4px)',
                   borderRadius: '32px',
                   border: `1px solid rgba(255, 255, 255, 0.25)`,
                   boxShadow: `
@@ -1782,7 +1778,8 @@ export default function MomentsLibrary({
                     }}
                   />
                   
-                  {/* MAGICAL FIREFLY PARTICLES - 18 floating lights with glow and breathing */}
+                  {/* MAGICAL FIREFLY PARTICLES - 18 floating lights with glow and breathing (Desktop only) */}
+                  {typeof window !== 'undefined' && window.innerWidth >= 768 && (
                   <div className="absolute top-0 left-0 right-0 bottom-0 overflow-hidden rounded-[32px] pointer-events-none z-[5]">
                     {Array.from({ length: 18 }).map((_, i) => {
                       const startX = Math.random() * 100;
@@ -1840,8 +1837,10 @@ export default function MomentsLibrary({
                       );
                     })}
                   </div>
+                  )}
                   
-                  {/* Barely-visible floating dust motes (cinematic) */}
+                  {/* Barely-visible floating dust motes (cinematic) - Desktop only */}
+                  {typeof window !== 'undefined' && window.innerWidth >= 768 && (
                   <div className="absolute top-0 left-0 right-0 bottom-0 overflow-hidden rounded-[32px] pointer-events-none z-0">
                     {[...Array(3)].map((_, i) => (
                       <motion.div
@@ -1867,8 +1866,10 @@ export default function MomentsLibrary({
                       />
                     ))}
                   </div>
+                  )}
 
-                  {/* Ambient motion particles based on emotion - constrained to background layer, max 40 particles */}
+                  {/* Ambient motion particles based on emotion - Desktop only */}
+                  {typeof window !== 'undefined' && window.innerWidth >= 768 && (
                   <div className="absolute top-0 left-0 right-0 bottom-0 overflow-hidden rounded-[32px] pointer-events-none z-0">
                   {/* Sad: Fine vertical rain streaks */}
                   {atmosphere.ambientMotion === 'drizzle' && Array.from({ length: 15 }).map((_, i) => (
@@ -2029,6 +2030,7 @@ export default function MomentsLibrary({
                     />
                   ))}
                 </div>
+                )}
 
                 {/* Content guard - isolates text from background effects */}
                 <div className="relative p-6 md:p-10 z-10" style={{ lineHeight: '1.8', isolation: 'isolate' }}>
