@@ -7,9 +7,10 @@ import { useState } from 'react';
 interface AuthStateIndicatorProps {
   userName?: string | null;
   isGuest: boolean;
+  pigName?: string; // For personalized farewell message
 }
 
-export default function AuthStateIndicator({ userName, isGuest }: AuthStateIndicatorProps) {
+export default function AuthStateIndicator({ userName, isGuest, pigName = 'Leo' }: AuthStateIndicatorProps) {
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   const handleSignOut = async () => {
@@ -90,23 +91,37 @@ export default function AuthStateIndicator({ userName, isGuest }: AuthStateIndic
         )}
       </motion.div>
 
-      {/* Sign-out overlay animation */}
+      {/* Sign-out overlay animation - matches 'Now I'll remember you too' pink gradient page */}
       {isSigningOut && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="fixed inset-0 z-50 flex items-center justify-center"
+          className="fixed inset-0 z-[9999] flex items-center justify-center"
           style={{
-            background: 'linear-gradient(135deg, #FFF1F7 0%, #FFE4F0 50%, #FFD6E8 100%)',
+            background: 'linear-gradient(135deg, #FFF1F7 0%, #FFE4F0 50%, #FFD6E8 100%)', // Match greeting page gradient
           }}
         >
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-pink-900/80 text-2xl md:text-3xl font-serif italic text-center px-6"
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.2, ease: [0.34, 1.56, 0.64, 1] }}
+            className="text-pink-900/90 text-3xl md:text-4xl lg:text-5xl font-serif italic text-center px-6 max-w-3xl"
+            style={{
+              fontFamily: '"EB Garamond", "Georgia", serif',
+              letterSpacing: '0.02em',
+              lineHeight: '1.4',
+            }}
           >
             Until we meet again...
+            <br />
+            <motion.span
+              className="text-pink-700"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6, duration: 0.8 }}
+            >
+              {pigName}
+            </motion.span>
           </motion.p>
         </motion.div>
       )}

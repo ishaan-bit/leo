@@ -721,6 +721,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
                   <AuthStateIndicator 
                     userName={session?.user?.name}
                     isGuest={status === 'unauthenticated'}
+                    pigName={pigName}
                   />
                 }
               />
@@ -755,6 +756,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
                     <AuthStateIndicator 
                       userName={session?.user?.name}
                       isGuest={status === 'unauthenticated'}
+                      pigName={pigName}
                     />
                   }
                 />
@@ -850,6 +852,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
             <AuthStateIndicator 
               userName={session?.user?.name}
               isGuest={status === 'unauthenticated'}
+              pigName={pigName}
             />
           </motion.div>
         }

@@ -308,6 +308,7 @@ export default function InterludeFlow({
           <AuthStateIndicator 
             userName={session?.user?.name || session?.user?.email}
             isGuest={status === 'unauthenticated'}
+            pigName={pigName}
           />
         </div>
       </div>
