@@ -373,7 +373,7 @@ export default function MomentsLibrary({
     }
   };
 
-  // WhatsApp share handlers - poetic, no links
+  // WhatsApp share handlers - v2 with EN/HI templates and reveal page
   const handleWhatsAppShare = (choice: 'heart' | 'poem' | 'both') => {
     if (!selectedMoment) {
       console.error('[WhatsApp Share] No selected moment!');
@@ -389,29 +389,64 @@ export default function MomentsLibrary({
       poem: selectedMoment.poem,
     };
 
+    // Build reveal page URL with mode and language
+    const revealUrl = `${window.location.origin}/share/${selectedMoment.id}?mode=${choice}&lang=${isHindi ? 'hi' : 'en'}`;
+
     let shareText = '';
 
     if (choice === 'heart') {
-      // Share only reflection
-      shareText = `Sharing a piece of my heart with you:\n\n`;
-      shareText += `${content.text}`;
-    } else if (choice === 'poem') {
-      // Share only poem
-      if (content.poem) {
-        shareText = `Here's a small poem sitting with how I feel:\n\n`;
-        shareText += `${content.poem}`;
+      // Share only reflection - clean, poetic, no duplication
+      if (isHindi) {
+        shareText = `दिल का एक छोटा-सा टुकड़ा तुम्हारे साथ बाँट रही/रहा हूँ:\n\n`;
+        shareText += `"${content.text}"\n\n`;
+        shareText += `QuietDen ने इसे ऐसे सँभाला:\n🔗 ${revealUrl}`;
       } else {
-        // Fallback if no poem exists
-        shareText = `Sharing a quiet moment with you:\n\n`;
-        shareText += `${content.text}`;
+        shareText = `This has been sitting on my chest lately:\n\n`;
+        shareText += `"${content.text}"\n\n`;
+        shareText += `Keeping it here with you too:\n🔗 ${revealUrl}`;
+      }
+    } else if (choice === 'poem') {
+      // Share only poem - no reflection
+      if (content.poem) {
+        if (isHindi) {
+          shareText = `QuietDen से ये छोटी-सी कविता मिली, तुम्हारा खयाल आ गया:\n\n`;
+          shareText += `"${content.poem}"\n\n`;
+          shareText += `अगर ये तुम्हें भी छू जाए:\n🔗 ${revealUrl}`;
+        } else {
+          shareText = `This little QuietDen poem wouldn't leave me alone today:\n\n`;
+          shareText += `"${content.poem}"\n\n`;
+          shareText += `Thought of you — open it here:\n🔗 ${revealUrl}`;
+        }
+      } else {
+        // Fallback if no poem exists - share heart instead
+        if (isHindi) {
+          shareText = `ये बात दिल में अटकी हुई थी:\n\n`;
+          shareText += `"${content.text}"\n\n`;
+          shareText += `सोचा तुम्हारे साथ भी रख दूँ:\n🔗 ${revealUrl}`;
+        } else {
+          shareText = `Sharing a quiet moment with you:\n\n`;
+          shareText += `"${content.text}"\n\n`;
+          shareText += `Open here:\n🔗 ${revealUrl}`;
+        }
       }
     } else if (choice === 'both') {
-      // Share both reflection and poem
-      shareText = `Here's what's been on my mind, and a little poem that came out of it:\n\n`;
-      shareText += `${content.text}\n\n`;
-      if (content.poem) {
-        shareText += `And this is the poem that grew from it:\n\n`;
-        shareText += `${content.poem}`;
+      // Share both reflection and poem - clean flow, no duplication
+      if (isHindi) {
+        shareText = `काफ़ी समय से दिल में ये बात घूम रही है:\n\n`;
+        shareText += `"${content.text}"\n\n`;
+        if (content.poem) {
+          shareText += `QuietDen ने इसे ऐसी छोटी-सी कविता में बदल दिया:\n\n`;
+          shareText += `"${content.poem}"\n\n`;
+        }
+        shareText += `ये दोनों तुम्हारे लिए:\n🔗 ${revealUrl}`;
+      } else {
+        shareText = `This has been living quietly in my head:\n\n`;
+        shareText += `"${content.text}"\n\n`;
+        if (content.poem) {
+          shareText += `So QuietDen turned it into this tiny poem:\n\n`;
+          shareText += `"${content.poem}"\n\n`;
+        }
+        shareText += `Keeping both here with you:\n🔗 ${revealUrl}`;
       }
     }
 
@@ -1243,7 +1278,15 @@ export default function MomentsLibrary({
               >
                 {/* Windows - warm lit windows representing moments */}
                 <div className="absolute inset-4 grid grid-cols-4 gap-3">
-                  {(momentsByZone[tower.id] || []).slice(0, 24).map((moment, i) => {
+                  {(() => {
+                    // Calculate max windows based on building height to prevent overflow
+                    const baseHeight = tower.height * 1.5;
+                    const additionalHeight = (momentCount > 4 ? Math.floor((momentCount - 4) / 4) * 80 : 0);
+                    const totalHeight = baseHeight + additionalHeight;
+                    // Each row is ~40px (8px window + gap), inset-4 = 16px top/bottom = 32px
+                    const maxRows = Math.floor((totalHeight - 32) / 40);
+                    const maxWindows = maxRows * 4;
+                    return (momentsByZone[tower.id] || []).slice(0, maxWindows).map((moment, i) => {
                     const windowKey = `window-${tower.id}-${moment.id}`;
                     const isBlinking = blinkingWindow === windowKey;
                     const isNewest = moment.id === newestMomentId; // Only THE newest moment across all towers glows brightest
@@ -1336,7 +1379,8 @@ export default function MomentsLibrary({
                         </div>
                       </motion.div>
                     );
-                  })}
+                  });
+                  })()}
                 </div>
 
                 {/* Building name with zone label - translucent, naturally placed above building */}
