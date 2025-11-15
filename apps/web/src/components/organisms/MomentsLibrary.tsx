@@ -1625,7 +1625,7 @@ export default function MomentsLibrary({
                 className="relative max-w-2xl w-full max-h-[90vh] md:max-h-[85vh] overflow-y-auto custom-scrollbar"
                 initial={{ scale: 0.85, y: 30, opacity: 0, filter: 'brightness(0.8) blur(4px)' }}
                 animate={{ 
-                  scale: [1, 1.01, 1], // 6-second breathing cycle
+                  scale: typeof window !== 'undefined' && window.innerWidth < 768 ? 1 : [1, 1.01, 1], // Disable breathing on mobile
                   y: 0, 
                   opacity: 1, 
                   filter: 'brightness(1) blur(0px)' 
@@ -1640,7 +1640,7 @@ export default function MomentsLibrary({
                 transition={{ 
                   scale: {
                     duration: 6,
-                    repeat: Infinity,
+                    repeat: typeof window !== 'undefined' && window.innerWidth < 768 ? 0 : Infinity, // No repeat on mobile
                     ease: 'easeInOut',
                   },
                   default: {
@@ -3135,7 +3135,9 @@ export default function MomentsLibrary({
                       style={{
                         background: `radial-gradient(ellipse at center, ${atmosphere.accentGlow} 0%, transparent 70%)`,
                         opacity: 0.1,
-                        filter: 'blur(40px)',
+                        filter: typeof window !== 'undefined' && window.innerWidth < 768 ? 'blur(8px)' : 'blur(40px)', // Reduce blur on mobile
+                        transform: 'translateZ(0)', // GPU acceleration
+                        willChange: 'auto',
                       }}
                     />
                     
