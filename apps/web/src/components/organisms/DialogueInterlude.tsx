@@ -349,14 +349,14 @@ export default function DialogueInterlude({
         </motion.div>
       </div>
       
-      {/* Regulate - Pig speech bubble (anchored to Leo pig character) */}
+      {/* Regulate - Pig speech bubble (anchored to Leo pig character, closer to left side) */}
       <AnimatePresence>
         {showPigBubble && regulate && (
           <motion.div
             className="absolute z-40"
             style={{
               top: 'calc(28% - 50px)', // Top-right of Leo (who is at top: 28%)
-              left: 'calc(50% + 100px)', // Right of Leo (who is at left: 50%)
+              left: 'calc(50% + 60px)', // MOVED CLOSER: was +100px, now +60px (40px closer to pig)
               transform: 'translate(-50%, -50%)',
             }}
             initial={{ opacity: 0, y: -10 }}
@@ -367,7 +367,7 @@ export default function DialogueInterlude({
             <ComicSpeechBubble
               content={regulate}
               variant="pig" 
-              maxWidth={240} // 220-260px range, using midpoint
+              maxWidth={280} // INCREASED: was 240, now 280 for minimum 3 words per line
               tailDirection="left" // Tail points left toward Leo
               tailOffsetY={30} // Position tail toward upper part of bubble
               shadowLevel={2}

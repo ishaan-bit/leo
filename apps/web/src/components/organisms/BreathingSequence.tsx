@@ -33,7 +33,7 @@ const TOWERS = [
   { id: 'mad', name: 'Sable', color: '#C1121F', x: 85, height: 170 },        // Red - Anger
 ];
 
-const MIN_CYCLES = 3;
+const MIN_CYCLES = 2; // TWO full breathing cycles before DialogueInterlude
 
 // Utility: Filter out non-English text (Hindi/Devanagari characters)
 const isEnglishText = (text: string): boolean => {
@@ -57,7 +57,7 @@ export default function BreathingSequence({
   const [floatingPoem, setFloatingPoem] = useState<{ id: string; text: string } | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [stage2Complete, setStage2Complete] = useState(false);
-  const [firstCycleComplete, setFirstCycleComplete] = useState(false); // Track first breathing cycle
+  const [secondCycleComplete, setSecondCycleComplete] = useState(false); // Track TWO breathing cycles
   
   // NEW: Transition states removed - seamless inheritance from CityInterlude
   const [showInhaleExhale, setShowInhaleExhale] = useState(false);
@@ -211,10 +211,14 @@ export default function BreathingSequence({
         setCycleCount(currentCycle);
         console.log('[Breathing] ✅ Cycle', currentCycle, 'complete');
         
-        // Mark first cycle complete after one full inhale/hold/exhale/hold
-        if (currentCycle >= 1 && !firstCycleComplete) {
-          setFirstCycleComplete(true);
-          console.log('[Breathing] ✅ First breathing cycle complete - ready for DialogueInterlude');
+        // Gradually lighten sky during breathing (darker → lighter over 2 cycles)
+        // Sky starts at level 0 (dark), transitions to level 0 (stays dark for DialogueInterlude)
+        // No lightening needed - maintain dark sky throughout
+        
+        // Mark second cycle complete after TWO full inhale/hold/exhale/hold cycles
+        if (currentCycle >= 2 && !secondCycleComplete) {
+          setSecondCycleComplete(true);
+          console.log('[Breathing] ✅ Second breathing cycle complete - ready for DialogueInterlude');
         }
       }
       
@@ -229,7 +233,7 @@ export default function BreathingSequence({
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [activeCycle.in, activeCycle.h1, activeCycle.out, activeCycle.h2, cycleCount, firstCycleComplete]); // FIXED: Depend on primitive values not object reference
+  }, [activeCycle.in, activeCycle.h1, activeCycle.out, activeCycle.h2, cycleCount, secondCycleComplete]); // FIXED: Depend on primitive values not object reference
 
   // NEW ORCHESTRATION: Check for dialogue_tuples and trigger DialogueInterlude
   // WAIT for transition phases to complete AND one breathing cycle
@@ -260,13 +264,13 @@ export default function BreathingSequence({
     // Log state every time this effect runs (helps debug timing issues)
     console.log('[BreathingSequence] 🔍 Checking DialogueInterlude trigger conditions:', {
       tupleCount: dialogueTuples.length,
-      firstCycleComplete,
-      readyToTrigger: firstCycleComplete,
+      secondCycleComplete,
+      readyToTrigger: secondCycleComplete,
     });
     
     // Only trigger if condition is met
-    if (firstCycleComplete) {
-      console.log('[BreathingSequence] ✅ Ready to start DialogueInterlude');
+    if (secondCycleComplete) {
+      console.log('[BreathingSequence] ✅ Ready to start DialogueInterlude after 2 breathing cycles');
       console.log('[BreathingSequence] Tuples:', dialogueTuples);
       
       orchestrationStartedRef.current = true;
@@ -278,11 +282,11 @@ export default function BreathingSequence({
       }, 500);
     } else {
       // Log what we're waiting for
-      if (!firstCycleComplete) {
-        console.log('[BreathingSequence] ⏳ Waiting for first breathing cycle to complete');
+      if (!secondCycleComplete) {
+        console.log('[BreathingSequence] ⏳ Waiting for second breathing cycle to complete (need 2 rounds)');
       }
     }
-  }, [stage2Complete, stage2Payload, firstCycleComplete]);
+  }, [stage2Complete, stage2Payload, secondCycleComplete]);
 
   // Breathing helpers - 4-phase cycle: inhale -> hold1 -> exhale -> hold2
   const inDuration = activeCycle.in / (activeCycle.in + activeCycle.h1 + activeCycle.out + activeCycle.h2);
@@ -509,9 +513,9 @@ export default function BreathingSequence({
         {TOWERS.map(tower => {
           const isPrimary = tower.id === effectivePrimary;
           
-          // Smooth fade: non-primary start at 0.15 (from CityInterlude), fade to 0 over 1.5s
-          // Primary tower centers smoothly after fade completes
-          const towerOpacity = isPrimary ? 1 : 0;
+          // Non-primary buildings: keep at 0.35 opacity (visible but dim) during breathing
+          // Primary tower: full opacity, centered, breathing pulse
+          const towerOpacity = isPrimary ? 1 : 0.35;
           const displayX = isPrimary ? 35 : tower.x;
         
         return (
@@ -523,22 +527,21 @@ export default function BreathingSequence({
               width: '80px',
               height: `${tower.height * 1.8}px`,
             }}
-            initial={{ opacity: isPrimary ? 1 : 0.35, scale: 1 }} // Match CityInterlude fade state (0.35)
+            initial={{ opacity: isPrimary ? 1 : 0.35, scale: 1 }} // Non-primary at 0.35 (visible but dim)
             animate={{
               opacity: towerOpacity,
               scale: isPrimary ? ((isInhaling || isHoldingIn) ? 1.02 : 0.98) : 1,
-              left: `${displayX}%`, // Primary centers after others fade
+              left: `${displayX}%`, // Primary centers, others stay in place
             }}
             transition={{ 
               opacity: { 
-                duration: isPrimary ? 0 : 1.5, // Smooth 1.5s fade for non-primary
+                duration: 0, // Instant - maintain 0.35 throughout breathing
                 ease: NATURAL_EASE,
-                delay: 0, // Start fading immediately
               },
               left: {
-                duration: isPrimary ? 2.5 : 0, // Primary centers after 1.5s fade completes
+                duration: isPrimary ? 2.5 : 0, // Primary centers smoothly
                 ease: NATURAL_EASE,
-                delay: isPrimary ? 1.5 : 0, // Wait for fade to complete before centering
+                delay: isPrimary ? 0.5 : 0,
               },
               scale: { 
                 duration: isInhaling ? activeCycle.in : isExhaling ? activeCycle.out : 0.3,

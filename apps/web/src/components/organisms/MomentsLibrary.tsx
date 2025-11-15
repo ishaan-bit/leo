@@ -207,9 +207,12 @@ export default function MomentsLibrary({
         setShowPreservationBubble(true);
         hadMomentOpenRef.current = false; // Reset flag
         
-        // Auto-hide after 3 seconds
-        setTimeout(() => setShowPreservationBubble(false), 3000);
+        // Auto-hide after 4 seconds (increased from 3s for better visibility)
+        setTimeout(() => setShowPreservationBubble(false), 4000);
       }
+    } else {
+      // When moment OPENS, ensure bubble is hidden
+      setShowPreservationBubble(false);
     }
   }, [selectedMoment, phase, moments.length]);
 
@@ -547,6 +550,22 @@ export default function MomentsLibrary({
       return () => clearTimeout(timer);
     }
   }, [phase, moments, autoOpenMomentId, justSubmitted]); // Added justSubmitted dependency
+  
+  // Show "Your moment is saved here" bubble when arriving after moment submission
+  useEffect(() => {
+    if (phase === 'library' && justSubmitted && moments.length > 0 && !autoOpenCompletedRef.current) {
+      // Wait for library animation to settle, then show preservation bubble
+      const bubbleTimer = setTimeout(() => {
+        console.log('[MomentsLibrary] 💾 Just submitted - showing preservation bubble');
+        setShowPreservationBubble(true);
+        
+        // Auto-hide after 5 seconds
+        setTimeout(() => setShowPreservationBubble(false), 5000);
+      }, 3500); // Show after 3.5s (after auto-open starts at 2.5s)
+      
+      return () => clearTimeout(bubbleTimer);
+    }
+  }, [phase, justSubmitted, moments.length]);
 
   // GUEST DATA PURGE: After library phase loads, purge guest data (transient mode)
   useEffect(() => {
@@ -1425,7 +1444,7 @@ export default function MomentsLibrary({
               </p>
             </motion.div>
 
-            {/* Share a New Moment Icon - top-left, same size as sound toggle for visual consistency */}
+            {/* Share a New Moment Icon - top-left with larger tap target for mobile */}
             <motion.button
               className="fixed z-50 pointer-events-auto rounded-full overflow-hidden group"
               onClick={onNewReflection}
@@ -1445,16 +1464,16 @@ export default function MomentsLibrary({
               style={{
                 background: 'linear-gradient(135deg, #FFD700 0%, #FFC1CC 100%)',
                 boxShadow: '0 4px 16px rgba(255, 215, 0, 0.3)',
-                width: '32px',  // Match SoundToggle size
-                height: '32px', // Match SoundToggle size
-                minWidth: '32px',
-                minHeight: '32px',
-                padding: '0', // No padding to keep circular shape
+                width: '44px',  // INCREASED from 32px for better mobile tap target
+                height: '44px', // INCREASED from 32px for better mobile tap target
+                minWidth: '44px',
+                minHeight: '44px',
+                padding: '0',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                top: 'max(1rem, env(safe-area-inset-top))', // Aligned with top navigation
-                left: 'max(0.5rem, env(safe-area-inset-left))', // Position from left edge
+                top: 'max(1rem, env(safe-area-inset-top))',
+                left: 'max(0.5rem, env(safe-area-inset-left))',
               }}
             >
               {/* Sparkle with occasional pulse */}
