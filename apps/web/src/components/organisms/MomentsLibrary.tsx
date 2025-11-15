@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { useSession, signIn } from 'next-auth/react';
 import { usePendingDream } from '@/contexts/PendingDreamContext';
@@ -145,10 +145,8 @@ export default function MomentsLibrary({
   const hadMomentOpenRef = useRef(false); // Track if we actually opened a moment
   const autoOpenCompletedRef = useRef(false); // Track if auto-open has run
   
-  // Scroll-based animations for modal content
-  const { scrollYProgress } = useScroll({
-    container: modalRef,
-  });
+  // Scroll-based animations REMOVED for mobile performance
+  // Was causing jank on every scroll frame - parallax effects disabled
 
   // Log component mount
   useEffect(() => {
@@ -244,14 +242,20 @@ export default function MomentsLibrary({
     // Auto-scroll to dream letter section after a short delay (let animation settle)
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
     const scrollTimer = setTimeout(() => {
-      if (dreamLetterRef.current) {
-        console.log('[MomentsLibrary] 📜 Scrolling to dream letter section...');
-        dreamLetterRef.current.scrollIntoView({
-          behavior: isMobile ? 'auto' : 'smooth', // Instant on mobile to avoid jank
-          block: 'center',
+      if (dreamLetterRef.current && modalRef.current) {
+        console.log('[MomentsLibrary] 📜 Scrolling to dream letter header (top alignment)...');
+        // Get position of dream letter header relative to modal
+        const modalTop = modalRef.current.getBoundingClientRect().top;
+        const letterTop = dreamLetterRef.current.getBoundingClientRect().top;
+        const offset = letterTop - modalTop - 16; // 16px padding from top
+        
+        // Direct scroll to position (native, instant on mobile)
+        modalRef.current.scrollTo({
+          top: offset,
+          behavior: isMobile ? 'auto' : 'smooth',
         });
       }
-    }, isMobile ? 800 : 1500); // Faster on mobile
+    }, isMobile ? 100 : 300); // Much faster timing
 
     return () => clearTimeout(scrollTimer);
   }, [selectedMoment, pendingDream]);
@@ -1654,15 +1658,15 @@ export default function MomentsLibrary({
                 onClick={(e) => e.stopPropagation()}
                 tabIndex={-1}
                 style={{
-                  backdropFilter: typeof window !== 'undefined' && window.innerWidth >= 768 ? 'blur(12px) saturate(120%) brightness(1.05)' : 'blur(4px)',
+                  backdropFilter: 'none', // REMOVED for scroll performance - backgrounds provide depth instead
                   borderRadius: '32px',
                   border: `1px solid rgba(255, 255, 255, 0.25)`,
                   boxShadow: `
                     0 0 0 1px ${atmosphere.gradient[0]}40,
-                    0 24px 72px rgba(0, 0, 0, 0.4),
+                    0 16px 48px rgba(0, 0, 0, 0.35),
                     inset 0 1px 0 rgba(255,255,255,0.5)
-                  `,
-                  scrollBehavior: 'smooth',
+                  `, // Reduced shadow intensity
+                  // Remove scrollBehavior - let native scroll handle it
                 }}
               >
                 {/* Inner wrapper - contains backgrounds and content, expands to full content height */}
@@ -1683,50 +1687,24 @@ export default function MomentsLibrary({
                     transition={{ duration: 1.5 }}
                   />
                   
-                  {/* Layer 2: Mid Clouds - Medium parallax (0.3x scroll speed) - Desktop only */}
-                  <motion.div
+                  {/* Layer 2: Mid Clouds - Static (animations disabled for performance) */}
+                  <div
                     className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none rounded-[32px] z-0"
                     style={{
                       background: `radial-gradient(ellipse at 40% 20%, ${atmosphere.gradient[1]}40 0%, transparent 50%),
                                    radial-gradient(ellipse at 70% 60%, ${atmosphere.gradient[0]}30 0%, transparent 40%)`,
-                      willChange: 'transform',
-                      opacity: 0.4, // Static opacity on mobile
+                      opacity: 0.4,
                     }}
-                    {...(typeof window !== 'undefined' && window.innerWidth >= 768 ? {
-                      animate: {
-                        y: [0, -15, 0],
-                        opacity: [0.3, 0.5, 0.3],
-                      },
-                      transition: {
-                        duration: 12,
-                        repeat: Infinity,
-                        ease: 'easeInOut',
-                      }
-                    } : {})}
                   />
                   
-                  {/* Layer 3: Near Mist - Fastest parallax (0.5x scroll speed) - Desktop only */}
-                  <motion.div
+                  {/* Layer 3: Near Mist - Static (animations disabled for performance) */}
+                  <div
                     className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none rounded-[32px] z-0"
                     style={{
                       background: `radial-gradient(ellipse at 30% 80%, ${atmosphere.accentColor}15 0%, transparent 40%),
                                    radial-gradient(ellipse at 80% 30%, ${atmosphere.gradient[1]}20 0%, transparent 45%)`,
-                      willChange: 'transform',
-                      opacity: 0.3, // Static opacity on mobile
+                      opacity: 0.3,
                     }}
-                    {...(typeof window !== 'undefined' && window.innerWidth >= 768 ? {
-                      animate: {
-                        y: [0, -25, 0],
-                        x: [0, 15, 0],
-                        opacity: [0.2, 0.4, 0.2],
-                      },
-                      transition: {
-                        duration: 8,
-                        repeat: Infinity,
-                        ease: 'easeInOut',
-                        delay: 1,
-                      }
-                    } : {})}
                   />
 
                   {/* Foreground contrast overlay - ensures text legibility with soft-light blend */}
