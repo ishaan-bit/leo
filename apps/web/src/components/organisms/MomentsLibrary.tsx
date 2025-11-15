@@ -1288,17 +1288,17 @@ export default function MomentsLibrary({
                 }}
               >
                 {/* Windows - warm lit windows representing moments */}
-                <div className="absolute inset-4 grid grid-cols-4 gap-3">
+                <div className="absolute inset-x-3 inset-y-2 grid grid-cols-4 gap-2">
                   {(() => {
                     // QA: Calculate max windows based on building height to prevent overflow
                     const baseHeight = tower.height * 1.5;
                     const additionalHeight = (momentCount > 4 ? Math.floor((momentCount - 4) / 4) * 80 : 0);
                     const totalHeight = baseHeight + additionalHeight;
-                    // Window sizing: each window ~8px + gap-3 (12px) = ~20px per window
-                    // But grid auto-rows with aspect ratio creates ~40px effective height per row
-                    // inset-4 = 16px padding top + 16px bottom = 32px total padding
-                    const availableHeight = totalHeight - 32;
-                    const rowHeight = 40; // Empirical: gap-3 + min-height creates ~40px rows
+                    // Window sizing: each window ~8px + gap-2 (8px) = ~16px per window
+                    // Grid auto-rows creates ~32px effective height per row with gap
+                    // inset-y-2 = 8px padding top + 8px bottom = 16px total vertical padding
+                    const availableHeight = totalHeight - 16;
+                    const rowHeight = 32; // Reduced from 40: gap-2 + min-height creates ~32px rows
                     const maxRows = Math.floor(availableHeight / rowHeight);
                     const maxWindows = maxRows * 4; // 4 columns
                     
@@ -1806,6 +1806,8 @@ export default function MomentsLibrary({
                   willChange: 'transform',
                   transform: 'translateZ(0)',
                   WebkitOverflowScrolling: 'touch',
+                  scrollBehavior: 'smooth',
+                  overscrollBehavior: 'contain',
                 }}
               >
                 {/* Inner wrapper - contains backgrounds and content, expands to full content height */}

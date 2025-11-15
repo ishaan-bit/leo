@@ -183,12 +183,12 @@ export default function StartPage() {
               {/* Q */}
               <motion.span
                 className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
-                style={{ fontVariant: 'small-caps', letterSpacing: '0.15em' }}
+                style={{ fontVariant: 'small-caps', letterSpacing: '0.05em' }}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{
                   opacity: 1,
                   scale: 1,
-                  x: introState === 'monogram-converge' ? 180 : 0, // Q travels much further to reach center
+                  x: introState === 'monogram-converge' ? 60 : 0, // Reduced from 180 to prevent Q going too far
                 }}
                 transition={{ 
                   opacity: { duration: 0.6 },
@@ -202,7 +202,7 @@ export default function StartPage() {
               {/* u */}
               <motion.span
                 className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
-                style={{ letterSpacing: '0.15em' }}
+                style={{ letterSpacing: '0.05em' }}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{
                   opacity: (introState === 'quieten-reveal' || introState === 'd-insertion') ? 1 : 0,
@@ -216,7 +216,7 @@ export default function StartPage() {
               {/* i */}
               <motion.span
                 className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
-                style={{ letterSpacing: '0.15em' }}
+                style={{ letterSpacing: '0.05em' }}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{
                   opacity: (introState === 'quieten-reveal' || introState === 'd-insertion') ? 1 : 0,
@@ -230,7 +230,7 @@ export default function StartPage() {
               {/* e */}
               <motion.span
                 className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
-                style={{ letterSpacing: '0.15em' }}
+                style={{ letterSpacing: '0.05em' }}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{
                   opacity: (introState === 'quieten-reveal' || introState === 'd-insertion') ? 1 : 0,
@@ -244,7 +244,7 @@ export default function StartPage() {
               {/* t */}
               <motion.span
                 className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
-                style={{ letterSpacing: '0.15em' }}
+                style={{ letterSpacing: '0.05em' }}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{
                   opacity: (introState === 'quieten-reveal' || introState === 'd-insertion') ? 1 : 0,
@@ -258,11 +258,11 @@ export default function StartPage() {
               {/* D - inserts between "Quiet" and "en" */}
               <motion.span
                 className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
-                style={{ fontVariant: 'small-caps', letterSpacing: '0.15em' }}
+                style={{ fontVariant: 'small-caps', letterSpacing: '0.05em' }}
                 initial={{ opacity: 0, x: 12 }}
                 animate={{
                   opacity: introState === 'quieten-reveal' ? 0 : 1,
-                  x: introState === 'quieten-reveal' ? 12 : (introState === 'monogram-converge' ? -40 : 0), // D travels shorter distance to center
+                  x: introState === 'quieten-reveal' ? 12 : (introState === 'monogram-converge' ? -20 : 0), // Reduced from -40 to match reduced Q distance
                   scale: introState === 'quieten-reveal' ? 0.9 : 1,
                 }}
                 transition={{ 
@@ -277,7 +277,7 @@ export default function StartPage() {
               {/* e */}
               <motion.span
                 className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
-                style={{ letterSpacing: '0.15em' }}
+                style={{ letterSpacing: '0.05em' }}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{
                   opacity: (introState === 'quieten-reveal' || introState === 'd-insertion') ? 1 : 0,
@@ -291,7 +291,7 @@ export default function StartPage() {
               {/* n */}
               <motion.span
                 className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
-                style={{ letterSpacing: '0.15em' }}
+                style={{ letterSpacing: '0.05em' }}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{
                   opacity: (introState === 'quieten-reveal' || introState === 'd-insertion') ? 1 : 0,
