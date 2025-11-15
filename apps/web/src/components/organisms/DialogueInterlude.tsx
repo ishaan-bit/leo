@@ -166,18 +166,13 @@ export default function DialogueInterlude({
   
   return (
     <div className="relative w-full h-screen overflow-hidden">
-      {/* Ghibli Night Sky Background - smooth transition from BreathingSequence */}
-      <motion.div 
+      {/* Ghibli Night Sky Background - SEAMLESS one-way transition from BreathingSequence */}
+      {/* BreathingSequence ends at: linear-gradient(180deg, #0A0714 0%, #1A1530 100%) */}
+      {/* This component inherits that exact gradient and holds it (no change, no flicker) */}
+      <div 
         className="absolute inset-0 -z-10"
-        initial={{
-          background: 'linear-gradient(180deg, #0A0714 0%, #1A1530 100%)', // Match breathing exhale sky (skyLightnessLevel=0)
-        }}
-        animate={{
-          background: 'linear-gradient(180deg, #0A0714 0%, #1A1530 100%)', // Keep same gradient (no jump)
-        }}
-        transition={{
-          duration: 0, // No transition needed since they match
-          ease: 'easeInOut',
+        style={{
+          background: 'linear-gradient(180deg, #0A0714 0%, #1A1530 100%)', // Exact match - no transition needed
         }}
       />
       
@@ -328,15 +323,21 @@ export default function DialogueInterlude({
       </AnimatePresence>
       
       {/* Pig Character - Match BreathingSequence position (top 28%, centered) */}
+      {/* CRITICAL: Continue breathing animation seamlessly from BreathingSequence */}
       <div
         ref={leoContainerRef}
         className="absolute left-1/2 top-[28%] z-30"
         style={{ transform: 'translate(-50%, -50%)' }}
       >
         <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1, ease: NATURAL_EASE }}
+          animate={{ 
+            scale: [0.98, 1.02, 0.98], // Continuous gentle breathing pulse (matches BreathingSequence rhythm)
+          }}
+          transition={{
+            duration: 4, // 4s breathing cycle (2s inhale, 2s exhale)
+            repeat: Infinity,
+            ease: NATURAL_EASE,
+          }}
         >
           <Image 
             src="/images/leo.svg" 
