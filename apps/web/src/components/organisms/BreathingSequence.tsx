@@ -513,9 +513,9 @@ export default function BreathingSequence({
         {TOWERS.map(tower => {
           const isPrimary = tower.id === effectivePrimary;
           
-          // Non-primary buildings: keep at 0.35 opacity (visible but dim) during breathing
-          // Primary tower: full opacity, centered, breathing pulse
-          const towerOpacity = isPrimary ? 1 : 0.35;
+          // Non-primary buildings: START at full opacity (1.0), then fade to 0
+          // Primary tower: stays at full opacity, centered, breathing pulse
+          const towerOpacity = isPrimary ? 1 : 0;
           const displayX = isPrimary ? 35 : tower.x;
         
         return (
@@ -527,7 +527,7 @@ export default function BreathingSequence({
               width: '80px',
               height: `${tower.height * 1.8}px`,
             }}
-            initial={{ opacity: isPrimary ? 1 : 0.35, scale: 1 }} // Non-primary at 0.35 (visible but dim)
+            initial={{ opacity: 1, scale: 1 }} // All buildings start at full opacity
             animate={{
               opacity: towerOpacity,
               scale: isPrimary ? ((isInhaling || isHoldingIn) ? 1.02 : 0.98) : 1,
@@ -535,7 +535,7 @@ export default function BreathingSequence({
             }}
             transition={{ 
               opacity: { 
-                duration: 0, // Instant - maintain 0.35 throughout breathing
+                duration: isPrimary ? 0 : 2, // Non-primary fade out over 2 seconds
                 ease: NATURAL_EASE,
               },
               left: {
