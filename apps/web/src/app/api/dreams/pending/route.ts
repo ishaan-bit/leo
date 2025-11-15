@@ -36,7 +36,7 @@ export async function GET() {
 
     // Query Upstash for pending dream letter
     const dreamKey = `user:${userId}:pending_dream`;
-    const dreamData = await kv.get<PendingDreamLetter>(dreamKey);
+    const dreamData = await kv.get(dreamKey);
 
     if (!dreamData) {
       return NextResponse.json(
@@ -45,8 +45,16 @@ export async function GET() {
       );
     }
 
+    // Parse if it's a JSON string (from Python nightly_dream_generator)
+    let parsedDream: PendingDreamLetter;
+    if (typeof dreamData === 'string') {
+      parsedDream = JSON.parse(dreamData);
+    } else {
+      parsedDream = dreamData as PendingDreamLetter;
+    }
+
     // Check if dream has expired (14-day TTL, but double-check)
-    const expiresAt = new Date(dreamData.expiresAt);
+    const expiresAt = new Date(parsedDream.expiresAt);
     const now = new Date();
     
     if (expiresAt < now) {
@@ -61,7 +69,7 @@ export async function GET() {
     // Return dream letter data
     return NextResponse.json({
       exists: true,
-      dream: dreamData,
+      dream: parsedDream,
     });
     
   } catch (error) {
