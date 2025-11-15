@@ -30,6 +30,7 @@ export default function NamePage() {
   const [showLine2, setShowLine2] = useState(false);
   const [showLine3, setShowLine3] = useState(false);
   const [showLine4, setShowLine4] = useState(false);
+  const [showLine5, setShowLine5] = useState(false);
   const [showInputField, setShowInputField] = useState(false);
   const [pigHeadTilt, setPigHeadTilt] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -80,11 +81,12 @@ export default function NamePage() {
     
     const timers = [
       setTimeout(() => setShowLine1(true), 800),
-      setTimeout(() => setShowLine2(true), 2200),
-      setTimeout(() => setPigHeadTilt(true), 3200),
-      setTimeout(() => setShowLine3(true), 3800),
-      setTimeout(() => setShowLine4(true), 4600),
-      setTimeout(() => setShowInputField(true), 5400),
+      setTimeout(() => setShowLine2(true), 1800),
+      setTimeout(() => setShowLine3(true), 2600),
+      setTimeout(() => setPigHeadTilt(true), 3600),
+      setTimeout(() => setShowLine4(true), 4200),
+      setTimeout(() => setShowLine5(true), 5000),
+      setTimeout(() => setShowInputField(true), 5800),
     ];
     return () => timers.forEach(clearTimeout);
   }, [isCheckingExisting]);
@@ -456,7 +458,7 @@ export default function NamePage() {
 
         {/* Sequential dialogue reveal */}
         <motion.div
-          className="flex flex-col gap-3 items-center text-center px-6 max-w-md"
+          className="flex flex-col gap-2 items-center text-center px-6 max-w-md -mt-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6, duration: 0.6 }}
@@ -479,11 +481,22 @@ export default function NamePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7 }}
             >
-              Yet here I am — waiting for someone to believe I could.
+              Yet here I am;
             </motion.p>
           )}
 
           {showLine3 && (
+            <motion.p
+              className="text-pink-800 text-base font-serif italic"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7 }}
+            >
+              Waiting for someone to believe I could.
+            </motion.p>
+          )}
+
+          {showLine4 && (
             <motion.p
               className="text-pink-800 text-base font-serif italic mt-2"
               initial={{ opacity: 0, y: 10 }}
@@ -494,7 +507,7 @@ export default function NamePage() {
             </motion.p>
           )}
 
-          {showLine4 && (
+          {showLine5 && (
             <motion.p
               className="text-pink-800 text-base font-serif italic"
               initial={{ opacity: 0, y: 10 }}

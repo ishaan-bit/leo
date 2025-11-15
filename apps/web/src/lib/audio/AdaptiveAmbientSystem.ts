@@ -63,6 +63,9 @@ class AdaptiveAmbientSystem {
         volume: 0.15,
         preload: true,
         loop: false, // Explicitly NO loop
+        sprite: {
+          ripple: [0, 800], // Use only first 800ms instance
+        },
       });
 
       // Wind pad (tempo-responsive)
@@ -110,7 +113,7 @@ class AdaptiveAmbientSystem {
     if (this.inkRippleSound && this.initialized) {
       // Stop any existing playback before playing new instance
       this.inkRippleSound.stop();
-      this.inkRippleSound.play();
+      this.inkRippleSound.play('ripple'); // Play sprite instance (first 800ms only)
     }
   }
 

@@ -339,9 +339,9 @@ export default function StartPage() {
             <PinkPig size={280} state="idle" />
           </motion.div>
 
-          {/* Hero text */}
+          {/* Hero text - 3 lines closer to pig */}
           <motion.div
-            className="flex flex-col gap-3 items-center text-center max-w-md"
+            className="flex flex-col gap-2 items-center text-center max-w-md -mt-4"
             initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: prefersReducedMotion ? 0 : 0.6, duration: 0.8 }}
@@ -359,9 +359,18 @@ export default function StartPage() {
               className="font-serif text-base md:text-lg text-pink-800 italic"
               initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: prefersReducedMotion ? 0 : 1.0 }}
+            >
+              Yet here I am;
+            </motion.p>
+
+            <motion.p
+              className="font-serif text-base md:text-lg text-pink-800 italic"
+              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: prefersReducedMotion ? 0 : 1.2 }}
             >
-              Yet here I am — waiting for someone to believe I could.
+              Waiting for someone to believe I could.
             </motion.p>
           </motion.div>
 

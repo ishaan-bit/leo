@@ -2292,8 +2292,8 @@ export default function MomentsLibrary({
                                   fontFamily: '"Inter", -apple-system, sans-serif',
                                   color: atmosphere.accentColor,
                                   letterSpacing: '0.15em',
-                                  opacity: 1.0,
-                                  fontWeight: 700,
+                                  opacity: 0.95,
+                                  fontWeight: 600,
                                 }}
                               >
                                 <motion.span
