@@ -72,7 +72,7 @@ export default function BreathingSequence({
   
   const [bubbleStep, setBubbleStep] = useState<BubbleSequenceStep>('idle');
   const [leoBubbleState, setLeoBubbleState] = useState<'hidden' | 'text' | 'ellipsis'>('hidden');
-  const [skyLightnessLevel, setSkyLightnessLevel] = useState(0); // 0-4
+  // REMOVED skyLightnessLevel - sky stays locked to Ghibli gradient from CityInterlude
   const [leoReacting, setLeoReacting] = useState(false); // For tip reactions
   
   // "Mark Done" state - tracks which tips have been marked
@@ -344,32 +344,6 @@ export default function BreathingSequence({
     }, 800);
   };
 
-  // Sky gradient based on lightness level (0 = night, 4 = pink gradient)
-  const getSkyGradient = () => {
-    switch (skyLightnessLevel) {
-      case 0: // Night - MATCHES CityInterlude phase 4 final gradient
-        return isInhaling
-          ? 'linear-gradient(to bottom, #1A1734, #3B3367, #1A1734)'
-          : 'linear-gradient(180deg, #0A0714 0%, #1A1530 100%)'; // Exact match for smooth transition
-      case 1: // Slightly lighter
-        return isInhaling
-          ? 'linear-gradient(to bottom, #2A2744, #4B4377, #2A2744)'
-          : 'linear-gradient(to bottom, #1A1724, #3B3367, #1A1724)';
-      case 2: // More light
-        return isInhaling
-          ? 'linear-gradient(to bottom, #3A3754, #5B5387, #3A3754)'
-          : 'linear-gradient(to bottom, #2A2734, #4B4377, #2A2734)';
-      case 3: // Pre-dawn
-        return isInhaling
-          ? 'linear-gradient(to bottom, #4A4764, #6B6397, #4A4764)'
-          : 'linear-gradient(to bottom, #3A3744, #5B5387, #3A3744)';
-      case 4: // Pink gradient (interlude)
-        return 'linear-gradient(to bottom, #FFF5F7, #FFE5E9, #FFF0F3)';
-      default:
-        return getSkyGradient();
-    }
-  };
-
   // NEW: If dialogue tuples available, show DialogueInterlude instead of breathing sequence
   if (showDialogueInterlude && stage2Payload) {
     const dialogueTuples = stage2Payload.dialogue_tuples || stage2Payload.meta?.dialogue_tuples;
@@ -397,14 +371,28 @@ export default function BreathingSequence({
 
   return (
     <div ref={breathingContainerRef} className="fixed inset-0 z-50 overflow-hidden">
-      {/* Sky background with progressive lightening */}
-      <motion.div
+      {/* LOCKED Ghibli Sky - matches CityInterlude Phase 4 exactly (NO changes during breathing) */}
+      <div
         className="absolute inset-0"
-        animate={{
-          background: getSkyGradient(),
+        style={{
+          background: 'linear-gradient(180deg, #3A2952 0%, #6B5B95 100%)', // Exact match - seamless from CityInterlude
         }}
-        transition={{ duration: skyLightnessLevel >= 1 ? 2 : 0.7, ease: NATURAL_EASE }}
-        style={{ transition: 'background 700ms ease-in-out' }}
+      />
+      
+      {/* Subtle breathing halo pulse - adds atmosphere WITHOUT changing sky */}
+      <motion.div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: `radial-gradient(circle at center, ${color}15 0%, transparent 60%)`,
+        }}
+        animate={{
+          opacity: isInhaling || isHoldingIn ? 0.4 : 0.15,
+          scale: isInhaling || isHoldingIn ? 1.1 : 1,
+        }}
+        transition={{
+          duration: isInhaling ? activeCycle.in : isExhaling ? activeCycle.out : 0.5,
+          ease: NATURAL_EASE,
+        }}
       />
       
       {/* Stars */}

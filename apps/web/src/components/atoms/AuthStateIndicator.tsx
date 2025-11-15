@@ -113,15 +113,6 @@ export default function AuthStateIndicator({ userName, isGuest, pigName = 'Leo' 
             }}
           >
             Until we meet again...
-            <br />
-            <motion.span
-              className="text-pink-700"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6, duration: 0.8 }}
-            >
-              {pigName}
-            </motion.span>
           </motion.p>
         </motion.div>
       )}

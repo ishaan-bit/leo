@@ -511,12 +511,13 @@ export default function MomentsLibrary({
 
   // Auto-open expanded view ONLY when:
   // 1. User just submitted a new moment (justSubmitted=true) → open newest
-  // 2. Dream letter exists (autoOpenMomentId provided) → open specific moment
-  // Regular Living City visits (e.g., login with no dream) → NO auto-open
+  // 2. Dream letter exists (autoOpenMomentId provided OR pendingDream exists) → open specific moment
+  // Regular Living City visits (e.g., login with no dream, no submission) → NO auto-open
   useEffect(() => {
     if (phase === 'library' && moments.length > 0 && !autoOpenCompletedRef.current) {
       // Check if we should auto-open at all
-      const shouldAutoOpen = justSubmitted || autoOpenMomentId !== null;
+      const hasPendingDreamLetter = pendingDream !== null;
+      const shouldAutoOpen = justSubmitted || autoOpenMomentId !== null || hasPendingDreamLetter;
       
       if (!shouldAutoOpen) {
         console.log('[MomentsLibrary] 🏛️ Regular city visit - NOT auto-opening expanded view');
@@ -1672,6 +1673,9 @@ export default function MomentsLibrary({
                   borderRadius: '24px',
                   border: `1px solid rgba(255, 255, 255, 0.2)`,
                   boxShadow: `0 8px 32px rgba(0, 0, 0, 0.3)`,
+                  willChange: 'transform',
+                  transform: 'translateZ(0)',
+                  WebkitOverflowScrolling: 'touch',
                 }}
               >
                 {/* Inner wrapper - contains backgrounds and content, expands to full content height */}
@@ -2288,8 +2292,8 @@ export default function MomentsLibrary({
                                   fontFamily: '"Inter", -apple-system, sans-serif',
                                   color: atmosphere.accentColor,
                                   letterSpacing: '0.15em',
-                                  opacity: 0.8,
-                                  fontWeight: 600,
+                                  opacity: 1.0,
+                                  fontWeight: 700,
                                 }}
                               >
                                 <motion.span
@@ -2349,11 +2353,11 @@ export default function MomentsLibrary({
                                     fontFamily: '"Inter", -apple-system, sans-serif',
                                     color: atmosphere.accentColor,
                                     letterSpacing: '0.12em',
-                                    opacity: 0.8,
-                                    fontWeight: 500,
+                                    opacity: 1.0,
+                                    fontWeight: 600,
                                   }}
                                 >
-                                  <span className="opacity-60">🌊</span>
+                                  <span className="opacity-80">🌊</span>
                                   Body remembered
                                 </div>
                                 <div
@@ -2378,11 +2382,11 @@ export default function MomentsLibrary({
                                     fontFamily: '"Inter", -apple-system, sans-serif',
                                     color: atmosphere.accentColor,
                                     letterSpacing: '0.12em',
-                                    opacity: 0.8,
-                                    fontWeight: 500,
+                                    opacity: 1.0,
+                                    fontWeight: 600,
                                   }}
                                 >
-                                  <span className="opacity-60">✨</span>
+                                  <span className="opacity-80">✨</span>
                                   Spark flickered
                                 </div>
                                 <div

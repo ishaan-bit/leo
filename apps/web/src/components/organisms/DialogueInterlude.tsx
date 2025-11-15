@@ -71,8 +71,52 @@ export default function DialogueInterlude({
   const [showWindowBubble, setShowWindowBubble] = useState(false);
   const [showProceedButton, setShowProceedButton] = useState(false);
   
+  // NEW: Sky darkening progress (0 = Ghibli sky, 1 = deep night)
+  // Smoothly interpolates across all 3 tuples + phases
+  const [skyDarkenProgress, setSkyDarkenProgress] = useState(0);
+  
   const leoContainerRef = useRef<HTMLDivElement>(null);
   const orchestrationStartedRef = useRef(false);
+  
+  // Helper: Lerp between two hex colors
+  const lerpColor = (color1: string, color2: string, t: number) => {
+    const hex = (c: string) => parseInt(c.substring(1), 16);
+    const c1 = hex(color1);
+    const c2 = hex(color2);
+    
+    const r1 = (c1 >> 16) & 255;
+    const g1 = (c1 >> 8) & 255;
+    const b1 = c1 & 255;
+    
+    const r2 = (c2 >> 16) & 255;
+    const g2 = (c2 >> 8) & 255;
+    const b2 = c2 & 255;
+    
+    const r = Math.round(r1 + (r2 - r1) * t);
+    const g = Math.round(g1 + (g2 - g1) * t);
+    const b = Math.round(b1 + (b2 - b1) * t);
+    
+    return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+  };
+  
+  // Compute sky gradient based on darkening progress
+  const getSkyGradient = () => {
+    // Ghibli sky from CityInterlude/BreathingSequence
+    const ghibliTop = '#3A2952';
+    const ghibliBottom = '#6B5B95';
+    
+    // Deep night sky for dialogue end
+    const nightTop = '#0A0714';
+    const nightBottom = '#1A1530';
+    
+    // Smooth cubic easing for natural darkening
+    const eased = skyDarkenProgress * skyDarkenProgress * (3 - 2 * skyDarkenProgress);
+    
+    const topColor = lerpColor(ghibliTop, nightTop, eased);
+    const bottomColor = lerpColor(ghibliBottom, nightBottom, eased);
+    
+    return `linear-gradient(180deg, ${topColor} 0%, ${bottomColor} 100%)`;
+  };
   
   // Validate tuples
   useEffect(() => {
@@ -133,6 +177,31 @@ export default function DialogueInterlude({
     }, 500);
   }, [currentTupleIndex, tuples]);
   
+  // Smoothly update sky darkening progress based on tuple index and phase
+  // Progress: 0 (tuple 0 start) → 1 (tuple 2 end)
+  useEffect(() => {
+    // Calculate base progress from tuple index (0, 1, 2 → 0, 0.33, 0.66)
+    const tupleProgress = currentTupleIndex / 3;
+    
+    // Add phase-based progress within current tuple
+    const phaseWeights: Record<TuplePhase, number> = {
+      'idle': 0,
+      'inner_voice': 0.08,   // 0-8% of tuple
+      'regulate': 0.16,      // 8-16% of tuple
+      'amuse': 0.24,         // 16-24% of tuple
+      'proceed': 0.33,       // 24-33% of tuple (full tuple done)
+      'transition': 0.33,
+    };
+    
+    const phaseOffset = phaseWeights[phase] || 0;
+    const targetProgress = Math.min(1, tupleProgress + phaseOffset);
+    
+    // Smooth transition to target progress
+    setSkyDarkenProgress(targetProgress);
+    
+    console.log(`[DialogueInterlude] 🌌 Sky darken: ${(targetProgress * 100).toFixed(1)}% (tuple ${currentTupleIndex + 1}, phase ${phase})`);
+  }, [currentTupleIndex, phase]);
+  
   // Handle Proceed button click
   const handleProceed = () => {
     console.log(`[DialogueInterlude] ✅ Proceed clicked for tuple ${currentTupleIndex + 1}`);
@@ -166,13 +235,16 @@ export default function DialogueInterlude({
   
   return (
     <div className="relative w-full h-screen overflow-hidden">
-      {/* Ghibli Night Sky Background - SEAMLESS one-way transition from BreathingSequence */}
-      {/* BreathingSequence ends at: linear-gradient(180deg, #0A0714 0%, #1A1530 100%) */}
-      {/* This component inherits that exact gradient and holds it (no change, no flicker) */}
-      <div 
+      {/* SMOOTH Sky Gradient - starts at Ghibli, gradually darkens through tuples */}
+      {/* NO discrete cuts, NO flickering, SEAMLESS from BreathingSequence */}
+      <motion.div 
         className="absolute inset-0 -z-10"
-        style={{
-          background: 'linear-gradient(180deg, #0A0714 0%, #1A1530 100%)', // Exact match - no transition needed
+        animate={{
+          background: getSkyGradient(),
+        }}
+        transition={{
+          duration: 2, // 2 second smooth transitions between gradient states
+          ease: [0.4, 0, 0.2, 1], // Cubic bezier for natural easing
         }}
       />
       
