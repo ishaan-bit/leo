@@ -1682,44 +1682,50 @@ export default function MomentsLibrary({
                     transition={{ duration: 1.5 }}
                   />
                   
-                  {/* Layer 2: Mid Clouds - Medium parallax (0.3x scroll speed) */}
+                  {/* Layer 2: Mid Clouds - Medium parallax (0.3x scroll speed) - Desktop only */}
                   <motion.div
                     className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none rounded-[32px] z-0"
                     style={{
                       background: `radial-gradient(ellipse at 40% 20%, ${atmosphere.gradient[1]}40 0%, transparent 50%),
                                    radial-gradient(ellipse at 70% 60%, ${atmosphere.gradient[0]}30 0%, transparent 40%)`,
                       willChange: 'transform',
+                      opacity: 0.4, // Static opacity on mobile
                     }}
-                    animate={{
-                      y: [0, -15, 0],
-                      opacity: [0.3, 0.5, 0.3],
-                    }}
-                    transition={{
-                      duration: 12,
-                      repeat: Infinity,
-                      ease: 'easeInOut',
-                    }}
+                    {...(typeof window !== 'undefined' && window.innerWidth >= 768 ? {
+                      animate: {
+                        y: [0, -15, 0],
+                        opacity: [0.3, 0.5, 0.3],
+                      },
+                      transition: {
+                        duration: 12,
+                        repeat: Infinity,
+                        ease: 'easeInOut',
+                      }
+                    } : {})}
                   />
                   
-                  {/* Layer 3: Near Mist - Fastest parallax (0.5x scroll speed) */}
+                  {/* Layer 3: Near Mist - Fastest parallax (0.5x scroll speed) - Desktop only */}
                   <motion.div
                     className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none rounded-[32px] z-0"
                     style={{
                       background: `radial-gradient(ellipse at 30% 80%, ${atmosphere.accentColor}15 0%, transparent 40%),
                                    radial-gradient(ellipse at 80% 30%, ${atmosphere.gradient[1]}20 0%, transparent 45%)`,
                       willChange: 'transform',
+                      opacity: 0.3, // Static opacity on mobile
                     }}
-                    animate={{
-                      y: [0, -25, 0],
-                      x: [0, 15, 0],
-                      opacity: [0.2, 0.4, 0.2],
-                    }}
-                    transition={{
-                      duration: 8,
-                      repeat: Infinity,
-                      ease: 'easeInOut',
-                      delay: 1,
-                    }}
+                    {...(typeof window !== 'undefined' && window.innerWidth >= 768 ? {
+                      animate: {
+                        y: [0, -25, 0],
+                        x: [0, 15, 0],
+                        opacity: [0.2, 0.4, 0.2],
+                      },
+                      transition: {
+                        duration: 8,
+                        repeat: Infinity,
+                        ease: 'easeInOut',
+                        delay: 1,
+                      }
+                    } : {})}
                   />
 
                   {/* Foreground contrast overlay - ensures text legibility with soft-light blend */}
@@ -1758,24 +1764,26 @@ export default function MomentsLibrary({
                     }}
                   />
                   
-                  {/* Very slow gradient drift */}
+                  {/* Very slow gradient drift - Desktop only */}
                   <motion.div
                     className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none rounded-[32px] z-0 opacity-20"
                     style={{
                       background: `radial-gradient(circle at 50% 50%, ${atmosphere.gradient[0]}20 0%, transparent 50%)`,
                     }}
-                    animate={{
-                      background: [
-                        `radial-gradient(circle at 30% 40%, ${atmosphere.gradient[0]}20 0%, transparent 50%)`,
-                        `radial-gradient(circle at 70% 60%, ${atmosphere.gradient[1]}20 0%, transparent 50%)`,
-                        `radial-gradient(circle at 30% 40%, ${atmosphere.gradient[0]}20 0%, transparent 50%)`,
-                      ],
-                    }}
-                    transition={{
-                      duration: 20,
-                      repeat: Infinity,
-                      ease: 'easeInOut',
-                    }}
+                    {...(typeof window !== 'undefined' && window.innerWidth >= 768 ? {
+                      animate: {
+                        background: [
+                          `radial-gradient(circle at 30% 40%, ${atmosphere.gradient[0]}20 0%, transparent 50%)`,
+                          `radial-gradient(circle at 70% 60%, ${atmosphere.gradient[1]}20 0%, transparent 50%)`,
+                          `radial-gradient(circle at 30% 40%, ${atmosphere.gradient[0]}20 0%, transparent 50%)`,
+                        ],
+                      },
+                      transition: {
+                        duration: 20,
+                        repeat: Infinity,
+                        ease: 'easeInOut',
+                      }
+                    } : {})}
                   />
                   
                   {/* MAGICAL FIREFLY PARTICLES - 18 floating lights with glow and breathing (Desktop only) */}
@@ -2055,14 +2063,16 @@ export default function MomentsLibrary({
                         textShadow: `0 1px 2px rgba(0,0,0,0.15)`,
                         opacity: 0.95,
                       }}
-                      animate={{
-                        opacity: [0.93, 0.98, 0.93],
-                      }}
-                      transition={{
-                        duration: 5,
-                        repeat: Infinity,
-                        ease: 'easeInOut',
-                      }}
+                      {...(typeof window !== 'undefined' && window.innerWidth >= 768 ? {
+                        animate: {
+                          opacity: [0.93, 0.98, 0.93],
+                        },
+                        transition: {
+                          duration: 5,
+                          repeat: Infinity,
+                          ease: 'easeInOut',
+                        }
+                      } : {})}
                     >
                       {atmosphere.header}
                     </motion.h2>
@@ -2566,27 +2576,30 @@ export default function MomentsLibrary({
                                 scale: 1.02,
                               }}
                             >
-                              {/* MAGICAL HALO GLOW - Pulsing radial gradient behind card */}
+                              {/* MAGICAL HALO GLOW - Pulsing radial gradient behind card (Desktop only) */}
                               <motion.div
                                 className="absolute inset-0 -m-8 rounded-full pointer-events-none opacity-40"
                                 style={{
                                   background: `radial-gradient(circle at center, ${atmosphere.accentGlow} 0%, transparent 70%)`,
-                                  filter: 'blur(40px)',
+                                  filter: typeof window !== 'undefined' && window.innerWidth >= 768 ? 'blur(40px)' : 'blur(8px)',
                                   zIndex: -1,
                                 }}
-                                animate={{
-                                  opacity: [0.3, 0.6, 0.3],
-                                  scale: [1, 1.1, 1],
-                                }}
-                                transition={{
-                                  duration: 4 + i,
-                                  repeat: Infinity,
-                                  ease: 'easeInOut',
-                                  delay: i * 0.5,
-                                }}
+                                {...(typeof window !== 'undefined' && window.innerWidth >= 768 ? {
+                                  animate: {
+                                    opacity: [0.3, 0.6, 0.3],
+                                    scale: [1, 1.1, 1],
+                                  },
+                                  transition: {
+                                    duration: 4 + i,
+                                    repeat: Infinity,
+                                    ease: 'easeInOut',
+                                    delay: i * 0.5,
+                                  }
+                                } : {})}
                               />
                               
-                              {/* SHIMMER EFFECT - Animated light sweep */}
+                              {/* SHIMMER EFFECT - Animated light sweep (Desktop only) */}
+                              {typeof window !== 'undefined' && window.innerWidth >= 768 && (
                               <motion.div
                                 className="absolute inset-0 rounded-2xl pointer-events-none overflow-hidden"
                                 style={{
@@ -2608,6 +2621,7 @@ export default function MomentsLibrary({
                                   delay: i * 2,
                                 }}
                               />
+                              )}
                               
                               {/* Companion subtitle with mystical icon */}
                               <div
@@ -2621,14 +2635,16 @@ export default function MomentsLibrary({
                                 }}
                               >
                                 <motion.span
-                                  animate={{
-                                    rotate: [0, 360],
-                                    opacity: [0.6, 1, 0.6],
-                                  }}
-                                  transition={{
-                                    rotate: { duration: 20, repeat: Infinity, ease: 'linear' },
-                                    opacity: { duration: 3, repeat: Infinity, ease: 'easeInOut' },
-                                  }}
+                                  {...(typeof window !== 'undefined' && window.innerWidth >= 768 ? {
+                                    animate: {
+                                      rotate: [0, 360],
+                                      opacity: [0.6, 1, 0.6],
+                                    },
+                                    transition: {
+                                      rotate: { duration: 20, repeat: Infinity, ease: 'linear' },
+                                      opacity: { duration: 3, repeat: Infinity, ease: 'easeInOut' },
+                                    }
+                                  } : {})}
                                   style={{
                                     filter: `drop-shadow(0 0 4px ${atmosphere.accentGlow})`,
                                   }}
