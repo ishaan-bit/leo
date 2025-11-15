@@ -94,6 +94,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   const [wordCount, setWordCount] = useState(0); // Track word count for blush intensity
   const [isMomentExpanded, setIsMomentExpanded] = useState(false); // Track if a moment is expanded in library
   const [audioStarted, setAudioStarted] = useState(false); // Track if user has started audio
+  const [isDreamNotificationVisible, setIsDreamNotificationVisible] = useState(true); // Dream letter notification
   
   const audioSystemRef = useRef(getAdaptiveAmbientSystem());
   const sceneStartTime = useRef(Date.now());
@@ -215,6 +216,18 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
       return () => clearTimeout(timer);
     }
   }, [status, showSignInModal]);
+
+  // Auto-hide dream notification after 4 seconds
+  useEffect(() => {
+    if (pendingDream && !showBreathing && !showMomentsLibrary) {
+      setIsDreamNotificationVisible(true);
+      const timer = setTimeout(() => {
+        setIsDreamNotificationVisible(false);
+      }, 4000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [pendingDream, showBreathing, showMomentsLibrary]);
 
   // Check for reduced motion preference
   useEffect(() => {
@@ -843,49 +856,34 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
 
       {/* Dream letter notification - appears when pending dream exists */}
       <AnimatePresence>
-        {pendingDream && !showBreathing && !showMomentsLibrary && (() => {
-          // Auto-hide after 4 seconds
-          const [isVisible, setIsVisible] = React.useState(true);
-          
-          React.useEffect(() => {
-            const timer = setTimeout(() => {
-              setIsVisible(false);
-            }, 4000); // 4 seconds
-            
-            return () => clearTimeout(timer);
-          }, []);
-          
-          if (!isVisible) return null;
-          
-          return (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: -10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: -10 }}
-              transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-              className="fixed top-20 left-6 z-50 cursor-pointer"
-              onClick={() => setShowMomentsLibrary(true)}
-            >
-              <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-400/30 to-pink-400/30 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300" />
-                <div className="relative bg-gradient-to-br from-[#3A2952]/95 to-[#6B5B95]/95 backdrop-blur-md rounded-2xl px-6 py-4 shadow-2xl border border-purple-300/20 hover:border-purple-300/40 transition-all duration-300">
-                  <motion.div
-                    className="absolute -top-1 -right-1 w-3 h-3 bg-pink-300 rounded-full"
-                    animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                  />
-                  <div className="text-2xl mb-1 font-serif text-purple-200">&#9993;</div>
-                  <p className="text-sm font-medium text-purple-100 mb-1">
-                    {pigName} has written you a letter
-                  </p>
-                  <p className="text-xs text-purple-200/70">
-                    Visit the Living City to read it
-                  </p>
-                </div>
+        {pendingDream && !showBreathing && !showMomentsLibrary && isDreamNotificationVisible && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: -10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: -10 }}
+            transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+            className="fixed top-20 left-6 z-50 cursor-pointer"
+            onClick={() => setShowMomentsLibrary(true)}
+          >
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-400/30 to-pink-400/30 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300" />
+              <div className="relative bg-gradient-to-br from-[#3A2952]/95 to-[#6B5B95]/95 backdrop-blur-md rounded-2xl px-6 py-4 shadow-2xl border border-purple-300/20 hover:border-purple-300/40 transition-all duration-300">
+                <motion.div
+                  className="absolute -top-1 -right-1 w-3 h-3 bg-pink-300 rounded-full"
+                  animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                />
+                <div className="text-2xl mb-1 font-serif text-purple-200">&#9993;</div>
+                <p className="text-sm font-medium text-purple-100 mb-1">
+                  {pigName} has written you a letter
+                </p>
+                <p className="text-xs text-purple-200/70">
+                  Visit the Living City to read it
+                </p>
               </div>
-            </motion.div>
-          );
-        })()}
+            </div>
+          </motion.div>
+        )}
       </AnimatePresence>
       
       {/* Atmospheric particles with time-based colors */}
