@@ -7,15 +7,46 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import PinkPig from '@/components/molecules/PinkPig';
 
+// Animation sequence states
+type IntroState = 'brand-reveal' | 'alphabet-fade' | 'monogram-converge' | 'landing-reveal' | 'complete';
+
 export default function StartPage() {
   const router = useRouter();
   const [showRememberMessage, setShowRememberMessage] = useState(false);
+  const [introState, setIntroState] = useState<IntroState>('brand-reveal');
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  // Check for prefers-reduced-motion
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setPrefersReducedMotion(mediaQuery.matches);
+    
+    // If reduced motion, skip directly to landing
+    if (mediaQuery.matches) {
+      setIntroState('complete');
+    }
+  }, []);
+
+  // Orchestrate brand reveal sequence
+  useEffect(() => {
+    if (prefersReducedMotion) return;
+
+    const timers: NodeJS.Timeout[] = [];
+
+    // Sequence timing
+    timers.push(setTimeout(() => setIntroState('alphabet-fade'), 800));        // After initial pause
+    timers.push(setTimeout(() => setIntroState('monogram-converge'), 1600));   // After letters fade
+    timers.push(setTimeout(() => setIntroState('landing-reveal'), 2400));      // After QD converge
+    timers.push(setTimeout(() => setIntroState('complete'), 2600));            // Mark complete
+
+    return () => timers.forEach(clearTimeout);
+  }, [prefersReducedMotion]);
 
   const handleGoogleSignIn = async () => {
     setShowRememberMessage(true);
@@ -127,84 +158,265 @@ export default function StartPage() {
         })}
       </div>
 
-      {/* Main content */}
-      <div className="relative z-10 w-full max-w-lg flex-1 flex flex-col items-center justify-center space-y-8 py-8 px-6">
-        
-        {/* Pig Character */}
-        <motion.div
-          initial={{ y: 100, opacity: 0 }}
-          animate={{ y: -5, opacity: 1, rotate: 3 }}
-          transition={{ 
-            y: { duration: 1.2, ease: [0.34, 1.56, 0.64, 1] },
-            opacity: { duration: 0.8 },
-            rotate: { duration: 0.6 }
-          }}
-        >
-          <PinkPig size={280} state="idle" />
-        </motion.div>
-
-        {/* Hero text */}
-        <motion.div
-          className="flex flex-col gap-3 items-center text-center max-w-md"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8, duration: 0.8 }}
-        >
-          <motion.p
-            className="font-serif text-base md:text-lg text-pink-800 italic"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 1.0 }}
+      {/* QuietDen Brand Reveal Sequence */}
+      <AnimatePresence>
+        {introState !== 'complete' && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6 }}
           >
-            They say pigs can't fly.
-          </motion.p>
+            {/* QuietDen wordmark with individual letter animations */}
+            <div className="relative flex items-center justify-center gap-1 md:gap-2">
+              {/* Q */}
+              <motion.span
+                className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
+                style={{ fontVariant: 'small-caps', letterSpacing: '0.15em' }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{
+                  opacity: introState === 'brand-reveal' ? 1 : introState === 'alphabet-fade' ? 1 : 1,
+                  scale: introState === 'brand-reveal' ? 1 : 1,
+                  x: introState === 'monogram-converge' || introState === 'landing-reveal' ? -20 : 0,
+                  y: introState === 'landing-reveal' ? -180 : 0,
+                }}
+                transition={{ 
+                  opacity: { duration: 0.6 },
+                  scale: { duration: 0.6 },
+                  x: { duration: 0.8, ease: [0.4, 0, 0.2, 1] },
+                  y: { duration: 0.8, ease: [0.4, 0, 0.2, 1] },
+                }}
+              >
+                Q
+              </motion.span>
 
-          <motion.p
-            className="font-serif text-base md:text-lg text-pink-800 italic"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 1.6 }}
-          >
-            Yet here I am — waiting for someone to believe I could.
-          </motion.p>
-        </motion.div>
+              {/* u */}
+              <motion.span
+                className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
+                style={{ fontVariant: 'small-caps', letterSpacing: '0.15em' }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{
+                  opacity: introState === 'brand-reveal' ? 1 : 0,
+                  scale: introState === 'brand-reveal' ? 1 : 0.8,
+                }}
+                transition={{ duration: 0.6, delay: 0.05 }}
+              >
+                u
+              </motion.span>
 
-        {/* CTA Buttons */}
+              {/* i */}
+              <motion.span
+                className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
+                style={{ fontVariant: 'small-caps', letterSpacing: '0.15em' }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{
+                  opacity: introState === 'brand-reveal' ? 1 : 0,
+                  scale: introState === 'brand-reveal' ? 1 : 0.8,
+                }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+              >
+                i
+              </motion.span>
+
+              {/* e */}
+              <motion.span
+                className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
+                style={{ fontVariant: 'small-caps', letterSpacing: '0.15em' }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{
+                  opacity: introState === 'brand-reveal' ? 1 : 0,
+                  scale: introState === 'brand-reveal' ? 1 : 0.8,
+                }}
+                transition={{ duration: 0.6, delay: 0.15 }}
+              >
+                e
+              </motion.span>
+
+              {/* t */}
+              <motion.span
+                className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
+                style={{ fontVariant: 'small-caps', letterSpacing: '0.15em' }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{
+                  opacity: introState === 'brand-reveal' ? 1 : 0,
+                  scale: introState === 'brand-reveal' ? 1 : 0.8,
+                }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+              >
+                t
+              </motion.span>
+
+              {/* D */}
+              <motion.span
+                className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
+                style={{ fontVariant: 'small-caps', letterSpacing: '0.15em' }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{
+                  opacity: introState === 'brand-reveal' ? 1 : introState === 'alphabet-fade' ? 1 : 1,
+                  scale: introState === 'brand-reveal' ? 1 : 1,
+                  x: introState === 'monogram-converge' || introState === 'landing-reveal' ? 20 : 0,
+                  y: introState === 'landing-reveal' ? -180 : 0,
+                }}
+                transition={{ 
+                  opacity: { duration: 0.6, delay: 0.25 },
+                  scale: { duration: 0.6, delay: 0.25 },
+                  x: { duration: 0.8, ease: [0.4, 0, 0.2, 1] },
+                  y: { duration: 0.8, ease: [0.4, 0, 0.2, 1] },
+                }}
+              >
+                D
+              </motion.span>
+
+              {/* e */}
+              <motion.span
+                className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
+                style={{ fontVariant: 'small-caps', letterSpacing: '0.15em' }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{
+                  opacity: introState === 'brand-reveal' ? 1 : 0,
+                  scale: introState === 'brand-reveal' ? 1 : 0.8,
+                }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+              >
+                e
+              </motion.span>
+
+              {/* n */}
+              <motion.span
+                className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
+                style={{ fontVariant: 'small-caps', letterSpacing: '0.15em' }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{
+                  opacity: introState === 'brand-reveal' ? 1 : 0,
+                  scale: introState === 'brand-reveal' ? 1 : 0.8,
+                }}
+                transition={{ duration: 0.6, delay: 0.35 }}
+              >
+                n
+              </motion.span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* QD Monogram - persists in final position */}
+      {(introState === 'landing-reveal' || introState === 'complete' || prefersReducedMotion) && (
         <motion.div
-          className="w-full max-w-md space-y-4 pt-6"
-          initial={{ opacity: 0, scale: 0.95 }}
+          className="absolute top-12 md:top-16 left-1/2 -translate-x-1/2 z-20"
+          initial={prefersReducedMotion ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 2.2, duration: 0.8 }}
+          transition={{ duration: 0.6, delay: prefersReducedMotion ? 0 : 0.2 }}
         >
-          <motion.button
-            onClick={() => router.push('/guest/name-pig')}
-            className="w-full bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 text-white font-semibold py-4 px-8 rounded-full shadow-xl hover:shadow-2xl hover:from-pink-600 hover:via-rose-600 hover:to-pink-700 transition-all duration-300 border-2 border-pink-300/50"
-            whileHover={{ scale: 1.03, y: -2 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            Continue as Guest
-          </motion.button>
-
-          <motion.button
-            onClick={handleGoogleSignIn}
-            className="w-full flex items-center justify-center gap-3 bg-white/95 backdrop-blur-sm border-2 border-pink-200/80 text-pink-900 font-semibold py-4 px-8 rounded-full shadow-lg hover:shadow-xl hover:border-pink-300 hover:bg-pink-50/50 transition-all duration-300"
-            whileHover={{ scale: 1.03, y: -2 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <svg className="w-5 h-5" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-            </svg>
-            Let me Remember you
-          </motion.button>
-
-          <p className="text-center text-pink-600/80 text-sm font-serif italic pt-2">
-            If you lose me, scan my mark again; I'll come flying back.
-          </p>
+          <div className="font-serif text-2xl md:text-3xl tracking-widest text-rose-900/80" style={{ fontVariant: 'small-caps', letterSpacing: '0.2em' }}>
+            QD
+          </div>
         </motion.div>
-      </div>
+      )}
+
+      {/* Main landing content - shows after brand reveal or immediately if reduced motion */}
+      {(introState === 'landing-reveal' || introState === 'complete' || prefersReducedMotion) && (
+        <motion.div 
+          className="relative z-10 w-full max-w-lg flex-1 flex flex-col items-center justify-center space-y-6 py-8 px-6"
+          initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: prefersReducedMotion ? 0 : 0.3 }}
+        >
+          
+          {/* "A QuietDen Experience" tagline */}
+          <motion.p
+            className="font-serif text-sm md:text-base text-pink-700/90 tracking-widest uppercase"
+            style={{ letterSpacing: '0.25em' }}
+            initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: prefersReducedMotion ? 0 : 0.5 }}
+          >
+            A QuietDen Experience
+          </motion.p>
+
+          {/* Pig Character */}
+          <motion.div
+            initial={prefersReducedMotion ? { opacity: 1, y: 0 } : { y: 60, opacity: 0 }}
+            animate={{ y: -5, opacity: 1, rotate: 3 }}
+            transition={prefersReducedMotion ? { duration: 0 } : { 
+              y: { duration: 1.0, ease: [0.34, 1.56, 0.64, 1] },
+              opacity: { duration: 0.8 },
+              rotate: { duration: 0.6 }
+            }}
+          >
+            <PinkPig size={280} state="idle" />
+          </motion.div>
+
+          {/* Hero text */}
+          <motion.div
+            className="flex flex-col gap-3 items-center text-center max-w-md"
+            initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: prefersReducedMotion ? 0 : 0.6, duration: 0.8 }}
+          >
+            <motion.p
+              className="font-serif text-base md:text-lg text-pink-800 italic"
+              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: prefersReducedMotion ? 0 : 0.8 }}
+            >
+              They say pigs can't fly.
+            </motion.p>
+
+            <motion.p
+              className="font-serif text-base md:text-lg text-pink-800 italic"
+              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: prefersReducedMotion ? 0 : 1.2 }}
+            >
+              Yet here I am — waiting for someone to believe I could.
+            </motion.p>
+          </motion.div>
+
+          {/* CTA Buttons */}
+          <motion.div
+            className="w-full max-w-md space-y-4 pt-6"
+            initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: prefersReducedMotion ? 0 : 1.6, duration: 0.8 }}
+          >
+            <motion.button
+              onClick={() => router.push('/guest/name-pig')}
+              className="w-full bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 text-white font-semibold py-4 px-8 rounded-full shadow-xl hover:shadow-2xl hover:from-pink-600 hover:via-rose-600 hover:to-pink-700 transition-all duration-300 border-2 border-pink-300/50"
+              whileHover={{ scale: 1.03, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              Continue as Guest
+            </motion.button>
+
+            <motion.button
+              onClick={handleGoogleSignIn}
+              className="w-full flex items-center justify-center gap-3 bg-white/95 backdrop-blur-sm border-2 border-pink-200/80 text-pink-900 font-semibold py-4 px-8 rounded-full shadow-lg hover:shadow-xl hover:border-pink-300 hover:bg-pink-50/50 transition-all duration-300"
+              whileHover={{ scale: 1.03, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+              </svg>
+              Let me Remember you
+            </motion.button>
+
+            {/* Existing tiny note + Copyright */}
+            <div className="space-y-2 pt-2">
+              <p className="text-center text-pink-600/80 text-sm font-serif italic">
+                If you lose me, scan my mark again; I'll come flying back.
+              </p>
+              
+              {/* Copyright line */}
+              <p className="text-center text-pink-500/60 text-xs">
+                © QuietDen (OPC) Pvt. Ltd. 2025
+              </p>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
     </section>
   );
 }
