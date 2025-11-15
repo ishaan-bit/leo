@@ -268,8 +268,10 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     // Update audio system
     audioSystemRef.current.updateFromAffect(affect);
     
-    // Play ink ripple sound
-    audioSystemRef.current.playInkRipple();
+    // THROTTLED ink ripple - only every 5th keystroke to prevent mobile lag
+    if (metrics.chars % 5 === 0) {
+      audioSystemRef.current.playInkRipple();
+    }
     
     // Update pig mood based on typing intensity
     if (affect.arousal > 0.7) {
@@ -686,8 +688,8 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
             <motion.div
               key="city-interlude"
               initial={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
+              exit={{ opacity: 1 }} // Keep visible during unmount for seamless building handoff
+              transition={{ duration: 0 }} // Instant transition
               className="fixed inset-0"
             >
               <CityInterlude

@@ -876,11 +876,11 @@ export default function CityInterlude({
                 <div
                   className="w-full h-full relative overflow-hidden"
                   style={{
-                    background: `linear-gradient(180deg, ${tower.color}50 0%, ${tower.color}25 60%, ${tower.color}15 100%)`,
+                    background: `linear-gradient(180deg, ${tower.color}80 0%, ${tower.color}50 60%, ${tower.color}30 100%)`,
                     boxShadow: isPrimary 
                       ? `0 0 40px ${tower.color}80, inset 0 -20px 40px ${tower.color}30`
-                      : `0 0 20px ${tower.color}20`,
-                    border: `1px solid ${tower.color}40`,
+                      : `0 0 20px ${tower.color}40`,
+                    border: `1px solid ${tower.color}60`,
                     borderRadius: '2px 2px 0 0',
                   }}
                 >
