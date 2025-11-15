@@ -282,7 +282,7 @@ export default function DialogueInterlude({
       
       {/* Crescent Moon - Same position as CityInterlude and BreathingSequence for continuity */}
       <motion.div
-        className="absolute top-12 right-24 w-16 h-16 pointer-events-none z-50"
+        className="absolute top-20 right-24 w-16 h-16 pointer-events-none z-50"
         style={{
           borderRadius: '50%',
           boxShadow: 'inset -8px 0px 0px 0px rgba(255, 255, 255, 0.9)',
@@ -306,7 +306,7 @@ export default function DialogueInterlude({
 
       {/* Moon glow */}
       <motion.div
-        className="absolute top-10 right-20 w-32 h-32 rounded-full pointer-events-none z-40"
+        className="absolute top-18 right-20 w-32 h-32 rounded-full pointer-events-none z-40"
         style={{
           background: 'radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%)',
           filter: typeof window !== 'undefined' && window.innerWidth < 768 ? 'blur(4px)' : 'blur(20px)',
