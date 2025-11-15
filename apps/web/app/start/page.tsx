@@ -14,12 +14,12 @@ import { signIn } from 'next-auth/react';
 import PinkPig from '@/components/molecules/PinkPig';
 
 // Animation sequence states
-type IntroState = 'brand-reveal' | 'alphabet-fade' | 'monogram-converge' | 'landing-reveal' | 'complete';
+type IntroState = 'quieten-reveal' | 'd-insertion' | 'alphabet-fade' | 'monogram-converge' | 'landing-reveal' | 'complete';
 
 export default function StartPage() {
   const router = useRouter();
   const [showRememberMessage, setShowRememberMessage] = useState(false);
-  const [introState, setIntroState] = useState<IntroState>('brand-reveal');
+  const [introState, setIntroState] = useState<IntroState>('quieten-reveal');
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   // Check for prefers-reduced-motion
@@ -40,10 +40,11 @@ export default function StartPage() {
     const timers: NodeJS.Timeout[] = [];
 
     // Sequence timing
-    timers.push(setTimeout(() => setIntroState('alphabet-fade'), 800));        // After initial pause
-    timers.push(setTimeout(() => setIntroState('monogram-converge'), 1600));   // After letters fade
-    timers.push(setTimeout(() => setIntroState('landing-reveal'), 2400));      // After QD converge
-    timers.push(setTimeout(() => setIntroState('complete'), 2600));            // Mark complete
+    timers.push(setTimeout(() => setIntroState('d-insertion'), 700));        // After "Quieten" shows
+    timers.push(setTimeout(() => setIntroState('alphabet-fade'), 1100));     // After D inserts
+    timers.push(setTimeout(() => setIntroState('monogram-converge'), 1900)); // After letters fade
+    timers.push(setTimeout(() => setIntroState('landing-reveal'), 2700));    // After QD converge
+    timers.push(setTimeout(() => setIntroState('complete'), 2900));          // Mark complete
 
     return () => timers.forEach(clearTimeout);
   }, [prefersReducedMotion]);
@@ -167,7 +168,7 @@ export default function StartPage() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.6 }}
           >
-            {/* QuietDen wordmark with individual letter animations */}
+            {/* Quieten/QuietenD wordmark with individual letter animations */}
             <div className="relative flex items-center justify-center gap-1 md:gap-2">
               {/* Q */}
               <motion.span
@@ -175,8 +176,8 @@ export default function StartPage() {
                 style={{ fontVariant: 'small-caps', letterSpacing: '0.15em' }}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{
-                  opacity: introState === 'brand-reveal' ? 1 : introState === 'alphabet-fade' ? 1 : 1,
-                  scale: introState === 'brand-reveal' ? 1 : 1,
+                  opacity: introState === 'quieten-reveal' || introState === 'd-insertion' ? 1 : introState === 'alphabet-fade' ? 1 : 1,
+                  scale: introState === 'quieten-reveal' || introState === 'd-insertion' ? 1 : 1,
                   x: introState === 'monogram-converge' || introState === 'landing-reveal' ? -20 : 0,
                   y: introState === 'landing-reveal' ? -180 : 0,
                 }}
@@ -193,11 +194,11 @@ export default function StartPage() {
               {/* u */}
               <motion.span
                 className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
-                style={{ fontVariant: 'small-caps', letterSpacing: '0.15em' }}
+                style={{ letterSpacing: '0.15em' }}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{
-                  opacity: introState === 'brand-reveal' ? 1 : 0,
-                  scale: introState === 'brand-reveal' ? 1 : 0.8,
+                  opacity: (introState === 'quieten-reveal' || introState === 'd-insertion') ? 1 : 0,
+                  scale: (introState === 'quieten-reveal' || introState === 'd-insertion') ? 1 : 0.8,
                 }}
                 transition={{ duration: 0.6, delay: 0.05 }}
               >
@@ -207,11 +208,11 @@ export default function StartPage() {
               {/* i */}
               <motion.span
                 className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
-                style={{ fontVariant: 'small-caps', letterSpacing: '0.15em' }}
+                style={{ letterSpacing: '0.15em' }}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{
-                  opacity: introState === 'brand-reveal' ? 1 : 0,
-                  scale: introState === 'brand-reveal' ? 1 : 0.8,
+                  opacity: (introState === 'quieten-reveal' || introState === 'd-insertion') ? 1 : 0,
+                  scale: (introState === 'quieten-reveal' || introState === 'd-insertion') ? 1 : 0.8,
                 }}
                 transition={{ duration: 0.6, delay: 0.1 }}
               >
@@ -221,11 +222,11 @@ export default function StartPage() {
               {/* e */}
               <motion.span
                 className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
-                style={{ fontVariant: 'small-caps', letterSpacing: '0.15em' }}
+                style={{ letterSpacing: '0.15em' }}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{
-                  opacity: introState === 'brand-reveal' ? 1 : 0,
-                  scale: introState === 'brand-reveal' ? 1 : 0.8,
+                  opacity: (introState === 'quieten-reveal' || introState === 'd-insertion') ? 1 : 0,
+                  scale: (introState === 'quieten-reveal' || introState === 'd-insertion') ? 1 : 0.8,
                 }}
                 transition={{ duration: 0.6, delay: 0.15 }}
               >
@@ -235,48 +236,27 @@ export default function StartPage() {
               {/* t */}
               <motion.span
                 className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
-                style={{ fontVariant: 'small-caps', letterSpacing: '0.15em' }}
+                style={{ letterSpacing: '0.15em' }}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{
-                  opacity: introState === 'brand-reveal' ? 1 : 0,
-                  scale: introState === 'brand-reveal' ? 1 : 0.8,
+                  opacity: (introState === 'quieten-reveal' || introState === 'd-insertion') ? 1 : 0,
+                  scale: (introState === 'quieten-reveal' || introState === 'd-insertion') ? 1 : 0.8,
                 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
               >
                 t
               </motion.span>
 
-              {/* D */}
-              <motion.span
-                className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
-                style={{ fontVariant: 'small-caps', letterSpacing: '0.15em' }}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{
-                  opacity: introState === 'brand-reveal' ? 1 : introState === 'alphabet-fade' ? 1 : 1,
-                  scale: introState === 'brand-reveal' ? 1 : 1,
-                  x: introState === 'monogram-converge' || introState === 'landing-reveal' ? 20 : 0,
-                  y: introState === 'landing-reveal' ? -180 : 0,
-                }}
-                transition={{ 
-                  opacity: { duration: 0.6, delay: 0.25 },
-                  scale: { duration: 0.6, delay: 0.25 },
-                  x: { duration: 0.8, ease: [0.4, 0, 0.2, 1] },
-                  y: { duration: 0.8, ease: [0.4, 0, 0.2, 1] },
-                }}
-              >
-                D
-              </motion.span>
-
               {/* e */}
               <motion.span
                 className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
-                style={{ fontVariant: 'small-caps', letterSpacing: '0.15em' }}
+                style={{ letterSpacing: '0.15em' }}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{
-                  opacity: introState === 'brand-reveal' ? 1 : 0,
-                  scale: introState === 'brand-reveal' ? 1 : 0.8,
+                  opacity: (introState === 'quieten-reveal' || introState === 'd-insertion') ? 1 : 0,
+                  scale: (introState === 'quieten-reveal' || introState === 'd-insertion') ? 1 : 0.8,
                 }}
-                transition={{ duration: 0.6, delay: 0.3 }}
+                transition={{ duration: 0.6, delay: 0.25 }}
               >
                 e
               </motion.span>
@@ -284,15 +264,36 @@ export default function StartPage() {
               {/* n */}
               <motion.span
                 className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
-                style={{ fontVariant: 'small-caps', letterSpacing: '0.15em' }}
+                style={{ letterSpacing: '0.15em' }}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{
-                  opacity: introState === 'brand-reveal' ? 1 : 0,
-                  scale: introState === 'brand-reveal' ? 1 : 0.8,
+                  opacity: (introState === 'quieten-reveal' || introState === 'd-insertion') ? 1 : 0,
+                  scale: (introState === 'quieten-reveal' || introState === 'd-insertion') ? 1 : 0.8,
                 }}
-                transition={{ duration: 0.6, delay: 0.35 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
               >
                 n
+              </motion.span>
+
+              {/* D - inserts after "Quieten" */}
+              <motion.span
+                className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
+                style={{ fontVariant: 'small-caps', letterSpacing: '0.15em' }}
+                initial={{ opacity: 0, x: 12 }}
+                animate={{
+                  opacity: introState === 'quieten-reveal' ? 0 : (introState === 'd-insertion' || introState === 'alphabet-fade') ? 1 : 1,
+                  x: introState === 'quieten-reveal' ? 12 : (introState === 'd-insertion' || introState === 'alphabet-fade') ? 0 : (introState === 'monogram-converge' || introState === 'landing-reveal' ? 20 : 0),
+                  y: introState === 'landing-reveal' ? -180 : 0,
+                  scale: introState === 'quieten-reveal' ? 0.9 : 1,
+                }}
+                transition={{ 
+                  opacity: { duration: 0.4, ease: [0.4, 0, 0.2, 1] },
+                  x: { duration: 0.5, ease: [0.4, 0, 0.2, 1] },
+                  y: { duration: 0.8, ease: [0.4, 0, 0.2, 1] },
+                  scale: { duration: 0.4, ease: [0.4, 0, 0.2, 1] },
+                }}
+              >
+                D
               </motion.span>
             </div>
           </motion.div>
