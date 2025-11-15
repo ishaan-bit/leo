@@ -269,7 +269,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     audioSystemRef.current.updateFromAffect(affect);
     
     // THROTTLED ink ripple - only every 5th keystroke to prevent mobile lag
-    if (metrics.chars % 5 === 0) {
+    if (metrics.totalChars % 5 === 0) {
       audioSystemRef.current.playInkRipple();
     }
     
