@@ -27,7 +27,10 @@ export async function GET() {
     const identity = await resolveIdentity();
     const userId = identity.authId;
     
+    console.log('[API] /api/dreams/pending GET - userId:', userId);
+    
     if (!userId) {
+      console.log('[API] /api/dreams/pending - No userId, returning 401');
       return NextResponse.json(
         { error: 'Unauthorized - please sign in' },
         { status: 401 }
@@ -36,9 +39,13 @@ export async function GET() {
 
     // Query Upstash for pending dream letter
     const dreamKey = `user:${userId}:pending_dream`;
+    console.log('[API] /api/dreams/pending - Checking key:', dreamKey);
+    
     const dreamData = await kv.get(dreamKey);
+    console.log('[API] /api/dreams/pending - Data found:', !!dreamData, 'Type:', typeof dreamData);
 
     if (!dreamData) {
+      console.log('[API] /api/dreams/pending - No data, returning 404');
       return NextResponse.json(
         { exists: false },
         { status: 404 }
@@ -48,8 +55,10 @@ export async function GET() {
     // Parse if it's a JSON string (from Python nightly_dream_generator)
     let parsedDream: PendingDreamLetter;
     if (typeof dreamData === 'string') {
+      console.log('[API] /api/dreams/pending - Parsing JSON string');
       parsedDream = JSON.parse(dreamData);
     } else {
+      console.log('[API] /api/dreams/pending - Using data as-is');
       parsedDream = dreamData as PendingDreamLetter;
     }
 
@@ -57,8 +66,15 @@ export async function GET() {
     const expiresAt = new Date(parsedDream.expiresAt);
     const now = new Date();
     
+    console.log('[API] /api/dreams/pending - Expiry check:', {
+      expiresAt: expiresAt.toISOString(),
+      now: now.toISOString(),
+      expired: expiresAt < now
+    });
+    
     if (expiresAt < now) {
       // Expired - delete and return 404
+      console.log('[API] /api/dreams/pending - Dream expired, deleting');
       await kv.del(dreamKey);
       return NextResponse.json(
         { exists: false, reason: 'expired' },
@@ -67,6 +83,7 @@ export async function GET() {
     }
 
     // Return dream letter data
+    console.log('[API] /api/dreams/pending - Returning dream data');
     return NextResponse.json({
       exists: true,
       dream: parsedDream,
