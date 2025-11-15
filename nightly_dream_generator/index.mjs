@@ -118,12 +118,38 @@ async function main() {
         try {
           const profile = typeof profileData === 'string' ? JSON.parse(profileData) : profileData;
           pigName = profile.pig_name || 'Leo';
-          console.log(`  🐷 Pig name: ${pigName}`);
+          console.log(`  🐷 Pig name from profile: ${pigName}`);
         } catch (err) {
           console.log(`  ⚠️  Could not parse profile, using default name`);
         }
       } else {
-        console.log(`  ⚠️  No profile found, using default name "Leo"`);
+        console.log(`  ⚠️  No profile found, checking latest reflection...`);
+        
+        // FALLBACK: Check latest reflection for pig_name_snapshot
+        // (for users created before profile system was implemented)
+        const reflectionIds = await redisCommand('ZRANGE', key, '-1', '-1');
+        if (reflectionIds && reflectionIds.length > 0) {
+          const latestRefl = await redisCommand('GET', `reflection:${reflectionIds[0]}`);
+          if (latestRefl) {
+            try {
+              const reflData = JSON.parse(latestRefl);
+              if (reflData.pig_name_snapshot) {
+                pigName = reflData.pig_name_snapshot;
+                console.log(`  🐷 Pig name from reflection snapshot: ${pigName}`);
+                
+                // BONUS: Create missing profile for future use
+                await redisSet(profileKey, JSON.stringify({
+                  pig_name: pigName,
+                  created_at: new Date().toISOString(),
+                  migrated_from: 'reflection_snapshot'
+                }));
+                console.log(`  ✅ Created missing profile for future use`);
+              }
+            } catch (err) {
+              console.log(`  ⚠️  Could not parse reflection`);
+            }
+          }
+        }
       }
 
       // Get user's reflection IDs from sorted set (ZSET)
