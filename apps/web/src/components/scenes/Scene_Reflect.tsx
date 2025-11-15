@@ -766,6 +766,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
                 currentPrimary={(breathingContext?.primary || 'joy') as PrimaryEmotion}
                 onNewReflection={handleNewReflection}
                 onMomentSelected={setIsMomentExpanded}
+                justSubmitted={breathingContext !== null} // True when arriving from breathing (moment submission)
               />
             </motion.div>
           )}

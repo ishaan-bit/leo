@@ -72,6 +72,7 @@ interface MomentsLibraryProps {
   onNewReflection: () => void;
   onMomentSelected?: (selected: boolean) => void; // Notify parent when moment is expanded/closed
   autoOpenMomentId?: string | null; // Optional: auto-open specific moment (for dream letters)
+  justSubmitted?: boolean; // True when arriving after submitting new moment (triggers auto-open)
 }
 
 // Use global NATURAL_EASE from motion-tokens instead of local constant
@@ -113,6 +114,7 @@ export default function MomentsLibrary({
   onNewReflection,
   onMomentSelected,
   autoOpenMomentId = null, // Default to null (use newest moment)
+  justSubmitted = false, // Default to false (only true when arriving from new moment submission)
 }: MomentsLibraryProps) {
   const { data: session, status } = useSession();
   const { pendingDream, clearPendingDream } = usePendingDream(); // Access pending dream state
@@ -504,10 +506,21 @@ export default function MomentsLibrary({
     sequence();
   }, [phase, currentPrimary]);
 
-  // Auto-open today's brightest moment when library phase loads (ONCE)
-  // If autoOpenMomentId is provided (e.g., for dream letter), open that moment instead
+  // Auto-open expanded view ONLY when:
+  // 1. User just submitted a new moment (justSubmitted=true) → open newest
+  // 2. Dream letter exists (autoOpenMomentId provided) → open specific moment
+  // Regular Living City visits (e.g., login with no dream) → NO auto-open
   useEffect(() => {
     if (phase === 'library' && moments.length > 0 && !autoOpenCompletedRef.current) {
+      // Check if we should auto-open at all
+      const shouldAutoOpen = justSubmitted || autoOpenMomentId !== null;
+      
+      if (!shouldAutoOpen) {
+        console.log('[MomentsLibrary] 🏛️ Regular city visit - NOT auto-opening expanded view');
+        autoOpenCompletedRef.current = true; // Prevent re-checking
+        return;
+      }
+      
       let momentToOpen: Moment | null = null;
       
       // Check if we should auto-open a specific moment (e.g., for dream letter)
@@ -516,12 +529,12 @@ export default function MomentsLibrary({
         console.log('[MomentsLibrary] 💌 Auto-opening specific moment for dream letter:', autoOpenMomentId, momentToOpen ? '✓' : '✗');
       }
       
-      // Fallback: Find the newest moment (today's brightest window)
-      if (!momentToOpen) {
+      // If justSubmitted=true, find the newest moment
+      if (!momentToOpen && justSubmitted) {
         momentToOpen = moments.reduce((newest, current) => {
           return new Date(current.timestamp) > new Date(newest.timestamp) ? current : newest;
         });
-        console.log('[MomentsLibrary] ✨ Auto-opening newest moment:', momentToOpen.id);
+        console.log('[MomentsLibrary] ✨ Just submitted - auto-opening newest moment:', momentToOpen.id);
       }
       
       // Wait for animations to settle (2.5s after library loads)
@@ -533,7 +546,7 @@ export default function MomentsLibrary({
       
       return () => clearTimeout(timer);
     }
-  }, [phase, moments, autoOpenMomentId]); // Added autoOpenMomentId dependency
+  }, [phase, moments, autoOpenMomentId, justSubmitted]); // Added justSubmitted dependency
 
   // GUEST DATA PURGE: After library phase loads, purge guest data (transient mode)
   useEffect(() => {
@@ -1626,398 +1639,45 @@ export default function MomentsLibrary({
                 aria-hidden="true"
               />
               
-              {/* Modal Card - Cinematic Glass Window Vignette with Breathing Animation */}
+              {/* Modal Card - Ultra-lightweight for mobile (NO breathing scale, NO blur filters) */}
               <motion.div
                 ref={modalRef}
                 className="relative max-w-2xl w-full max-h-[90vh] md:max-h-[85vh] overflow-y-auto custom-scrollbar"
-                initial={{ scale: 0.85, y: 30, opacity: 0, filter: 'brightness(0.8) blur(4px)' }}
-                animate={{ 
-                  scale: typeof window !== 'undefined' && window.innerWidth < 768 ? 1 : [1, 1.01, 1], // Disable breathing on mobile
-                  y: 0, 
-                  opacity: 1, 
-                  filter: 'brightness(1) blur(0px)' 
-                }}
-                exit={{ 
-                  scale: 0.9, 
-                  y: -20, 
-                  opacity: 0,
-                  filter: 'brightness(0.8) blur(4px)',
-                  transition: { duration: 0.4 }
-                }}
-                transition={{ 
-                  scale: {
-                    duration: 6,
-                    repeat: typeof window !== 'undefined' && window.innerWidth < 768 ? 0 : Infinity, // No repeat on mobile
-                    ease: NATURAL_EASE,
-                  },
-                  default: {
-                    duration: MOTION_DURATION.ENTRY,
-                    ease: NATURAL_EASE,
-                  }
-                }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
                 onClick={(e) => e.stopPropagation()}
                 tabIndex={-1}
                 style={{
-                  backdropFilter: 'none', // REMOVED for scroll performance - backgrounds provide depth instead
-                  borderRadius: '32px',
-                  border: `1px solid rgba(255, 255, 255, 0.25)`,
-                  boxShadow: `
-                    0 0 0 1px ${atmosphere.gradient[0]}40,
-                    0 16px 48px rgba(0, 0, 0, 0.35),
-                    inset 0 1px 0 rgba(255,255,255,0.5)
-                  `, // Reduced shadow intensity
-                  // Remove scrollBehavior - let native scroll handle it
+                  borderRadius: '24px',
+                  border: `1px solid rgba(255, 255, 255, 0.2)`,
+                  boxShadow: `0 8px 32px rgba(0, 0, 0, 0.3)`,
                 }}
               >
                 {/* Inner wrapper - contains backgrounds and content, expands to full content height */}
                 <div className="relative min-h-full">
-                  {/* LIVING SKY BACKGROUND - 3 Parallax Layers */}
-                  
-                  {/* Layer 1: Deep Sky - Slowest parallax (0.1x scroll speed) */}
-                  <motion.div 
-                    className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none rounded-[32px] z-0"
+                  {/* SIMPLIFIED BACKGROUND - Static gradient only (mobile performance fix) */}
+                  <div 
+                    className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none rounded-[24px] z-0"
                     style={{
-                      background: `linear-gradient(180deg, 
-                        ${atmosphere.gradient[0]} 0%, 
-                        ${atmosphere.gradient[1]} 60%,
-                        ${atmosphere.gradient[2] || atmosphere.gradient[0]} 100%)`,
-                    }}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 1.5 }}
-                  />
-                  
-                  {/* Layer 2: Mid Clouds - Static (animations disabled for performance) */}
-                  <div
-                    className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none rounded-[32px] z-0"
-                    style={{
-                      background: `radial-gradient(ellipse at 40% 20%, ${atmosphere.gradient[1]}40 0%, transparent 50%),
-                                   radial-gradient(ellipse at 70% 60%, ${atmosphere.gradient[0]}30 0%, transparent 40%)`,
-                      opacity: 0.4,
+                      background: `linear-gradient(180deg, ${atmosphere.gradient[0]} 0%, ${atmosphere.gradient[1]} 100%)`,
                     }}
                   />
+                  
+                  {/* Layer 2: Removed for mobile performance */}
                   
                   {/* Layer 3: Near Mist - Static (animations disabled for performance) */}
                   <div
                     className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none rounded-[32px] z-0"
                     style={{
-                      background: `radial-gradient(ellipse at 30% 80%, ${atmosphere.accentColor}15 0%, transparent 40%),
-                                   radial-gradient(ellipse at 80% 30%, ${atmosphere.gradient[1]}20 0%, transparent 45%)`,
-                      opacity: 0.3,
-                    }}
-                  />
-
-                  {/* Foreground contrast overlay - ensures text legibility with soft-light blend */}
-                  <div 
-                    className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none rounded-[32px] z-0"
-                    style={{
-                      background: 'linear-gradient(180deg, rgba(0,0,0,0.08), rgba(255,255,255,0.05) 40%, rgba(0,0,0,0.12))',
-                      mixBlendMode: 'soft-light',
-                    }}
-                  />
-
-                  {/* Subtle vignette mask - focuses attention inward */}
-                  <div 
-                    className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none rounded-[32px] z-0"
-                    style={{
-                      background: 'radial-gradient(circle at 50% 40%, rgba(255,255,255,0.15), rgba(0,0,0,0.3) 90%)',
-                    }}
-                  />
-
-                  {/* Radial lighting layer - origin from top-left (city glow effect) */}
-                  <div 
-                    className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none rounded-[32px] z-0"
-                    style={{
-                      background: `radial-gradient(circle at 15% 20%, ${atmosphere.accentGlow} 0%, transparent 60%)`,
-                      opacity: 0.6,
+                      background: `linear-gradient(180deg, ${atmosphere.gradient[0]} 0%, ${atmosphere.gradient[1]} 100%)`,
                     }}
                   />
                   
-                  {/* Micro-grain texture overlay */}
-                  <motion.div
-                    className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none rounded-[32px] z-0"
-                    style={{
-                      backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 400 400\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' /%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\' opacity=\'0.05\'/%3E%3C/svg%3E")',
-                      opacity: 0.04,
-                      mixBlendMode: 'overlay',
-                    }}
-                  />
+                  {/* ALL decorative layers removed for mobile performance - content starts below */}
                   
-                  {/* Very slow gradient drift - Desktop only */}
-                  <motion.div
-                    className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none rounded-[32px] z-0 opacity-20"
-                    style={{
-                      background: `radial-gradient(circle at 50% 50%, ${atmosphere.gradient[0]}20 0%, transparent 50%)`,
-                    }}
-                    {...(typeof window !== 'undefined' && window.innerWidth >= 768 ? {
-                      animate: {
-                        background: [
-                          `radial-gradient(circle at 30% 40%, ${atmosphere.gradient[0]}20 0%, transparent 50%)`,
-                          `radial-gradient(circle at 70% 60%, ${atmosphere.gradient[1]}20 0%, transparent 50%)`,
-                          `radial-gradient(circle at 30% 40%, ${atmosphere.gradient[0]}20 0%, transparent 50%)`,
-                        ],
-                      },
-                      transition: {
-                        duration: 20,
-                        repeat: Infinity,
-                        ease: 'easeInOut',
-                      }
-                    } : {})}
-                  />
-                  
-                  {/* MAGICAL FIREFLY PARTICLES - 18 floating lights with glow and breathing (Desktop only) */}
-                  {typeof window !== 'undefined' && window.innerWidth >= 768 && (
-                  <div className="absolute top-0 left-0 right-0 bottom-0 overflow-hidden rounded-[32px] pointer-events-none z-[5]">
-                    {Array.from({ length: 18 }).map((_, i) => {
-                      const startX = Math.random() * 100;
-                      const startY = Math.random() * 100;
-                      const size = 2 + Math.random() * 3; // 2-5px
-                      const duration = 8 + Math.random() * 12; // 8-20s
-                      const delay = Math.random() * 5;
-                      
-                      return (
-                        <motion.div
-                          key={`firefly-${i}`}
-                          className="absolute rounded-full"
-                          style={{
-                            width: `${size}px`,
-                            height: `${size}px`,
-                            left: `${startX}%`,
-                            top: `${startY}%`,
-                            background: `radial-gradient(circle, ${atmosphere.accentColor} 0%, transparent 70%)`,
-                            boxShadow: `
-                              0 0 ${size * 4}px ${atmosphere.accentColor}80,
-                              0 0 ${size * 8}px ${atmosphere.accentColor}40
-                            `,
-                            filter: `blur(${size * 0.3}px)`,
-                            willChange: 'transform, opacity',
-                          }}
-                          animate={{
-                            x: [
-                              0,
-                              (Math.random() - 0.5) * 200,
-                              (Math.random() - 0.5) * 150,
-                              0
-                            ],
-                            y: [
-                              0,
-                              (Math.random() - 0.5) * 200,
-                              (Math.random() - 0.5) * 150,
-                              0
-                            ],
-                            opacity: [0.3, 0.8, 0.5, 0.3],
-                            scale: [1, 1.4, 1.2, 1],
-                            boxShadow: [
-                              `0 0 ${size * 4}px ${atmosphere.accentColor}60, 0 0 ${size * 8}px ${atmosphere.accentColor}30`,
-                              `0 0 ${size * 8}px ${atmosphere.accentColor}90, 0 0 ${size * 16}px ${atmosphere.accentColor}50`,
-                              `0 0 ${size * 6}px ${atmosphere.accentColor}70, 0 0 ${size * 12}px ${atmosphere.accentColor}40`,
-                              `0 0 ${size * 4}px ${atmosphere.accentColor}60, 0 0 ${size * 8}px ${atmosphere.accentColor}30`,
-                            ],
-                          }}
-                          transition={{
-                            duration,
-                            repeat: Infinity,
-                            ease: 'easeInOut',
-                            delay,
-                          }}
-                        />
-                      );
-                    })}
-                  </div>
-                  )}
-                  
-                  {/* Barely-visible floating dust motes (cinematic) - Desktop only */}
-                  {typeof window !== 'undefined' && window.innerWidth >= 768 && (
-                  <div className="absolute top-0 left-0 right-0 bottom-0 overflow-hidden rounded-[32px] pointer-events-none z-0">
-                    {[...Array(3)].map((_, i) => (
-                      <motion.div
-                        key={`cinematic-dust-${i}`}
-                        className="absolute w-0.5 h-0.5 rounded-full"
-                        style={{
-                          background: `radial-gradient(circle, ${atmosphere.accentColor}50 0%, transparent 70%)`,
-                          left: `${20 + i * 30}%`,
-                          top: `${10 + i * 25}%`,
-                          filter: 'blur(0.5px)',
-                        }}
-                        animate={{
-                          y: [0, -30, 0],
-                          x: [0, 15 * (i % 2 === 0 ? 1 : -1), 0],
-                          opacity: [0.1, 0.3, 0.1],
-                        }}
-                        transition={{
-                          duration: 18 + i * 4,
-                          repeat: Infinity,
-                          ease: 'easeInOut',
-                          delay: i * 3,
-                        }}
-                      />
-                    ))}
-                  </div>
-                  )}
-
-                  {/* Ambient motion particles based on emotion - Desktop only */}
-                  {typeof window !== 'undefined' && window.innerWidth >= 768 && (
-                  <div className="absolute top-0 left-0 right-0 bottom-0 overflow-hidden rounded-[32px] pointer-events-none z-0">
-                  {/* Sad: Fine vertical rain streaks */}
-                  {atmosphere.ambientMotion === 'drizzle' && Array.from({ length: 15 }).map((_, i) => (
-                    <motion.div
-                      key={`drizzle-${i}`}
-                      className="absolute w-[1px] bg-gradient-to-b from-transparent via-blue-300/30 to-transparent"
-                      style={{
-                        left: `${Math.random() * 100}%`,
-                        height: `${20 + Math.random() * 40}px`,
-                        willChange: 'transform',
-                      }}
-                      initial={{ top: '-20%', opacity: 0 }}
-                      animate={{ 
-                        top: '120%', 
-                        opacity: [0, 0.6, 0],
-                      }}
-                      transition={{
-                        duration: 2 + Math.random() * 2,
-                        repeat: Infinity,
-                        delay: Math.random() * 3,
-                        ease: 'linear',
-                      }}
-                    />
-                  ))}
-                  
-                  {/* Joyful: Floating golden dust */}
-                  {atmosphere.ambientMotion === 'motes' && Array.from({ length: 25 }).map((_, i) => (
-                    <motion.div
-                      key={`mote-${i}`}
-                      className="absolute w-1 h-1 rounded-full"
-                      style={{
-                        background: `radial-gradient(circle, ${atmosphere.gradient[1]} 0%, transparent 70%)`,
-                        left: `${Math.random() * 100}%`,
-                        top: `${Math.random() * 100}%`,
-                        willChange: 'transform, opacity',
-                      }}
-                      animate={{
-                        y: [0, -30, 0],
-                        x: [0, Math.random() * 20 - 10, 0],
-                        opacity: [0, 0.8, 0],
-                        scale: [0, 1, 0],
-                      }}
-                      transition={{
-                        duration: 4 + Math.random() * 3,
-                        repeat: Infinity,
-                        delay: Math.random() * 4,
-                        ease: 'easeInOut',
-                      }}
-                    />
-                  ))}
-                  
-                  {/* Peaceful: Slow drifting mist */}
-                  {atmosphere.ambientMotion === 'mist' && Array.from({ length: 4 }).map((_, i) => (
-                    <motion.div
-                      key={`mist-${i}`}
-                      className="absolute rounded-full"
-                      style={{
-                        background: `radial-gradient(circle, ${atmosphere.gradient[0]}20 0%, transparent 70%)`,
-                        width: `${100 + Math.random() * 200}px`,
-                        height: `${100 + Math.random() * 200}px`,
-                        left: `${Math.random() * 100}%`,
-                        top: `${Math.random() * 100}%`,
-                        filter: 'blur(40px)',
-                        willChange: 'transform, opacity',
-                      }}
-                      animate={{
-                        x: [0, 50, 0],
-                        y: [0, -30, 0],
-                        opacity: [0.2, 0.4, 0.2],
-                      }}
-                      transition={{
-                        duration: 8 + i * 2,
-                        repeat: Infinity,
-                        ease: 'easeInOut',
-                      }}
-                    />
-                  ))}
-
-                  {/* Powerful: Heartbeat pulse wave */}
-                  {atmosphere.ambientMotion === 'pulse' && Array.from({ length: 3 }).map((_, i) => (
-                    <motion.div
-                      key={`pulse-${i}`}
-                      className="absolute rounded-full"
-                      style={{
-                        background: `radial-gradient(circle, ${atmosphere.accentGlow} 0%, transparent 70%)`,
-                        width: '200px',
-                        height: '200px',
-                        left: '50%',
-                        top: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        filter: 'blur(30px)',
-                        willChange: 'transform, opacity',
-                      }}
-                      animate={{
-                        scale: [1, 1.5, 1],
-                        opacity: [0.3, 0.6, 0.3],
-                      }}
-                      transition={{
-                        duration: 2.5,
-                        repeat: Infinity,
-                        delay: i * 0.8,
-                        ease: 'easeInOut',
-                      }}
-                    />
-                  ))}
-
-                  {/* Mad: Ember sparks */}
-                  {atmosphere.ambientMotion === 'sparks' && Array.from({ length: 12 }).map((_, i) => (
-                    <motion.div
-                      key={`spark-${i}`}
-                      className="absolute w-1 h-1 rounded-full"
-                      style={{
-                        background: `radial-gradient(circle, ${atmosphere.gradient[2]} 0%, ${atmosphere.gradient[1]} 50%, transparent 100%)`,
-                        left: `${Math.random() * 100}%`,
-                        bottom: '0%',
-                        boxShadow: `0 0 8px ${atmosphere.accentGlow}`,
-                        willChange: 'transform, opacity',
-                      }}
-                      animate={{
-                        y: [0, -100 - Math.random() * 150],
-                        x: [0, (Math.random() - 0.5) * 80],
-                        opacity: [0.8, 0.4, 0],
-                        scale: [1.2, 0.8, 0.3],
-                      }}
-                      transition={{
-                        duration: 2 + Math.random() * 2,
-                        repeat: Infinity,
-                        delay: Math.random() * 3,
-                        ease: 'easeOut',
-                      }}
-                    />
-                  ))}
-
-                  {/* Scared: Faint light orbs fading in/out */}
-                  {atmosphere.ambientMotion === 'orbs' && Array.from({ length: 8 }).map((_, i) => (
-                    <motion.div
-                      key={`orb-${i}`}
-                      className="absolute rounded-full"
-                      style={{
-                        background: `radial-gradient(circle, ${atmosphere.gradient[2]}60 0%, transparent 70%)`,
-                        width: `${30 + Math.random() * 50}px`,
-                        height: `${30 + Math.random() * 50}px`,
-                        left: `${Math.random() * 100}%`,
-                        top: `${Math.random() * 100}%`,
-                        filter: 'blur(20px)',
-                        willChange: 'opacity',
-                      }}
-                      animate={{
-                        opacity: [0, 0.6, 0],
-                        scale: [0.8, 1.1, 0.8],
-                      }}
-                      transition={{
-                        duration: 3 + Math.random() * 2,
-                        repeat: Infinity,
-                        delay: Math.random() * 4,
-                        ease: 'easeInOut',
-                      }}
-                    />
-                  ))}
-                </div>
-                )}
+                  {/* Content section with relative positioning */}
 
                 {/* Content guard - isolates text from background effects */}
                 <div className="relative p-6 md:p-10 z-10" style={{ lineHeight: '1.8', isolation: 'isolate' }}>
