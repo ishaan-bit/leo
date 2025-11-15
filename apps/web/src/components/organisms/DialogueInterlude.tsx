@@ -441,7 +441,7 @@ export default function DialogueInterlude({
                 chime.play().catch(() => {});
                 handleProceed();
               }}
-              className="px-6 py-2 rounded-full font-serif text-sm shadow-xl whitespace-nowrap" // Reduced from px-8 py-3 text-base
+              className="px-6 py-2 rounded-full font-serif text-sm shadow-xl whitespace-nowrap [@media(hover:hover)]:hover:scale-105 [@media(hover:hover)]:hover:-translate-y-0.5 transition-transform duration-[120ms]"
               style={{
                 background: `linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, ${zoneColor}10 100%)`,
                 backdropFilter: 'blur(20px)',
@@ -468,7 +468,6 @@ export default function DialogueInterlude({
                   ease: NATURAL_EASE,
                 }
               }}
-              className="[@media(hover:hover)]:hover:scale-105 [@media(hover:hover)]:hover:-translate-y-0.5 transition-transform duration-[120ms]"
             >
               {currentTupleIndex === 0 ? "On We Go" : currentTupleIndex === 1 ? "One More Breath" : "And So it Goes"}
             </motion.button>
