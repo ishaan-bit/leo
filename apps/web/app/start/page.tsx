@@ -168,7 +168,7 @@ export default function StartPage() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.6 }}
           >
-            {/* Quieten/QuietenD wordmark with individual letter animations */}
+            {/* Quiet + D + en wordmark with individual letter animations */}
             <div className="relative flex items-center justify-center gap-1 md:gap-2">
               {/* Q */}
               <motion.span
@@ -176,16 +176,14 @@ export default function StartPage() {
                 style={{ fontVariant: 'small-caps', letterSpacing: '0.15em' }}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{
-                  opacity: introState === 'quieten-reveal' || introState === 'd-insertion' ? 1 : introState === 'alphabet-fade' ? 1 : 1,
-                  scale: introState === 'quieten-reveal' || introState === 'd-insertion' ? 1 : 1,
-                  x: introState === 'monogram-converge' || introState === 'landing-reveal' ? -20 : 0,
-                  y: introState === 'landing-reveal' ? -180 : 0,
+                  opacity: 1,
+                  scale: 1,
+                  x: introState === 'monogram-converge' ? -20 : 0,
                 }}
                 transition={{ 
                   opacity: { duration: 0.6 },
                   scale: { duration: 0.6 },
                   x: { duration: 0.8, ease: [0.4, 0, 0.2, 1] },
-                  y: { duration: 0.8, ease: [0.4, 0, 0.2, 1] },
                 }}
               >
                 Q
@@ -247,6 +245,25 @@ export default function StartPage() {
                 t
               </motion.span>
 
+              {/* D - inserts between "Quiet" and "en" */}
+              <motion.span
+                className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
+                style={{ fontVariant: 'small-caps', letterSpacing: '0.15em' }}
+                initial={{ opacity: 0, x: 12 }}
+                animate={{
+                  opacity: introState === 'quieten-reveal' ? 0 : 1,
+                  x: introState === 'quieten-reveal' ? 12 : (introState === 'monogram-converge' ? 20 : 0),
+                  scale: introState === 'quieten-reveal' ? 0.9 : 1,
+                }}
+                transition={{ 
+                  opacity: { duration: 0.4, ease: [0.4, 0, 0.2, 1] },
+                  x: { duration: 0.5, ease: [0.4, 0, 0.2, 1] },
+                  scale: { duration: 0.4, ease: [0.4, 0, 0.2, 1] },
+                }}
+              >
+                D
+              </motion.span>
+
               {/* e */}
               <motion.span
                 className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
@@ -274,47 +291,12 @@ export default function StartPage() {
               >
                 n
               </motion.span>
-
-              {/* D - inserts after "Quieten" */}
-              <motion.span
-                className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
-                style={{ fontVariant: 'small-caps', letterSpacing: '0.15em' }}
-                initial={{ opacity: 0, x: 12 }}
-                animate={{
-                  opacity: introState === 'quieten-reveal' ? 0 : (introState === 'd-insertion' || introState === 'alphabet-fade') ? 1 : 1,
-                  x: introState === 'quieten-reveal' ? 12 : (introState === 'd-insertion' || introState === 'alphabet-fade') ? 0 : (introState === 'monogram-converge' || introState === 'landing-reveal' ? 20 : 0),
-                  y: introState === 'landing-reveal' ? -180 : 0,
-                  scale: introState === 'quieten-reveal' ? 0.9 : 1,
-                }}
-                transition={{ 
-                  opacity: { duration: 0.4, ease: [0.4, 0, 0.2, 1] },
-                  x: { duration: 0.5, ease: [0.4, 0, 0.2, 1] },
-                  y: { duration: 0.8, ease: [0.4, 0, 0.2, 1] },
-                  scale: { duration: 0.4, ease: [0.4, 0, 0.2, 1] },
-                }}
-              >
-                D
-              </motion.span>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* QD Monogram - persists in final position */}
-      {(introState === 'landing-reveal' || introState === 'complete' || prefersReducedMotion) && (
-        <motion.div
-          className="absolute top-12 md:top-16 left-1/2 -translate-x-1/2 z-20"
-          initial={prefersReducedMotion ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, delay: prefersReducedMotion ? 0 : 0.2 }}
-        >
-          <div className="font-serif text-2xl md:text-3xl tracking-widest text-rose-900/80" style={{ fontVariant: 'small-caps', letterSpacing: '0.2em' }}>
-            QD
-          </div>
-        </motion.div>
-      )}
-
-      {/* Main landing content - shows after brand reveal or immediately if reduced motion */}
+      {/* Main landing content - shows after brand reveal completes (no QD monogram needed) */}
       {(introState === 'landing-reveal' || introState === 'complete' || prefersReducedMotion) && (
         <motion.div 
           className="relative z-10 w-full max-w-lg flex-1 flex flex-col items-center justify-center space-y-6 py-8 px-6"
@@ -325,8 +307,8 @@ export default function StartPage() {
           
           {/* "A QuietDen Experience" tagline */}
           <motion.p
-            className="font-serif text-sm md:text-base text-pink-700/90 tracking-widest uppercase"
-            style={{ letterSpacing: '0.25em' }}
+            className="font-serif text-sm md:text-base text-pink-700/90 tracking-wider"
+            style={{ letterSpacing: '0.15em' }}
             initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: prefersReducedMotion ? 0 : 0.5 }}
