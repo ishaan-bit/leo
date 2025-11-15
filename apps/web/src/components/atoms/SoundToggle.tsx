@@ -103,9 +103,9 @@ export default function SoundToggle({ autoHintDelayMs = 2000, autoHideDelayMs = 
           focus:outline-none focus:ring-2 focus:ring-pink-300/60 
           transition-all duration-300 ${initialized ? '' : 'opacity-60 cursor-not-allowed'}`}
         style={{ 
-          width: '32px',
-          height: '32px',
-          padding: 0,
+          width: '36px',
+          height: '36px',
+          padding: '8px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

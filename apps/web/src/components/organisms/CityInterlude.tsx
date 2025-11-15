@@ -252,34 +252,32 @@ export default function CityInterlude({
     
     // Trigger transition when we hit phase 4 AND have primary
     if (zone && !primaryLocked && currentPhase === 4) {
-      console.log(`[CityInterlude] 🎯✅ PHASE 4 + PRIMARY DETECTED → TRANSITION! ${primary} → ${zone.name}`);
+      console.log(`[CityInterlude] 🎯✅ PHASE 4 + PRIMARY DETECTED → IMMEDIATE TRANSITION! ${primary} → ${zone.name}`);
       setPrimaryLocked(true);
       setPrimaryEmotion(primary); // Store primary for highlighting
       
-      // SEAMLESS TRANSITION: Skip phase 5, go directly to breathing
+      // IMMEDIATE SEAMLESS TRANSITION - no setTimeout delay, no phase 5
       // Buildings stay visible and pulsing for BreathingSequence to inherit
-      setTimeout(() => {
-        const event = {
-          type: 'stage1_transition_complete',
-          payload: {
-            sid: reflectionId,
-            zone: zone.name,
-            primary,
-            interlude_version: 'v1',
-            timestamp: new Date().toISOString(),
-          },
-        };
-        
-        console.log('[CityInterlude] 🎯 Seamless transition to breathing sequence (no fade/center)');
-        
-        // Dispatch custom event
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('stage1_transition_complete', { detail: event.payload }));
-        }
-        
-        // Call onComplete callback
-        onComplete(primary);
-      }, 200); // Brief pause then immediate transition
+      const event = {
+        type: 'stage1_transition_complete',
+        payload: {
+          sid: reflectionId,
+          zone: zone.name,
+          primary,
+          interlude_version: 'v1',
+          timestamp: new Date().toISOString(),
+        },
+      };
+      
+      console.log('[CityInterlude] 🎯 Seamless transition to breathing sequence (no fade/center/delay)');
+      
+      // Dispatch custom event
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('stage1_transition_complete', { detail: event.payload }));
+      }
+      
+      // Call onComplete callback IMMEDIATELY
+      onComplete(primary);
     }
   }, [reflection, primaryLocked, currentPhase, reflectionId, onComplete]);
 

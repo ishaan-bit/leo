@@ -1465,10 +1465,10 @@ export default function MomentsLibrary({
               style={{
                 background: 'linear-gradient(135deg, #FFD700 0%, #FFC1CC 100%)',
                 boxShadow: '0 4px 16px rgba(255, 215, 0, 0.3)',
-                width: '44px',  // INCREASED from 32px for better mobile tap target
-                height: '44px', // INCREASED from 32px for better mobile tap target
-                minWidth: '44px',
-                minHeight: '44px',
+                width: '36px',  // Match SoundToggle size for symmetry
+                height: '36px', // Match SoundToggle size for symmetry
+                minWidth: '36px',
+                minHeight: '36px',
                 padding: '0',
                 display: 'flex',
                 alignItems: 'center',
