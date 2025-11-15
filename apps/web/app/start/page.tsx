@@ -10,7 +10,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
+import { signIn, signOut, useSession } from 'next-auth/react';
 import PinkPig from '@/components/molecules/PinkPig';
 
 // Animation sequence states
@@ -18,6 +18,7 @@ type IntroState = 'quieten-reveal' | 'd-insertion' | 'alphabet-fade' | 'monogram
 
 export default function StartPage() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [showRememberMessage, setShowRememberMessage] = useState(false);
   const [introState, setIntroState] = useState<IntroState>('quieten-reveal');
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
@@ -56,6 +57,15 @@ export default function StartPage() {
     setTimeout(async () => {
       await signIn('google', { callbackUrl: '/name' });
     }, 2000);
+  };
+
+  const handleGuestMode = async () => {
+    // If user is already signed in, sign them out first to ensure true guest mode
+    if (session) {
+      await signOut({ redirect: false });
+    }
+    // Navigate to guest naming flow
+    router.push('/guest/name-pig');
   };
 
   // Show "Now I'll remember you too..." message before auth
@@ -363,7 +373,7 @@ export default function StartPage() {
             transition={{ delay: prefersReducedMotion ? 0 : 1.6, duration: 0.8 }}
           >
             <motion.button
-              onClick={() => router.push('/guest/name-pig')}
+              onClick={handleGuestMode}
               className="w-full bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 text-white font-semibold py-4 px-8 rounded-full shadow-xl hover:shadow-2xl hover:from-pink-600 hover:via-rose-600 hover:to-pink-700 transition-all duration-300 border-2 border-pink-300/50"
               whileHover={{ scale: 1.03, y: -2 }}
               whileTap={{ scale: 0.98 }}
