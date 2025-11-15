@@ -207,19 +207,15 @@ export default function BreathingSequence({
       
       // Count completed cycles
       const currentCycle = Math.floor(elapsed / totalCycleDuration);
-      if (currentCycle > cycleCount) {
+      if (currentCycle > cycleCount && currentCycle < 2) {
         setCycleCount(currentCycle);
         console.log('[Breathing] ✅ Cycle', currentCycle, 'complete');
-        
-        // Gradually lighten sky during breathing (darker → lighter over 2 cycles)
-        // Sky starts at level 0 (dark), transitions to level 0 (stays dark for DialogueInterlude)
-        // No lightening needed - maintain dark sky throughout
-        
-        // Mark second cycle complete after TWO full inhale/hold/exhale/hold cycles
-        if (currentCycle >= 2 && !secondCycleComplete) {
-          setSecondCycleComplete(true);
-          console.log('[Breathing] ✅ Second breathing cycle complete - ready for DialogueInterlude');
-        }
+      }
+      
+      // Mark second cycle complete after TWO full inhale/hold/exhale/hold cycles
+      if (currentCycle >= 2 && !secondCycleComplete) {
+        setSecondCycleComplete(true);
+        console.log('[Breathing] ✅ Second breathing cycle complete - ready for DialogueInterlude');
       }
       
       animationFrameRef.current = requestAnimationFrame(animate);
@@ -393,28 +389,7 @@ export default function BreathingSequence({
         }}
       />
       
-      {/* Crescent Moon - inherited from CityInterlude, stays visible */}
-      <motion.div
-        className="absolute top-20 right-24 w-16 h-16 pointer-events-none z-10"
-        style={{
-          borderRadius: '50%',
-          boxShadow: 'inset -8px 0px 0px 0px rgba(255, 255, 255, 0.9)',
-          background: 'transparent',
-          transform: 'rotate(-20deg)',
-        }}
-        animate={{ 
-          opacity: [0.85, 0.95, 0.85],
-          scale: [0.98, 1.02, 0.98],
-        }}
-        transition={{ 
-          opacity: { duration: 0.8 },
-          scale: { 
-            duration: 4,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          },
-        }}
-      />
+      {/* Crescent Moon - REMOVED to avoid duplicate (moon already exists in CityInterlude) */}
 
       {/* Stars */}
       <div className="absolute inset-0 pointer-events-none">
@@ -485,14 +460,14 @@ export default function BreathingSequence({
             exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.5, ease: 'easeOut' } }}
           >
             {/* Show inhale or exhale - always visible, smooth transitions */}
-            {/* After 2nd inhale, show "exhale one more time" during final exhale ONLY */}
+            {/* Sequence: Inhale, Exhale, Inhale, "exhale one more time" (during 2nd exhale) */}
             <motion.div
               key={cycleCount === 1 && isExhaling ? 'exhale-final' : isInhaling || isHoldingIn ? 'inhale' : 'exhale'}
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -5 }}
               transition={{ duration: 0.4, ease: 'easeInOut' }}
-              className="text-2xl font-sans tracking-widest lowercase font-light text-center"
+              className="text-2xl font-sans tracking-widest lowercase font-light"
               style={{
                 color: 'rgba(255, 255, 255, 0.95)',
                 textShadow: `
@@ -501,6 +476,8 @@ export default function BreathingSequence({
                   0 2px 8px rgba(0,0,0,0.4)
                 `,
                 letterSpacing: '0.35em',
+                textAlign: 'center',
+                width: '100%',
               }}
             >
               {cycleCount === 1 && isExhaling 

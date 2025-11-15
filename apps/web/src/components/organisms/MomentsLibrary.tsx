@@ -375,7 +375,12 @@ export default function MomentsLibrary({
 
   // WhatsApp share handlers - poetic, no links
   const handleWhatsAppShare = (choice: 'heart' | 'poem' | 'both') => {
-    if (!selectedMoment) return;
+    if (!selectedMoment) {
+      console.error('[WhatsApp Share] No selected moment!');
+      return;
+    }
+
+    console.log('[WhatsApp Share] Sharing choice:', choice);
 
     // Use translated content if currently viewing in Hindi
     const isHindi = language === 'hi';
@@ -409,6 +414,8 @@ export default function MomentsLibrary({
         shareText += `${content.poem}`;
       }
     }
+
+    console.log('[WhatsApp Share] Composed message:', shareText);
 
     // Open WhatsApp with the composed message
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
@@ -1843,7 +1850,10 @@ export default function MomentsLibrary({
 
                         {/* WhatsApp Share - Opens choice modal */}
                         <motion.button
-                          onClick={() => setShowShareChoice(true)}
+                          onClick={() => {
+                            console.log('[WhatsApp Share] Opening choice modal');
+                            setShowShareChoice(true);
+                          }}
                           className="w-8 h-8 flex items-center justify-center rounded-full transition-all"
                           style={{ background: 'rgba(37, 211, 102, 0.15)' }}
                           whileHover={{ scale: 1.1, background: 'rgba(37, 211, 102, 0.25)' }}
