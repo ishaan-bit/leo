@@ -17,6 +17,7 @@ import BreathingSequence from '../organisms/BreathingSequence';
 import MomentsLibrary from '../organisms/MomentsLibrary';
 import MicroDreamCinematic from '../organisms/MicroDreamCinematic';
 import { usePendingDream } from '@/contexts/PendingDreamContext';
+import { MOTION_DURATION, NATURAL_EASE, STAGGER_DELAYS, isMobile } from '@/lib/motion-tokens';
 import type { ProcessedText } from '@/lib/multilingual/textProcessor';
 import type { TypingMetrics, VoiceMetrics, AffectVector } from '@/lib/behavioral/metrics';
 import { composeAffectFromTyping, composeAffectFromVoice } from '@/lib/behavioral/metrics';
@@ -790,26 +791,33 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   return (
     <motion.div 
       className="fixed inset-0 overflow-y-auto"
-      initial={{ opacity: 1 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
+      transition={{ duration: 0.25, ease: NATURAL_EASE }}
     >
       <div className={`min-h-screen bg-gradient-to-br ${backgroundTone} relative overflow-x-hidden transition-colors duration-1000`}>
-      {/* Breathing background gradient overlay */}
+      {/* Breathing background gradient overlay - Desktop only for performance */}
       <motion.div
         className="absolute inset-0 pointer-events-none"
-        animate={{
-          background: [
-            'radial-gradient(circle at 30% 50%, rgba(251, 207, 232, 0.15), transparent 60%)',
-            'radial-gradient(circle at 70% 50%, rgba(251, 207, 232, 0.2), transparent 60%)',
-            'radial-gradient(circle at 30% 50%, rgba(251, 207, 232, 0.15), transparent 60%)',
-          ],
-        }}
-        transition={{
-          duration: 8,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
+        {...(typeof window !== 'undefined' && window.innerWidth >= 768 ? {
+          animate: {
+            background: [
+              'radial-gradient(circle at 30% 50%, rgba(251, 207, 232, 0.15), transparent 60%)',
+              'radial-gradient(circle at 70% 50%, rgba(251, 207, 232, 0.2), transparent 60%)',
+              'radial-gradient(circle at 30% 50%, rgba(251, 207, 232, 0.15), transparent 60%)',
+            ],
+          },
+          transition: {
+            duration: 8,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }
+        } : {
+          style: {
+            background: 'radial-gradient(circle at 50% 50%, rgba(251, 207, 232, 0.15), transparent 60%)'
+          }
+        })}
       />
       
       {/* Top navigation - horizontally aligned */}
@@ -823,7 +831,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4, ease: [0.34, 1.56, 0.64, 1] }}
+            transition={{ duration: MOTION_DURATION.ENTRY, delay: STAGGER_DELAYS.NAV, ease: NATURAL_EASE }}
           >
             <AuthStateIndicator 
               userName={session?.user?.name}
@@ -835,33 +843,49 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
 
       {/* Dream letter notification - appears when pending dream exists */}
       <AnimatePresence>
-        {pendingDream && !showBreathing && !showMomentsLibrary && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: -10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: -10 }}
-            transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-            className="fixed top-20 left-6 z-50"
-          >
-            <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-400/30 to-pink-400/30 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300" />
-              <div className="relative bg-gradient-to-br from-[#3A2952]/95 to-[#6B5B95]/95 backdrop-blur-md rounded-2xl px-6 py-4 shadow-2xl border border-purple-300/20 hover:border-purple-300/40 transition-all duration-300">
-                <motion.div
-                  className="absolute -top-1 -right-1 w-3 h-3 bg-pink-300 rounded-full"
-                  animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                />
-                <div className="text-2xl mb-1 font-serif text-purple-200">&#9993;</div>
-                <p className="text-sm font-medium text-purple-100 mb-1">
-                  {pigName} has written you a letter
-                </p>
-                <p className="text-xs text-purple-200/70">
-                  Visit the Living City to read it
-                </p>
+        {pendingDream && !showBreathing && !showMomentsLibrary && (() => {
+          // Auto-hide after 4 seconds
+          const [isVisible, setIsVisible] = React.useState(true);
+          
+          React.useEffect(() => {
+            const timer = setTimeout(() => {
+              setIsVisible(false);
+            }, 4000); // 4 seconds
+            
+            return () => clearTimeout(timer);
+          }, []);
+          
+          if (!isVisible) return null;
+          
+          return (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: -10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: -10 }}
+              transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+              className="fixed top-20 left-6 z-50 cursor-pointer"
+              onClick={() => setShowMomentsLibrary(true)}
+            >
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-400/30 to-pink-400/30 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300" />
+                <div className="relative bg-gradient-to-br from-[#3A2952]/95 to-[#6B5B95]/95 backdrop-blur-md rounded-2xl px-6 py-4 shadow-2xl border border-purple-300/20 hover:border-purple-300/40 transition-all duration-300">
+                  <motion.div
+                    className="absolute -top-1 -right-1 w-3 h-3 bg-pink-300 rounded-full"
+                    animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                  />
+                  <div className="text-2xl mb-1 font-serif text-purple-200">&#9993;</div>
+                  <p className="text-sm font-medium text-purple-100 mb-1">
+                    {pigName} has written you a letter
+                  </p>
+                  <p className="text-xs text-purple-200/70">
+                    Visit the Living City to read it
+                  </p>
+                </div>
               </div>
-            </div>
-          </motion.div>
-        )}
+            </motion.div>
+          );
+        })()}
       </AnimatePresence>
       
       {/* Atmospheric particles with time-based colors */}

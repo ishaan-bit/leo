@@ -398,7 +398,7 @@ export default function CityInterlude({
             className="absolute top-10 right-20 w-32 h-32 rounded-full pointer-events-none z-50"
             style={{
               background: 'radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%)',
-              filter: 'blur(20px)',
+              filter: typeof window !== 'undefined' && window.innerWidth < 768 ? 'blur(4px)' : 'blur(20px)',
             }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.6 }}
@@ -593,10 +593,10 @@ export default function CityInterlude({
         </div>
       )}
 
-      {/* Dust motes (Phase 1 Beat 2 onwards) */}
+      {/* Dust motes (Phase 1 Beat 2 onwards) - Reduced for mobile performance */}
       {currentBeat >= 2 && !prefersReducedMotion && (
         <div className="absolute inset-0 z-15 pointer-events-none overflow-hidden">
-          {Array.from({ length: currentPhase >= 2 ? 60 : 40 }).map((_, i) => {
+          {Array.from({ length: typeof window !== 'undefined' && window.innerWidth < 768 ? 0 : 20 }).map((_, i) => {
             const startX = 10 + Math.random() * 80;
             const startY = 60 + Math.random() * 40;
             const endY = -10;
@@ -661,8 +661,8 @@ export default function CityInterlude({
           top: { duration: 4, ease: [0.22, 1, 0.36, 1] }, // Smooth transition for top position
         }}
       >
-        {/* Glow particles trailing Leo (Phase 3+) */}
-        {currentPhase >= 3 && !prefersReducedMotion && (
+        {/* Glow particles trailing Leo (Phase 3+) - Desktop only for performance */}
+        {currentPhase >= 3 && !prefersReducedMotion && typeof window !== 'undefined' && window.innerWidth >= 768 && (
           <div className="absolute inset-0">
             {Array.from({ length: 5 }).map((_, i) => (
               <motion.div
@@ -814,7 +814,7 @@ export default function CityInterlude({
             
             // When primary is detected, fade non-primary buildings first, then center primary
             const shouldFadeOut = primaryEmotion && !isPrimary;
-            const towerOpacity = shouldFadeOut ? 0.15 : (isPrimary && primaryEmotion ? 0.9 : baseOpacity);
+            const towerOpacity = shouldFadeOut ? 0.35 : (isPrimary && primaryEmotion ? 0.9 : baseOpacity);
             
             return (
               <motion.div
@@ -832,7 +832,7 @@ export default function CityInterlude({
                 animate={{ 
                   left: `${tower.x}%`, // Stay in original position during city pulse
                   y: 0, 
-                  opacity: shouldFadeOut ? 0.15 : 1, // Fade non-primary buildings when primary detected
+                  opacity: shouldFadeOut ? 0.35 : 1, // Keep buildings visible during transition
                 }}
                 transition={{
                   initial: {
