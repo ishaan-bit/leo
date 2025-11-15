@@ -380,7 +380,7 @@ export default function MomentsLibrary({
       return;
     }
 
-    console.log('[WhatsApp Share] Sharing choice:', choice);
+    console.log('[QA WhatsApp Share] Starting share with:', { choice, language, momentId: selectedMoment.id });
 
     // Use translated content if currently viewing in Hindi
     const isHindi = language === 'hi';
@@ -389,8 +389,16 @@ export default function MomentsLibrary({
       poem: selectedMoment.poem,
     };
 
+    console.log('[QA WhatsApp Share] Content:', { 
+      isHindi, 
+      hasTranslation: !!translatedContent,
+      hasPoem: !!content.poem,
+      textLength: content.text?.length || 0,
+    });
+
     // Build reveal page URL with mode and language
     const revealUrl = `${window.location.origin}/share/${selectedMoment.id}?mode=${choice}&lang=${isHindi ? 'hi' : 'en'}`;
+    console.log('[QA WhatsApp Share] Reveal URL:', revealUrl);
 
     let shareText = '';
 
@@ -454,6 +462,9 @@ export default function MomentsLibrary({
 
     // Open WhatsApp with the composed message
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+    console.log('[QA WhatsApp Share] Final WhatsApp URL length:', whatsappUrl.length);
+    console.log('[QA WhatsApp Share] Share text preview:', shareText.substring(0, 100) + '...');
+    
     window.open(whatsappUrl, '_blank');
     
     // Close the choice modal
@@ -1279,13 +1290,31 @@ export default function MomentsLibrary({
                 {/* Windows - warm lit windows representing moments */}
                 <div className="absolute inset-4 grid grid-cols-4 gap-3">
                   {(() => {
-                    // Calculate max windows based on building height to prevent overflow
+                    // QA: Calculate max windows based on building height to prevent overflow
                     const baseHeight = tower.height * 1.5;
                     const additionalHeight = (momentCount > 4 ? Math.floor((momentCount - 4) / 4) * 80 : 0);
                     const totalHeight = baseHeight + additionalHeight;
-                    // Each row is ~40px (8px window + gap), inset-4 = 16px top/bottom = 32px
-                    const maxRows = Math.floor((totalHeight - 32) / 40);
-                    const maxWindows = maxRows * 4;
+                    // Window sizing: each window ~8px + gap-3 (12px) = ~20px per window
+                    // But grid auto-rows with aspect ratio creates ~40px effective height per row
+                    // inset-4 = 16px padding top + 16px bottom = 32px total padding
+                    const availableHeight = totalHeight - 32;
+                    const rowHeight = 40; // Empirical: gap-3 + min-height creates ~40px rows
+                    const maxRows = Math.floor(availableHeight / rowHeight);
+                    const maxWindows = maxRows * 4; // 4 columns
+                    
+                    if (process.env.NODE_ENV === 'development') {
+                      console.log(`[QA Windows] Tower ${tower.id}:`, {
+                        momentCount,
+                        baseHeight,
+                        additionalHeight,
+                        totalHeight,
+                        availableHeight,
+                        maxRows,
+                        maxWindows,
+                        actualMoments: (momentsByZone[tower.id] || []).length,
+                      });
+                    }
+                    
                     return (momentsByZone[tower.id] || []).slice(0, maxWindows).map((moment, i) => {
                     const windowKey = `window-${tower.id}-${moment.id}`;
                     const isBlinking = blinkingWindow === windowKey;

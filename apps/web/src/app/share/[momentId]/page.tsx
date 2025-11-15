@@ -28,8 +28,14 @@ export default function ShareMomentPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const momentId = params.momentId as string;
-  const mode = (searchParams.get('mode') || 'both') as ShareMode;
-  const lang = searchParams.get('lang') || 'en';
+  
+  // Validate and sanitize mode parameter
+  const rawMode = searchParams.get('mode') || 'both';
+  const mode = (['heart', 'poem', 'both'].includes(rawMode) ? rawMode : 'both') as ShareMode;
+  
+  // Validate and sanitize language parameter
+  const rawLang = searchParams.get('lang') || 'en';
+  const lang = ['en', 'hi'].includes(rawLang) ? rawLang : 'en';
   const isHindi = lang === 'hi';
   
   const [moment, setMoment] = useState<SharedMoment | null>(null);
@@ -72,11 +78,45 @@ export default function ShareMomentPage() {
 
   if (error || !moment) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50">
-        <div className="text-center">
-          <p className="text-xl text-pink-800 mb-4">✨ Moment not found</p>
-          <p className="text-sm text-pink-600">This shared moment may have been removed</p>
-        </div>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center max-w-md"
+        >
+          {/* Sad pig */}
+          <motion.div
+            animate={{
+              y: [0, -8, 0],
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+            className="text-7xl mb-6"
+          >
+            🐷
+          </motion.div>
+          
+          {/* Error message */}
+          <h1 className="text-2xl font-serif italic text-pink-900 mb-3">
+            {isHindi ? 'पल खो गया शहर में' : 'This letter got lost in the city'}
+          </h1>
+          <p className="text-sm text-pink-600 mb-8">
+            {isHindi 
+              ? 'यह साझा किया गया पल हटा दिया गया हो सकता है या अब उपलब्ध नहीं है'
+              : 'This shared moment may have been removed or is no longer available'}
+          </p>
+          
+          {/* CTA */}
+          <a
+            href="/"
+            className="inline-block px-6 py-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-full font-medium hover:shadow-lg transition-all"
+          >
+            {isHindi ? 'अपना पल बनाइए' : 'Create your own moment'}
+          </a>
+        </motion.div>
       </div>
     );
   }
