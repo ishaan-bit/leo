@@ -336,7 +336,7 @@ export default function DialogueInterlude({
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1, ease: EASING }}
+          transition={{ duration: 1, ease: NATURAL_EASE }}
         >
           <Image 
             src="/images/leo.svg" 
@@ -361,7 +361,7 @@ export default function DialogueInterlude({
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.35, ease: EASING }}
+            transition={{ duration: 0.35, ease: NATURAL_EASE }}
           >
             <ComicSpeechBubble
               content={regulate}
@@ -408,7 +408,7 @@ export default function DialogueInterlude({
               exit={{ opacity: 0 }}
               transition={{ 
                 duration: 0.35,
-                ease: EASING,
+                ease: NATURAL_EASE,
               }}
             >
               <ComicSpeechBubble
@@ -431,7 +431,7 @@ export default function DialogueInterlude({
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            transition={{ duration: 1, ease: EASING }}
+            transition={{ duration: 1, ease: NATURAL_EASE }}
           >
             <motion.button
               onClick={() => {
