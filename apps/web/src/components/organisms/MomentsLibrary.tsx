@@ -138,6 +138,9 @@ export default function MomentsLibrary({
   const [imageLoadError, setImageLoadError] = useState(false);
   const [imageRendered, setImageRendered] = useState(false);
   
+  // WhatsApp share choice modal state
+  const [showShareChoice, setShowShareChoice] = useState(false);
+  
   // Songs are enriched automatically by worker - no separate loading state needed
   
   const containerRef = useRef<HTMLDivElement>(null);
@@ -370,19 +373,66 @@ export default function MomentsLibrary({
     }
   };
 
-  // Keyboard support: ESC closes modal
-  useEffect(() => {
+  // WhatsApp share handlers - poetic, no links
+  const handleWhatsAppShare = (choice: 'heart' | 'poem' | 'both') => {
     if (!selectedMoment) return;
 
+    // Use translated content if currently viewing in Hindi
+    const isHindi = language === 'hi';
+    const content = isHindi && translatedContent ? translatedContent : {
+      text: selectedMoment.text,
+      poem: selectedMoment.poem,
+    };
+
+    let shareText = '';
+
+    if (choice === 'heart') {
+      // Share only reflection
+      shareText = `Sharing a piece of my heart with you:\n\n`;
+      shareText += `${content.text}`;
+    } else if (choice === 'poem') {
+      // Share only poem
+      if (content.poem) {
+        shareText = `Here's a small poem sitting with how I feel:\n\n`;
+        shareText += `${content.poem}`;
+      } else {
+        // Fallback if no poem exists
+        shareText = `Sharing a quiet moment with you:\n\n`;
+        shareText += `${content.text}`;
+      }
+    } else if (choice === 'both') {
+      // Share both reflection and poem
+      shareText = `Here's what's been on my mind, and a little poem that came out of it:\n\n`;
+      shareText += `${content.text}\n\n`;
+      if (content.poem) {
+        shareText += `And this is the poem that grew from it:\n\n`;
+        shareText += `${content.poem}`;
+      }
+    }
+
+    // Open WhatsApp with the composed message
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+    window.open(whatsappUrl, '_blank');
+    
+    // Close the choice modal
+    setShowShareChoice(false);
+  };
+
+  // Keyboard support: ESC closes modal and share choice
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        setSelectedMoment(null);
+        if (showShareChoice) {
+          setShowShareChoice(false);
+        } else if (selectedMoment) {
+          setSelectedMoment(null);
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedMoment]);
+  }, [selectedMoment, showShareChoice]);
 
   // Scroll to top when modal opens (fix for content pushed off-screen bug)
   // ONLY if NOT auto-opening for pending dream (which scrolls to bottom)
@@ -1791,122 +1841,18 @@ export default function MomentsLibrary({
                           </span>
                         </motion.button>
 
-                        {/* WhatsApp Share */}
+                        {/* WhatsApp Share - Opens choice modal */}
                         <motion.button
-                          onClick={async () => {
-                            // Determine which content to use based on language toggle
-                            const isHindi = language === 'hi';
-                            console.log('[WhatsApp Share] Current language:', language, 'isHindi:', isHindi);
-                            const content = isHindi && translatedContent ? translatedContent : {
-                              text: selectedMoment.text,
-                              invoked: selectedMoment.invoked,
-                              expressed: selectedMoment.expressed,
-                              poem: selectedMoment.poem,
-                            };
-                            
-                            // Build beautifully formatted greeting card message
-                            let shareText = '';
-                            
-                            // Header with elegant frame
-                            shareText += `A MOMENT HELD SAFE\n`;
-                            shareText += `${'-'.repeat(35)}\n\n`;
-                            
-                            // Main reflection with quotation styling
-                            shareText += `~ Your reflection ~\n\n`;
-                            shareText += `"${content.text}"\n\n`;
-                            
-                            // Emotional landscape
-                            shareText += `${'.'.repeat(35)}\n\n`;
-                            shareText += `~ The feeling ~\n\n`;
-                            shareText += `${content.invoked}\n`;
-                            shareText += `   flowing into...\n`;
-                            shareText += `${content.expressed}\n\n`;
-                            
-                            // Poem (if available) with decorative spacing
-                            if (content.poem) {
-                              shareText += `${'.'.repeat(35)}\n\n`;
-                              shareText += `~ A gentle whisper ~\n\n`;
-                              shareText += `${content.poem}\n\n`;
-                            }
-                            
-                            // Song recommendation - use language-specific song
-                            const song = isHindi 
-                              ? (selectedMoment.songs?.hi || selectedMoment.songs?.en)
-                              : (selectedMoment.songs?.en || selectedMoment.songs?.hi);
-                            
-                            if (song?.title) {
-                              shareText += `${'.'.repeat(35)}\n\n`;
-                              shareText += `~ A song for this moment ~\n\n`;
-                              shareText += `   "${song.title}"\n`;
-                              if (song.artist) shareText += `   by ${song.artist}\n`;
-                              if (song.year) shareText += `   (${song.year})\n\n`;
-                              if (song.youtube_url) shareText += `   Listen: ${song.youtube_url}\n\n`;
-                            }
-                            
-                            // Footer with date and signature
-                            shareText += `${'.'.repeat(35)}\n\n`;
-                            const momentDate = new Date(selectedMoment.timestamp).toLocaleDateString('en-US', {
-                              month: 'long',
-                              day: 'numeric',
-                              year: 'numeric'
-                            });
-                            shareText += `${momentDate}\n`;
-                            
-                            // Pig name signature - use the prop pigName (user's saved name)
-                            shareText += `Held safe by ${pigName}\n\n`;
-                            shareText += `${'~'.repeat(35)}\n`;
-                            
-                            // Add shareable link to view full moment (with image note if present)
-                            // Include language parameter if viewing in Hindi
-                            const languageParam = isHindi ? '?lang=hi' : '';
-                            const shareableUrl = `${window.location.origin}/share/${selectedMoment.id}${languageParam}`;
-                            console.log('[WhatsApp Share] Share URL:', shareableUrl);
-                            if (selectedMoment.image_base64) {
-                              shareText += `\nView with photo:\n${shareableUrl}\n`;
-                              shareText += `\n(Tap to see the full moment with image)`;
-                            } else {
-                              shareText += `\nView full moment:\n${shareableUrl}`;
-                            }
-                            
-                            // Use WhatsApp URL scheme for most reliable sharing
-                            // This ensures the formatted text always comes through
-                            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
-                            window.open(whatsappUrl, '_blank');
-                          }}
+                          onClick={() => setShowShareChoice(true)}
                           className="w-8 h-8 flex items-center justify-center rounded-full transition-all"
                           style={{ background: 'rgba(37, 211, 102, 0.15)' }}
                           whileHover={{ scale: 1.1, background: 'rgba(37, 211, 102, 0.25)' }}
                           whileTap={{ scale: 0.95 }}
                           aria-label="Share on WhatsApp"
-                          title={selectedMoment.image_base64 ? 'Share with image' : 'Share text'}
+                          title="Share via WhatsApp"
                         >
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                             <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2ZM12.05 3.67C14.25 3.67 16.31 4.53 17.87 6.09C19.42 7.65 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15C10.56 20.15 9.11 19.76 7.85 19L7.55 18.83L4.43 19.65L5.26 16.61L5.06 16.29C4.24 15 3.8 13.47 3.8 11.91C3.81 7.37 7.5 3.67 12.05 3.67ZM8.53 7.33C8.37 7.33 8.1 7.39 7.87 7.64C7.65 7.89 7 8.5 7 9.71C7 10.93 7.89 12.1 8 12.27C8.14 12.44 9.76 14.94 12.25 16C12.84 16.27 13.3 16.42 13.66 16.53C14.25 16.72 14.79 16.69 15.22 16.63C15.7 16.56 16.68 16.03 16.89 15.45C17.1 14.87 17.1 14.38 17.04 14.27C16.97 14.17 16.81 14.11 16.56 14C16.31 13.86 15.09 13.26 14.87 13.18C14.64 13.1 14.5 13.06 14.31 13.3C14.15 13.55 13.67 14.11 13.53 14.27C13.38 14.44 13.24 14.46 13 14.34C12.74 14.21 11.94 13.95 11 13.11C10.26 12.45 9.77 11.64 9.62 11.39C9.5 11.15 9.61 11 9.73 10.89C9.84 10.78 10 10.6 10.1 10.45C10.23 10.31 10.27 10.2 10.35 10.04C10.43 9.87 10.39 9.73 10.33 9.61C10.27 9.5 9.77 8.26 9.56 7.77C9.36 7.29 9.16 7.35 9 7.34C8.86 7.34 8.7 7.33 8.53 7.33Z" fill="#25D366"/>
-                          </svg>
-                        </motion.button>
-
-                        {/* Copy Share Link */}
-                        <motion.button
-                          onClick={() => {
-                            const languageParam = language === 'hi' ? '?lang=hi' : '';
-                            const shareableUrl = `${window.location.origin}/share/${selectedMoment.id}${languageParam}`;
-                            navigator.clipboard.writeText(shareableUrl).then(() => {
-                              // Optional: You could add a toast notification here
-                              console.log('[Share] Link copied to clipboard:', shareableUrl);
-                            }).catch(err => {
-                              console.error('[Share] Failed to copy link:', err);
-                            });
-                          }}
-                          className="w-8 h-8 flex items-center justify-center rounded-full transition-all"
-                          style={{ background: 'rgba(147, 112, 219, 0.15)' }}
-                          whileHover={{ scale: 1.1, background: 'rgba(147, 112, 219, 0.25)' }}
-                          whileTap={{ scale: 0.95 }}
-                          aria-label="Copy share link"
-                          title="Copy link"
-                        >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: atmosphere.textColor, opacity: 0.8 }}>
-                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
                           </svg>
                         </motion.button>
 
@@ -3333,6 +3279,132 @@ export default function MomentsLibrary({
             </motion.div>
           );
         })()}
+      </AnimatePresence>
+
+      {/* WhatsApp Share Choice Modal */}
+      <AnimatePresence>
+        {showShareChoice && selectedMoment && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60]"
+              onClick={() => setShowShareChoice(false)}
+            />
+            
+            {/* Choice Sheet */}
+            <motion.div
+              initial={{ opacity: 0, y: 100 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 100 }}
+              transition={{ 
+                type: 'spring',
+                damping: 25,
+                stiffness: 300,
+              }}
+              className="fixed bottom-0 left-0 right-0 z-[70] bg-white rounded-t-3xl shadow-2xl"
+              style={{
+                maxWidth: '600px',
+                margin: '0 auto',
+                paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))',
+              }}
+            >
+              {/* Handle bar */}
+              <div className="flex justify-center pt-3 pb-2">
+                <div className="w-12 h-1 bg-gray-300 rounded-full" />
+              </div>
+
+              {/* Header */}
+              <div className="px-6 pb-4 border-b border-gray-100">
+                <h3 
+                  className="text-lg font-serif text-pink-900"
+                  style={{
+                    fontFamily: '"Cormorant Garamond", serif',
+                    letterSpacing: '0.02em',
+                  }}
+                >
+                  What would you like to share?
+                </h3>
+              </div>
+
+              {/* Choice Options */}
+              <div className="p-6 space-y-3">
+                {/* Share my heart */}
+                <button
+                  onClick={() => handleWhatsAppShare('heart')}
+                  className="w-full text-left p-4 rounded-2xl bg-gradient-to-br from-pink-50 to-rose-50 border border-pink-200/50 hover:border-pink-300 hover:shadow-md transition-all active:scale-[0.98]"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-pink-200/50 flex items-center justify-center">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-pink-700">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-pink-900 mb-0.5">Share my heart</div>
+                      <div className="text-sm text-pink-700/70">Just what I wrote</div>
+                    </div>
+                  </div>
+                </button>
+
+                {/* Share my poem */}
+                <button
+                  onClick={() => handleWhatsAppShare('poem')}
+                  className="w-full text-left p-4 rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200/50 hover:border-purple-300 hover:shadow-md transition-all active:scale-[0.98]"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-purple-200/50 flex items-center justify-center">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-700">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="16" y1="13" x2="8" y2="13" />
+                        <line x1="16" y1="17" x2="8" y2="17" />
+                        <polyline points="10 9 9 9 8 9" />
+                      </svg>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-purple-900 mb-0.5">Share my poem</div>
+                      <div className="text-sm text-purple-700/70">Just the poem</div>
+                    </div>
+                  </div>
+                </button>
+
+                {/* Share both */}
+                <button
+                  onClick={() => handleWhatsAppShare('both')}
+                  className="w-full text-left p-4 rounded-2xl bg-gradient-to-br from-rose-50 to-orange-50 border border-rose-200/50 hover:border-rose-300 hover:shadow-md transition-all active:scale-[0.98]"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-rose-200/50 flex items-center justify-center">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-rose-700">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M12 16v-4" />
+                        <path d="M12 8h.01" />
+                      </svg>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-rose-900 mb-0.5">Share both</div>
+                      <div className="text-sm text-rose-700/70">Both together</div>
+                    </div>
+                  </div>
+                </button>
+              </div>
+
+              {/* Cancel */}
+              <div className="px-6 pb-2">
+                <button
+                  onClick={() => setShowShareChoice(false)}
+                  className="w-full py-3 text-center text-gray-600 font-medium rounded-xl hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
       </AnimatePresence>
 
       {/* Guest mode CTA - Save Moments */}
