@@ -178,7 +178,7 @@ export default function StartPage() {
                 animate={{
                   opacity: 1,
                   scale: 1,
-                  x: introState === 'monogram-converge' ? 28 : 0, // Move right so right half overlaps with D
+                  x: introState === 'monogram-converge' ? 180 : 0, // Q travels much further to reach center
                 }}
                 transition={{ 
                   opacity: { duration: 0.6 },
@@ -252,7 +252,7 @@ export default function StartPage() {
                 initial={{ opacity: 0, x: 12 }}
                 animate={{
                   opacity: introState === 'quieten-reveal' ? 0 : 1,
-                  x: introState === 'quieten-reveal' ? 12 : (introState === 'monogram-converge' ? -28 : 0), // Move left to overlap with Q's right half
+                  x: introState === 'quieten-reveal' ? 12 : (introState === 'monogram-converge' ? -40 : 0), // D travels shorter distance to center
                   scale: introState === 'quieten-reveal' ? 0.9 : 1,
                 }}
                 transition={{ 
