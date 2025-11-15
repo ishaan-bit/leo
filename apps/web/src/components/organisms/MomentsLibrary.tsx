@@ -1215,7 +1215,7 @@ export default function MomentsLibrary({
                   : { left: getBuildingPosition(tower.index, 52) }
                 ),
                 width: '52px', // Reduced to 75% (52px from 70px) so Sable fits on mobile
-                height: `${tower.height * 1.5}px`, // Increased from 1.2x to 1.5x for taller buildings
+                height: `${tower.height * 1.5 + (momentCount > 4 ? Math.floor((momentCount - 4) / 4) * 80 : 0)}px`, // Grow 80px per 4 moments after first 4
               }}
               initial={{ opacity: isCurrent ? 1 : 0, scale: 0.9 }}
               animate={{
@@ -1242,7 +1242,7 @@ export default function MomentsLibrary({
                 }}
               >
                 {/* Windows - warm lit windows representing moments */}
-                <div className="absolute inset-4 grid grid-cols-4 gap-2">
+                <div className="absolute inset-4 grid grid-cols-4 gap-3">
                   {(momentsByZone[tower.id] || []).slice(0, 24).map((moment, i) => {
                     const windowKey = `window-${tower.id}-${moment.id}`;
                     const isBlinking = blinkingWindow === windowKey;
@@ -3301,7 +3301,7 @@ export default function MomentsLibrary({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60]"
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[110]"
               onClick={() => setShowShareChoice(false)}
             />
             
@@ -3315,7 +3315,7 @@ export default function MomentsLibrary({
                 damping: 25,
                 stiffness: 300,
               }}
-              className="fixed bottom-0 left-0 right-0 z-[70] bg-white rounded-t-3xl shadow-2xl"
+              className="fixed bottom-0 left-0 right-0 z-[120] bg-white rounded-t-3xl shadow-2xl"
               style={{
                 maxWidth: '600px',
                 margin: '0 auto',
