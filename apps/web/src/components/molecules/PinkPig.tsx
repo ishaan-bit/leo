@@ -7,6 +7,7 @@
 
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
+import { MOTION_DURATION, NATURAL_EASE } from '@/lib/motion-tokens';
 
 interface PinkPigProps {
   state?: 'idle' | 'speaking' | 'happy' | 'thinking';
@@ -43,34 +44,34 @@ export default function PinkPig({
     }
   }, [state]);
 
-  // Cinematic animation variants - idle now includes scale pulsing for breathing
+  // Cinematic animation variants - idle now includes micro-float + breathing
   const pigVariants = {
     idle: { 
-      y: [-8, 8, -8],
-      rotate: [-2, 2, -2],
-      scale: [1, 1.03, 1], // Add subtle scale pulsing for breathing effect
+      y: [-4, 4, -4], // Reduced from 8px to 4px for subtler micro-float
+      rotate: [-1, 1, -1], // Reduced rotation for gentler sway
+      scale: [1, 1.015, 1], // Reduced from 1.03 to 1.015 for subtle breathing
       transition: {
-        duration: 6,
+        duration: 4, // Faster cycle (was 6s) for livelier feel
         repeat: Infinity,
-        ease: 'easeInOut'
+        ease: NATURAL_EASE
       }
     },
     thinking: {
-      y: [-8, 8, -8],
-      rotate: [-2, 2, -2],
-      scale: [1, 1.03, 1], // Same breathing animation during thinking
+      y: [-4, 4, -4], // Match idle micro-float
+      rotate: [-1, 1, -1],
+      scale: [1, 1.015, 1],
       transition: {
-        duration: 6,
+        duration: 4,
         repeat: Infinity,
-        ease: 'easeInOut'
+        ease: NATURAL_EASE
       }
     },
     happy: { 
       y: [-10, 0],
       scale: [1, 1.05, 1],
       transition: { 
-        duration: 0.5,
-        ease: [0.34, 1.56, 0.64, 1] // easeOutBack
+        duration: MOTION_DURATION.EMPHASIS * 4, // 120ms * 4 = 480ms
+        ease: [0.34, 1.56, 0.64, 1] // Keep easeOutBack for personality
       }
     }
   };

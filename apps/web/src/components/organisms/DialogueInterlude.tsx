@@ -24,6 +24,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import ComicSpeechBubble from '../atoms/ComicSpeechBubble';
 import FloatingWords from '../atoms/FloatingWords';
+import { MOTION_DURATION, NATURAL_EASE } from '@/lib/motion-tokens';
 
 interface DialogueInterludeProps {
   /** 3 dialogue tuples: [[Inner, Regulate, Amuse], ...] */
@@ -47,7 +48,7 @@ interface DialogueInterludeProps {
   onComplete: () => void;
 }
 
-const EASING = [0.42, 0, 0.58, 1] as const;
+// Use global NATURAL_EASE from motion tokens instead of local constant
 
 type TuplePhase = 
   | 'idle'
@@ -448,7 +449,6 @@ export default function DialogueInterlude({
                 color: '#2D2D2D',
                 boxShadow: `0 4px 20px ${zoneColor}20`,
               }}
-              whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.98 }}
               animate={{
                 boxShadow: [
@@ -461,9 +461,14 @@ export default function DialogueInterlude({
                 boxShadow: {
                   duration: 2,
                   repeat: Infinity,
-                  ease: 'easeInOut',
+                  ease: NATURAL_EASE,
                 },
+                scale: {
+                  duration: MOTION_DURATION.EMPHASIS, // 120ms tap feedback
+                  ease: NATURAL_EASE,
+                }
               }}
+              className="[@media(hover:hover)]:hover:scale-105 [@media(hover:hover)]:hover:-translate-y-0.5 transition-transform duration-[120ms]"
             >
               {currentTupleIndex === 0 ? "On We Go" : currentTupleIndex === 1 ? "One More Breath" : "And So it Goes"}
             </motion.button>

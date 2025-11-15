@@ -40,6 +40,11 @@ export const tapFeedbackVariant = {
   transition: { duration: MOTION_DURATION.MICRO, ease: NATURAL_EASE },
 };
 
+// Hover-only class helper (wraps hover states in media query)
+// Use this for CSS hover states to prevent sticky hover on touch devices
+export const hoverOnly = (className: string) => 
+  className.split(' ').map(c => c.startsWith('hover:') ? `[@media(hover:hover)]:${c}` : c).join(' ');
+
 // Stagger delays for sequential reveals
 export const STAGGER_DELAYS = {
   BACKGROUND: 0,

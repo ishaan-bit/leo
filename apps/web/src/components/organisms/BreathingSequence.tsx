@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
+import { MOTION_DURATION, NATURAL_EASE } from '@/lib/motion-tokens';
 import { type PrimaryEmotion, computeBreatheParams, FALLBACK_WORDS } from '@/lib/breathe-config';
 import type { Stage2State, PostEnrichmentPayload, Stage2Phase, WindowState } from '@/lib/stage2-types';
 import ComicBubble from '../atoms/ComicBubble';
@@ -33,7 +34,6 @@ const TOWERS = [
 ];
 
 const MIN_CYCLES = 3;
-const EASING = [0.42, 0, 0.58, 1] as const; // easeInOutSine
 
 // Utility: Filter out non-English text (Hindi/Devanagari characters)
 const isEnglishText = (text: string): boolean => {
@@ -399,13 +399,13 @@ export default function BreathingSequence({
         animate={{
           background: getSkyGradient(),
         }}
-        transition={{ duration: skyLightnessLevel >= 1 ? 2 : 0.7, ease: EASING }}
+        transition={{ duration: skyLightnessLevel >= 1 ? 2 : 0.7, ease: NATURAL_EASE }}
         style={{ transition: 'background 700ms ease-in-out' }}
       />
       
       {/* Stars */}
       <div className="absolute inset-0 pointer-events-none">
-        {Array.from({ length: 100 }).map((_, i) => (
+        {Array.from({ length: typeof window !== 'undefined' && window.innerWidth < 768 ? 40 : 100 }).map((_, i) => (
           <motion.div
             key={`star-${i}`}
             className="absolute w-[2px] h-[2px] bg-white rounded-full"
@@ -414,7 +414,7 @@ export default function BreathingSequence({
               top: `${Math.random() * 80}%`,
             }}
             animate={{ opacity: starOpacity, scale: isInhaling ? 1.3 : 1 }}
-            transition={{ duration: activeCycle.in, ease: EASING }}
+            transition={{ duration: activeCycle.in, ease: NATURAL_EASE }}
           />
         ))}
       </div>
@@ -435,7 +435,7 @@ export default function BreathingSequence({
           transition={{ 
             scale: { 
               duration: isInhaling ? activeCycle.in : isExhaling ? activeCycle.out : 0.3,
-              ease: EASING,
+              ease: NATURAL_EASE,
             },
             rotateZ: leoReacting 
               ? { duration: 0.7, times: [0, 0.33, 0.66, 1], ease: 'easeInOut' }
@@ -466,7 +466,7 @@ export default function BreathingSequence({
               opacity: { duration: 0.5, ease: 'easeOut' },
               scale: {
                 duration: isInhaling ? activeCycle.in : isExhaling ? activeCycle.out : 0.5,
-                ease: EASING,
+                ease: NATURAL_EASE,
               }
             }}
             exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.5, ease: 'easeOut' } }}
@@ -523,7 +523,7 @@ export default function BreathingSequence({
               width: '80px',
               height: `${tower.height * 1.8}px`,
             }}
-            initial={{ opacity: isPrimary ? 1 : 0.15, scale: 1 }} // Match CityInterlude fade state
+            initial={{ opacity: isPrimary ? 1 : 0.35, scale: 1 }} // Match CityInterlude fade state (0.35)
             animate={{
               opacity: towerOpacity,
               scale: isPrimary ? ((isInhaling || isHoldingIn) ? 1.02 : 0.98) : 1,
@@ -532,17 +532,17 @@ export default function BreathingSequence({
             transition={{ 
               opacity: { 
                 duration: isPrimary ? 0 : 1.5, // Smooth 1.5s fade for non-primary
-                ease: 'easeOut',
+                ease: NATURAL_EASE,
                 delay: 0, // Start fading immediately
               },
               left: {
                 duration: isPrimary ? 2.5 : 0, // Primary centers after 1.5s fade completes
-                ease: [0.4, 0, 0.2, 1],
+                ease: NATURAL_EASE,
                 delay: isPrimary ? 1.5 : 0, // Wait for fade to complete before centering
               },
               scale: { 
                 duration: isInhaling ? activeCycle.in : isExhaling ? activeCycle.out : 0.3,
-                ease: EASING 
+                ease: NATURAL_EASE 
               }
             }}
           >
@@ -619,11 +619,11 @@ export default function BreathingSequence({
                     transition={{ 
                       scale: {
                         duration: isInhaling ? activeCycle.in : isExhaling ? activeCycle.out : 0.5,
-                        ease: EASING,
+                        ease: NATURAL_EASE,
                       },
                       opacity: {
                         duration: isInhaling ? activeCycle.in : isExhaling ? activeCycle.out : 0.5,
-                        ease: EASING,
+                        ease: NATURAL_EASE,
                       },
                     }}
                   />
@@ -647,7 +647,7 @@ export default function BreathingSequence({
             opacity: { duration: 2, ease: 'easeInOut' },
             scale: { 
               duration: isInhaling ? activeCycle.in : activeCycle.out,
-              ease: EASING 
+              ease: NATURAL_EASE 
             }
           }}
         >
@@ -705,7 +705,7 @@ export default function BreathingSequence({
               }}
               transition={{
                 duration: activeCycle.in,
-                ease: EASING,
+                ease: NATURAL_EASE,
               }}
             >
               <div
