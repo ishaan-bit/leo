@@ -48,3 +48,47 @@ Thumbs.db
 
 # Local data storage (pig names)
 apps/web/data/pigs.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+
+# Model files and checkpoints
+*.pkl
+*.pt
+*.pth
+*.safetensors
+*.bin
+*.h5
+*.onnx
+checkpoints/
+models/perception/
+models/*/checkpoint-*/
+apps/workers/enrichment_v2/models/
+
+# Cache and databases
+cache/
+*.db
+*.sqlite
+
+# Large data files
+*.csv
+*.json.gz
+*.parquet
+
+# Git submodules and embedded repos
+enrichment_v5/hf_space/
+test-ollama-space/
+
+# Debug and test scripts
+check_*.py
+test_*.py
+debug_*.py
+test_*.html

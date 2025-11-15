@@ -43,11 +43,22 @@ export default function PinkPig({
     }
   }, [state]);
 
-  // Cinematic animation variants
+  // Cinematic animation variants - idle now includes scale pulsing for breathing
   const pigVariants = {
     idle: { 
       y: [-8, 8, -8],
       rotate: [-2, 2, -2],
+      scale: [1, 1.03, 1], // Add subtle scale pulsing for breathing effect
+      transition: {
+        duration: 6,
+        repeat: Infinity,
+        ease: 'easeInOut'
+      }
+    },
+    thinking: {
+      y: [-8, 8, -8],
+      rotate: [-2, 2, -2],
+      scale: [1, 1.03, 1], // Same breathing animation during thinking
       transition: {
         duration: 6,
         repeat: Infinity,
@@ -69,7 +80,7 @@ export default function PinkPig({
       className={`relative flex items-center justify-center ${className}`}
       style={{ width: size, height: size }}
       variants={pigVariants}
-      animate={state === 'happy' ? 'happy' : 'idle'}
+      animate={state === 'happy' ? 'happy' : (state === 'thinking' ? 'thinking' : 'idle')}
     >
       {/* Soft reflection glow underneath */}
       <motion.div
