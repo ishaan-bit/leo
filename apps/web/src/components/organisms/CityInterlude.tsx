@@ -534,6 +534,32 @@ export default function CityInterlude({
         </>
       )}
 
+      {/* Crescent Moon - appears when buildings start pulsing (Phase 3+), stays visible */}
+      {currentPhase >= 3 && (
+        <motion.div
+          className="absolute top-20 right-24 w-16 h-16 pointer-events-none z-10"
+          style={{
+            borderRadius: '50%',
+            boxShadow: 'inset -8px 0px 0px 0px rgba(255, 255, 255, 0.9)',
+            background: 'transparent',
+            transform: 'rotate(-20deg)',
+          }}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ 
+            opacity: [0.85, 0.95, 0.85],
+            scale: [0.98, 1.02, 0.98],
+          }}
+          transition={{ 
+            opacity: { duration: 0.8 },
+            scale: { 
+              duration: 4,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            },
+          }}
+        />
+      )}
+
       {/* Drifting clouds (Phase 3+) */}
       {currentPhase >= 3 && !prefersReducedMotion && (
         <div className="absolute inset-0 z-8 pointer-events-none overflow-hidden">

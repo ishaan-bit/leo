@@ -275,11 +275,9 @@ export default function BreathingSequence({
       
       orchestrationStartedRef.current = true;
       
-      // Brief delay to let breathing settle
-      setTimeout(() => {
-        console.log('[BreathingSequence] 🎭 Starting DialogueInterlude NOW');
-        setShowDialogueInterlude(true);
-      }, 500);
+      // IMMEDIATE transition - no setTimeout delay
+      console.log('[BreathingSequence] 🎭 Starting DialogueInterlude IMMEDIATELY');
+      setShowDialogueInterlude(true);
     } else {
       // Log what we're waiting for
       if (!secondCycleComplete) {
@@ -441,7 +439,7 @@ export default function BreathingSequence({
       {/* Breathing prompt - positioned below Leo - Shows throughout breathing phase */}
       {/* Continuous inhale/exhale text that transitions smoothly */}
       <AnimatePresence>
-        {showInhaleExhale && (!stage2Complete || cycleCount < 1) && (
+        {showInhaleExhale && (!stage2Complete || cycleCount < 2) && (
           <motion.div
             className="absolute left-1/2 z-30 pointer-events-none"
             style={{
@@ -464,8 +462,9 @@ export default function BreathingSequence({
             exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.5, ease: 'easeOut' } }}
           >
             {/* Show inhale or exhale - always visible, smooth transitions */}
+            {/* After 2nd inhale, show "exhale one more time" */}
             <motion.div
-              key={isInhaling || isHoldingIn ? 'inhale' : 'exhale'}
+              key={cycleCount === 1 && (isExhaling || isHoldingOut) ? 'exhale-final' : isInhaling || isHoldingIn ? 'inhale' : 'exhale'}
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -5 }}
@@ -481,7 +480,11 @@ export default function BreathingSequence({
                 letterSpacing: '0.35em',
               }}
             >
-              {isInhaling || isHoldingIn ? 'inhale' : 'exhale'}
+              {cycleCount === 1 && (isExhaling || isHoldingOut) 
+                ? 'exhale one more time' 
+                : isInhaling || isHoldingIn 
+                  ? 'inhale' 
+                  : 'exhale'}
             </motion.div>
           </motion.div>
         )}

@@ -105,7 +105,7 @@ export default function AuthStateIndicator({ userName, isGuest, pigName = 'Leo' 
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.2, ease: [0.34, 1.56, 0.64, 1] }}
-            className="text-pink-900/90 text-3xl md:text-4xl lg:text-5xl font-serif italic text-center px-6 max-w-3xl"
+            className="text-pink-900/90 text-2xl md:text-3xl lg:text-4xl font-serif italic text-center px-6 max-w-3xl"
             style={{
               fontFamily: '"EB Garamond", "Georgia", serif',
               letterSpacing: '0.02em',
