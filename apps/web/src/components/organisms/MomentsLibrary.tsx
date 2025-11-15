@@ -3116,8 +3116,17 @@ export default function MomentsLibrary({
                     className="mt-10 pt-8 border-t relative"
                     style={{ borderColor: `${atmosphere.accentColor}20` }}
                     initial={{ opacity: 0, y: 50 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-50px" }}
+                    {...(pendingDream 
+                      ? { 
+                          // When auto-scrolling to pending dream, use simple animate (no whileInView)
+                          animate: { opacity: 1, y: 0 }
+                        } 
+                      : { 
+                          // Normal scroll-triggered animation for regular moments
+                          whileInView: { opacity: 1, y: 0 },
+                          viewport: { once: true, margin: "-50px" }
+                        }
+                    )}
                     transition={{ duration: 1.0, ease: [0.16, 1, 0.3, 1] }}
                   >
                     {/* Soft inner glow behind dream letter section */}
