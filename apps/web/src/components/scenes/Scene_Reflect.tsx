@@ -807,7 +807,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.25, ease: NATURAL_EASE }}
+      transition={{ duration: MOTION_DURATION.ENTRY, ease: NATURAL_EASE }}
     >
       <div className={`min-h-screen bg-gradient-to-br ${backgroundTone} relative overflow-x-hidden transition-colors duration-1000`}>
       {/* Breathing background gradient overlay - Desktop only for performance */}
@@ -824,7 +824,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
           transition: {
             duration: 8,
             repeat: Infinity,
-            ease: 'easeInOut',
+            ease: NATURAL_EASE,
           }
         } : {
           style: {

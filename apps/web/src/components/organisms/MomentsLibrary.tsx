@@ -687,7 +687,7 @@ export default function MomentsLibrary({
       className="fixed inset-0 z-50 overflow-hidden"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.8, ease: 'easeOut' }}
+      transition={{ duration: MOTION_DURATION.ENTRY, ease: NATURAL_EASE }}
     >
       {/* Sky background - deep mauve to soft peach dawn gradient (symbolizes reflection & renewal) */}
       <motion.div
@@ -705,7 +705,7 @@ export default function MomentsLibrary({
         transition={{ 
           duration: 5, 
           repeat: Infinity,
-          ease: 'easeInOut'
+          ease: NATURAL_EASE
         }}
       />
       
@@ -718,7 +718,7 @@ export default function MomentsLibrary({
         }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.6 }}
-        transition={{ duration: 3, ease: 'easeInOut' }}
+        transition={{ duration: 3, ease: NATURAL_EASE }}
       />
       <motion.div
         className="absolute top-[calc(35%+8px)] right-24 w-16 h-16 pointer-events-none z-10"
@@ -1644,10 +1644,10 @@ export default function MomentsLibrary({
                   scale: {
                     duration: 6,
                     repeat: typeof window !== 'undefined' && window.innerWidth < 768 ? 0 : Infinity, // No repeat on mobile
-                    ease: 'easeInOut',
+                    ease: NATURAL_EASE,
                   },
                   default: {
-                    duration: 0.7,
+                    duration: MOTION_DURATION.ENTRY,
                     ease: NATURAL_EASE,
                   }
                 }}
