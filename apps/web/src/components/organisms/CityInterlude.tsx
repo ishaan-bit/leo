@@ -7,6 +7,7 @@ import Image from 'next/image';
 import TopNav from '../molecules/TopNav';
 import { useEnrichmentStatus } from '@/hooks/useEnrichmentStatus';
 import { getZone, type PrimaryEmotion } from '@/lib/zones';
+import { MOTION_DURATION, NATURAL_EASE } from '@/lib/motion-tokens';
 
 /**
  * CityInterlude - "THE CITY BEFORE THE SIGNAL"

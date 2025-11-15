@@ -706,7 +706,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
               initial={{ opacity: 1 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
+              transition={{ duration: MOTION_DURATION.ENTRY, ease: NATURAL_EASE }}
               className="fixed inset-0"
             >
               {/* Top navigation - horizontally aligned */}
@@ -745,7 +745,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
+              transition={{ duration: MOTION_DURATION.ENTRY, ease: NATURAL_EASE }}
               className="fixed inset-0"
             >
               {/* Top navigation - horizontally aligned */}
@@ -861,7 +861,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
             initial={{ opacity: 0, scale: 0.9, y: -10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: -10 }}
-            transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+            transition={{ duration: MOTION_DURATION.EXIT, ease: NATURAL_EASE }}
             className="fixed top-20 left-6 z-50 cursor-pointer"
             onClick={() => setShowMomentsLibrary(true)}
           >
@@ -871,7 +871,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
                 <motion.div
                   className="absolute -top-1 -right-1 w-3 h-3 bg-pink-300 rounded-full"
                   animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                  transition={{ duration: 2, repeat: Infinity, ease: NATURAL_EASE }}
                 />
                 <div className="text-2xl mb-1 font-serif text-purple-200">&#9993;</div>
                 <p className="text-sm font-medium text-purple-100 mb-1">

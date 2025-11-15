@@ -8,6 +8,7 @@ import { usePendingDream } from '@/contexts/PendingDreamContext';
 import { getZone, type PrimaryEmotion } from '@/lib/zones';
 import { translateToHindi } from '@/lib/translation';
 import ComicSpeechBubble from '@/components/atoms/ComicSpeechBubble';
+import { MOTION_DURATION, NATURAL_EASE } from '@/lib/motion-tokens';
 
 interface Moment {
   id: string;
@@ -73,7 +74,7 @@ interface MomentsLibraryProps {
   autoOpenMomentId?: string | null; // Optional: auto-open specific moment (for dream letters)
 }
 
-const EASING = [0.65, 0, 0.35, 1] as const;
+// Use global NATURAL_EASE from motion-tokens instead of local constant
 
 // Tower configuration with corrected zone labels
 // MAPPING: joyful?Vera, powerful?Ashmere, peaceful?Haven, sad?Vanta, scared?Vire, mad?Sable
@@ -851,7 +852,7 @@ export default function MomentsLibrary({
             ? { left: '50%', top: '24%', x: '-50%', y: '0%', scale: 0.85 }
             : { left: '50%', top: '40%', x: '-50%', y: '-50%', scale: 1 }
         }
-        transition={{ duration: 1.2, ease: EASING }}
+        transition={{ duration: 1.2, ease: NATURAL_EASE }}
       >
         {/* Breathing glow pulse (slow, rhythmic) */}
         <motion.div
@@ -920,7 +921,7 @@ export default function MomentsLibrary({
             initial={{ opacity: 0, y: 10, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.9 }}
-            transition={{ duration: 0.6, ease: EASING }}
+            transition={{ duration: 0.6, ease: NATURAL_EASE }}
           >
             {/* Pointer arrow down toward brightest window */}
             <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[12px] border-r-[12px] border-t-[12px] border-l-transparent border-r-transparent border-t-white/95 drop-shadow-lg" />
@@ -978,8 +979,8 @@ export default function MomentsLibrary({
               y: [0, -3, 0],
             }}
             transition={{
-              opacity: { duration: 0.8, delay: 1.2, ease: EASING },
-              scale: { duration: 0.8, delay: 1.2, ease: EASING },
+              opacity: { duration: 0.8, delay: 1.2, ease: NATURAL_EASE },
+              scale: { duration: 0.8, delay: 1.2, ease: NATURAL_EASE },
               y: { duration: 3, repeat: Infinity, ease: 'easeInOut' },
             }}
             whileHover={{ scale: 1.15, rotate: -35 }}
@@ -1099,7 +1100,7 @@ export default function MomentsLibrary({
         style={{ height: '50vh' }}
         initial={{ scale: 1, y: 0 }}
         animate={{ scale: phase === 'skyline' ? 0.92 : 1, y: 0 }}
-        transition={{ duration: 1.5, ease: EASING }}
+        transition={{ duration: 1.5, ease: NATURAL_EASE }}
       >
         {TOWER_CONFIGS.map((tower, index) => {
           const zone = getZone(tower.id);
@@ -1366,7 +1367,7 @@ export default function MomentsLibrary({
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.8, delay: 0.3, ease: EASING }}
+              transition={{ duration: 0.8, delay: 0.3, ease: NATURAL_EASE }}
             >
               <h1
                 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl mb-3"
@@ -1391,7 +1392,7 @@ export default function MomentsLibrary({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.8, delay: 0.7, ease: EASING }}
+              transition={{ duration: 0.8, delay: 0.7, ease: NATURAL_EASE }}
             >
               <p
                 className="text-sm sm:text-base md:text-lg"
@@ -1421,7 +1422,7 @@ export default function MomentsLibrary({
                 scale: 1.1,
               }}
               whileTap={{ scale: 0.95 }}
-              transition={{ duration: 0.6, delay: 1.4, ease: EASING }}
+              transition={{ duration: 0.6, delay: 1.4, ease: NATURAL_EASE }}
               aria-label="Share a New Moment"
               title="Share a New Moment"
               style={{
@@ -1647,7 +1648,7 @@ export default function MomentsLibrary({
                   },
                   default: {
                     duration: 0.7,
-                    ease: EASING,
+                    ease: NATURAL_EASE,
                   }
                 }}
                 onClick={(e) => e.stopPropagation()}
@@ -2047,7 +2048,7 @@ export default function MomentsLibrary({
                     className="mb-12"
                     initial={{ opacity: 0, y: -8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.1, ease: EASING }}
+                    transition={{ duration: 0.6, delay: 0.1, ease: NATURAL_EASE }}
                     role="region"
                     aria-label="Moment atmosphere"
                   >
@@ -2269,7 +2270,7 @@ export default function MomentsLibrary({
                       className="mb-12 relative overflow-hidden"
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.8, delay: 0.2, ease: EASING }}
+                      transition={{ duration: 0.8, delay: 0.2, ease: NATURAL_EASE }}
                       style={{
                         borderRadius: '12px',
                         boxShadow: `0 8px 24px ${atmosphere.gradient[0]}20`,
@@ -3066,7 +3067,7 @@ export default function MomentsLibrary({
                       style={{ borderColor: `${atmosphere.accentColor}30` }}
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 1.2, delay: 0.8, ease: EASING }}
+                      transition={{ duration: 1.2, delay: 0.8, ease: NATURAL_EASE }}
                     >
                       {/* Floating firefly glyph (left) */}
                       <motion.span
