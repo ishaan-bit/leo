@@ -4,12 +4,19 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import ConfirmationDialog from '@/components/molecules/ConfirmationDialog';
 
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   pigName?: string;
 }
+
+type ConfirmDialogState = {
+  isOpen: boolean;
+  action: 'clear-reflections' | 'clear-dream-letters' | 'delete-all-data' | 'delete-account' | null;
+  isLoading: boolean;
+};
 
 export default function SettingsModal({ isOpen, onClose, pigName }: SettingsModalProps) {
   const { data: session, status } = useSession();
@@ -18,7 +25,12 @@ export default function SettingsModal({ isOpen, onClose, pigName }: SettingsModa
   const [hapticsEnabled, setHapticsEnabled] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState>({
+    isOpen: false,
+    action: null,
+    isLoading: false,
+  });
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const isGuest = status === 'unauthenticated';
 
@@ -67,19 +79,22 @@ export default function SettingsModal({ isOpen, onClose, pigName }: SettingsModa
     }
   };
 
+  // Show toast notification
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setTimeout(() => setToastMessage(null), 4000);
+  };
+
   const handleSignOut = async () => {
     await signOut({ callbackUrl: '/start' });
   };
 
   const handleDeleteAccount = async () => {
-    if (!showDeleteConfirm) {
-      setShowDeleteConfirm(true);
-      return;
-    }
-
-    // TODO: Implement account deletion API
-    alert('Account deletion will be implemented soon');
-    setShowDeleteConfirm(false);
+    setConfirmDialog({
+      isOpen: true,
+      action: 'delete-account',
+      isLoading: false,
+    });
   };
 
   const handleDownloadData = async () => {
@@ -88,18 +103,114 @@ export default function SettingsModal({ isOpen, onClose, pigName }: SettingsModa
   };
 
   const handleDeleteAllData = async () => {
-    // TODO: Implement data deletion
-    alert('Data deletion will be implemented soon');
+    setConfirmDialog({
+      isOpen: true,
+      action: 'delete-all-data',
+      isLoading: false,
+    });
   };
 
   const handleClearDreamLetters = async () => {
-    // TODO: Implement dream letter clearing
-    alert('Clear dream letters will be implemented soon');
+    setConfirmDialog({
+      isOpen: true,
+      action: 'clear-dream-letters',
+      isLoading: false,
+    });
   };
 
   const handleClearReflections = async () => {
-    // TODO: Implement reflections clearing
-    alert('Clear reflections will be implemented soon');
+    setConfirmDialog({
+      isOpen: true,
+      action: 'clear-reflections',
+      isLoading: false,
+    });
+  };
+
+  const executeDeleteAction = async () => {
+    if (!confirmDialog.action) return;
+
+    setConfirmDialog(prev => ({ ...prev, isLoading: true }));
+
+    try {
+      switch (confirmDialog.action) {
+        case 'clear-reflections':
+          await handleClearReflectionsConfirmed();
+          break;
+        case 'clear-dream-letters':
+          await handleClearDreamLettersConfirmed();
+          break;
+        case 'delete-all-data':
+          await handleDeleteAllDataConfirmed();
+          break;
+        case 'delete-account':
+          await handleDeleteAccountConfirmed();
+          break;
+      }
+    } catch (error) {
+      console.error('Delete action failed:', error);
+      showToast('Something went wrong while deleting. Please try again in a bit.');
+    } finally {
+      setConfirmDialog({ isOpen: false, action: null, isLoading: false });
+    }
+  };
+
+  const handleClearReflectionsConfirmed = async () => {
+    const response = await fetch('/api/user/reflections', {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to clear reflections');
+    }
+
+    showToast("Done. It's like we never met these memories.");
+    
+    // Refresh the page to update Living City
+    setTimeout(() => {
+      window.location.reload();
+    }, 1500);
+  };
+
+  const handleClearDreamLettersConfirmed = async () => {
+    const response = await fetch('/api/user/dream-letters', {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to clear dream letters');
+    }
+
+    showToast("Done. It's like we never met these memories.");
+    
+    // Refresh to update UI
+    setTimeout(() => {
+      window.location.reload();
+    }, 1500);
+  };
+
+  const handleDeleteAllDataConfirmed = async () => {
+    const response = await fetch('/api/user', {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete all data');
+    }
+
+    showToast('Your traces here have been erased. If you ever return, your city will start fresh.');
+    
+    // Sign out and redirect after a brief delay
+    setTimeout(async () => {
+      if (!isGuest) {
+        await signOut({ redirect: false });
+      }
+      router.push('/start');
+    }, 2000);
+  };
+
+  const handleDeleteAccountConfirmed = async () => {
+    // For now, delete all data is the same as delete account
+    await handleDeleteAllDataConfirmed();
   };
 
   if (!isOpen) return null;
@@ -172,7 +283,7 @@ export default function SettingsModal({ isOpen, onClose, pigName }: SettingsModa
                           onClick={handleDeleteAccount}
                           className="w-full text-left px-3 py-2 rounded-lg hover:bg-red-50 transition-colors text-sm text-red-600"
                         >
-                          {showDeleteConfirm ? 'Confirm Delete Account?' : 'Delete Account'}
+                          Delete Account
                         </button>
                       </>
                     ) : (
@@ -444,6 +555,54 @@ export default function SettingsModal({ isOpen, onClose, pigName }: SettingsModa
               </motion.div>
             </motion.div>
           )}
+
+          {/* Confirmation Dialog */}
+          <ConfirmationDialog
+            isOpen={confirmDialog.isOpen}
+            onClose={() => setConfirmDialog({ isOpen: false, action: null, isLoading: false })}
+            onConfirm={executeDeleteAction}
+            isLoading={confirmDialog.isLoading}
+            title={
+              confirmDialog.action === 'clear-reflections'
+                ? 'Clear Reflections?'
+                : confirmDialog.action === 'clear-dream-letters'
+                ? 'Clear Dream Letters?'
+                : confirmDialog.action === 'delete-all-data'
+                ? 'Delete All Your Data?'
+                : 'Delete Account?'
+            }
+            message={
+              confirmDialog.action === 'clear-reflections'
+                ? `This will erase all the reflections you've written so far. Your account and ${pigName || 'Pig'} will stay, but your windows will go dark. This cannot be undone.`
+                : confirmDialog.action === 'clear-dream-letters'
+                ? `This will remove all dream letters you've received so far, and cancel any that are still on their way. Your reflections will stay as they are.`
+                : confirmDialog.action === 'delete-all-data'
+                ? `This will erase your reflections, dream letters, and profile from QuietDen. Your ${pigName || 'Pig'} will forget everything you ever shared here. This cannot be undone.`
+                : `This will delete your account and all associated data. This cannot be undone.`
+            }
+            requireTypeToConfirm={confirmDialog.action === 'delete-all-data' || confirmDialog.action === 'delete-account'}
+            typeToConfirmText="DELETE"
+            confirmButtonStyle="destructive"
+          />
+
+          {/* Toast Notification */}
+          <AnimatePresence>
+            {toastMessage && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+                className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[302] px-6 py-3 rounded-full shadow-2xl max-w-md text-center"
+                style={{
+                  background: 'linear-gradient(135deg, #D4A5B5 0%, #C98CA5 50%, #B87A9A 100%)',
+                  color: 'white',
+                }}
+              >
+                <p className="text-sm font-medium">{toastMessage}</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </>
       )}
     </AnimatePresence>
