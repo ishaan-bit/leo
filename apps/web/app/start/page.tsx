@@ -350,7 +350,7 @@ export default function StartPage() {
                 >
                   Terms
                 </button>
-                {' '}and{' '}
+                {' '}&{' '}
                 <button
                   onClick={() => setShowLegalModal(true)}
                   className="text-xs underline hover:text-pink-800 transition-colors cursor-pointer"
@@ -362,7 +362,7 @@ export default function StartPage() {
             </motion.div>
 
             {/* Existing tiny note + Copyright */}
-            <div className="space-y-2 pt-2">
+            <div className="space-y-2 pt-1">
               <p className="text-center text-pink-600/80 text-sm font-serif italic">
                 If you lose me, scan my mark again; I'll come flying back.
               </p>

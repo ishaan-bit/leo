@@ -9,6 +9,7 @@ import { getZone, type PrimaryEmotion } from '@/lib/zones';
 import { translateToHindi } from '@/lib/translation';
 import ComicSpeechBubble from '@/components/atoms/ComicSpeechBubble';
 import { MOTION_DURATION, NATURAL_EASE } from '@/lib/motion-tokens';
+import { buildShareLink, getWhatsAppMessage } from '@/lib/shareUtils';
 
 interface Moment {
   id: string;
@@ -464,21 +465,30 @@ export default function MomentsLibrary({
 
     console.log('[WhatsApp Share] Composed message:', shareText);
 
-    // Generate QR code image URL
-    const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(revealUrl)}`;
+    // NEW v3: Use branded share link and no QR code
+    const isHindi = language === 'hi';
+    const lang = isHindi ? 'hi' : 'en';
+    const content = isHindi && translatedContent ? translatedContent : {
+      text: selectedMoment.text,
+      poem: selectedMoment.poem || undefined,
+    };
+
+    // Build the branded share link
+    const shareLink = buildShareLink(selectedMoment.id, choice, lang);
     
-    // WhatsApp Web supports sending images with captions
-    // Format: whatsapp://send?text=<caption>&media=<image_url>
-    // But for web, we'll open the QR code in a new tab and let user download/share it
-    
-    // For now, open two things: 1) QR code image, 2) WhatsApp with text
-    window.open(qrCodeImageUrl, '_blank'); // Opens QR code in new tab
-    
-    setTimeout(() => {
-      // Then open WhatsApp with the message
-      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
-      window.open(whatsappUrl, '_blank');
-    }, 500);
+    // Get the WhatsApp message text
+    const message = getWhatsAppMessage(choice, lang, content, shareLink);
+
+    console.log('[WhatsApp Share v3]', {
+      choice,
+      lang,
+      shareLink,
+      messageLength: message.length,
+    });
+
+    // Open WhatsApp with the message
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
     
     // Close the choice modal
     setShowShareChoice(false);
