@@ -146,6 +146,10 @@ export default function MomentsLibrary({
   // Settings modal state
   const [showSettings, setShowSettings] = useState(false);
   
+  // Delete confirmation state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeletingMoment, setIsDeletingMoment] = useState(false);
+  
   // Songs are enriched automatically by worker - no separate loading state needed
   
   const containerRef = useRef<HTMLDivElement>(null);
@@ -375,6 +379,40 @@ export default function MomentsLibrary({
       announcement.textContent = 'Language set to English';
       document.body.appendChild(announcement);
       setTimeout(() => document.body.removeChild(announcement), 1000);
+    }
+  };
+
+  // Delete moment handler
+  const handleDeleteMoment = async () => {
+    if (!selectedMoment) return;
+
+    setIsDeletingMoment(true);
+
+    try {
+      const response = await fetch(`/api/moment/${selectedMoment.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete moment');
+      }
+
+      console.log('[MomentsLibrary] Moment deleted successfully:', selectedMoment.id);
+
+      // Close the expanded view
+      setSelectedMoment(null);
+      setShowDeleteConfirm(false);
+
+      // Refresh the moments list
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+
+    } catch (error) {
+      console.error('[MomentsLibrary] Failed to delete moment:', error);
+      alert('Failed to delete this moment. Please try again.');
+    } finally {
+      setIsDeletingMoment(false);
     }
   };
 
@@ -1893,6 +1931,24 @@ export default function MomentsLibrary({
                         >
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                             <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2ZM12.05 3.67C14.25 3.67 16.31 4.53 17.87 6.09C19.42 7.65 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15C10.56 20.15 9.11 19.76 7.85 19L7.55 18.83L4.43 19.65L5.26 16.61L5.06 16.29C4.24 15 3.8 13.47 3.8 11.91C3.81 7.37 7.5 3.67 12.05 3.67ZM8.53 7.33C8.37 7.33 8.1 7.39 7.87 7.64C7.65 7.89 7 8.5 7 9.71C7 10.93 7.89 12.1 8 12.27C8.14 12.44 9.76 14.94 12.25 16C12.84 16.27 13.3 16.42 13.66 16.53C14.25 16.72 14.79 16.69 15.22 16.63C15.7 16.56 16.68 16.03 16.89 15.45C17.1 14.87 17.1 14.38 17.04 14.27C16.97 14.17 16.81 14.11 16.56 14C16.31 13.86 15.09 13.26 14.87 13.18C14.64 13.1 14.5 13.06 14.31 13.3C14.15 13.55 13.67 14.11 13.53 14.27C13.38 14.44 13.24 14.46 13 14.34C12.74 14.21 11.94 13.95 11 13.11C10.26 12.45 9.77 11.64 9.62 11.39C9.5 11.15 9.61 11 9.73 10.89C9.84 10.78 10 10.6 10.1 10.45C10.23 10.31 10.27 10.2 10.35 10.04C10.43 9.87 10.39 9.73 10.33 9.61C10.27 9.5 9.77 8.26 9.56 7.77C9.36 7.29 9.16 7.35 9 7.34C8.86 7.34 8.7 7.33 8.53 7.33Z" fill="#25D366"/>
+                          </svg>
+                        </motion.button>
+
+                        {/* Delete/Trash */}
+                        <motion.button
+                          onClick={() => setShowDeleteConfirm(true)}
+                          className="w-8 h-8 flex items-center justify-center rounded-full transition-all"
+                          style={{ background: 'rgba(239, 68, 68, 0.15)' }}
+                          whileHover={{ scale: 1.1, background: 'rgba(239, 68, 68, 0.25)' }}
+                          whileTap={{ scale: 0.95 }}
+                          aria-label="Delete moment"
+                          title="Delete this moment"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                            <line x1="14" y1="11" x2="14" y2="17"></line>
                           </svg>
                         </motion.button>
 
@@ -3441,6 +3497,89 @@ export default function MomentsLibrary({
                 >
                   Cancel
                 </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Confirmation Dialog */}
+      <AnimatePresence>
+        {showDeleteConfirm && selectedMoment && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[300]"
+              onClick={() => !isDeletingMoment && setShowDeleteConfirm(false)}
+            />
+            
+            {/* Confirmation Dialog */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+              className="fixed inset-0 z-[301] flex items-center justify-center p-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                className="w-full max-w-sm rounded-2xl shadow-2xl p-6"
+                style={{
+                  background: 'linear-gradient(135deg, #FFF9F5 0%, #FFF5F7 100%)',
+                }}
+              >
+                {/* Title */}
+                <h3 className="text-xl font-serif italic mb-4" style={{ color: '#7D2A4D' }}>
+                  Delete this moment?
+                </h3>
+
+                {/* Message */}
+                <p className="text-sm leading-relaxed mb-6" style={{ color: '#5D2A3A' }}>
+                  This will erase this reflection from your Living City. {pigName || 'Your pig'} will forget this moment. This cannot be undone.
+                </p>
+
+                {/* Loading state */}
+                {isDeletingMoment && (
+                  <div className="mb-4 flex items-center justify-center gap-2 text-sm" style={{ color: '#A67C89' }}>
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                      className="w-4 h-4 border-2 border-pink-300 border-t-pink-600 rounded-full"
+                    />
+                    <span>Deleting...</span>
+                  </div>
+                )}
+
+                {/* Buttons */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowDeleteConfirm(false)}
+                    disabled={isDeletingMoment}
+                    className="flex-1 px-4 py-3 rounded-full text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{
+                      background: 'rgba(212, 184, 255, 0.2)',
+                      color: '#7D2A4D',
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleDeleteMoment}
+                    disabled={isDeletingMoment}
+                    className="flex-1 px-4 py-3 rounded-full text-white text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
+                  >
+                    Yes, delete
+                  </button>
+                </div>
+
+                {/* Footer note */}
+                <p className="text-xs italic mt-4 text-center" style={{ color: '#B49AAA' }}>
+                  This action cannot be undone.
+                </p>
               </div>
             </motion.div>
           </>
