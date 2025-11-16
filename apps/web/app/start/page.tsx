@@ -239,7 +239,7 @@ export default function StartPage() {
       {/* Main landing content - shows after brand reveal completes (no QD monogram needed) */}
       {(introState === 'landing-reveal' || introState === 'complete' || prefersReducedMotion) && (
         <motion.div 
-          className="relative z-10 w-full max-w-lg flex-1 flex flex-col items-center justify-center space-y-6 py-8 px-6"
+          className="relative z-10 w-full max-w-lg flex-1 flex flex-col items-center justify-start space-y-4 py-4 px-6"
           initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: prefersReducedMotion ? 0 : 0.3 }}
@@ -271,7 +271,7 @@ export default function StartPage() {
 
           {/* Hero text - 3 lines closer to pig */}
           <motion.div
-            className="flex flex-col gap-2 items-center text-center max-w-md -mt-4"
+            className="flex flex-col gap-2 items-center text-center max-w-md -mt-6"
             initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: prefersReducedMotion ? 0 : 0.6, duration: 0.8 }}
@@ -306,7 +306,7 @@ export default function StartPage() {
 
           {/* CTA Buttons */}
           <motion.div
-            className="w-full max-w-md space-y-4 pt-6"
+            className="w-full max-w-md space-y-4 pt-2"
             initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: prefersReducedMotion ? 0 : 1.6, duration: 0.8 }}
@@ -340,20 +340,20 @@ export default function StartPage() {
               initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: prefersReducedMotion ? 0 : 1.8, duration: 0.6 }}
-              className="text-center pt-3"
+              className="text-center pt-3 px-2"
             >
-              <p className="text-xs text-pink-600/70 font-normal leading-relaxed">
+              <p className="text-xs text-pink-600/70 font-normal leading-tight">
                 By continuing, you agree to our{' '}
                 <button
                   onClick={() => setShowLegalModal(true)}
-                  className="underline hover:text-pink-800 transition-colors cursor-pointer"
+                  className="text-xs underline hover:text-pink-800 transition-colors cursor-pointer"
                 >
                   Terms
                 </button>
                 {' '}and{' '}
                 <button
                   onClick={() => setShowLegalModal(true)}
-                  className="underline hover:text-pink-800 transition-colors cursor-pointer"
+                  className="text-xs underline hover:text-pink-800 transition-colors cursor-pointer"
                 >
                   Privacy Policy
                 </button>
