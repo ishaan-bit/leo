@@ -1662,7 +1662,7 @@ export default function MomentsLibrary({
               header: "The sky hung heavy with quiet remembering.",
               ambientMotion: 'drizzle',
               textColor: '#102336', // Deep blue-black
-              textMuted: '#2A3F52',
+              textMuted: '#4A5F75', // Lighter for better visibility
               accentColor: '#BFD5F9',
               accentGlow: 'rgba(191, 213, 249, 0.4)',
             },
@@ -1698,7 +1698,7 @@ export default function MomentsLibrary({
               header: "Stillness gathered like a soft mist over your heart.",
               ambientMotion: 'mist',
               textColor: '#2D2A54', // Deep indigo
-              textMuted: '#4A4570',
+              textMuted: '#5A5684', // Lighter for better visibility
               accentColor: '#D4D8FA',
               accentGlow: 'rgba(212, 216, 250, 0.5)',
             },
