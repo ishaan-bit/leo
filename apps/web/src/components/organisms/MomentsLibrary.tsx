@@ -11,7 +11,6 @@ import ComicSpeechBubble from '@/components/atoms/ComicSpeechBubble';
 import { MOTION_DURATION, NATURAL_EASE } from '@/lib/motion-tokens';
 import { buildShareLink, getWhatsAppMessage } from '@/lib/shareUtils';
 import SettingsModal from '@/components/organisms/SettingsModal';
-import SettingsModal from '@/components/organisms/SettingsModal';
 
 interface Moment {
   id: string;
