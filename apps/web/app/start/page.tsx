@@ -342,8 +342,8 @@ export default function StartPage() {
               transition={{ delay: prefersReducedMotion ? 0 : 1.8, duration: 0.6 }}
               className="text-center pt-1"
             >
-              <p className="text-xs text-pink-500/60 font-normal leading-tight">
-                By continuing, you agree to our <button onClick={() => setShowLegalModal(true)} className="underline hover:text-pink-800 transition-colors cursor-pointer">Terms</button> & <button onClick={() => setShowLegalModal(true)} className="underline hover:text-pink-800 transition-colors cursor-pointer">Privacy Policy</button>.
+              <p className="text-xs text-pink-500/60 font-normal leading-none">
+                By continuing, you agree to our <button onClick={() => setShowLegalModal(true)} className="text-xs underline hover:text-pink-800 transition-colors cursor-pointer">Terms</button> & <button onClick={() => setShowLegalModal(true)} className="text-xs underline hover:text-pink-800 transition-colors cursor-pointer">Privacy Policy</button>.
               </p>
             </motion.div>
 
