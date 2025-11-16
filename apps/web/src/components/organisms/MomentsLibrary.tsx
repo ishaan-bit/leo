@@ -398,11 +398,17 @@ export default function MomentsLibrary({
     // Get the WhatsApp message text
     const message = getWhatsAppMessage(choice, lang, content, shareLink);
 
-    console.log('[WhatsApp Share v3]', {
+    console.log('[WhatsApp Share v3] Debug:', {
       choice,
       lang,
+      hasPoem: !!content.poem,
+      poemLength: content.poem?.length,
+      momentId: selectedMoment.id,
+      momentPoem: selectedMoment.poem,
+      translatedPoem: translatedContent?.poem,
       shareLink,
       messageLength: message.length,
+      messagePreview: message.substring(0, 150),
     });
 
     // Open WhatsApp with the message
