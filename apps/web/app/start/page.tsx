@@ -348,7 +348,7 @@ export default function StartPage() {
             </motion.div>
 
             {/* Existing tiny note + Copyright */}
-            <div className="space-y-2">
+            <div className="space-y-1">
               <p className="text-center text-pink-600/80 text-sm font-serif italic">
                 If you lose me, scan my mark again; I'll come flying back.
               </p>

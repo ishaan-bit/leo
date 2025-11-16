@@ -8,6 +8,7 @@ import type { TypingMetrics } from '@/lib/behavioral/metrics';
 interface NotebookInputProps {
   onTextChange?: (text: string, metrics: TypingMetrics) => void;
   onSubmit?: (processed: ProcessedText, metrics: TypingMetrics) => void;
+  onFirstKeyPress?: () => void; // Callback for first keystroke (e.g., to start ambient music)
   placeholder?: string;
   disabled?: boolean;
   initialValue?: string; // Allow setting initial text (e.g., from voice)
@@ -16,6 +17,7 @@ interface NotebookInputProps {
 export default function NotebookInput({
   onTextChange,
   onSubmit,
+  onFirstKeyPress,
   placeholder = "Tell me — what stirred something in you today, big or small?",
   disabled = false,
   initialValue = '',
@@ -24,6 +26,7 @@ export default function NotebookInput({
   const [isValid, setIsValid] = useState(false);
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const hasTypedRef = useRef(false); // Track if user has typed at least once
   
   // Typing metrics state
   const [metrics, setMetrics] = useState<TypingMetrics>({
@@ -43,10 +46,30 @@ export default function NotebookInput({
   useEffect(() => {
     if (initialValue && initialValue !== text) {
       setText(initialValue);
+      
+      // Validate the initial value
+      const validation = validateReflection(initialValue);
+      setIsValid(validation.valid);
+      setValidationMessage(validation.reason || null);
+      
+      // Update metrics
+      setMetrics(prev => ({
+        ...prev,
+        totalChars: initialValue.length,
+      }));
+      
+      // Notify parent of change
+      if (onTextChange) {
+        onTextChange(initialValue, metrics);
+      }
+      
       // Auto-focus and move cursor to end
       if (textareaRef.current) {
         textareaRef.current.focus();
         textareaRef.current.setSelectionRange(initialValue.length, initialValue.length);
+        // Auto-resize
+        textareaRef.current.style.height = 'auto';
+        textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
       }
     }
   }, [initialValue]);
@@ -72,6 +95,12 @@ export default function NotebookInput({
     const newText = e.target.value;
     const now = Date.now();
     const timeSinceLastKey = now - lastKeystrokeTime.current;
+    
+    // Trigger music on first keystroke
+    if (!hasTypedRef.current && newText.length > 0 && onFirstKeyPress) {
+      hasTypedRef.current = true;
+      onFirstKeyPress();
+    }
     
     // Calculate typing intensity (faster typing = higher glow)
     // Convert ms to intensity: <100ms = 1.0, >1000ms = 0

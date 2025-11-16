@@ -57,6 +57,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   const [showGuestNudge, setShowGuestNudge] = useState(false);
   const [guestNudgeMinimized, setGuestNudgeMinimized] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
+  const [voiceTranscript, setVoiceTranscript] = useState('');
   
   // Guest sign-in modal state
   const [showSignInModal, setShowSignInModal] = useState(false);
@@ -674,6 +675,10 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
               <TopNav
                 leftElement={
                   <MomentsNavIcon onClick={() => {
+                    // Start ambient music if not already playing
+                    if (!isMuted()) {
+                      playAmbientSound();
+                    }
                     setShowMomentsLibrary(true);
                     setShowBreathing(false);
                   }} />
@@ -801,7 +806,13 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
       <TopNav
         leftElement={
           !showBreathing && !showMomentsLibrary ? (
-            <MomentsNavIcon onClick={() => setShowMomentsLibrary(true)} />
+            <MomentsNavIcon onClick={() => {
+              // Start ambient music if not already playing
+              if (!isMuted()) {
+                playAmbientSound();
+              }
+              setShowMomentsLibrary(true);
+            }} />
           ) : undefined
         }
         centerElement={
@@ -967,6 +978,12 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
                   <NotebookInput
                     onTextChange={handleTextChange}
                     onSubmit={handleTextSubmit}
+                    onFirstKeyPress={() => {
+                      // Start ambient music on first keystroke if not muted
+                      if (!isMuted()) {
+                        playAmbientSound();
+                      }
+                    }}
                     disabled={isSubmitting}
                     placeholder={`Dear ${pigName}...`}
                     initialValue={voiceTranscript}
