@@ -57,7 +57,6 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   const [showGuestNudge, setShowGuestNudge] = useState(false);
   const [guestNudgeMinimized, setGuestNudgeMinimized] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
-  const [voiceTranscript, setVoiceTranscript] = useState('');
   
   // Guest sign-in modal state
   const [showSignInModal, setShowSignInModal] = useState(false);
