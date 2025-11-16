@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { signIn, signOut, useSession } from 'next-auth/react';
 import PinkPig from '@/components/molecules/PinkPig';
+import LegalModal from '@/components/organisms/LegalModal';
 
 // Animation sequence states
 type IntroState = 'quieten-reveal' | 'd-insertion' | 'alphabet-fade' | 'monogram-converge' | 'landing-reveal' | 'complete';
@@ -20,6 +21,7 @@ export default function StartPage() {
   const router = useRouter();
   const { data: session } = useSession();
   const [showRememberMessage, setShowRememberMessage] = useState(false);
+  const [showLegalModal, setShowLegalModal] = useState(false);
   const [introState, setIntroState] = useState<IntroState>('quieten-reveal');
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
@@ -333,6 +335,32 @@ export default function StartPage() {
               Let me Remember you
             </motion.button>
 
+            {/* Consent Line */}
+            <motion.div
+              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: prefersReducedMotion ? 0 : 1.8, duration: 0.6 }}
+              className="text-center pt-3"
+            >
+              <p className="text-xs text-pink-600/70 font-normal leading-relaxed">
+                By continuing, you agree to our{' '}
+                <button
+                  onClick={() => setShowLegalModal(true)}
+                  className="underline hover:text-pink-800 transition-colors cursor-pointer"
+                >
+                  Terms
+                </button>
+                {' '}and{' '}
+                <button
+                  onClick={() => setShowLegalModal(true)}
+                  className="underline hover:text-pink-800 transition-colors cursor-pointer"
+                >
+                  Privacy Policy
+                </button>
+                .
+              </p>
+            </motion.div>
+
             {/* Existing tiny note + Copyright */}
             <div className="space-y-2 pt-2">
               <p className="text-center text-pink-600/80 text-sm font-serif italic">
@@ -347,6 +375,9 @@ export default function StartPage() {
           </motion.div>
         </motion.div>
       )}
+
+      {/* Legal Modal */}
+      <LegalModal isOpen={showLegalModal} onClose={() => setShowLegalModal(false)} />
     </section>
   );
 }
