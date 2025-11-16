@@ -41,17 +41,17 @@ export function getWhatsAppMessage(
     if (mode === 'heart') {
       message = `दिल का ये छोटा सा टुकड़ा तुम्हारे साथ बाँटना था:\n\n`;
       message += `"${content.text}"\n\n`;
-      message += `🔗 ये छोटा सा पल यहाँ रख लो: ${shareLink}`;
+      message += `ये छोटा सा पल यहाँ रख लो: ${shareLink}`;
     } else if (mode === 'poem') {
       if (content.poem) {
         message = `QuietDen से ये छोटी-सी कविता मिली, तुम्हारा खयाल आ गया:\n\n`;
         message += `"${content.poem}"\n\n`;
-        message += `🔗 ये छोटा सा पल यहाँ खोलो: ${shareLink}`;
+        message += `ये छोटा सा पल यहाँ खोलो: ${shareLink}`;
       } else {
         // Fallback to heart if no poem
         message = `दिल का ये छोटा सा टुकड़ा तुम्हारे साथ बाँटना था:\n\n`;
         message += `"${content.text}"\n\n`;
-        message += `🔗 ये छोटा सा पल यहाँ रख लो: ${shareLink}`;
+        message += `ये छोटा सा पल यहाँ रख लो: ${shareLink}`;
       }
     } else {
       // both
@@ -61,24 +61,24 @@ export function getWhatsAppMessage(
         message += `और उनसे ये छोटी-सी कविता निकली:\n\n`;
         message += `"${content.poem}"\n\n`;
       }
-      message += `🔗 ये QuietDen वाला पल अपने पास रख लो: ${shareLink}`;
+      message += `ये QD Moment अपने पास रख लो: ${shareLink}`;
     }
   } else {
     // English templates
     if (mode === 'heart') {
       message = `I wanted to share this little piece of my heart with you:\n\n`;
       message += `"${content.text}"\n\n`;
-      message += `🔗 this tiny piece of my heart: ${shareLink}`;
+      message += `this tiny piece of my heart: ${shareLink}`;
     } else if (mode === 'poem') {
       if (content.poem) {
         message = `Here's a small poem that's been sitting with me:\n\n`;
         message += `"${content.poem}"\n\n`;
-        message += `🔗 open this tiny moment: ${shareLink}`;
+        message += `open this tiny moment: ${shareLink}`;
       } else {
         // Fallback to heart if no poem
         message = `I wanted to share this little piece of my heart with you:\n\n`;
         message += `"${content.text}"\n\n`;
-        message += `🔗 this tiny piece of my heart: ${shareLink}`;
+        message += `this tiny piece of my heart: ${shareLink}`;
       }
     } else {
       // both
@@ -88,7 +88,7 @@ export function getWhatsAppMessage(
         message += `And this is the little poem that grew from it:\n\n`;
         message += `"${content.poem}"\n\n`;
       }
-      message += `🔗 keep this tiny moment with you: ${shareLink}`;
+      message += `keep this QD moment with you: ${shareLink}`;
     }
   }
 

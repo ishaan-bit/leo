@@ -102,13 +102,13 @@ export default function QDMomentPage() {
         </div>
 
         {/* Content */}
-        <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4">
+        <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4 pt-32">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center max-w-md"
+            className="text-center max-w-md flex flex-col items-center"
           >
-            {/* Pig floating like in city interlude */}
+            {/* Pig floating like in city interlude - positioned higher */}
             <motion.div
               animate={{
                 y: [0, -12, 0],
@@ -118,9 +118,9 @@ export default function QDMomentPage() {
                 repeat: Infinity,
                 ease: 'easeInOut',
               }}
-              className="mb-8"
+              className="mb-12"
             >
-              <PinkPig size={140} state="idle" />
+              <PinkPig size={160} state="idle" />
             </motion.div>
             
             {/* Error message */}

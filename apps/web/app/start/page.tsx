@@ -340,24 +340,10 @@ export default function StartPage() {
               initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: prefersReducedMotion ? 0 : 1.8, duration: 0.6 }}
-              className="text-center pt-2 px-4"
+              className="text-center pt-1"
             >
-              <p className="text-[10px] text-pink-600/70 font-normal leading-tight max-w-xs mx-auto">
-                By continuing, you agree to our{' '}
-                <button
-                  onClick={() => setShowLegalModal(true)}
-                  className="text-[10px] underline hover:text-pink-800 transition-colors cursor-pointer"
-                >
-                  Terms
-                </button>
-                {' '}&{' '}
-                <button
-                  onClick={() => setShowLegalModal(true)}
-                  className="text-[10px] underline hover:text-pink-800 transition-colors cursor-pointer"
-                >
-                  Privacy Policy
-                </button>
-                .
+              <p className="text-xs text-pink-500/60 font-normal leading-tight">
+                By continuing, you agree to our <button onClick={() => setShowLegalModal(true)} className="underline hover:text-pink-800 transition-colors cursor-pointer">Terms</button> & <button onClick={() => setShowLegalModal(true)} className="underline hover:text-pink-800 transition-colors cursor-pointer">Privacy Policy</button>.
               </p>
             </motion.div>
 
