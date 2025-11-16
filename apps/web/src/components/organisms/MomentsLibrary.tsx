@@ -374,98 +374,14 @@ export default function MomentsLibrary({
     }
   };
 
-  // WhatsApp share handlers - v2 with EN/HI templates and reveal page
+  // WhatsApp share handler - v3 with branded QD Moment links
   const handleWhatsAppShare = (choice: 'heart' | 'poem' | 'both') => {
     if (!selectedMoment) {
       console.error('[WhatsApp Share] No selected moment!');
       return;
     }
 
-    console.log('[QA WhatsApp Share] Starting share with:', { choice, language, momentId: selectedMoment.id });
-
     // Use translated content if currently viewing in Hindi
-    const isHindi = language === 'hi';
-    const content = isHindi && translatedContent ? translatedContent : {
-      text: selectedMoment.text,
-      poem: selectedMoment.poem,
-    };
-
-    console.log('[QA WhatsApp Share] Content:', { 
-      isHindi, 
-      hasTranslation: !!translatedContent,
-      hasPoem: !!content.poem,
-      textLength: content.text?.length || 0,
-    });
-
-    // Build reveal page URL with mode and language
-    const revealUrl = `${window.location.origin}/share/${selectedMoment.id}?mode=${choice}&lang=${isHindi ? 'hi' : 'en'}`;
-    console.log('[QA WhatsApp Share] Reveal URL:', revealUrl);
-
-    // Generate QR code URL using qrserver.com API (free, no auth needed)
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(revealUrl)}`;
-    console.log('[QA WhatsApp Share] QR Code URL:', qrCodeUrl);
-
-    let shareText = '';
-
-    if (choice === 'heart') {
-      // Share only reflection - clean, poetic, no duplication
-      if (isHindi) {
-        shareText = `दिल का एक छोटा-सा टुकड़ा तुम्हारे साथ बाँट रही/रहा हूँ:\n\n`;
-        shareText += `"${content.text}"\n\n`;
-        shareText += `(QR code पर स्कैन करके खोलो — पूरा पल यहाँ सँभाला है)`;
-      } else {
-        shareText = `This has been sitting on my chest lately:\n\n`;
-        shareText += `"${content.text}"\n\n`;
-        shareText += `(Scan the QR code to open the full moment)`;
-      }
-    } else if (choice === 'poem') {
-      // Share only poem - no reflection
-      if (content.poem) {
-        if (isHindi) {
-          shareText = `QuietDen से ये छोटी-सी कविता मिली, तुम्हारा खयाल आ गया:\n\n`;
-          shareText += `"${content.poem}"\n\n`;
-          shareText += `(QR code स्कैन करो यहाँ खोलने के लिए)`;
-        } else {
-          shareText = `This little QuietDen poem wouldn't leave me alone today:\n\n`;
-          shareText += `"${content.poem}"\n\n`;
-          shareText += `(Scan the QR code to open it)`;
-        }
-      } else {
-        // Fallback if no poem exists - share heart instead
-        if (isHindi) {
-          shareText = `ये बात दिल में अटकी हुई थी:\n\n`;
-          shareText += `"${content.text}"\n\n`;
-          shareText += `(QR code स्कैन करो यहाँ खोलने के लिए)`;
-        } else {
-          shareText = `Sharing a quiet moment with you:\n\n`;
-          shareText += `"${content.text}"\n\n`;
-          shareText += `(Scan the QR code to open)`;
-        }
-      }
-    } else if (choice === 'both') {
-      // Share both reflection and poem - clean flow, no duplication
-      if (isHindi) {
-        shareText = `काफ़ी समय से दिल में ये बात घूम रही है:\n\n`;
-        shareText += `"${content.text}"\n\n`;
-        if (content.poem) {
-          shareText += `QuietDen ने इसे ऐसी छोटी-सी कविता में बदल दिया:\n\n`;
-          shareText += `"${content.poem}"\n\n`;
-        }
-        shareText += `(QR code स्कैन करके दोनों खोलो)`;
-      } else {
-        shareText = `This has been living quietly in my head:\n\n`;
-        shareText += `"${content.text}"\n\n`;
-        if (content.poem) {
-          shareText += `So QuietDen turned it into this tiny poem:\n\n`;
-          shareText += `"${content.poem}"\n\n`;
-        }
-        shareText += `(Scan the QR code to open both)`;
-      }
-    }
-
-    console.log('[WhatsApp Share] Composed message:', shareText);
-
-    // NEW v3: Use branded share link and no QR code
     const isHindi = language === 'hi';
     const lang = isHindi ? 'hi' : 'en';
     const content = isHindi && translatedContent ? translatedContent : {
