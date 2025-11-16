@@ -74,45 +74,74 @@ export default function QDMomentPage() {
 
   if (error || !moment) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 p-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center max-w-md"
-        >
-          {/* Sad pig */}
+      <div className="min-h-screen relative overflow-hidden">
+        {/* Ghibli-style sky gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a3e] via-[#2d1b4e] to-[#4a1f5c]" />
+        
+        {/* Twinkling stars */}
+        <div className="absolute inset-0">
+          {[...Array(30)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-1 h-1 bg-white rounded-full"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 60}%`,
+              }}
+              animate={{
+                opacity: [0.2, 1, 0.2],
+                scale: [1, 1.5, 1],
+              }}
+              transition={{
+                duration: 2 + Math.random() * 3,
+                repeat: Infinity,
+                delay: Math.random() * 2,
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Content */}
+        <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4">
           <motion.div
-            animate={{
-              y: [0, -8, 0],
-            }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-            className="mb-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center max-w-md"
           >
-            <PinkPig size={120} state="idle" />
+            {/* Pig floating like in city interlude */}
+            <motion.div
+              animate={{
+                y: [0, -12, 0],
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+              className="mb-8"
+            >
+              <PinkPig size={140} state="idle" />
+            </motion.div>
+            
+            {/* Error message */}
+            <h1 className="text-2xl font-serif italic text-pink-100 mb-3">
+              {isHindi ? 'पल खो गया शहर में' : 'This letter got lost in the city'}
+            </h1>
+            <p className="text-sm text-pink-300 mb-8 leading-relaxed">
+              {isHindi 
+                ? 'यह साझा किया गया पल हटा दिया गया हो सकता है या अब उपलब्ध नहीं है'
+                : 'This shared moment may have been removed or is no longer available'}
+            </p>
+            
+            {/* CTA */}
+            <a
+              href="/start"
+              className="inline-block px-6 py-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-full font-medium hover:shadow-lg transition-all"
+            >
+              {isHindi ? 'अपना QuietDen पल बनाइए' : 'Create your QuietDen moment'}
+            </a>
           </motion.div>
-          
-          {/* Error message */}
-          <h1 className="text-2xl font-serif italic text-pink-100 mb-3">
-            {isHindi ? 'पल खो गया शहर में' : 'This letter got lost in the city'}
-          </h1>
-          <p className="text-sm text-pink-300 mb-8">
-            {isHindi 
-              ? 'यह साझा किया गया पल हटा दिया गया हो सकता है या अब उपलब्ध नहीं है'
-              : 'This shared moment may have been removed or is no longer available'}
-          </p>
-          
-          {/* CTA */}
-          <a
-            href="/"
-            className="inline-block px-6 py-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-full font-medium hover:shadow-lg transition-all"
-          >
-            {isHindi ? 'अपना पल बनाइए' : 'Create your own moment'}
-          </a>
-        </motion.div>
+        </div>
       </div>
     );
   }
@@ -296,10 +325,10 @@ export default function QDMomentPage() {
                 className="text-center pt-8 border-t border-pink-200"
               >
                 <a
-                  href="/"
+                  href="/start"
                   className="inline-block px-6 py-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-full font-medium hover:shadow-lg transition-all"
                 >
-                  {getCtaText()}
+                  {isHindi ? 'अपना QuietDen पल बनाइए →' : 'Create your QuietDen moment →'}
                 </a>
                 <p className="text-xs text-pink-600 mt-4">
                   ✨ 🐷 ✨
