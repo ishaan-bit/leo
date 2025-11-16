@@ -384,7 +384,10 @@ export default function MomentsLibrary({
     // Use translated content if currently viewing in Hindi
     const isHindi = language === 'hi';
     const lang = isHindi ? 'hi' : 'en';
-    const content = isHindi && translatedContent ? translatedContent : {
+    const content = isHindi && translatedContent ? {
+      text: translatedContent.text,
+      poem: translatedContent.poem || undefined,
+    } : {
       text: selectedMoment.text,
       poem: selectedMoment.poem || undefined,
     };
