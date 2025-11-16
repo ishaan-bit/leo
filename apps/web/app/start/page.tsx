@@ -34,18 +34,16 @@ export default function StartPage() {
     }
   }, []);
 
-  // Orchestrate brand reveal sequence
+  // Orchestrate brand reveal sequence - Simplified for Q+D convergence
   useEffect(() => {
     if (prefersReducedMotion) return;
 
     const timers: NodeJS.Timeout[] = [];
 
-    // Sequence timing
-    timers.push(setTimeout(() => setIntroState('d-insertion'), 700));        // After "Quieten" shows
-    timers.push(setTimeout(() => setIntroState('alphabet-fade'), 1100));     // After D inserts
-    timers.push(setTimeout(() => setIntroState('monogram-converge'), 1900)); // After letters fade
-    timers.push(setTimeout(() => setIntroState('landing-reveal'), 2700));    // After QD converge
-    timers.push(setTimeout(() => setIntroState('complete'), 2900));          // Mark complete
+    // Simplified sequence: Q+D appear → converge with "life cab for" → landing
+    timers.push(setTimeout(() => setIntroState('monogram-converge'), 900));  // After Q+D meet
+    timers.push(setTimeout(() => setIntroState('landing-reveal'), 1700));    // After "life cab for" appears
+    timers.push(setTimeout(() => setIntroState('complete'), 1900));          // Mark complete
 
     return () => timers.forEach(clearTimeout);
   }, [prefersReducedMotion]);
@@ -169,7 +167,7 @@ export default function StartPage() {
         })}
       </div>
 
-      {/* QuietDen Brand Reveal Sequence */}
+      {/* QuietDen Brand Reveal Sequence - New: Q+D convergence with "life cab for" */}
       <AnimatePresence>
         {introState !== 'complete' && (
           <motion.div
@@ -178,129 +176,59 @@ export default function StartPage() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.6 }}
           >
-            {/* Quiet + D + en wordmark with individual letter animations */}
-            <div className="relative flex items-center justify-center gap-1 md:gap-2">
-              {/* Q */}
-              <motion.span
-                className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
-                style={{ fontVariant: 'small-caps', letterSpacing: '0.05em' }}
-                initial={{ opacity: 0, scale: 0.8 }}
+            {/* Vertical stack: "life cab for" above QD monogram */}
+            <div className="relative flex flex-col items-center justify-center gap-2">
+              
+              {/* "life cab for" text - appears after Q+D converge */}
+              <motion.div
+                className="text-sm md:text-base font-serif tracking-widest text-rose-700"
+                style={{ letterSpacing: '0.3em', fontWeight: 400 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{
-                  opacity: 1,
-                  scale: 1,
-                  x: introState === 'monogram-converge' ? 60 : 0, // Reduced from 180 to prevent Q going too far
+                  opacity: introState === 'monogram-converge' ? 1 : 0,
+                  y: introState === 'monogram-converge' ? 0 : 10,
                 }}
-                transition={{ 
-                  opacity: { duration: 0.6 },
-                  scale: { duration: 0.6 },
-                  x: { duration: 0.8, ease: [0.4, 0, 0.2, 1] },
-                }}
+                transition={{ duration: 0.8, delay: 0.4, ease: [0.4, 0, 0.2, 1] }}
               >
-                Q
-              </motion.span>
+                life cab for
+              </motion.div>
 
-              {/* u */}
-              <motion.span
-                className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
-                style={{ letterSpacing: '0.05em' }}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{
-                  opacity: (introState === 'quieten-reveal' || introState === 'd-insertion') ? 1 : 0,
-                  scale: (introState === 'quieten-reveal' || introState === 'd-insertion') ? 1 : 0.8,
-                }}
-                transition={{ duration: 0.6, delay: 0.05 }}
-              >
-                u
-              </motion.span>
+              {/* QD Monogram - Q from center-left, D from center-right */}
+              <div className="relative flex items-center justify-center">
+                {/* Q - arrives from center-left */}
+                <motion.span
+                  className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
+                  style={{ fontVariant: 'small-caps', letterSpacing: '0.05em' }}
+                  initial={{ opacity: 0, x: -80 }}
+                  animate={{
+                    opacity: 1,
+                    x: 0,
+                  }}
+                  transition={{ 
+                    opacity: { duration: 0.6 },
+                    x: { duration: 0.8, ease: [0.4, 0, 0.2, 1] },
+                  }}
+                >
+                  Q
+                </motion.span>
 
-              {/* i */}
-              <motion.span
-                className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
-                style={{ letterSpacing: '0.05em' }}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{
-                  opacity: (introState === 'quieten-reveal' || introState === 'd-insertion') ? 1 : 0,
-                  scale: (introState === 'quieten-reveal' || introState === 'd-insertion') ? 1 : 0.8,
-                }}
-                transition={{ duration: 0.6, delay: 0.1 }}
-              >
-                i
-              </motion.span>
-
-              {/* e */}
-              <motion.span
-                className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
-                style={{ letterSpacing: '0.05em' }}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{
-                  opacity: (introState === 'quieten-reveal' || introState === 'd-insertion') ? 1 : 0,
-                  scale: (introState === 'quieten-reveal' || introState === 'd-insertion') ? 1 : 0.8,
-                }}
-                transition={{ duration: 0.6, delay: 0.15 }}
-              >
-                e
-              </motion.span>
-
-              {/* t */}
-              <motion.span
-                className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
-                style={{ letterSpacing: '0.05em' }}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{
-                  opacity: (introState === 'quieten-reveal' || introState === 'd-insertion') ? 1 : 0,
-                  scale: (introState === 'quieten-reveal' || introState === 'd-insertion') ? 1 : 0.8,
-                }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-              >
-                t
-              </motion.span>
-
-              {/* D - inserts between "Quiet" and "en" */}
-              <motion.span
-                className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
-                style={{ fontVariant: 'small-caps', letterSpacing: '0.05em' }}
-                initial={{ opacity: 0, x: 12 }}
-                animate={{
-                  opacity: introState === 'quieten-reveal' ? 0 : 1,
-                  x: introState === 'quieten-reveal' ? 12 : (introState === 'monogram-converge' ? -20 : 0), // Reduced from -40 to match reduced Q distance
-                  scale: introState === 'quieten-reveal' ? 0.9 : 1,
-                }}
-                transition={{ 
-                  opacity: { duration: 0.4, ease: [0.4, 0, 0.2, 1] },
-                  x: { duration: 0.8, ease: [0.4, 0, 0.2, 1] }, // Match Q's 0.8s duration
-                  scale: { duration: 0.4, ease: [0.4, 0, 0.2, 1] },
-                }}
-              >
-                D
-              </motion.span>
-
-              {/* e */}
-              <motion.span
-                className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
-                style={{ letterSpacing: '0.05em' }}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{
-                  opacity: (introState === 'quieten-reveal' || introState === 'd-insertion') ? 1 : 0,
-                  scale: (introState === 'quieten-reveal' || introState === 'd-insertion') ? 1 : 0.8,
-                }}
-                transition={{ duration: 0.6, delay: 0.25 }}
-              >
-                e
-              </motion.span>
-
-              {/* n */}
-              <motion.span
-                className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
-                style={{ letterSpacing: '0.05em' }}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{
-                  opacity: (introState === 'quieten-reveal' || introState === 'd-insertion') ? 1 : 0,
-                  scale: (introState === 'quieten-reveal' || introState === 'd-insertion') ? 1 : 0.8,
-                }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-              >
-                n
-              </motion.span>
+                {/* D - arrives from center-right */}
+                <motion.span
+                  className="font-serif text-5xl md:text-6xl tracking-wider text-rose-900"
+                  style={{ fontVariant: 'small-caps', letterSpacing: '0.05em' }}
+                  initial={{ opacity: 0, x: 80 }}
+                  animate={{
+                    opacity: 1,
+                    x: 0,
+                  }}
+                  transition={{ 
+                    opacity: { duration: 0.6 },
+                    x: { duration: 0.8, ease: [0.4, 0, 0.2, 1] },
+                  }}
+                >
+                  D
+                </motion.span>
+              </div>
             </div>
           </motion.div>
         )}

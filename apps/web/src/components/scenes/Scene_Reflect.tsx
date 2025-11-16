@@ -268,10 +268,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     // Update audio system
     audioSystemRef.current.updateFromAffect(affect);
     
-    // THROTTLED ink ripple - only every 5th keystroke to prevent mobile lag
-    if (metrics.totalChars % 5 === 0) {
-      audioSystemRef.current.playInkRipple();
-    }
+    // Ink ripple removed - soundscaping will be done separately
     
     // Update pig mood based on typing intensity
     if (affect.arousal > 0.7) {

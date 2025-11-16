@@ -644,6 +644,14 @@ export default function MomentsLibrary({
         console.log('[MomentsLibrary] ✨ Just submitted - auto-opening newest moment:', momentToOpen.id);
       }
       
+      // If pendingDream exists but no specific momentId, open the newest moment
+      if (!momentToOpen && hasPendingDreamLetter) {
+        momentToOpen = moments.reduce((newest, current) => {
+          return new Date(current.timestamp) > new Date(newest.timestamp) ? current : newest;
+        });
+        console.log('[MomentsLibrary] 💌 Pending dream letter - auto-opening newest moment:', momentToOpen.id);
+      }
+      
       // Wait for animations to settle (2.5s after library loads)
       const timer = setTimeout(() => {
         setSelectedMoment(momentToOpen);
@@ -653,7 +661,7 @@ export default function MomentsLibrary({
       
       return () => clearTimeout(timer);
     }
-  }, [phase, moments, autoOpenMomentId, justSubmitted]); // Added justSubmitted dependency
+  }, [phase, moments, autoOpenMomentId, justSubmitted, pendingDream]); // Added pendingDream dependency
   
   // Show "Your moment is saved here" bubble when arriving after moment submission
   useEffect(() => {
@@ -1879,7 +1887,7 @@ export default function MomentsLibrary({
                           fontFamily: '"Inter", -apple-system, sans-serif',
                           color: atmosphere.textMuted,
                           letterSpacing: '0.15em',
-                          opacity: 0.7,
+                          opacity: 0.95,
                           textShadow: '0 1px 1px rgba(0,0,0,0.15)',
                         }}
                       >
