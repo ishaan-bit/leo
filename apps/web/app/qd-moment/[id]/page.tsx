@@ -236,14 +236,19 @@ export default function QDMomentPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="max-w-2xl w-full bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl p-8 md:p-12"
+              className="max-w-2xl w-full rounded-3xl p-8 md:p-12"
+              style={{
+                background: 'linear-gradient(135deg, #FFF9F5 0%, #FFF5F7 50%, #F8F4FB 100%)',
+                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.08), 0 8px 20px rgba(0, 0, 0, 0.04)',
+                backdropFilter: 'blur(20px)',
+              }}
             >
               {/* Header */}
-              <div className="text-center mb-8">
-                <h1 className="text-2xl font-serif italic text-pink-900 mb-2">
+              <div className="text-center mb-12">
+                <h1 className="text-3xl font-serif italic mb-3" style={{ color: '#7D2A4D', fontWeight: 500 }}>
                   {isHindi ? 'एक शांत पल' : 'A Quiet Moment'}
                 </h1>
-                <p className="text-xs uppercase tracking-widest text-pink-700">
+                <p className="text-xs uppercase tracking-widest" style={{ color: '#A67C89', letterSpacing: '0.15em' }}>
                   {new Date(moment.timestamp).toLocaleDateString(isHindi ? 'hi-IN' : 'en-US', {
                     month: 'long',
                     day: 'numeric',
@@ -274,9 +279,9 @@ export default function QDMomentPage() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.8, delay: 0.4 }}
-                  className="mb-8"
+                  className="my-12"
                 >
-                  <p className="text-lg font-serif leading-relaxed text-pink-900">
+                  <p className="text-xl font-serif leading-relaxed" style={{ color: '#5D2A3A', lineHeight: 1.8 }}>
                     {moment.text}
                   </p>
                 </motion.div>
@@ -284,10 +289,10 @@ export default function QDMomentPage() {
 
               {/* Divider if showing both */}
               {mode === 'both' && poem && (
-                <div className="my-8 flex items-center gap-4">
-                  <div className="flex-1 h-px bg-gradient-to-r from-transparent via-pink-300 to-transparent" />
-                  <span className="text-pink-400">✦</span>
-                  <div className="flex-1 h-px bg-gradient-to-r from-transparent via-pink-300 to-transparent" />
+                <div className="my-10 flex items-center gap-4">
+                  <div className="flex-1 h-px" style={{ background: 'linear-gradient(to right, transparent, rgba(212, 184, 255, 0.3), transparent)' }} />
+                  <span style={{ color: '#D7B8FF', fontSize: '14px' }}>✦</span>
+                  <div className="flex-1 h-px" style={{ background: 'linear-gradient(to right, transparent, rgba(212, 184, 255, 0.3), transparent)' }} />
                 </div>
               )}
 
@@ -297,9 +302,9 @@ export default function QDMomentPage() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.8, delay: mode === 'both' ? 0.6 : 0.4 }}
-                  className="mb-8 text-center"
+                  className="my-12 text-center"
                 >
-                  <p className="text-base italic leading-relaxed whitespace-pre-line text-pink-800">
+                  <p className="text-base italic leading-relaxed whitespace-pre-line" style={{ color: '#8B5A7D', fontWeight: 300 }}>
                     {poem}
                   </p>
                 </motion.div>
@@ -310,9 +315,9 @@ export default function QDMomentPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.8, delay: 0.8 }}
-                className="text-center mb-8"
+                className="text-center mt-16 mb-10"
               >
-                <p className="text-sm italic text-pink-700">
+                <p className="text-xs italic" style={{ color: '#B49AAA', fontWeight: 300, lineHeight: 1.6 }}>
                   {getSubtitleText()}
                 </p>
               </motion.div>
@@ -322,20 +327,20 @@ export default function QDMomentPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.8, delay: 1.0 }}
-                className="text-center pt-8 border-t border-pink-200"
+                className="text-center pt-8"
+                style={{ borderTop: '1px solid rgba(212, 184, 255, 0.2)' }}
               >
                 <a
                   href="/start"
-                  className="inline-block px-6 py-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-full font-medium hover:shadow-lg transition-all"
+                  className="inline-block px-8 py-3.5 text-white rounded-full font-medium hover:shadow-lg transition-all"
+                  style={{
+                    background: 'linear-gradient(135deg, #D4A5B5 0%, #C98CA5 50%, #B87A9A 100%)',
+                    fontSize: '15px',
+                    letterSpacing: '0.3px',
+                  }}
                 >
-                  {isHindi ? 'अपना QuietDen पल बनाइए →' : 'Create your QuietDen moment →'}
+                  {isHindi ? 'अपना QuietDen पल शुरू करें' : 'Begin your QuietDen moment'}
                 </a>
-                <p className="text-xs text-pink-600 mt-4">
-                  ✨ 🐷 ✨
-                </p>
-                <p className="text-xs text-pink-500 mt-1">
-                  {isHindi ? `${moment.pig_name || 'Noen'} द्वारा सुरक्षित` : `held safe by ${moment.pig_name || 'Noen'}`}
-                </p>
               </motion.div>
             </motion.div>
           </motion.div>
