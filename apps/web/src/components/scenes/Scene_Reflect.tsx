@@ -41,6 +41,7 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
   const { pendingDream } = usePendingDream();
   const [sessionVariant, setSessionVariant] = useState<SessionVariant>('first');
   const [inputMode, setInputMode] = useState<InputMode>('notebook');
+  const [voiceTranscript, setVoiceTranscript] = useState<string>(''); // Store voice transcript
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showInterlude, setShowInterlude] = useState(false);
   const [showBreathing, setShowBreathing] = useState(false);
@@ -337,62 +338,23 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
     }
   };
 
-  // Handle voice submission
-  const handleVoiceSubmit = async (processed: ProcessedText, metrics: VoiceMetrics) => {
-    console.log('[Scene_Reflect] handleVoiceSubmit called');
-    setIsSubmitting(true);
-    setScenePhase('completing');
+  // Handle voice transcript - fills text box instead of auto-submitting
+  const handleVoiceTranscript = async (processed: ProcessedText, metrics: VoiceMetrics) => {
+    console.log('[Scene_Reflect] handleVoiceTranscript called - filling text box');
     
-    const affect = composeAffectFromVoice(metrics);
+    // Set the transcribed text
+    setVoiceTranscript(processed.normalized || processed.original);
     
-    // Trigger heart puff animation
-    setHeartPuffs(generateHeartPuff(6));
-    setShowHeartAnimation(true);
-    setPigMood('happy');
+    // Switch to notebook mode so user can edit and submit
+    setInputMode('notebook');
     
-    // Play completion chime
-    audioSystemRef.current.playChime();
-    
-    // Show completion dialogue
-    const completionDialogue = dialogueData.completion.success[
-      Math.floor(Math.random() * dialogueData.completion.success.length)
-    ];
-    setDialogue(completionDialogue.replace('{pigName}', pigName));
-    
-    // Clear heart animation after delay
-    setTimeout(() => setShowHeartAnimation(false), 2000);
-    
-    // Save reflection
-    const reflectionId = await saveReflection({
-      pigId,
-      inputType: 'voice',
-      originalText: processed.original,
-      normalizedText: processed.normalized,
-      detectedLanguage: processed.detectedLanguage,
-      affect,
-      metrics: {
-        voice: metrics,
-      },
-    });
-    
-    console.log('[Scene_Reflect] Got reflection ID (voice):', reflectionId);
-    
-    // Update last visit
-    localStorage.setItem('leo.reflect.lastVisit', Date.now().toString());
-    
-    // Transition to interlude after heart animation completes
-    if (reflectionId) {
-      console.log('[Scene_Reflect] Transitioning to CityInterlude (voice)');
-      setTimeout(() => {
-        setCurrentReflectionId(reflectionId);
-        setShowInterlude(true);
-        setIsSubmitting(false);
-      }, 1500);
-    } else {
-      console.error('[Scene_Reflect] No reflection ID - cannot show interlude (voice)');
-      setIsSubmitting(false);
-    }
+    // Show a brief dialogue
+    setDialogue(`I heard you, now you can edit or add more before letting it go.`);
+    setTimeout(() => setDialogue(''), 3000);
   };
+
+  // Handle voice submission (REMOVED - voice now fills text box)
+  // Old handleVoiceSubmit logic moved to handleTextSubmit
 
   // Handle photo upload submission
   const handlePhotoSubmit = async (file: File) => {
@@ -1007,30 +969,23 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
                     onSubmit={handleTextSubmit}
                     disabled={isSubmitting}
                     placeholder={`Dear ${pigName}...`}
+                    initialValue={voiceTranscript}
                   />
                   
-                  {/* Mode toggles - voice and photo on same line for mobile */}
-                  <div className="flex flex-row items-center justify-center mt-4 gap-3 flex-wrap">
+                  {/* Mode toggle - voice */}
+                  <div className="flex justify-center mt-4">
                     <button
                       onClick={toggleInputMode}
-                      className="text-sm text-pink-600 hover:text-pink-800 italic underline whitespace-nowrap"
+                      className="text-sm text-pink-600 hover:text-pink-800 italic underline"
                     >
                       Or speak instead
                     </button>
-                    
-                    <div className="text-sm text-gray-400 italic">or</div>
-                    
-                    <CameraUpload
-                      onPhotoSelected={handlePhotoSubmit}
-                      isDisabled={isSubmitting}
-                      className="scale-75"
-                    />
                   </div>
                 </>
               ) : (
                 <>
                   <VoiceOrb
-                    onTranscript={handleVoiceSubmit}
+                    onTranscript={handleVoiceTranscript}
                     disabled={isSubmitting}
                     onRecordingStart={() => {
                       console.log('[Scene_Reflect] Recording started - pausing music');

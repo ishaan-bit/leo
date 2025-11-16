@@ -340,7 +340,7 @@ export default function StartPage() {
               initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: prefersReducedMotion ? 0 : 1.8, duration: 0.6 }}
-              className="text-left pt-1"
+              className="text-left pt-1 -ml-2"
             >
               <p className="text-xs text-pink-500/60 font-normal leading-none">
                 By continuing, you agree to our <button onClick={() => setShowLegalModal(true)} className="text-xs underline hover:text-pink-800 transition-colors cursor-pointer">Terms</button> & <button onClick={() => setShowLegalModal(true)} className="text-xs underline hover:text-pink-800 transition-colors cursor-pointer">Privacy Policy</button>.

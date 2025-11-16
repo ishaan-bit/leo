@@ -10,6 +10,7 @@ interface NotebookInputProps {
   onSubmit?: (processed: ProcessedText, metrics: TypingMetrics) => void;
   placeholder?: string;
   disabled?: boolean;
+  initialValue?: string; // Allow setting initial text (e.g., from voice)
 }
 
 export default function NotebookInput({
@@ -17,8 +18,9 @@ export default function NotebookInput({
   onSubmit,
   placeholder = "Tell me — what stirred something in you today, big or small?",
   disabled = false,
+  initialValue = '',
 }: NotebookInputProps) {
-  const [text, setText] = useState('');
+  const [text, setText] = useState(initialValue);
   const [isValid, setIsValid] = useState(false);
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -36,6 +38,18 @@ export default function NotebookInput({
   const rippleIdCounter = useRef(0);
   const [typingIntensity, setTypingIntensity] = useState(0); // 0-1 based on typing speed
   const [isFocused, setIsFocused] = useState(false);
+
+  // Update text when initialValue changes (e.g., from voice input)
+  useEffect(() => {
+    if (initialValue && initialValue !== text) {
+      setText(initialValue);
+      // Auto-focus and move cursor to end
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+        textareaRef.current.setSelectionRange(initialValue.length, initialValue.length);
+      }
+    }
+  }, [initialValue]);
 
   // Track typing metrics
   useEffect(() => {
