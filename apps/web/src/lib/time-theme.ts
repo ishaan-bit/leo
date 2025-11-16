@@ -48,7 +48,7 @@ export function getTimeTheme(timeOfDay: TimeOfDay): TimeTheme {
       },
       ambientLight: 'rgba(251, 146, 60, 0.15)', // orange-400
       greeting: [
-        'A fresh dawn — what first stirred in you?',
+        'A fresh dawn ; what first stirred in you?',
         'Morning light breaks. Tell me, what woke with you?',
         'The day begins to whisper. What did you hear first?'
       ],
@@ -64,7 +64,7 @@ export function getTimeTheme(timeOfDay: TimeOfDay): TimeTheme {
       ambientLight: 'rgba(251, 191, 36, 0.12)', // amber-400
       greeting: [
         'Good morning. What has the day already shown you?',
-        'The morning hums with possibility — what did it bring?',
+        'The morning hums with possibility ; what did it bring?',
         'Sunlight finds its way in. What else arrived with it?'
       ],
     },
@@ -79,7 +79,7 @@ export function getTimeTheme(timeOfDay: TimeOfDay): TimeTheme {
       ambientLight: 'rgba(251, 207, 232, 0.2)', // pink-200
       greeting: [
         'Midday settles. What lingers in you now?',
-        'The sun is high — so are thoughts. What\'s yours?',
+        'The sun is high ; so are thoughts. What\'s yours?',
         'Noon brings clarity or chaos. Which found you?'
       ],
     },
@@ -94,7 +94,7 @@ export function getTimeTheme(timeOfDay: TimeOfDay): TimeTheme {
       ambientLight: 'rgba(251, 113, 133, 0.15)', // rose-400
       greeting: [
         'The afternoon stretches. What have you been carrying?',
-        'Hours have passed — what stayed with you through them?',
+        'Hours have passed ; what stayed with you through them?',
         'The day softens. What still feels sharp inside you?'
       ],
     },
@@ -123,7 +123,7 @@ export function getTimeTheme(timeOfDay: TimeOfDay): TimeTheme {
       },
       ambientLight: 'rgba(165, 180, 252, 0.15)', // indigo-300
       greeting: [
-        'Evening settles in — tell me, what lingered in you today?',
+        'Evening settles in ; tell me, what lingered in you today?',
         'The day has passed. What did it leave behind?',
         'Night approaches. What are you still holding?'
       ],
@@ -138,7 +138,7 @@ export function getTimeTheme(timeOfDay: TimeOfDay): TimeTheme {
       },
       ambientLight: 'rgba(129, 140, 248, 0.2)', // indigo-400
       greeting: [
-        'The night is quiet. But you — what\'s still awake in you?',
+        'The night is quiet. But you ; what\'s still awake in you?',
         'Darkness holds space for what daylight couldn\'t. What is it?',
         'Night wraps around everything. What did it uncover?'
       ],
@@ -154,7 +154,7 @@ export function getTimeTheme(timeOfDay: TimeOfDay): TimeTheme {
       ambientLight: 'rgba(148, 163, 184, 0.15)', // slate-400
       greeting: [
         'The world sleeps. But you\'re here. What woke you?',
-        'This late, thoughts become clear — or loud. Which?',
+        'This late, thoughts become clear ; or loud. Which?',
         'The quietest hour. What is it trying to tell you?'
       ],
     },

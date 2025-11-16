@@ -10,6 +10,8 @@ import { translateToHindi } from '@/lib/translation';
 import ComicSpeechBubble from '@/components/atoms/ComicSpeechBubble';
 import { MOTION_DURATION, NATURAL_EASE } from '@/lib/motion-tokens';
 import { buildShareLink, getWhatsAppMessage } from '@/lib/shareUtils';
+import SettingsModal from '@/components/organisms/SettingsModal';
+import SettingsModal from '@/components/organisms/SettingsModal';
 
 interface Moment {
   id: string;
@@ -141,6 +143,9 @@ export default function MomentsLibrary({
   
   // WhatsApp share choice modal state
   const [showShareChoice, setShowShareChoice] = useState(false);
+  
+  // Settings modal state
+  const [showSettings, setShowSettings] = useState(false);
   
   // Songs are enriched automatically by worker - no separate loading state needed
   
@@ -1531,9 +1536,9 @@ export default function MomentsLibrary({
               </p>
             </motion.div>
 
-            {/* Share a New Moment Icon - top-left with larger tap target for mobile */}
+            {/* Share a New Moment Icon - top-left matching SoundToggle alignment */}
             <motion.button
-              className="fixed z-50 pointer-events-auto rounded-full overflow-hidden group"
+              className="fixed z-50 pointer-events-auto rounded-full overflow-hidden group border border-white/40 backdrop-blur-md hover:scale-110 focus:outline-none focus:ring-2 focus:ring-pink-300/60 transition-all duration-300"
               onClick={onNewReflection}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ 
@@ -1541,21 +1546,16 @@ export default function MomentsLibrary({
                 scale: 1,
               }}
               exit={{ opacity: 0, scale: 0.8 }}
-              whileHover={{ 
-                scale: 1.1,
-              }}
               whileTap={{ scale: 0.95 }}
               transition={{ duration: 0.6, delay: 1.4, ease: NATURAL_EASE }}
               aria-label="Share a New Moment"
               title="Share a New Moment"
               style={{
-                background: 'linear-gradient(135deg, #FFD700 0%, #FFC1CC 100%)',
-                boxShadow: '0 4px 16px rgba(255, 215, 0, 0.3)',
-                width: '36px',  // Match SoundToggle size for symmetry
-                height: '36px', // Match SoundToggle size for symmetry
-                minWidth: '36px',
-                minHeight: '36px',
-                padding: '0',
+                background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.5) 0%, rgba(255, 193, 204, 0.5) 100%)',
+                boxShadow: '0 4px 16px rgba(255, 215, 0, 0.2)',
+                width: '36px',
+                height: '36px',
+                padding: '8px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -3473,6 +3473,54 @@ export default function MomentsLibrary({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Settings Gear Icon - bottom-left */}
+      <AnimatePresence>
+        {phase === 'library' && !selectedMoment && (
+          <motion.button
+            className="fixed z-50 pointer-events-auto rounded-full overflow-hidden group border border-white/40 backdrop-blur-md hover:scale-110 focus:outline-none focus:ring-2 focus:ring-pink-300/60 transition-all duration-300"
+            onClick={() => setShowSettings(true)}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ 
+              opacity: 1, 
+              scale: 1,
+            }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ duration: 0.6, delay: 1.6, ease: NATURAL_EASE }}
+            aria-label="Settings"
+            title="Settings"
+            style={{
+              background: 'rgba(255, 255, 255, 0.5)',
+              boxShadow: '0 4px 16px rgba(212, 184, 255, 0.2)',
+              width: '36px',
+              height: '36px',
+              padding: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              bottom: 'max(1rem, env(safe-area-inset-bottom))',
+              left: 'max(0.5rem, env(safe-area-inset-left))',
+            }}
+          >
+            <span className="relative z-10 text-lg">⚙️</span>
+            
+            {/* Tooltip on hover */}
+            <div className="absolute left-full ml-2 bottom-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+              <div className="bg-white/95 backdrop-blur-sm px-3 py-2 rounded-lg shadow-lg text-xs text-gray-800">
+                <div className="font-semibold">Settings</div>
+              </div>
+            </div>
+          </motion.button>
+        )}
+      </AnimatePresence>
+
+      {/* Settings Modal */}
+      <SettingsModal 
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        pigName={pigName}
+      />
     </motion.div>
   );
 }
