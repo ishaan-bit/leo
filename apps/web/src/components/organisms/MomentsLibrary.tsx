@@ -2026,7 +2026,7 @@ export default function MomentsLibrary({
                         fontFamily: '"Inter", -apple-system, sans-serif',
                         color: atmosphere.textMuted,
                         letterSpacing: '0.15em',
-                        opacity: 0.7,
+                        opacity: 0.95,
                         textShadow: '0 1px 1px rgba(0,0,0,0.1)',
                       }}
                     >
@@ -2071,7 +2071,7 @@ export default function MomentsLibrary({
                             fontStyle: 'italic',
                             color: atmosphere.textMuted,
                             letterSpacing: '0.12em',
-                            opacity: 0.7,
+                            opacity: 0.95,
                             textShadow: '0 1px 1px rgba(0,0,0,0.15)',
                           }}
                         >
@@ -2110,7 +2110,7 @@ export default function MomentsLibrary({
                             fontStyle: 'italic',
                             color: atmosphere.textMuted,
                             letterSpacing: '0.12em',
-                            opacity: 0.7,
+                            opacity: 0.95,
                             textShadow: '0 1px 1px rgba(0,0,0,0.15)',
                           }}
                         >
@@ -2174,7 +2174,7 @@ export default function MomentsLibrary({
                           color: atmosphere.textMuted,
                           letterSpacing: '0.02em',
                           fontWeight: 400,
-                          opacity: 0.7,
+                          opacity: 0.95,
                           textShadow: '0 1px 1px rgba(0,0,0,0.1)',
                         }}
                       >
@@ -2234,7 +2234,7 @@ export default function MomentsLibrary({
                           color: atmosphere.textMuted,
                           letterSpacing: '0.02em',
                           fontWeight: 400,
-                          opacity: 0.7,
+                          opacity: 0.95,
                           textShadow: '0 1px 1px rgba(0,0,0,0.1)',
                         }}
                       >
@@ -2363,7 +2363,7 @@ export default function MomentsLibrary({
                                     fontFamily: '"Inter", -apple-system, sans-serif',
                                     color: atmosphere.accentColor,
                                     letterSpacing: '0.12em',
-                                    opacity: 0.8,
+                                    opacity: 1.0,
                                     fontWeight: 500,
                                   }}
                                 >
@@ -2463,7 +2463,7 @@ export default function MomentsLibrary({
                           color: atmosphere.textMuted,
                           letterSpacing: '0.02em',
                           fontWeight: 400,
-                          opacity: 0.7,
+                          opacity: 0.95,
                           textShadow: '0 1px 1px rgba(0,0,0,0.1)',
                         }}
                       >
@@ -2567,7 +2567,7 @@ export default function MomentsLibrary({
                             color: atmosphere.textMuted,
                             letterSpacing: '0.02em',
                             fontWeight: 400,
-                            opacity: 0.7,
+                            opacity: 0.95,
                             textShadow: '0 1px 1px rgba(0,0,0,0.1)',
                           }}
                         >
@@ -2624,7 +2624,7 @@ export default function MomentsLibrary({
                                 style={{
                                   fontFamily: '"Inter", -apple-system, sans-serif',
                                   color: atmosphere.textMuted,
-                                  opacity: 0.6,
+                                  opacity: 0.95,
                                   lineHeight: '1.6',
                                 }}
                               >
@@ -2747,7 +2747,7 @@ export default function MomentsLibrary({
                                   style={{
                                     fontFamily: '"Inter", -apple-system, sans-serif',
                                     color: atmosphere.textMuted,
-                                    opacity: 0.7,
+                                    opacity: 0.95,
                                   }}
                                 >
                                   {artist}{year ? ` � ${year}` : ''}
@@ -2774,7 +2774,7 @@ export default function MomentsLibrary({
                         className="text-sm"
                         style={{ 
                           filter: `drop-shadow(0 0 6px ${atmosphere.accentGlow})`,
-                          opacity: 0.6,
+                          opacity: 0.95,
                         }}
                         animate={{
                           opacity: [0.5, 1, 0.5],
@@ -2798,7 +2798,7 @@ export default function MomentsLibrary({
                           fontWeight: 400,
                           letterSpacing: '0.02em',
                           lineHeight: '1.8',
-                          opacity: 0.7,
+                          opacity: 0.95,
                           textShadow: '0 1px 2px rgba(0,0,0,0.15)',
                         }}
                       >
@@ -2810,7 +2810,7 @@ export default function MomentsLibrary({
                         className="text-sm"
                         style={{ 
                           filter: `drop-shadow(0 0 6px ${atmosphere.accentGlow})`,
-                          opacity: 0.6,
+                          opacity: 0.95,
                         }}
                         animate={{
                           opacity: [0.5, 1, 0.5],
@@ -3014,7 +3014,7 @@ export default function MomentsLibrary({
                               fontWeight: 400,
                               letterSpacing: '0.02em',
                               lineHeight: '2.0',
-                              opacity: 0.7,
+                              opacity: 0.95,
                             }}
                           >
                             When {pigName} sleeps beneath the quiet moon, sometimes a letter drifts back from the place where dreams are woven.
@@ -3026,7 +3026,7 @@ export default function MomentsLibrary({
                               color: atmosphere.textMuted,
                               letterSpacing: '0.01em',
                               lineHeight: '1.8',
-                              opacity: 0.6,
+                              opacity: 0.95,
                             }}
                           >
                             Return tomorrow. Perhaps tonight will be one of those nights.
@@ -3045,10 +3045,10 @@ export default function MomentsLibrary({
                             fontFamily: '"Inter", -apple-system, sans-serif',
                             color: atmosphere.textMuted,
                             letterSpacing: '0.15em',
-                            opacity: 0.6,
+                            opacity: 0.95,
                           }}
                           initial={{ opacity: 0, y: -5 }}
-                          animate={{ opacity: 0.6, y: 0 }}
+                          animate={{ opacity: 0.95, y: 0 }}
                           transition={{ duration: 0.6, delay: 0.2 }}
                         >
                           Carried back from the night
@@ -3280,10 +3280,10 @@ export default function MomentsLibrary({
                             fontFamily: '"Inter", -apple-system, sans-serif',
                             color: atmosphere.textMuted,
                             letterSpacing: '0.15em',
-                            opacity: 0.6,
+                            opacity: 0.95,
                           }}
                           initial={{ opacity: 0, y: -5 }}
-                          animate={{ opacity: 0.6, y: 0 }}
+                          animate={{ opacity: 0.95, y: 0 }}
                           transition={{ duration: 0.6, delay: 0.2 }}
                         >
                           Your Dream Letter from {pigName}

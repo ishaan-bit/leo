@@ -41,23 +41,24 @@ export async function GET(
       moment = JSON.parse(moment);
     }
 
-    if (!moment || !moment.final) {
+    if (!moment) {
       return NextResponse.json(
-        { error: 'Moment not found or not enriched yet' },
+        { error: 'Moment not found' },
         { status: 404 }
       );
     }
 
     // Return only shareable data (no user ID, session tokens, etc.)
+    // Works even if moment.final doesn't exist yet (not fully enriched)
     const shareableData = {
-      text: moment.normalized_text || moment.raw_text || moment.text,
+      text: moment.normalized_text || moment.raw_text || moment.text || '',
       invoked: moment.final?.invoked || '',
       expressed: moment.final?.expressed || '',
       poems: moment.post_enrichment?.poems || moment.final?.poems || [],
-      poem: moment.final?.poem || moment.post_enrichment?.poem || (moment.final?.poems?.[0]) || null, // Single poem
-      timestamp: moment.timestamp || moment.created_at,
+      poem: moment.final?.poem || moment.post_enrichment?.poem || (moment.final?.poems?.[0]) || null,
+      timestamp: moment.timestamp || moment.created_at || new Date().toISOString(),
       image_base64: moment.image_base64 || moment.caption?.image_base64,
-      pig_name: moment.pig_name,
+      pig_name: moment.pig_name || 'Noen',
       primaryEmotion: moment.final?.wheel?.primary || 'peaceful',
       songs: moment.songs,
     };
