@@ -162,8 +162,17 @@ export async function GET(
           ? null 
           : (zoneMapping[primaryEmotion.toLowerCase()] || 'peaceful');
         
-        // Extract moment data
-        const moment = {
+          // Extract moment data
+          // POEM PATH: enrichment callback stores at final.post_enrichment.poem (singular string)
+          // Legacy path: post_enrichment.poems[0] (array) - kept for backwards compatibility
+          const poemValue = 
+            data.final?.post_enrichment?.poem ||   // Primary: new path from enrichment callback
+            data.post_enrichment?.poem ||          // Fallback: direct post_enrichment
+            data.final?.post_enrichment?.poems?.[0] || // Legacy: array format
+            data.post_enrichment?.poems?.[0] ||    // Legacy: array format
+            null;
+          
+          const moment = {
           id: data.rid || String(rid),
           text: data.normalized_text || data.raw_text || '',
           zone,
@@ -173,7 +182,7 @@ export async function GET(
           timestamp: data.timestamp || new Date().toISOString(),
           invoked: data.final?.invoked || '',
           expressed: data.final?.expressed || '',
-          poem: data.post_enrichment?.poems?.[0] || data.final?.post_enrichment?.poems?.[0] || null, // First poem from enrichment worker's poems array
+          poem: poemValue, // Single poem from Excel (Poem En 1 or Poem En 2)
           tips: data.post_enrichment?.tips || [],
           closingLine: data.post_enrichment?.closing_line || '',
           valence: data.final?.valence || data.valence || 0.5,
@@ -181,10 +190,8 @@ export async function GET(
           songs: data.songs || null, // Include songs data from enrichment worker
           image_base64: data.image_base64 || data.caption?.image_base64 || undefined, // Include image data if present
           dialogue_tuples: data.post_enrichment?.dialogue_tuples || data.final?.post_enrichment?.dialogue_tuples || undefined, // Include dialogue tuples from Excel
-          dreamLetterState: 'locked' as const, // TODO: Implement actual dream letter generation logic
-        };
-        
-        moments.push(moment);
+          dreamLetterState: 'locked' as const, // Dream letters only for signed-in users
+        };        moments.push(moment);
         
       } catch (error) {
         console.error('[API /pig/moments] ❌ Error processing reflection:', rid, error);

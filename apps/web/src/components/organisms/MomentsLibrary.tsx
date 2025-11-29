@@ -242,7 +242,13 @@ export default function MomentsLibrary({
   }, [selectedMoment, imageRendered, imageLoadError]);
 
   // Attach pending dream to selected moment and auto-scroll
+  // CRITICAL: Only for signed-in users (status === 'authenticated')
   useEffect(() => {
+    // Guard: Never attach dream letters for guest users
+    if (status !== 'authenticated') {
+      return;
+    }
+    
     if (!selectedMoment || !pendingDream) return;
 
     // Attach pending dream letter to the selected moment
@@ -275,7 +281,7 @@ export default function MomentsLibrary({
     }, isMobile ? 100 : 300); // Much faster timing
 
     return () => clearTimeout(scrollTimer);
-  }, [selectedMoment, pendingDream]);
+  }, [selectedMoment, pendingDream, status]); // Added status to dependency array
 
   // Songs are already enriched by enrichment worker - no need to fetch separately
   // They're loaded with the moment data from Redis
@@ -606,10 +612,12 @@ export default function MomentsLibrary({
   // 1. User just submitted a new moment (justSubmitted=true) → open newest
   // 2. Dream letter exists (autoOpenMomentId provided OR pendingDream exists) → open specific moment
   // Regular Living City visits (e.g., login with no dream, no submission) → NO auto-open
+  // CRITICAL: Dream letter auto-open is ONLY for signed-in users
   useEffect(() => {
     if (phase === 'library' && moments.length > 0 && !autoOpenCompletedRef.current) {
       // Check if we should auto-open at all
-      const hasPendingDreamLetter = pendingDream !== null;
+      // GUARD: pendingDream auto-open only for authenticated users
+      const hasPendingDreamLetter = status === 'authenticated' && pendingDream !== null;
       const shouldAutoOpen = justSubmitted || autoOpenMomentId !== null || hasPendingDreamLetter;
       
       if (!shouldAutoOpen) {
@@ -651,7 +659,7 @@ export default function MomentsLibrary({
       
       return () => clearTimeout(timer);
     }
-  }, [phase, moments, autoOpenMomentId, justSubmitted, pendingDream]); // Added pendingDream dependency
+  }, [phase, moments, autoOpenMomentId, justSubmitted, pendingDream, status]); // Added status to dependency array
   
   // Show "Your moment is saved here" bubble when arriving after moment submission
   useEffect(() => {
@@ -2832,7 +2840,8 @@ export default function MomentsLibrary({
                     </motion.div>
                   )}
 
-                  {/* Dream Letter Section */}
+                  {/* Dream Letter Section - SIGNED-IN USERS ONLY */}
+                  {status === 'authenticated' && (
                   <motion.div
                     ref={dreamLetterRef} // Add ref for auto-scrolling
                     className="mt-10 pt-8 border-t relative"
@@ -3369,6 +3378,7 @@ export default function MomentsLibrary({
                       </div>
                     )}
                   </motion.div>
+                  )} {/* END Dream Letter Section - SIGNED-IN USERS ONLY */}
                 </div>
                 </div> {/* Close inner wrapper for backgrounds */}
               </motion.div>

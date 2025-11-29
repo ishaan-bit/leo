@@ -829,9 +829,9 @@ export default function Scene_Reflect({ pigId, pigName }: Scene_ReflectProps) {
         }
       />
 
-      {/* Dream letter notification - appears when pending dream exists */}
+      {/* Dream letter notification - appears when pending dream exists (SIGNED-IN USERS ONLY) */}
       <AnimatePresence>
-        {pendingDream && !showBreathing && !showMomentsLibrary && isDreamNotificationVisible && (
+        {status === 'authenticated' && pendingDream && !showBreathing && !showMomentsLibrary && isDreamNotificationVisible && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: -10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}

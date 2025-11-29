@@ -125,8 +125,17 @@ export function PendingDreamProvider({ children }: { children: React.ReactNode }
   /**
    * Auto-check on authentication
    * Triggers when user logs in (status changes from 'loading' to 'authenticated')
+   * CRITICAL: Only runs for signed-in users - never for guests (status === 'unauthenticated')
    */
   useEffect(() => {
+    // Guard: Only check for authenticated users, never for guests
+    if (status === 'unauthenticated') {
+      console.log('[PendingDream] Guest mode - skipping dream check (dream letters are signed-in only)');
+      setHasChecked(true); // Mark as checked to prevent future attempts
+      setPendingDream(null); // Ensure no stale dream data
+      return;
+    }
+    
     if (status === 'authenticated' && session?.user && !hasChecked && !isChecking) {
       console.log('[PendingDream] User authenticated, checking for pending dream...');
       checkPendingDream();
