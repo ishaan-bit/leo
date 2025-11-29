@@ -36,7 +36,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="h-full" style={{ margin: 0, padding: 0 }}>
+    <html lang="en" className="min-h-full" style={{ margin: 0, padding: 0 }}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -47,7 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body
         className="
-          h-full antialiased text-pink-900
+          min-h-full antialiased text-pink-900
           [text-size-adjust:100%] [webkit-text-size-adjust:100%]
           selection:bg-rose-200 selection:text-pink-900
         "
@@ -55,7 +55,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
           margin: 0,
           padding: 0,
-          overflow: 'hidden'
         }}
       >
         <AuthProvider>

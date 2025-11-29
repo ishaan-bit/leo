@@ -182,7 +182,7 @@ export default function QDMomentPage() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
+    <div className="min-h-screen relative bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
       <AnimatePresence mode="wait">
         {!revealed ? (
           // Initial screen with floating pig
@@ -224,13 +224,13 @@ export default function QDMomentPage() {
             </motion.p>
           </motion.div>
         ) : (
-          // Revealed moment content
+          // Revealed moment content - scrollable on mobile
           <motion.div
             key="content"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8 }}
-            className="min-h-screen py-12 px-4 flex items-center justify-center"
+            className="min-h-screen py-12 px-4 pb-24 flex items-start md:items-center justify-center overflow-y-auto"
           >
             <motion.div
               initial={{ opacity: 0, y: 20 }}

@@ -169,7 +169,7 @@ export default function ShareMomentPage() {
 
   return (
     <div 
-      className="min-h-screen relative overflow-hidden"
+      className="min-h-screen relative"
       style={{
         background: `linear-gradient(135deg, ${atmosphere.gradient[0]}, ${atmosphere.gradient[1]})`,
       }}
@@ -252,13 +252,13 @@ export default function ShareMomentPage() {
             </motion.p>
           </motion.div>
         ) : (
-          // Revealed moment content
+          // Revealed moment content - scrollable on mobile
           <motion.div
             key="content"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8 }}
-            className="min-h-screen py-12 px-4"
+            className="min-h-screen py-12 px-4 pb-24"
           >
             <motion.div
               initial={{ opacity: 0, y: 20 }}
