@@ -91,7 +91,11 @@ def _mock_classify(text: str) -> Dict[str, float]:
     """
     Fallback keyword-based classifier when HF API unavailable.
     
-    Enhanced with sarcasm/negation awareness and workplace frustration detection.
+    Enhanced v5.1 with:
+    - Joy/celebration vs achievement distinction
+    - Negation and contrast detection ("but", "however")
+    - Physiological anxiety cues
+    - Self-directed anger detection
     """
     print(f"[FALLBACK] Using keyword classifier for: {text[:80]}...")
     
@@ -99,14 +103,58 @@ def _mock_classify(text: str) -> Dict[str, float]:
     primaries = ['Happy', 'Strong', 'Peaceful', 'Sad', 'Angry', 'Fearful']
     scores = {p: 1.0/len(primaries) for p in primaries}
     
-    # Check for frustration/irritation keywords FIRST (workplace anger)
+    # Check for negation/contrast patterns FIRST
+    # "X but Y" or "X however Y" - the Y part is the true emotion
+    has_contrast = False
+    contrast_second_half = text_lower
+    
+    if ' but ' in text_lower:
+        contrast_second_half = text_lower.split(' but ', 1)[1]
+        has_contrast = True
+    elif ' however ' in text_lower:
+        contrast_second_half = text_lower.split(' however ', 1)[1]
+        has_contrast = True
+    
+    # Use the post-contrast text if present
+    analysis_text = contrast_second_half if has_contrast else text_lower
+    
+    # Check for self-directed anger/guilt ("I hate myself", "I feel guilty")
+    self_anger_words = ['hate myself', 'guilty', 'blame myself', 'my fault', 'shame']
+    if any(w in analysis_text for w in self_anger_words):
+        print("[FALLBACK] Detected self-directed anger → Angry or Sad")
+        # Angry if active self-criticism, Sad if passive guilt
+        if 'hate myself' in analysis_text or 'wasting' in analysis_text:
+            scores['Angry'] = 0.6
+            scores['Sad'] = 0.2
+        else:
+            scores['Sad'] = 0.6
+            scores['Fearful'] = 0.2
+        total = sum(scores.values())
+        return {k: v/total for k, v in scores.items()}
+    
+    # Check for physiological anxiety cues (high arousal)
+    anxiety_physical = [
+        'heart racing', 'heart starts racing', 'can\'t sleep', 'cannot sleep',
+        'keep checking', 'constantly checking', 'stomach hurts', 'hands shaking',
+        'feel sick', 'throwing up', 'can\'t breathe'
+    ]
+    has_physical_anxiety = any(cue in analysis_text for cue in anxiety_physical)
+    
+    if has_physical_anxiety:
+        print("[FALLBACK] Detected physiological anxiety → Fearful")
+        scores['Fearful'] = 0.7
+        scores['Sad'] = 0.1
+        total = sum(scores.values())
+        return {k: v/total for k, v in scores.items()}
+    
+    # Check for frustration/irritation keywords
     frustration_words = [
         'irritating', 'irritated', 'frustrat', 'annoyed', 'annoying',
         'boss around', 'doesnt do shit', 'doesn\'t do shit', 'useless manager',
         'terrible manager', 'new manager', 'micromanag', 'waste of time',
         'pain in the ass', 'driving me crazy', 'sick of', 'fed up'
     ]
-    has_frustration = any(word in text_lower for word in frustration_words)
+    has_frustration = any(word in analysis_text for word in frustration_words)
     
     if has_frustration:
         print("[FALLBACK] Detected frustration/irritation → Angry")
@@ -120,13 +168,13 @@ def _mock_classify(text: str) -> Dict[str, float]:
     positive_words = ['great', 'wonderful', 'perfect', 'amazing', 'fantastic', 'love']
     negative_context = ['deadline', 'stress', 'problem', 'issue', 'fail', 'delay', 'late']
     
-    has_positive = any(w in text_lower for w in positive_words)
-    has_negative = any(w in text_lower for w in negative_context)
+    has_positive = any(w in analysis_text for w in positive_words)
+    has_negative = any(w in analysis_text for w in negative_context)
     
     # Sarcasm patterns
     if has_positive and has_negative:
         has_sarcasm = True
-    if 'not' in text_lower and any(w in text_lower for w in ['stressed', 'worried', 'anxious', 'fine']):
+    if 'not' in analysis_text and any(w in analysis_text for w in ['stressed', 'worried', 'anxious', 'fine']):
         has_sarcasm = True  # "not stressed at all" = sarcastic stress
     
     # If sarcasm detected, boost Angry/Fearful
@@ -138,25 +186,44 @@ def _mock_classify(text: str) -> Dict[str, float]:
         return {k: v/total for k, v in scores.items()}
     
     # Standard keyword matching (no sarcasm)
-    # Check for strong positive events first (career, achievement)
-    if any(w in text_lower for w in ['promoted', 'promotion', 'hired', 'accepted', 'won', 'success']):
+    # JOY/CELEBRATION keywords (distinct from achievement)
+    joy_celebration = [
+        'laughed', 'laugh', 'laughter', 'smiling', 'smile', 'fun', 'enjoy',
+        'love it', 'loved it', 'best day', 'so good', 'felt good', 'feels good'
+    ]
+    if any(w in analysis_text for w in joy_celebration):
+        print("[FALLBACK] Detected joy/celebration → Happy")
+        scores['Happy'] = 0.7
+        scores['Peaceful'] = 0.2
+    # ACHIEVEMENT keywords (distinct from joy)
+    elif any(w in analysis_text for w in ['smashed', 'nailed', 'crushed', 'handled', 'managing', 'better than expected']):
+        print("[FALLBACK] Detected achievement → Happy with Strong undertone")
+        scores['Happy'] = 0.5
+        scores['Strong'] = 0.3
+    # Career success
+    elif any(w in analysis_text for w in ['promoted', 'promotion', 'hired', 'accepted', 'won', 'success']):
         scores['Happy'] = 0.7
         scores['Strong'] = 0.2
-    # Then emotion keywords
-    elif any(w in text_lower for w in ['happy', 'glad', 'joy', 'excited', 'amazing', 'wonderful']):
+    # General positive emotions
+    elif any(w in analysis_text for w in ['happy', 'glad', 'joy', 'excited', 'amazing', 'wonderful']):
         scores['Happy'] = 0.6
-    elif any(w in text_lower for w in ['strong', 'confident', 'powerful', 'capable', 'proud']):
+    # Strength/competence (NOT achievement)
+    elif any(w in analysis_text for w in ['strong', 'confident', 'powerful', 'capable']):
         scores['Strong'] = 0.6
-    elif any(w in text_lower for w in ['calm', 'peaceful', 'relaxed', 'serene']):
+    # Peace/calm
+    elif any(w in analysis_text for w in ['calm', 'peaceful', 'relaxed', 'serene']):
         scores['Peaceful'] = 0.6
-    elif any(w in text_lower for w in ['sad', 'down', 'depressed', 'unhappy', 'crying', 'devastated']):
+    # Sadness/depression
+    elif any(w in analysis_text for w in ['sad', 'down', 'depressed', 'unhappy', 'crying', 'devastated', 'exhausted', 'tired all the time']):
         scores['Sad'] = 0.6
-    elif any(w in text_lower for w in ['angry', 'mad', 'furious', 'pissed', 'annoyed', 'frustrated']):
+    # Anger
+    elif any(w in analysis_text for w in ['angry', 'mad', 'furious', 'pissed', 'annoyed', 'frustrated']):
         scores['Angry'] = 0.6
-    elif any(w in text_lower for w in ['scared', 'afraid', 'anxious', 'worried', 'fearful', 'stressed']):
+    # Fear/anxiety
+    elif any(w in analysis_text for w in ['scared', 'afraid', 'anxious', 'worried', 'fearful', 'stressed', 'hanging by a thread']):
         scores['Fearful'] = 0.6
-    # Check for strong negative events
-    elif any(w in text_lower for w in ['fired', 'rejected', 'failed', 'lost', 'breakup']):
+    # Strong negative events
+    elif any(w in analysis_text for w in ['fired', 'rejected', 'failed', 'lost', 'breakup']):
         scores['Sad'] = 0.5
         scores['Fearful'] = 0.3
     

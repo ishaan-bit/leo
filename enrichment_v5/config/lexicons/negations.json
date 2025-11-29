@@ -1,0 +1,8 @@
+{
+  "negators": [
+    "not", "n't", "no", "never", "without", "hardly", "barely",
+    "no longer", "no more", "lack", "lacking", "fail to", "failed to", "can't", "cannot"
+  ],
+  "scope_forward_only": ["without", "no", "no longer", "no more"],
+  "window_tokens": 3
+}

@@ -1,0 +1,8 @@
+{
+  "negative": ["pissed", "damn", "shit", "fuck", "fucking", "crap", "bloody", "bullshit", "sucks", "asshole"],
+  "positive_shell": ["freaking awesome", "so damn good", "so f**king good"],
+  "arousal_boost": {
+    "negative": 0.12,
+    "positive_shell": 0.10
+  }
+}

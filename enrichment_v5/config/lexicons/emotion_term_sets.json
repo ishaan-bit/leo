@@ -1,7 +1,7 @@
 {
   "joy_terms": ["happy", "joy", "joyful", "enjoy", "excited", "thrilled", "glad", "content", "satisfied", "delighted", "ecstatic", "elated", "over the moon"],
   "fear_terms": ["afraid", "terrified", "anxious", "worried", "scared", "nervous", "panic", "fear", "dread"],
-  "anger_terms": ["angry", "mad", "furious", "annoyed", "irritated", "frustrated", "pissed", "lose it", "snap", "interrupt", "interrupts", "interrupted", "interrupting", "fed up", "had enough", "can't take", "i swear", "pissing me off", "ticking me off", "pushing my buttons", "getting on my nerves", "drives me crazy", "makes me mad"],
+  "anger_terms": ["angry", "mad", "furious", "annoyed", "irritated", "frustrated", "pissed"],
   "sad_terms": ["sad", "down", "depressed", "lonely", "empty", "numb", "blue", "miserable", "heartbroken"],
   "peace_terms": ["calm", "content", "serene", "peaceful", "thankful", "grateful", "grounded"]
 }

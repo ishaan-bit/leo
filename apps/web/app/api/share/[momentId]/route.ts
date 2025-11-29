@@ -51,12 +51,15 @@ export async function GET(
 
     // Return only shareable data (no user ID, session tokens, etc.)
     // Works even if moment.final doesn't exist yet (not fully enriched)
+    // Note: poem is stored as singular string in final.post_enrichment.poem (from Excel "Poem En 1/2")
+    const poemValue = moment.final?.post_enrichment?.poem || moment.post_enrichment?.poem || null;
+    
     const shareableData = {
       text: moment.normalized_text || moment.raw_text || moment.text || '',
       invoked: moment.final?.invoked || '',
       expressed: moment.final?.expressed || '',
-      poems: moment.post_enrichment?.poems || moment.final?.post_enrichment?.poems || [],
-      poem: moment.post_enrichment?.poems?.[0] || moment.final?.post_enrichment?.poems?.[0] || null,
+      poems: poemValue ? [poemValue] : [],
+      poem: poemValue,
       timestamp: moment.timestamp || moment.created_at || new Date().toISOString(),
       image_base64: moment.image_base64 || moment.caption?.image_base64,
       pig_name: moment.pig_name || 'Noen',

@@ -1,0 +1,1254 @@
+{
+  "timestamp": "2025-11-16T20:52:05.697332",
+  "summary": {
+    "total": 50,
+    "errors": 0,
+    "valid": 50,
+    "primary_matches": 29,
+    "secondary_matches": 7,
+    "domain_matches": 27,
+    "valence_good": 38,
+    "arousal_good": 37,
+    "avg_valence_delta": 0.14634,
+    "avg_arousal_delta": 0.1069
+  },
+  "mismatches": [
+    {
+      "test_id": "ex_01",
+      "text": "I don't know when I will get a chance to meet my family next time.",
+      "issues": [
+        "SECONDARY: Lonely ≠ Rejected",
+        "DOMAIN: family ≠ self"
+      ],
+      "comparison": {
+        "primary_match": true,
+        "secondary_match": false,
+        "domain_match": false,
+        "actual_primary": "Fearful",
+        "actual_secondary": "Rejected",
+        "actual_domain": "self",
+        "expected_primary": "Fearful",
+        "expected_secondary": "Lonely",
+        "expected_domain": "family",
+        "valence_delta": 0.09600000000000003,
+        "arousal_delta": 0.050000000000000044,
+        "valence_good": true,
+        "arousal_good": true,
+        "actual_valence": 0.304,
+        "expected_valence": 0.4,
+        "actual_arousal": 0.75,
+        "expected_arousal": 0.7
+      }
+    },
+    {
+      "test_id": "ex_02",
+      "text": "I smashed the presentation today. My manager said it was the best work I have done all year.",
+      "issues": [
+        "PRIMARY: Happy ≠ Strong",
+        "SECONDARY: Proud ≠ Hopeful"
+      ],
+      "comparison": {
+        "primary_match": false,
+        "secondary_match": false,
+        "domain_match": true,
+        "actual_primary": "Strong",
+        "actual_secondary": "Hopeful",
+        "actual_domain": "work",
+        "expected_primary": "Happy",
+        "expected_secondary": "Proud",
+        "expected_domain": "work",
+        "valence_delta": 0.05999999999999994,
+        "arousal_delta": 0.06499999999999995,
+        "valence_good": true,
+        "arousal_good": true,
+        "actual_valence": 0.79,
+        "expected_valence": 0.85,
+        "actual_arousal": 0.635,
+        "expected_arousal": 0.7
+      }
+    },
+    {
+      "test_id": "ex_03",
+      "text": "Financially I am hanging by a thread and pretending it is all fine when I talk to people.",
+      "issues": [
+        "PRIMARY: Sad ≠ Fearful",
+        "SECONDARY: Helpless ≠ Insecure"
+      ],
+      "comparison": {
+        "primary_match": false,
+        "secondary_match": false,
+        "domain_match": true,
+        "actual_primary": "Fearful",
+        "actual_secondary": "Insecure",
+        "actual_domain": "money",
+        "expected_primary": "Sad",
+        "expected_secondary": "Helpless",
+        "expected_domain": "money",
+        "valence_delta": 0.03,
+        "arousal_delta": 0.09999999999999998,
+        "valence_good": true,
+        "arousal_good": true,
+        "actual_valence": 0.23,
+        "expected_valence": 0.2,
+        "actual_arousal": 0.75,
+        "expected_arousal": 0.65
+      }
+    },
+    {
+      "test_id": "ex_04",
+      "text": "Honestly, my health looks okay on reports but I feel tired all the time.",
+      "issues": [
+        "SECONDARY: Weak ≠ Depressed",
+        "DOMAIN: health ≠ work"
+      ],
+      "comparison": {
+        "primary_match": true,
+        "secondary_match": false,
+        "domain_match": false,
+        "actual_primary": "Sad",
+        "actual_secondary": "Depressed",
+        "actual_domain": "work",
+        "expected_primary": "Sad",
+        "expected_secondary": "Weak",
+        "expected_domain": "health",
+        "valence_delta": 0.03799999999999998,
+        "arousal_delta": 0.030000000000000027,
+        "valence_good": true,
+        "arousal_good": true,
+        "actual_valence": 0.262,
+        "expected_valence": 0.3,
+        "actual_arousal": 0.38,
+        "expected_arousal": 0.35
+      }
+    },
+    {
+      "test_id": "ex_05",
+      "text": "We laughed so hard at dinner today that my stomach hurts. It felt like old times with my friends.",
+      "issues": [
+        "PRIMARY: Happy ≠ Fearful",
+        "SECONDARY: Playful ≠ Anxious",
+        "VALENCE: Δ=0.586 (threshold: 0.15)"
+      ],
+      "comparison": {
+        "primary_match": false,
+        "secondary_match": false,
+        "domain_match": true,
+        "actual_primary": "Fearful",
+        "actual_secondary": "Anxious",
+        "actual_domain": "social",
+        "expected_primary": "Happy",
+        "expected_secondary": "Playful",
+        "expected_domain": "social",
+        "valence_delta": 0.5860000000000001,
+        "arousal_delta": 0.041000000000000036,
+        "valence_good": false,
+        "arousal_good": true,
+        "actual_valence": 0.314,
+        "expected_valence": 0.9,
+        "actual_arousal": 0.759,
+        "expected_arousal": 0.8
+      }
+    },
+    {
+      "test_id": "ex_06",
+      "text": "I keep scrolling instead of studying and then I hate myself for wasting the day.",
+      "issues": [
+        "PRIMARY: Angry ≠ Sad",
+        "SECONDARY: Critical ≠ Depressed",
+        "AROUSAL: Δ=0.370 (threshold: 0.15)"
+      ],
+      "comparison": {
+        "primary_match": false,
+        "secondary_match": false,
+        "domain_match": true,
+        "actual_primary": "Sad",
+        "actual_secondary": "Depressed",
+        "actual_domain": "study",
+        "expected_primary": "Angry",
+        "expected_secondary": "Critical",
+        "expected_domain": "study",
+        "valence_delta": 0.03,
+        "arousal_delta": 0.37,
+        "valence_good": true,
+        "arousal_good": false,
+        "actual_valence": 0.22,
+        "expected_valence": 0.25,
+        "actual_arousal": 0.38,
+        "expected_arousal": 0.75
+      }
+    },
+    {
+      "test_id": "ex_07",
+      "text": "She did not reply to my message all day and I keep checking my phone.",
+      "issues": [
+        "PRIMARY: Fearful ≠ Sad",
+        "SECONDARY: Rejected ≠ Depressed",
+        "AROUSAL: Δ=0.420 (threshold: 0.15)"
+      ],
+      "comparison": {
+        "primary_match": false,
+        "secondary_match": false,
+        "domain_match": true,
+        "actual_primary": "Sad",
+        "actual_secondary": "Depressed",
+        "actual_domain": "relationship",
+        "expected_primary": "Fearful",
+        "expected_secondary": "Rejected",
+        "expected_domain": "relationship",
+        "valence_delta": 0.07999999999999999,
+        "arousal_delta": 0.42000000000000004,
+        "valence_good": true,
+        "arousal_good": false,
+        "actual_valence": 0.22,
+        "expected_valence": 0.3,
+        "actual_arousal": 0.38,
+        "expected_arousal": 0.8
+      }
+    },
+    {
+      "test_id": "ex_08",
+      "text": "Work is chaotic but I am handling it better than I expected.",
+      "issues": [
+        "SECONDARY: Resilient ≠ Hopeful",
+        "DOMAIN: work ≠ self"
+      ],
+      "comparison": {
+        "primary_match": true,
+        "secondary_match": false,
+        "domain_match": false,
+        "actual_primary": "Strong",
+        "actual_secondary": "Hopeful",
+        "actual_domain": "self",
+        "expected_primary": "Strong",
+        "expected_secondary": "Resilient",
+        "expected_domain": "work",
+        "valence_delta": 0.14,
+        "arousal_delta": 0.015000000000000013,
+        "valence_good": true,
+        "arousal_good": true,
+        "actual_valence": 0.79,
+        "expected_valence": 0.65,
+        "actual_arousal": 0.635,
+        "expected_arousal": 0.65
+      }
+    },
+    {
+      "test_id": "ex_09",
+      "text": "I feel like everyone thinks I am fine, but inside I am just exhausted.",
+      "issues": [
+        "SECONDARY: Lonely ≠ Depressed"
+      ],
+      "comparison": {
+        "primary_match": true,
+        "secondary_match": false,
+        "domain_match": true,
+        "actual_primary": "Sad",
+        "actual_secondary": "Depressed",
+        "actual_domain": "self",
+        "expected_primary": "Sad",
+        "expected_secondary": "Lonely",
+        "expected_domain": "self",
+        "valence_delta": 0.04899999999999999,
+        "arousal_delta": 0.05499999999999999,
+        "valence_good": true,
+        "arousal_good": true,
+        "actual_valence": 0.201,
+        "expected_valence": 0.25,
+        "actual_arousal": 0.395,
+        "expected_arousal": 0.45
+      }
+    },
+    {
+      "test_id": "ex_10",
+      "text": "Today was peaceful. Nothing big happened and that felt nice.",
+      "issues": [
+        "SECONDARY: Content ≠ Serene"
+      ],
+      "comparison": {
+        "primary_match": true,
+        "secondary_match": false,
+        "domain_match": true,
+        "actual_primary": "Peaceful",
+        "actual_secondary": "Serene",
+        "actual_domain": "self",
+        "expected_primary": "Peaceful",
+        "expected_secondary": "Content",
+        "expected_domain": "self",
+        "valence_delta": 0.04600000000000004,
+        "arousal_delta": 0.07,
+        "valence_good": true,
+        "arousal_good": true,
+        "actual_valence": 0.746,
+        "expected_valence": 0.7,
+        "actual_arousal": 0.37,
+        "expected_arousal": 0.3
+      }
+    },
+    {
+      "test_id": "ex_11",
+      "text": "My parents are proud of me but I still feel like I am permanently behind everyone.",
+      "issues": [
+        "PRIMARY: Sad ≠ Peaceful",
+        "SECONDARY: Insecure ≠ Thoughtful",
+        "DOMAIN: family ≠ self",
+        "VALENCE: Δ=0.405 (threshold: 0.15)",
+        "AROUSAL: Δ=0.166 (threshold: 0.15)"
+      ],
+      "comparison": {
+        "primary_match": false,
+        "secondary_match": false,
+        "domain_match": false,
+        "actual_primary": "Peaceful",
+        "actual_secondary": "Thoughtful",
+        "actual_domain": "self",
+        "expected_primary": "Sad",
+        "expected_secondary": "Insecure",
+        "expected_domain": "family",
+        "valence_delta": 0.405,
+        "arousal_delta": 0.16600000000000004,
+        "valence_good": false,
+        "arousal_good": false,
+        "actual_valence": 0.755,
+        "expected_valence": 0.35,
+        "actual_arousal": 0.384,
+        "expected_arousal": 0.55
+      }
+    },
+    {
+      "test_id": "ex_12",
+      "text": "I finally paid off that one loan. It feels like a weight off my chest.",
+      "issues": [
+        "PRIMARY: Happy ≠ Strong",
+        "SECONDARY: Grateful ≠ Hopeful"
+      ],
+      "comparison": {
+        "primary_match": false,
+        "secondary_match": false,
+        "domain_match": true,
+        "actual_primary": "Strong",
+        "actual_secondary": "Hopeful",
+        "actual_domain": "money",
+        "expected_primary": "Happy",
+        "expected_secondary": "Grateful",
+        "expected_domain": "money",
+        "valence_delta": 0.010000000000000009,
+        "arousal_delta": 0.08499999999999996,
+        "valence_good": true,
+        "arousal_good": true,
+        "actual_valence": 0.79,
+        "expected_valence": 0.8,
+        "actual_arousal": 0.635,
+        "expected_arousal": 0.55
+      }
+    },
+    {
+      "test_id": "ex_14",
+      "text": "I said something harsh to my friend and now I feel guilty.",
+      "issues": [
+        "PRIMARY: Sad ≠ Strong",
+        "SECONDARY: Guilty ≠ Proud",
+        "DOMAIN: social ≠ self",
+        "VALENCE: Δ=0.499 (threshold: 0.15)"
+      ],
+      "comparison": {
+        "primary_match": false,
+        "secondary_match": false,
+        "domain_match": false,
+        "actual_primary": "Strong",
+        "actual_secondary": "Proud",
+        "actual_domain": "self",
+        "expected_primary": "Sad",
+        "expected_secondary": "Guilty",
+        "expected_domain": "social",
+        "valence_delta": 0.49900000000000005,
+        "arousal_delta": 0.04300000000000004,
+        "valence_good": false,
+        "arousal_good": true,
+        "actual_valence": 0.799,
+        "expected_valence": 0.3,
+        "actual_arousal": 0.643,
+        "expected_arousal": 0.6
+      }
+    },
+    {
+      "test_id": "ex_15",
+      "text": "I do not feel anything in particular today, just moving from one task to the next.",
+      "issues": [
+        "SECONDARY: Content ≠ Serene",
+        "VALENCE: Δ=0.240 (threshold: 0.15)"
+      ],
+      "comparison": {
+        "primary_match": true,
+        "secondary_match": false,
+        "domain_match": true,
+        "actual_primary": "Peaceful",
+        "actual_secondary": "Serene",
+        "actual_domain": "self",
+        "expected_primary": "Peaceful",
+        "expected_secondary": "Content",
+        "expected_domain": "self",
+        "valence_delta": 0.24,
+        "arousal_delta": 0.030000000000000027,
+        "valence_good": false,
+        "arousal_good": true,
+        "actual_valence": 0.79,
+        "expected_valence": 0.55,
+        "actual_arousal": 0.37,
+        "expected_arousal": 0.4
+      }
+    },
+    {
+      "test_id": "ex_17",
+      "text": "I got a message from an old friend out of the blue. It reminded me I am not as alone as I tell myself.",
+      "issues": [
+        "PRIMARY: Happy ≠ Strong",
+        "SECONDARY: Grateful ≠ Proud",
+        "DOMAIN: social ≠ self"
+      ],
+      "comparison": {
+        "primary_match": false,
+        "secondary_match": false,
+        "domain_match": false,
+        "actual_primary": "Strong",
+        "actual_secondary": "Proud",
+        "actual_domain": "self",
+        "expected_primary": "Happy",
+        "expected_secondary": "Grateful",
+        "expected_domain": "social",
+        "valence_delta": 0.010000000000000009,
+        "arousal_delta": 0.03500000000000003,
+        "valence_good": true,
+        "arousal_good": true,
+        "actual_valence": 0.79,
+        "expected_valence": 0.8,
+        "actual_arousal": 0.635,
+        "expected_arousal": 0.6
+      }
+    },
+    {
+      "test_id": "ex_18",
+      "text": "I am tired of constantly proving that I am not lazy.",
+      "issues": [
+        "PRIMARY: Angry ≠ Peaceful",
+        "SECONDARY: Humiliated ≠ Grateful",
+        "DOMAIN: work ≠ self",
+        "VALENCE: Δ=0.446 (threshold: 0.15)",
+        "AROUSAL: Δ=0.380 (threshold: 0.15)"
+      ],
+      "comparison": {
+        "primary_match": false,
+        "secondary_match": false,
+        "domain_match": false,
+        "actual_primary": "Peaceful",
+        "actual_secondary": "Grateful",
+        "actual_domain": "self",
+        "expected_primary": "Angry",
+        "expected_secondary": "Humiliated",
+        "expected_domain": "work",
+        "valence_delta": 0.446,
+        "arousal_delta": 0.38,
+        "valence_good": false,
+        "arousal_good": false,
+        "actual_valence": 0.746,
+        "expected_valence": 0.3,
+        "actual_arousal": 0.37,
+        "expected_arousal": 0.75
+      }
+    },
+    {
+      "test_id": "ex_19",
+      "text": "I miss college days. Everyone moved on and I feel stuck in the same city.",
+      "issues": [
+        "PRIMARY: Sad ≠ Fearful",
+        "SECONDARY: Lonely ≠ Anxious",
+        "DOMAIN: social ≠ study",
+        "AROUSAL: Δ=0.313 (threshold: 0.15)"
+      ],
+      "comparison": {
+        "primary_match": false,
+        "secondary_match": false,
+        "domain_match": false,
+        "actual_primary": "Fearful",
+        "actual_secondary": "Anxious",
+        "actual_domain": "study",
+        "expected_primary": "Sad",
+        "expected_secondary": "Lonely",
+        "expected_domain": "social",
+        "valence_delta": 0.055999999999999994,
+        "arousal_delta": 0.313,
+        "valence_good": true,
+        "arousal_good": false,
+        "actual_valence": 0.244,
+        "expected_valence": 0.3,
+        "actual_arousal": 0.763,
+        "expected_arousal": 0.45
+      }
+    },
+    {
+      "test_id": "ex_20",
+      "text": "Today I finished everything on my to-do list and it felt good.",
+      "issues": [
+        "SECONDARY: Content ≠ Optimistic"
+      ],
+      "comparison": {
+        "primary_match": true,
+        "secondary_match": false,
+        "domain_match": true,
+        "actual_primary": "Happy",
+        "actual_secondary": "Optimistic",
+        "actual_domain": "self",
+        "expected_primary": "Happy",
+        "expected_secondary": "Content",
+        "expected_domain": "self",
+        "valence_delta": 0.138,
+        "arousal_delta": 0.08599999999999997,
+        "valence_good": true,
+        "arousal_good": true,
+        "actual_valence": 0.888,
+        "expected_valence": 0.75,
+        "actual_arousal": 0.586,
+        "expected_arousal": 0.5
+      }
+    },
+    {
+      "test_id": "ex_21",
+      "text": "My boss said I am too quiet in meetings and now I cannot stop overthinking it.",
+      "issues": [
+        "PRIMARY: Fearful ≠ Strong",
+        "SECONDARY: Insecure ≠ Courageous",
+        "DOMAIN: work ≠ self",
+        "VALENCE: Δ=0.440 (threshold: 0.15)"
+      ],
+      "comparison": {
+        "primary_match": false,
+        "secondary_match": false,
+        "domain_match": false,
+        "actual_primary": "Strong",
+        "actual_secondary": "Courageous",
+        "actual_domain": "self",
+        "expected_primary": "Fearful",
+        "expected_secondary": "Insecure",
+        "expected_domain": "work",
+        "valence_delta": 0.44000000000000006,
+        "arousal_delta": 0.06499999999999995,
+        "valence_good": false,
+        "arousal_good": true,
+        "actual_valence": 0.79,
+        "expected_valence": 0.35,
+        "actual_arousal": 0.635,
+        "expected_arousal": 0.7
+      }
+    },
+    {
+      "test_id": "ex_23",
+      "text": "I cooked for my parents today and they really loved it.",
+      "issues": [
+        "SECONDARY: Loving ≠ Optimistic",
+        "DOMAIN: family ≠ relationship"
+      ],
+      "comparison": {
+        "primary_match": true,
+        "secondary_match": false,
+        "domain_match": false,
+        "actual_primary": "Happy",
+        "actual_secondary": "Optimistic",
+        "actual_domain": "relationship",
+        "expected_primary": "Happy",
+        "expected_secondary": "Loving",
+        "expected_domain": "family",
+        "valence_delta": 0.03799999999999992,
+        "arousal_delta": 0.03399999999999992,
+        "valence_good": true,
+        "arousal_good": true,
+        "actual_valence": 0.812,
+        "expected_valence": 0.85,
+        "actual_arousal": 0.584,
+        "expected_arousal": 0.55
+      }
+    },
+    {
+      "test_id": "ex_24",
+      "text": "No one really knows how scared I am about my health right now.",
+      "issues": [
+        "SECONDARY: Lonely ≠ Anxious",
+        "DOMAIN: health ≠ self"
+      ],
+      "comparison": {
+        "primary_match": true,
+        "secondary_match": false,
+        "domain_match": false,
+        "actual_primary": "Fearful",
+        "actual_secondary": "Anxious",
+        "actual_domain": "self",
+        "expected_primary": "Fearful",
+        "expected_secondary": "Lonely",
+        "expected_domain": "health",
+        "valence_delta": 0.032999999999999974,
+        "arousal_delta": 0.039000000000000035,
+        "valence_good": true,
+        "arousal_good": true,
+        "actual_valence": 0.283,
+        "expected_valence": 0.25,
+        "actual_arousal": 0.761,
+        "expected_arousal": 0.8
+      }
+    },
+    {
+      "test_id": "ex_25",
+      "text": "I studied a little but it was deeper and more focused than usual.",
+      "issues": [
+        "DOMAIN: study ≠ self"
+      ],
+      "comparison": {
+        "primary_match": true,
+        "secondary_match": true,
+        "domain_match": false,
+        "actual_primary": "Strong",
+        "actual_secondary": "Confident",
+        "actual_domain": "self",
+        "expected_primary": "Strong",
+        "expected_secondary": "Confident",
+        "expected_domain": "study",
+        "valence_delta": 0.08999999999999997,
+        "arousal_delta": 0.07799999999999996,
+        "valence_good": true,
+        "arousal_good": true,
+        "actual_valence": 0.74,
+        "expected_valence": 0.65,
+        "actual_arousal": 0.628,
+        "expected_arousal": 0.55
+      }
+    },
+    {
+      "test_id": "ex_26",
+      "text": "I feel like everyone is moving ahead in their careers and I am running in circles.",
+      "issues": [
+        "SECONDARY: Insecure ≠ Depressed",
+        "DOMAIN: work ≠ self",
+        "AROUSAL: Δ=0.205 (threshold: 0.15)"
+      ],
+      "comparison": {
+        "primary_match": true,
+        "secondary_match": false,
+        "domain_match": false,
+        "actual_primary": "Sad",
+        "actual_secondary": "Depressed",
+        "actual_domain": "self",
+        "expected_primary": "Sad",
+        "expected_secondary": "Insecure",
+        "expected_domain": "work",
+        "valence_delta": 0.024999999999999967,
+        "arousal_delta": 0.20499999999999996,
+        "valence_good": true,
+        "arousal_good": false,
+        "actual_valence": 0.275,
+        "expected_valence": 0.3,
+        "actual_arousal": 0.395,
+        "expected_arousal": 0.6
+      }
+    },
+    {
+      "test_id": "ex_27",
+      "text": "Today everyone at home sat together for tea, it was simple but nice.",
+      "issues": [
+        "SECONDARY: Content ≠ Serene",
+        "DOMAIN: family ≠ relationship"
+      ],
+      "comparison": {
+        "primary_match": true,
+        "secondary_match": false,
+        "domain_match": false,
+        "actual_primary": "Peaceful",
+        "actual_secondary": "Serene",
+        "actual_domain": "relationship",
+        "expected_primary": "Peaceful",
+        "expected_secondary": "Content",
+        "expected_domain": "family",
+        "valence_delta": 0.050000000000000044,
+        "arousal_delta": 0.03400000000000003,
+        "valence_good": true,
+        "arousal_good": true,
+        "actual_valence": 0.8,
+        "expected_valence": 0.75,
+        "actual_arousal": 0.384,
+        "expected_arousal": 0.35
+      }
+    },
+    {
+      "test_id": "ex_28",
+      "text": "I kept cancelling on my friends and now they do not invite me anymore.",
+      "issues": [
+        "SECONDARY: Rejected ≠ Lonely",
+        "AROUSAL: Δ=0.170 (threshold: 0.15)"
+      ],
+      "comparison": {
+        "primary_match": true,
+        "secondary_match": false,
+        "domain_match": true,
+        "actual_primary": "Sad",
+        "actual_secondary": "Lonely",
+        "actual_domain": "social",
+        "expected_primary": "Sad",
+        "expected_secondary": "Rejected",
+        "expected_domain": "social",
+        "valence_delta": 0.01200000000000001,
+        "arousal_delta": 0.17000000000000004,
+        "valence_good": true,
+        "arousal_good": false,
+        "actual_valence": 0.262,
+        "expected_valence": 0.25,
+        "actual_arousal": 0.38,
+        "expected_arousal": 0.55
+      }
+    },
+    {
+      "test_id": "ex_29",
+      "text": "I tried a new workout today and for once I actually enjoyed moving my body.",
+      "issues": [
+        "PRIMARY: Happy ≠ Strong",
+        "SECONDARY: Energetic ≠ Proud",
+        "DOMAIN: health ≠ work"
+      ],
+      "comparison": {
+        "primary_match": false,
+        "secondary_match": false,
+        "domain_match": false,
+        "actual_primary": "Strong",
+        "actual_secondary": "Proud",
+        "actual_domain": "work",
+        "expected_primary": "Happy",
+        "expected_secondary": "Energetic",
+        "expected_domain": "health",
+        "valence_delta": 0.05400000000000005,
+        "arousal_delta": 0.11499999999999999,
+        "valence_good": true,
+        "arousal_good": true,
+        "actual_valence": 0.746,
+        "expected_valence": 0.8,
+        "actual_arousal": 0.635,
+        "expected_arousal": 0.75
+      }
+    },
+    {
+      "test_id": "ex_30",
+      "text": "Sometimes I wonder if anyone would notice if I just stopped talking.",
+      "issues": [
+        "PRIMARY: Sad ≠ Fearful",
+        "SECONDARY: Lonely ≠ Anxious",
+        "AROUSAL: Δ=0.259 (threshold: 0.15)"
+      ],
+      "comparison": {
+        "primary_match": false,
+        "secondary_match": false,
+        "domain_match": true,
+        "actual_primary": "Fearful",
+        "actual_secondary": "Anxious",
+        "actual_domain": "self",
+        "expected_primary": "Sad",
+        "expected_secondary": "Lonely",
+        "expected_domain": "self",
+        "valence_delta": 0.138,
+        "arousal_delta": 0.259,
+        "valence_good": true,
+        "arousal_good": false,
+        "actual_valence": 0.388,
+        "expected_valence": 0.25,
+        "actual_arousal": 0.759,
+        "expected_arousal": 0.5
+      }
+    },
+    {
+      "test_id": "ex_31",
+      "text": "I asked for help at work today instead of pretending I knew everything.",
+      "issues": [
+        "SECONDARY: Courageous ≠ Proud"
+      ],
+      "comparison": {
+        "primary_match": true,
+        "secondary_match": false,
+        "domain_match": true,
+        "actual_primary": "Strong",
+        "actual_secondary": "Proud",
+        "actual_domain": "work",
+        "expected_primary": "Strong",
+        "expected_secondary": "Courageous",
+        "expected_domain": "work",
+        "valence_delta": 0.10300000000000009,
+        "arousal_delta": 0.04800000000000004,
+        "valence_good": true,
+        "arousal_good": true,
+        "actual_valence": 0.803,
+        "expected_valence": 0.7,
+        "actual_arousal": 0.648,
+        "expected_arousal": 0.6
+      }
+    },
+    {
+      "test_id": "ex_32",
+      "text": "We had a silly fight over nothing and now everything feels tense at home.",
+      "issues": [
+        "PRIMARY: Angry ≠ Fearful",
+        "SECONDARY: Frustrated ≠ Anxious"
+      ],
+      "comparison": {
+        "primary_match": false,
+        "secondary_match": false,
+        "domain_match": true,
+        "actual_primary": "Fearful",
+        "actual_secondary": "Anxious",
+        "actual_domain": "family",
+        "expected_primary": "Angry",
+        "expected_secondary": "Frustrated",
+        "expected_domain": "family",
+        "valence_delta": 0.030999999999999972,
+        "arousal_delta": 0.013000000000000012,
+        "valence_good": true,
+        "arousal_good": true,
+        "actual_valence": 0.319,
+        "expected_valence": 0.35,
+        "actual_arousal": 0.763,
+        "expected_arousal": 0.75
+      }
+    },
+    {
+      "test_id": "ex_33",
+      "text": "Every notification sound makes me think it is them, and it is never them.",
+      "issues": [
+        "PRIMARY: Fearful ≠ Strong",
+        "SECONDARY: Anxious ≠ Proud",
+        "DOMAIN: relationship ≠ self",
+        "VALENCE: Δ=0.512 (threshold: 0.15)",
+        "AROUSAL: Δ=0.194 (threshold: 0.15)"
+      ],
+      "comparison": {
+        "primary_match": false,
+        "secondary_match": false,
+        "domain_match": false,
+        "actual_primary": "Strong",
+        "actual_secondary": "Proud",
+        "actual_domain": "self",
+        "expected_primary": "Fearful",
+        "expected_secondary": "Anxious",
+        "expected_domain": "relationship",
+        "valence_delta": 0.512,
+        "arousal_delta": 0.19399999999999995,
+        "valence_good": false,
+        "arousal_good": false,
+        "actual_valence": 0.812,
+        "expected_valence": 0.3,
+        "actual_arousal": 0.656,
+        "expected_arousal": 0.85
+      }
+    },
+    {
+      "test_id": "ex_34",
+      "text": "I gave my friend honest advice and they thanked me for being real.",
+      "issues": [
+        "SECONDARY: Confident ≠ Respected",
+        "DOMAIN: social ≠ self"
+      ],
+      "comparison": {
+        "primary_match": true,
+        "secondary_match": false,
+        "domain_match": false,
+        "actual_primary": "Strong",
+        "actual_secondary": "Respected",
+        "actual_domain": "self",
+        "expected_primary": "Strong",
+        "expected_secondary": "Confident",
+        "expected_domain": "social",
+        "valence_delta": 0.040000000000000036,
+        "arousal_delta": 0.03500000000000003,
+        "valence_good": true,
+        "arousal_good": true,
+        "actual_valence": 0.79,
+        "expected_valence": 0.75,
+        "actual_arousal": 0.635,
+        "expected_arousal": 0.6
+      }
+    },
+    {
+      "test_id": "ex_35",
+      "text": "I zoned out in the lecture and now I have no idea what is going on in this course.",
+      "issues": [
+        "PRIMARY: Sad ≠ Fearful",
+        "SECONDARY: Disappointed ≠ Anxious",
+        "AROUSAL: Δ=0.200 (threshold: 0.15)"
+      ],
+      "comparison": {
+        "primary_match": false,
+        "secondary_match": false,
+        "domain_match": true,
+        "actual_primary": "Fearful",
+        "actual_secondary": "Anxious",
+        "actual_domain": "study",
+        "expected_primary": "Sad",
+        "expected_secondary": "Disappointed",
+        "expected_domain": "study",
+        "valence_delta": 0.045999999999999985,
+        "arousal_delta": 0.19999999999999996,
+        "valence_good": true,
+        "arousal_good": false,
+        "actual_valence": 0.304,
+        "expected_valence": 0.35,
+        "actual_arousal": 0.75,
+        "expected_arousal": 0.55
+      }
+    },
+    {
+      "test_id": "ex_36",
+      "text": "My salary came and within two days half of it was gone.",
+      "issues": [
+        "SECONDARY: Disappointed ≠ Depressed",
+        "AROUSAL: Δ=0.220 (threshold: 0.15)"
+      ],
+      "comparison": {
+        "primary_match": true,
+        "secondary_match": false,
+        "domain_match": true,
+        "actual_primary": "Sad",
+        "actual_secondary": "Depressed",
+        "actual_domain": "money",
+        "expected_primary": "Sad",
+        "expected_secondary": "Disappointed",
+        "expected_domain": "money",
+        "valence_delta": 0.08799999999999997,
+        "arousal_delta": 0.21999999999999997,
+        "valence_good": true,
+        "arousal_good": false,
+        "actual_valence": 0.262,
+        "expected_valence": 0.35,
+        "actual_arousal": 0.38,
+        "expected_arousal": 0.6
+      }
+    },
+    {
+      "test_id": "ex_38",
+      "text": "We spent the whole evening just walking and talking, without phones.",
+      "issues": [
+        "SECONDARY: Loving ≠ Serene",
+        "DOMAIN: relationship ≠ self"
+      ],
+      "comparison": {
+        "primary_match": true,
+        "secondary_match": false,
+        "domain_match": false,
+        "actual_primary": "Peaceful",
+        "actual_secondary": "Serene",
+        "actual_domain": "self",
+        "expected_primary": "Peaceful",
+        "expected_secondary": "Loving",
+        "expected_domain": "relationship",
+        "valence_delta": 0.10399999999999998,
+        "arousal_delta": 0.030000000000000027,
+        "valence_good": true,
+        "arousal_good": true,
+        "actual_valence": 0.746,
+        "expected_valence": 0.85,
+        "actual_arousal": 0.37,
+        "expected_arousal": 0.4
+      }
+    },
+    {
+      "test_id": "ex_39",
+      "text": "I joked about something serious and now I am not sure if I hurt them.",
+      "issues": [
+        "SECONDARY: Anxious ≠ Insecure",
+        "DOMAIN: social ≠ self"
+      ],
+      "comparison": {
+        "primary_match": true,
+        "secondary_match": false,
+        "domain_match": false,
+        "actual_primary": "Fearful",
+        "actual_secondary": "Insecure",
+        "actual_domain": "self",
+        "expected_primary": "Fearful",
+        "expected_secondary": "Anxious",
+        "expected_domain": "social",
+        "valence_delta": 0.119,
+        "arousal_delta": 0.05900000000000005,
+        "valence_good": true,
+        "arousal_good": true,
+        "actual_valence": 0.281,
+        "expected_valence": 0.4,
+        "actual_arousal": 0.759,
+        "expected_arousal": 0.7
+      }
+    },
+    {
+      "test_id": "ex_40",
+      "text": "I finally booked the health checkup I have been avoiding for months.",
+      "issues": [
+        "SECONDARY: Courageous ≠ Hopeful",
+        "DOMAIN: health ≠ self"
+      ],
+      "comparison": {
+        "primary_match": true,
+        "secondary_match": false,
+        "domain_match": false,
+        "actual_primary": "Strong",
+        "actual_secondary": "Hopeful",
+        "actual_domain": "self",
+        "expected_primary": "Strong",
+        "expected_secondary": "Courageous",
+        "expected_domain": "health",
+        "valence_delta": 0.09599999999999997,
+        "arousal_delta": 0.03500000000000003,
+        "valence_good": true,
+        "arousal_good": true,
+        "actual_valence": 0.746,
+        "expected_valence": 0.65,
+        "actual_arousal": 0.635,
+        "expected_arousal": 0.6
+      }
+    },
+    {
+      "test_id": "ex_41",
+      "text": "Last night I cried so much that my eyes were swollen in the morning.",
+      "issues": [
+        "AROUSAL: Δ=0.310 (threshold: 0.15)"
+      ],
+      "comparison": {
+        "primary_match": true,
+        "secondary_match": true,
+        "domain_match": true,
+        "actual_primary": "Sad",
+        "actual_secondary": "Depressed",
+        "actual_domain": "self",
+        "expected_primary": "Sad",
+        "expected_secondary": "Depressed",
+        "expected_domain": "self",
+        "valence_delta": 0.12100000000000002,
+        "arousal_delta": 0.30999999999999994,
+        "valence_good": true,
+        "arousal_good": false,
+        "actual_valence": 0.271,
+        "expected_valence": 0.15,
+        "actual_arousal": 0.39,
+        "expected_arousal": 0.7
+      }
+    },
+    {
+      "test_id": "ex_42",
+      "text": "My sibling randomly sent me an old photo of us and it made my whole day.",
+      "issues": [
+        "SECONDARY: Loving ≠ Optimistic"
+      ],
+      "comparison": {
+        "primary_match": true,
+        "secondary_match": false,
+        "domain_match": true,
+        "actual_primary": "Happy",
+        "actual_secondary": "Optimistic",
+        "actual_domain": "family",
+        "expected_primary": "Happy",
+        "expected_secondary": "Loving",
+        "expected_domain": "family",
+        "valence_delta": 0.010000000000000009,
+        "arousal_delta": 0.025000000000000022,
+        "valence_good": true,
+        "arousal_good": true,
+        "actual_valence": 0.86,
+        "expected_valence": 0.85,
+        "actual_arousal": 0.575,
+        "expected_arousal": 0.6
+      }
+    },
+    {
+      "test_id": "ex_43",
+      "text": "I kept refreshing my email all day waiting for that one response.",
+      "issues": [
+        "PRIMARY: Fearful ≠ Strong",
+        "SECONDARY: Anxious ≠ Hopeful",
+        "VALENCE: Δ=0.396 (threshold: 0.15)",
+        "AROUSAL: Δ=0.215 (threshold: 0.15)"
+      ],
+      "comparison": {
+        "primary_match": false,
+        "secondary_match": false,
+        "domain_match": true,
+        "actual_primary": "Strong",
+        "actual_secondary": "Hopeful",
+        "actual_domain": "work",
+        "expected_primary": "Fearful",
+        "expected_secondary": "Anxious",
+        "expected_domain": "work",
+        "valence_delta": 0.396,
+        "arousal_delta": 0.21499999999999997,
+        "valence_good": false,
+        "arousal_good": false,
+        "actual_valence": 0.746,
+        "expected_valence": 0.35,
+        "actual_arousal": 0.635,
+        "expected_arousal": 0.85
+      }
+    },
+    {
+      "test_id": "ex_44",
+      "text": "I tried explaining how I feel to my parents but they said I am overthinking.",
+      "issues": [
+        "PRIMARY: Sad ≠ Strong",
+        "SECONDARY: Rejected ≠ Proud",
+        "DOMAIN: family ≠ self",
+        "VALENCE: Δ=0.490 (threshold: 0.15)"
+      ],
+      "comparison": {
+        "primary_match": false,
+        "secondary_match": false,
+        "domain_match": false,
+        "actual_primary": "Strong",
+        "actual_secondary": "Proud",
+        "actual_domain": "self",
+        "expected_primary": "Sad",
+        "expected_secondary": "Rejected",
+        "expected_domain": "family",
+        "valence_delta": 0.49000000000000005,
+        "arousal_delta": 0.015000000000000013,
+        "valence_good": false,
+        "arousal_good": true,
+        "actual_valence": 0.79,
+        "expected_valence": 0.3,
+        "actual_arousal": 0.635,
+        "expected_arousal": 0.65
+      }
+    },
+    {
+      "test_id": "ex_45",
+      "text": "For the first time in weeks I slept without waking up in the middle of the night.",
+      "issues": [
+        "SECONDARY: Content ≠ Grateful",
+        "DOMAIN: health ≠ self"
+      ],
+      "comparison": {
+        "primary_match": true,
+        "secondary_match": false,
+        "domain_match": false,
+        "actual_primary": "Peaceful",
+        "actual_secondary": "Grateful",
+        "actual_domain": "self",
+        "expected_primary": "Peaceful",
+        "expected_secondary": "Content",
+        "expected_domain": "health",
+        "valence_delta": 0.010000000000000009,
+        "arousal_delta": 0.07,
+        "valence_good": true,
+        "arousal_good": true,
+        "actual_valence": 0.79,
+        "expected_valence": 0.8,
+        "actual_arousal": 0.37,
+        "expected_arousal": 0.3
+      }
+    },
+    {
+      "test_id": "ex_47",
+      "text": "I feel like I am always the one who has to initiate plans.",
+      "issues": [
+        "PRIMARY: Sad ≠ Strong",
+        "SECONDARY: Resentful ≠ Hopeful",
+        "DOMAIN: social ≠ self",
+        "VALENCE: Δ=0.396 (threshold: 0.15)"
+      ],
+      "comparison": {
+        "primary_match": false,
+        "secondary_match": false,
+        "domain_match": false,
+        "actual_primary": "Strong",
+        "actual_secondary": "Hopeful",
+        "actual_domain": "self",
+        "expected_primary": "Sad",
+        "expected_secondary": "Resentful",
+        "expected_domain": "social",
+        "valence_delta": 0.396,
+        "arousal_delta": 0.03500000000000003,
+        "valence_good": false,
+        "arousal_good": true,
+        "actual_valence": 0.746,
+        "expected_valence": 0.35,
+        "actual_arousal": 0.635,
+        "expected_arousal": 0.6
+      }
+    },
+    {
+      "test_id": "ex_48",
+      "text": "I feel like I judge myself more than anyone else.",
+      "issues": [
+        "PRIMARY: Angry ≠ Strong",
+        "SECONDARY: Critical ≠ Proud",
+        "VALENCE: Δ=0.490 (threshold: 0.15)"
+      ],
+      "comparison": {
+        "primary_match": false,
+        "secondary_match": false,
+        "domain_match": true,
+        "actual_primary": "Strong",
+        "actual_secondary": "Proud",
+        "actual_domain": "self",
+        "expected_primary": "Angry",
+        "expected_secondary": "Critical",
+        "expected_domain": "self",
+        "valence_delta": 0.49000000000000005,
+        "arousal_delta": 0.015000000000000013,
+        "valence_good": false,
+        "arousal_good": true,
+        "actual_valence": 0.79,
+        "expected_valence": 0.3,
+        "actual_arousal": 0.635,
+        "expected_arousal": 0.65
+      }
+    },
+    {
+      "test_id": "ex_49",
+      "text": "I enjoyed studying today, it felt like my brain was waking up again.",
+      "issues": [
+        "SECONDARY: Interested ≠ Optimistic"
+      ],
+      "comparison": {
+        "primary_match": true,
+        "secondary_match": false,
+        "domain_match": true,
+        "actual_primary": "Happy",
+        "actual_secondary": "Optimistic",
+        "actual_domain": "study",
+        "expected_primary": "Happy",
+        "expected_secondary": "Interested",
+        "expected_domain": "study",
+        "valence_delta": 0.006000000000000005,
+        "arousal_delta": 0.07500000000000007,
+        "valence_good": true,
+        "arousal_good": true,
+        "actual_valence": 0.806,
+        "expected_valence": 0.8,
+        "actual_arousal": 0.575,
+        "expected_arousal": 0.65
+      }
+    },
+    {
+      "test_id": "ex_50",
+      "text": "Right now, things are not amazing but also not terrible, just okay.",
+      "issues": [
+        "SECONDARY: Content ≠ Loving",
+        "VALENCE: Δ=0.197 (threshold: 0.15)"
+      ],
+      "comparison": {
+        "primary_match": true,
+        "secondary_match": false,
+        "domain_match": true,
+        "actual_primary": "Peaceful",
+        "actual_secondary": "Loving",
+        "actual_domain": "self",
+        "expected_primary": "Peaceful",
+        "expected_secondary": "Content",
+        "expected_domain": "self",
+        "valence_delta": 0.19700000000000006,
+        "arousal_delta": 0.02100000000000002,
+        "valence_good": false,
+        "arousal_good": true,
+        "actual_valence": 0.797,
+        "expected_valence": 0.6,
+        "actual_arousal": 0.379,
+        "expected_arousal": 0.4
+      }
+    }
+  ]
+}

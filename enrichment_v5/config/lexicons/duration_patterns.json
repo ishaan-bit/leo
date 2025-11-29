@@ -1,0 +1,8 @@
+{
+  "regexes": [
+    "\\b(\\d+)\\s*(minutes?|mins?|hours?|hrs?|days?)\\b",
+    "\\b(\\d{1,2}):(\\d{2})\\b",
+    "\\b(\\d+)\\s*(mins?)\\s*late\\b"
+  ],
+  "lateness_weight": 0.4
+}
