@@ -42,7 +42,8 @@ export default function QDMomentPage() {
   useEffect(() => {
     async function fetchSharedMoment() {
       try {
-        const response = await fetch(`/api/share/${momentId}`);
+        // Pass lang to API so it returns localized content
+        const response = await fetch(`/api/share/${momentId}?lang=${lang}`);
         if (!response.ok) {
           throw new Error('Moment not found');
         }
@@ -56,7 +57,7 @@ export default function QDMomentPage() {
     }
 
     fetchSharedMoment();
-  }, [momentId]);
+  }, [momentId, lang]);
 
   if (loading) {
     return (

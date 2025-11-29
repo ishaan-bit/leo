@@ -10,7 +10,7 @@ export async function POST(
 
   try {
     const body = await request.json();
-    const { text, invoked, expressed, poems } = body;
+    const { text, invoked, expressed, poem } = body;
 
     console.log('[Translation API] Saving translation for:', momentId);
 
@@ -34,7 +34,7 @@ export async function POST(
       text,
       invoked,
       expressed,
-      poems,
+      poem, // Singular poem string
     };
 
     // Save back to Redis
