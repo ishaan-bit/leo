@@ -71,10 +71,15 @@ export default function GuestNamePigPage() {
 
       const data = await res.json();
 
-      // Save locally for confirmed page
+      // CRITICAL: Sync localStorage with server's session ID
+      // The server uses __Host-leo_sid cookie, but client-side code reads leo_guest_uid
+      // Extract UUID from pigId (format: sid_XXXXXXXX)
+      const serverUuid = data.pigId.replace('sid_', '');
+      localStorage.setItem('leo_guest_uid', serverUuid);
+      localStorage.setItem('guestSessionId', serverUuid); // Legacy key
       localStorage.setItem('leo_pig_name_local', pigName.trim());
 
-      console.log('[Guest] Pig created:', pigName.trim(), 'pigId:', data.pigId);
+      console.log('[Guest] Pig created:', pigName.trim(), 'pigId:', data.pigId, 'synced UUID:', serverUuid);
       
       // Show confetti celebration
       setShowConfetti(true);

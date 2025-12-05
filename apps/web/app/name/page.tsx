@@ -161,10 +161,17 @@ export default function NamePage() {
           return;
         }
 
-        // Save locally
+        const data = await res.json();
+
+        // CRITICAL: Sync localStorage with server's session ID
+        // The server uses __Host-leo_sid cookie, but client-side code reads leo_guest_uid
+        // Extract UUID from pigId (format: sid_XXXXXXXX)
+        const serverUuid = data.pigId.replace('sid_', '');
+        localStorage.setItem('leo_guest_uid', serverUuid);
+        localStorage.setItem('guestSessionId', serverUuid); // Legacy key
         localStorage.setItem('leo_pig_name_local', pigName.trim());
 
-        console.log('[Name] Guest pig created:', pigName.trim());
+        console.log('[Name] Guest pig created:', pigName.trim(), 'synced UUID:', serverUuid);
         
         // Show confetti celebration
         playChimeSound();
@@ -176,9 +183,11 @@ export default function NamePage() {
           setShowSettle(true);
           console.log('[Name] 🎯 Guest settle screen should now be visible (showSettle=true)');
           setTimeout(() => {
-            console.log('[Name] ➡️ Redirecting guest to /reflect/', pigName.trim());
+            // Use the correct pigId format for the reflect route
+            const guestPigId = `sid_${serverUuid}`;
+            console.log('[Name] ➡️ Redirecting guest to /reflect/', guestPigId);
             // Redirect to guest flow
-            router.push(`/reflect/${pigName.trim()}`);
+            router.push(`/reflect/${guestPigId}`);
           }, 5000);
         }, 2000);
       }
